@@ -107,7 +107,7 @@ impl FileMetadata {
         let message_id = msg.id;
 
         let attachments = &msg.attachments;
-        if !attachments.is_empty() {
+        if event::message::is_attachment(msg) {
             for (index, attachment) in attachments.iter().enumerate() {
                 let metadata_read_res =
                     Self::read_attachment_metadata(index, attachment, &mut metadata).await;
@@ -118,8 +118,8 @@ impl FileMetadata {
                         let mut file_name = attachment.filename.as_str();
                         file_name = file_name.split(".").collect::<Vec<&str>>()[0];
 
-                        let mut embed;
-                        embed = embed::create_embed_for_metadata(file_name.to_string(), 0x5D67F6);
+                        let mut embed =
+                            embed::create_embed_for_metadata(file_name.to_string(), 0x5D67F6);
 
                         Self::format_attachment_metadata(&metadata, &mut embed);
 
@@ -131,6 +131,7 @@ impl FileMetadata {
 
         if metadata_read_res_ok {
             let mag_right = ReactionType::Unicode("🔎".to_string());
+
             event::reaction_add::add_reaction_to_message(
                 http.clone(),
                 channel_id,
