@@ -1,0 +1,156 @@
+use crate::util::uses::*;
+
+#[derive(Default)]
+pub struct FileMetadata {
+    title: String,
+    software: String,
+    prompt: String,
+    negative_prompt: String,
+    sampler: String,
+    seed: i32,
+    steps: usize,
+    cfg_scale: f32,
+    model_hash: String,
+}
+
+impl IntoIterator for FileMetadata {
+    type Item = (String, String);
+    type IntoIter = std::collections::hash_map::IntoIter<String, String>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        let mut map = HashMap::new();
+        map.insert("title".to_string(), self.title);
+        map.insert("software".to_string(), self.software);
+        map.insert("prompt".to_string(), self.prompt);
+        map.insert("negative_prompt".to_string(), self.negative_prompt);
+        map.insert("sampler".to_string(), self.sampler);
+        map.insert("seed".to_string(), self.seed.to_string());
+        map.insert("steps".to_string(), self.steps.to_string());
+        map.insert("cfg_scale".to_string(), self.cfg_scale.to_string());
+        map.insert("model_hash".to_string(), self.model_hash);
+        map.into_iter()
+    }
+}
+
+impl FileMetadata {
+    fn new(json: HashMap<String, String>) -> Self {
+        let title = json.get("title").unwrap();
+        let software = json.get("software").unwrap();
+        let source = json.get("source").unwrap();
+
+        let comment = json.get("comment").unwrap();
+        let comment_json =
+            serde_json::from_str::<HashMap<String, serde_json::Value>>(comment).unwrap();
+        let prompt = comment_json.get("prompt").unwrap();
+        let uc = comment_json.get("uc").unwrap();
+        let sampler = comment_json.get("sampler").unwrap();
+        let seed = comment_json.get("seed").unwrap();
+        let steps = comment_json.get("steps").unwrap();
+        let cfg_scale = comment_json.get("scale").unwrap();
+
+        Self {
+            title: title.to_string(),
+            software: software.to_string(),
+            prompt: prompt.to_string(),
+            negative_prompt: uc.to_string(),
+            sampler: sampler.to_string(),
+            seed: seed.to_string().parse::<i32>().unwrap(),
+            steps: steps.to_string().parse::<usize>().unwrap(),
+            cfg_scale: cfg_scale.to_string().parse::<f32>().unwrap(),
+            model_hash: source.to_string(),
+        }
+    }
+
+    pub async fn read(
+        mut index: usize,
+        attachment: &Attachment,
+        map: &mut HashMap<usize, String>,
+    ) -> Result<(), Box<dyn error::Error>> {
+        let bytes = attachment.download().await?;
+
+        let png = decode_png(bytes)?;
+
+        let metadata_string = metadata_string(png);
+        let metadata_json = strings::str_to_json(&metadata_string);
+        let file_metadata = Self::new(metadata_json);
+
+        insert_into_map(&mut index, file_metadata, map);
+
+        Ok(())
+    }
+}
+
+fn decode_png(bytes: Vec<u8>) -> Result<Vec<(String, String)>, Box<dyn error::Error>> {
+    let mut reader = BufReader::new(&bytes[..]);
+
+    let mut png = Vec::new();
+    reader.read_to_end(&mut png)?;
+
+    let mut decoder = Decoder::new(&*png);
+    decoder.set_transformations(Transformations::IDENTITY);
+
+    let reader = match decoder.read_info() {
+        Ok(reader) => reader,
+        Err(err) => {
+            println!("Error: {}", err);
+            return Ok(Vec::new());
+        }
+    };
+
+    let png_info = reader.info();
+    let png_metadata = metadata_text(png_info);
+    Ok(png_metadata)
+}
+
+fn metadata_text(info: &Info<'_>) -> Vec<(String, String)> {
+    let mut metadata_text = Vec::new();
+
+    if !info.compressed_latin1_text.is_empty() {
+        for text in &info.compressed_latin1_text {
+            metadata_text.push((text.keyword.clone(), text.get_text().unwrap()))
+        }
+    }
+    if !info.uncompressed_latin1_text.is_empty() {
+        for text in &info.uncompressed_latin1_text {
+            metadata_text.push((text.keyword.clone(), text.text.clone()))
+        }
+    }
+    if !info.utf8_text.is_empty() {
+        for text in &info.utf8_text {
+            metadata_text.push((text.keyword.clone(), text.get_text().unwrap()))
+        }
+    }
+
+    metadata_text
+}
+
+fn metadata_string(vector: Vec<(String, String)>) -> String {
+    let mut metadata_string = String::new();
+
+    let metadata_keys = vec!["title", "software", "source", "comment"];
+    let comment_keys = vec!["prompt", "uc", "sampler", "seed", "steps", "scale"];
+
+    for (key, value) in vector {
+        let key = key.to_lowercase();
+
+        if metadata_keys.contains(&key.as_str()) {
+            metadata_string.push_str(&format!("{key}:{value}\n"));
+        } else if comment_keys.contains(&key.as_str()) {
+            metadata_string.push_str(&format!("{key}:{value}\n"));
+        }
+    }
+
+    metadata_string
+}
+
+fn insert_into_map(
+    index: &mut usize,
+    file_metadata: FileMetadata,
+    map: &mut HashMap<usize, String>,
+) {
+    for (key, value) in file_metadata.into_iter() {
+        *index += 1;
+
+        map.insert(*index, format!("{}: {}", key, value));
+    }
+}
