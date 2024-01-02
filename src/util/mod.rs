@@ -1,3 +1,8 @@
+pub mod files;
+pub mod settings;
+pub mod strings;
+pub mod uses;
+
 /**
  * Copyright (C) 2024 Kasutaja
  *
@@ -14,11 +19,6 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
  */
-pub mod files;
-pub mod settings;
-pub mod strings;
-pub mod uses;
-
 use crate::util::uses::*;
 
 lazy_static::lazy_static! {
