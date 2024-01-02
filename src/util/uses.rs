@@ -24,6 +24,7 @@ pub use crate::util::files;
 pub use crate::util::settings::Settings;
 pub use crate::util::strings;
 pub use chrono::{Duration, NaiveDate};
+pub use futures_util::StreamExt;
 pub use linked_hash_map::LinkedHashMap;
 pub use png::{Decoder, Info, Transformations};
 pub use poise::async_trait;
@@ -34,7 +35,9 @@ pub use poise::serenity_prelude::{
     GatewayIntents, GuildId, Http, Message, MessageBuilder, MessageId, Permissions, Reaction,
     ReactionType, Ready, User, UserId,
 };
-pub use poise::{ApplicationContext, CreateReply, Framework, FrameworkError, FrameworkOptions};
+pub use poise::{
+    ApplicationContext, CreateReply, Framework, FrameworkContext, FrameworkError, FrameworkOptions,
+};
 pub use serde::{Deserialize, Serialize};
 pub use serde_json::Map;
 pub use std::env;
