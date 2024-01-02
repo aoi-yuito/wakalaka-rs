@@ -16,50 +16,36 @@
  */
 use crate::util::uses::*;
 
-pub async fn message(ctx: &Context, msg: &Message) -> Result<(), crate::Error> {
+pub fn is_message_embed(msg: &Message) -> bool {
+    !msg.embeds.is_empty()
+}
+
+pub async fn on_message(ctx: &Context, msg: &Message) -> Result<(), crate::Error> {
     let http = ctx.http.clone();
 
-    read_image_attachment_metadata(http, msg).await;
+    let message = FileMetadata::attachment_metadata_message(http, msg).await;
 
     Ok(())
 }
 
-async fn read_image_attachment_metadata(http: Arc<Http>, msg: &Message) {
-    let attachments = &msg.attachments;
-    if !attachments.is_empty() {
-        let mut metadata = HashMap::new();
+pub async fn send_dm(
+    http: Arc<Http>,
+    user_id: UserId,
+    s: &str,
+) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    let dm_channel = user_id.create_dm_channel(&http).await?;
+    dm_channel.say(&http, s).await?;
 
-        for (index, attachment) in attachments.iter().enumerate() {
-            FileMetadata::read(index, attachment, &mut metadata)
-                .await
-                .expect("Failed to read metadata");
-        }
-
-        let channel_id = msg.channel_id;
-        let message_id = msg.id;
-
-        add_reaction_to_message(
-            http,
-            channel_id,
-            message_id,
-            ReactionType::Unicode("🔎".to_string()),
-        )
-        .await;
-    }
+    Ok(())
 }
 
-async fn add_reaction_to_message(
+pub async fn send_embed_to_dm(
     http: Arc<Http>,
-    channel_id: ChannelId,
-    message_id: MessageId,
-    reaction: ReactionType,
-) {
-    let message = http
-        .get_message(channel_id, message_id)
-        .await
-        .expect("Failed to get message");
-    message
-        .react(&http, reaction)
-        .await
-        .expect("Failed to react to message");
+    user_id: UserId,
+    message: CreateMessage,
+) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    let dm_channel = user_id.create_dm_channel(&http).await?;
+    dm_channel.send_message(&http, message).await?;
+
+    Ok(())
 }
