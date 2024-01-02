@@ -33,8 +33,8 @@ pub async fn main() {
 
     let settings = match Settings::new() {
         Ok(settings) => settings,
-        Err(err) => {
-            eprintln!("Error: {}", err);
+        Err(e) => {
+            eprintln!("Error: {e}");
             process::exit(1);
         }
     };
