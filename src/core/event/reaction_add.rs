@@ -22,7 +22,19 @@ pub async fn on_reaction_add(
 ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let http = ctx.http.clone();
 
-    Ok(())
+    let settings = Settings::read_settings().unwrap();
+
+    let mag_right = ReactionType::Unicode("🔎".to_string());
+
+    event::message::send_dm_if_embed_attachment_raw(
+        reaction,
+        settings.metadata_channel_id,
+        http,
+        ctx,
+        mag_right,
+        "testing",
+    )
+    .await
 }
 
 pub async fn add_reaction_to_message(
