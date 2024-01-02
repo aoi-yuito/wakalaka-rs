@@ -16,7 +16,6 @@
  */
 use crate::util::uses::*;
 
-#[derive(Default)]
 pub struct FileMetadata {
     title: String,
     software: String,
@@ -27,6 +26,22 @@ pub struct FileMetadata {
     steps: usize,
     cfg_scale: f32,
     model_hash: String,
+}
+
+impl Default for FileMetadata {
+    fn default() -> Self {
+        Self {
+            title: String::from("Unknown"),
+            software: String::from("Unknown"),
+            prompt: String::from("Unknown"),
+            negative_prompt: String::from("Unknown"),
+            sampler: String::from("Unknown"),
+            seed: -1,
+            steps: 0,
+            cfg_scale: -1.0,
+            model_hash: String::from("Unknown"),
+        }
+    }
 }
 
 impl IntoIterator for FileMetadata {
