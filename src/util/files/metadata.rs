@@ -46,10 +46,10 @@ impl Default for FileMetadata {
 
 impl IntoIterator for FileMetadata {
     type Item = (String, String);
-    type IntoIter = std::collections::hash_map::IntoIter<String, String>;
+    type IntoIter = linked_hash_map::IntoIter<String, String>;
 
-    fn into_iter(self) -> Self::IntoIter {
-        let mut map = HashMap::new();
+    fn into_iter(self) -> linked_hash_map::IntoIter<String, String> {
+        let mut map = LinkedHashMap::new();
         map.insert("title".to_string(), self.title);
         map.insert("software".to_string(), self.software);
         map.insert("prompt".to_string(), self.prompt);
@@ -64,14 +64,14 @@ impl IntoIterator for FileMetadata {
 }
 
 impl FileMetadata {
-    fn new(json: HashMap<String, String>) -> Self {
+    fn new(json: LinkedHashMap<String, String>) -> Self {
         let title = json.get("title").unwrap();
         let software = json.get("software").unwrap();
         let source = json.get("source").unwrap();
 
         let comment = json.get("comment").unwrap();
         let comment_json =
-            serde_json::from_str::<HashMap<String, serde_json::Value>>(comment).unwrap();
+            serde_json::from_str::<LinkedHashMap<String, serde_json::Value>>(comment).unwrap();
         let prompt = comment_json.get("prompt").unwrap();
         let uc = comment_json.get("uc").unwrap();
         let sampler = comment_json.get("sampler").unwrap();
@@ -92,10 +92,10 @@ impl FileMetadata {
         }
     }
 
-    pub async fn read(
+    pub async fn read_metadata(
         mut index: usize,
         attachment: &Attachment,
-        map: &mut HashMap<usize, String>,
+        map: &mut LinkedHashMap<usize, String>,
     ) -> Result<(), Box<dyn error::Error>> {
         let bytes = attachment.download().await?;
 
@@ -108,6 +108,70 @@ impl FileMetadata {
         insert_into_map(&mut index, file_metadata, map);
 
         Ok(())
+    }
+
+    pub async fn attachment_metadata_message(http: Arc<Http>, msg: &Message) {
+        let mut metadata_ok = false;
+
+        let mut message = CreateMessage::default();
+
+        let attachments = &msg.attachments;
+        if !attachments.is_empty() {
+            let mut metadata = LinkedHashMap::new();
+
+            for (index, attachment) in attachments.iter().enumerate() {
+                let metadata_read_res = Self::read_metadata(index, attachment, &mut metadata).await;
+
+                metadata_ok = metadata_read_res.is_ok();
+                if metadata_ok {
+                    for attachment in attachments {
+                        let mut file_name = attachment.filename.as_str();
+                        file_name = file_name.split(".").collect::<Vec<&str>>()[0];
+
+                        let mut embed;
+                        embed = embed::create_embed_for_metadata(file_name.to_string(), 0x5D67F6);
+
+                        Self::format_metadata(&metadata, &mut embed);
+
+                        message = message.embed(embed);
+                    }
+                }
+            }
+
+            if metadata_ok {
+                let channel_id = msg.channel_id;
+                let message_id = msg.id;
+                let mag_right = ReactionType::Unicode("🔎".to_string());
+
+                event::reaction_add::add_reaction_to_message(
+                    http.clone(),
+                    channel_id,
+                    message_id,
+                    mag_right,
+                )
+                .await;
+            }
+        }
+    }
+
+    fn format_metadata(map: &LinkedHashMap<usize, String>, embed: &mut CreateEmbed) {
+        for (_, value) in map.iter() {
+            let cloned_embed = embed.clone();
+
+            let key = format!("**{}**", value.split(":").collect::<Vec<&str>>()[0]);
+            let mut new_value = value.split(":").collect::<Vec<&str>>()[1].to_string();
+            new_value = new_value.replace("\\n", "\n").replace("\"", "");
+
+            if key == "**title**" {
+                *embed = cloned_embed.clone().description(new_value);
+                continue;
+            }
+
+            let metadata = cloned_embed
+                .clone()
+                .field(key.to_uppercase(), new_value, false);
+            *embed = metadata;
+        }
     }
 }
 
@@ -177,7 +241,7 @@ fn metadata_string(vector: Vec<(String, String)>) -> String {
 fn insert_into_map(
     index: &mut usize,
     file_metadata: FileMetadata,
-    map: &mut HashMap<usize, String>,
+    map: &mut LinkedHashMap<usize, String>,
 ) {
     for (key, value) in file_metadata.into_iter() {
         *index += 1;
