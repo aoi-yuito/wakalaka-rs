@@ -18,8 +18,8 @@ use crate::util::uses::*;
 
 pub async fn setup_framework_options() -> FrameworkOptions<crate::Data, crate::Error> {
     let options = FrameworkOptions {
-        commands: vec![crate::booru::aibooru::aibooru()],
-        on_error: |error| Box::pin(event::on_error(error)),
+        commands: vec![crate::booru::aibooru::aibooru(), crate::core::help()],
+        on_error: |error| Box::pin(crate::event::error::on_error(error)),
         pre_command: |ctx| {
             Box::pin(async move {
                 println!("Executing command '{}'...", ctx.command().qualified_name);
@@ -31,6 +31,7 @@ pub async fn setup_framework_options() -> FrameworkOptions<crate::Data, crate::E
         },
         ..Default::default()
     };
+
     options
 }
 
