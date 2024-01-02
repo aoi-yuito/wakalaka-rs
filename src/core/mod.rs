@@ -1,3 +1,7 @@
+pub mod embed;
+pub mod event;
+pub mod framework;
+
 /**
  * Copyright (C) 2024 Kasutaja
  *
@@ -14,6 +18,21 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
  */
-pub mod embed;
-pub mod event;
-pub mod framework;
+use crate::util::uses::*;
+
+#[poise::command(slash_command)]
+pub async fn help(
+    ctx: crate::Context<'_>,
+    #[description = "The command to get help for"] command: Option<String>,
+) -> Result<(), crate::Error> {
+    builtins::help(
+        ctx,
+        command.as_deref(),
+        poise::builtins::HelpConfiguration {
+            extra_text_at_bottom: "This is an example bot made to showcase features of my custom Discord bot framework",
+            ..Default::default()
+        },
+    ).await?;
+
+    Ok(())
+}
