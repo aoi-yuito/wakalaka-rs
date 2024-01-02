@@ -17,24 +17,10 @@
 use crate::util::uses::*;
 
 pub async fn on_reaction_add(
-    ctx: &Context,
-    reaction: Reaction,
+    _ctx: &Context,
+    _reaction: Reaction,
 ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    let http = ctx.http.clone();
-
-    let settings = Settings::read_settings().unwrap();
-
-    let mag_right = ReactionType::Unicode("🔎".to_string());
-
-    event::message::send_dm_if_embed_attachment_raw(
-        reaction,
-        settings.metadata_channel_id,
-        http,
-        ctx,
-        mag_right,
-        "testing",
-    )
-    .await
+    Ok(())
 }
 
 pub async fn add_reaction_to_message(
