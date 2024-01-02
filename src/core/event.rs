@@ -16,6 +16,90 @@
  */
 use crate::util::uses::*;
 
+pub async fn on_error(error: FrameworkError<'_, crate::Data, crate::Error>) {
+    match error {
+        FrameworkError::Setup { error, .. } => {
+            panic!("Failed to start: {error}");
+        }
+        FrameworkError::Command { error, ctx, .. } => {
+            let _ = ctx
+                .reply(&format!("Failed to execute command: {error}"))
+                .await;
+        }
+        FrameworkError::ArgumentParse {
+            error, input, ctx, ..
+        } => {
+            let _ = ctx
+                .reply(&format!("Failed to parse `{input:#?}`: {error}"))
+                .await;
+        }
+        FrameworkError::CommandStructureMismatch {
+            description, ctx, ..
+        } => {
+            let _ = ctx.reply(&*description).await;
+        }
+        FrameworkError::CooldownHit {
+            remaining_cooldown,
+            ctx,
+            ..
+        } => {
+            let _ = ctx
+                .reply(&format!(
+                    "You're too fast for me! Try again in {remaining_cooldown:?} seconds."
+                ))
+                .await;
+        }
+        FrameworkError::MissingBotPermissions {
+            missing_permissions,
+            ctx,
+            ..
+        } => {
+            let _ = ctx
+                .reply(&format!(
+                    "I'm missing the following permission(s): `{missing_permissions:?}`"
+                ))
+                .await;
+        }
+        FrameworkError::MissingUserPermissions {
+            missing_permissions,
+            ctx,
+            ..
+        } => {
+            let _ = ctx
+                .reply(&format!(
+                    "You're missing the following permission
+                    (s): `{missing_permissions:?}`"
+                ))
+                .await;
+        }
+        FrameworkError::NotAnOwner { ctx, .. } => {
+            let _ = ctx
+                .reply(format!("You're not my owner, {}!", ctx.author()))
+                .await;
+        }
+        FrameworkError::GuildOnly { ctx, .. } => {
+            let _ = ctx
+                .reply("This command can only be used in a server.")
+                .await;
+        }
+        FrameworkError::DmOnly { ctx, .. } => {
+            let _ = ctx
+                .reply("This command can only be used in a Direct Message.")
+                .await;
+        }
+        FrameworkError::NsfwOnly { ctx, .. } => {
+            let _ = ctx
+                .reply("This command can only be used in a NSFW channel.")
+                .await;
+        }
+        error => {
+            if let Err(e) = builtins::on_error(error).await {
+                eprintln!("Error: {e}");
+            }
+        }
+    }
+}
+
 pub async fn event_handler(
     _ctx: &serenity::Context,
     event: &serenity::FullEvent,
