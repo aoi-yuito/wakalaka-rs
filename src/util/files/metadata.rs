@@ -92,7 +92,7 @@ impl FileMetadata {
         }
     }
 
-    pub async fn attachment_metadata(http: Arc<Http>, msg: &Message) {
+    pub async fn attachment_metadata(ctx: &Context, http: Arc<Http>, msg: &Message) {
         let mut metadata = LinkedHashMap::new();
         let mut metadata_read_res_ok = false;
 
@@ -136,7 +136,12 @@ impl FileMetadata {
                 http.clone(),
                 channel_id,
                 message_id,
-                mag_right,
+                mag_right.clone(),
+            )
+            .await;
+
+            event::message::send_dm_if_embed_attachment_reactive(
+                msg, ctx, mag_right, channel_id, http, message,
             )
             .await;
         }
