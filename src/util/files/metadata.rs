@@ -92,7 +92,34 @@ impl FileMetadata {
         }
     }
 
-    pub async fn read_metadata(
+    pub async fn attachment_metadata(msg: &Message) {
+        let mut metadata = LinkedHashMap::new();
+        let mut message = CreateMessage::default();
+
+        let attachments = &msg.attachments;
+        if !attachments.is_empty() {
+            for (index, attachment) in attachments.iter().enumerate() {
+                let metadata_read_res =
+                    Self::read_attachment_metadata(index, attachment, &mut metadata).await;
+
+                if metadata_read_res.is_ok() {
+                    for attachment in attachments {
+                        let mut file_name = attachment.filename.as_str();
+                        file_name = file_name.split(".").collect::<Vec<&str>>()[0];
+
+                        let mut embed;
+                        embed = embed::create_embed_for_metadata(file_name.to_string(), 0x5D67F6);
+
+                        Self::format_attachment_metadata(&metadata, &mut embed);
+
+                        message = message.embed(embed);
+                    }
+                }
+            }
+        }
+    }
+
+    async fn read_attachment_metadata(
         mut index: usize,
         attachment: &Attachment,
         map: &mut LinkedHashMap<usize, String>,
@@ -103,58 +130,14 @@ impl FileMetadata {
 
         let metadata_string = metadata_string(png);
         let metadata_json = strings::str_to_json(&metadata_string);
-        let file_metadata = Self::new(metadata_json);
 
+        let file_metadata = Self::new(metadata_json);
         insert_into_map(&mut index, file_metadata, map);
 
         Ok(())
     }
 
-    pub async fn attachment_metadata_message(http: Arc<Http>, msg: &Message) {
-        let mut metadata_ok = false;
-
-        let mut message = CreateMessage::default();
-
-        let attachments = &msg.attachments;
-        if !attachments.is_empty() {
-            let mut metadata = LinkedHashMap::new();
-
-            for (index, attachment) in attachments.iter().enumerate() {
-                let metadata_read_res = Self::read_metadata(index, attachment, &mut metadata).await;
-
-                metadata_ok = metadata_read_res.is_ok();
-                if metadata_ok {
-                    for attachment in attachments {
-                        let mut file_name = attachment.filename.as_str();
-                        file_name = file_name.split(".").collect::<Vec<&str>>()[0];
-
-                        let mut embed;
-                        embed = embed::create_embed_for_metadata(file_name.to_string(), 0x5D67F6);
-
-                        Self::format_metadata(&metadata, &mut embed);
-
-                        message = message.embed(embed);
-                    }
-                }
-            }
-
-            if metadata_ok {
-                let channel_id = msg.channel_id;
-                let message_id = msg.id;
-                let mag_right = ReactionType::Unicode("🔎".to_string());
-
-                event::reaction_add::add_reaction_to_message(
-                    http.clone(),
-                    channel_id,
-                    message_id,
-                    mag_right,
-                )
-                .await;
-            }
-        }
-    }
-
-    fn format_metadata(map: &LinkedHashMap<usize, String>, embed: &mut CreateEmbed) {
+    fn format_attachment_metadata(map: &LinkedHashMap<usize, String>, embed: &mut CreateEmbed) {
         for (_, value) in map.iter() {
             let cloned_embed = embed.clone();
 
