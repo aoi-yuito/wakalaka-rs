@@ -20,10 +20,10 @@ const SETTINGS_TOML: &str = "Settings.toml";
 
 #[derive(Deserialize, Serialize)]
 pub struct Settings {
-    pub application_id: i64,
-    pub client_id: i64,
+    pub application_id: u64,
+    pub client_id: u64,
     pub token: String,
-    pub metadata_channel_id: i64,
+    pub metadata_channel_id: u64,
 }
 
 impl Settings {
@@ -51,15 +51,15 @@ impl Settings {
 
     pub fn read_settings() -> Result<Self, Box<dyn error::Error>> {
         let application_id = Self::read_section("Developer", "application_id")?
-            .parse::<i64>()
+            .parse::<u64>()
             .map_err(|_| "application_id is not an integer")?;
         let client_id = Self::read_section("Developer", "client_id")?
-            .parse::<i64>()
+            .parse::<u64>()
             .map_err(|_| "client_id is not an integer")?;
         let token = Self::read_section("Developer", "token")?;
 
         let metadata_channel_id = Self::read_section("Channels", "metadata_channel_id")?
-            .parse::<i64>()
+            .parse::<u64>()
             .map_err(|_| "metadata_channel_id is not an integer")?;
 
         let settings = Self {
