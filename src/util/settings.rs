@@ -11,11 +11,11 @@ pub struct Settings {
 
 impl Settings {
     pub fn new() -> Result<Self, Box<dyn error::Error>> {
-        let mut settings = Self::read_settings()?;
+        let mut settings = Self::read()?;
         if settings.discord_token.is_empty() {
             if let Ok(token) = env::var("DISCORD_TOKEN") {
                 settings.discord_token = token;
-                Self::write_settings(&settings)?;
+                Self::write(&settings)?;
             } else {
                 println!("DISCORD_TOKEN not found in environment variables");
                 println!("Please enter the Token found in the Developer Portal:");
@@ -25,13 +25,13 @@ impl Settings {
                 token = token.trim().to_owned();
 
                 settings.discord_token = token;
-                Self::write_settings(&settings)?;
+                Self::write(&settings)?;
             }
         }
         Ok(settings)
     }
 
-    fn write_settings(settings: &Self) -> Result<(), Box<dyn error::Error>> {
+    fn write(settings: &Self) -> Result<(), Box<dyn error::Error>> {
         if !files::exists("Settings.toml") {
             File::create("Settings.toml")?;
         }
@@ -41,13 +41,13 @@ impl Settings {
         Ok(())
     }
 
-    fn read_settings() -> Result<Self, Box<dyn error::Error>> {
+    fn read() -> Result<Self, Box<dyn error::Error>> {
         if !files::exists("Settings.toml") {
             let default_settings = Self {
                 application_id: 0,
                 discord_token: String::new(),
             };
-            Self::write_settings(&default_settings)?;
+            Self::write(&default_settings)?;
         }
 
         let contents = fs::read_to_string("Settings.toml")?;
