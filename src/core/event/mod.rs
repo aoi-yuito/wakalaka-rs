@@ -21,7 +21,7 @@ mod ready;
 use crate::util::uses::*;
 
 pub async fn event_handler(
-    _ctx: &serenity::Context,
+    ctx: &serenity::Context,
     event: &serenity::FullEvent,
     _framework: poise::FrameworkContext<'_, crate::Data, crate::Error>,
     _data: &crate::Data,
@@ -31,7 +31,7 @@ pub async fn event_handler(
             ready::ready(data_about_bot).await?;
         }
         FullEvent::Message { new_message } => {
-            message::message(new_message).await?;
+            message::message(ctx, new_message).await?;
         }
         _ => {}
     }
