@@ -23,7 +23,7 @@ pub fn is_message_embed(msg: &Message) -> bool {
 pub async fn on_message(ctx: &Context, msg: &Message) -> Result<(), crate::Error> {
     let http = ctx.http.clone();
 
-    let message = FileMetadata::attachment_metadata_message(http, msg).await;
+    FileMetadata::attachment_metadata(msg).await;
 
     Ok(())
 }
@@ -39,7 +39,7 @@ pub async fn send_dm(
     Ok(())
 }
 
-pub async fn send_embed_to_dm(
+pub async fn send_dm_as_embed(
     http: Arc<Http>,
     user_id: UserId,
     message: CreateMessage,
