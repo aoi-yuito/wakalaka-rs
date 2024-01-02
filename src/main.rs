@@ -43,7 +43,7 @@ pub async fn main() {
         | GatewayIntents::GUILD_MESSAGES
         | GatewayIntents::MESSAGE_CONTENT;
 
-    let client = ClientBuilder::new(settings.discord_token, intents)
+    let client = ClientBuilder::new(settings.token, intents)
         .framework(framework)
         .await;
 
