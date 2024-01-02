@@ -45,7 +45,7 @@ pub async fn post(
         if success {
             let post_data = Post::extract_post_data(&response_json);
 
-            let embed = Embed::create_embed_for_booru(
+            let embed = embed::create_embed_for_booru(
                 &post_data,
                 AIBOORU_LOGO_PNG,
                 id,
