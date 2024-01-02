@@ -16,8 +16,8 @@
  */
 use crate::util::uses::*;
 
-pub fn str_to_json(input: &str) -> HashMap<String, String> {
-    let mut json = HashMap::new();
+pub fn str_to_json(input: &str) -> LinkedHashMap<String, String> {
+    let mut json = LinkedHashMap::new();
 
     let lines = input.split('\n');
     for line in lines {
