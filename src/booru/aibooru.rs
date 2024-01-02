@@ -47,10 +47,10 @@ pub async fn post(
 
             let embed = Embed::create_embed_for_booru(
                 &post_data,
-                AIBOORU_LOGO_PNG.to_string(),
+                AIBOORU_LOGO_PNG,
                 id,
                 None,
-                AIBOORU_URL.to_string(),
+                AIBOORU_URL,
                 post_data.file_url.clone(),
                 Post::generate_footer(&post_data),
                 0x7EB900,
