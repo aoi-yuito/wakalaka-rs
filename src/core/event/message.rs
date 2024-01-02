@@ -16,7 +16,15 @@
  */
 use crate::util::uses::*;
 
-pub async fn message(msg: &Message) -> Result<(), crate::Error> {
+pub async fn message(ctx: &Context, msg: &Message) -> Result<(), crate::Error> {
+    let http = ctx.http.clone();
+
+    read_image_attachment_metadata(http, msg).await;
+
+    Ok(())
+}
+
+async fn read_image_attachment_metadata(http: Arc<Http>, msg: &Message) {
     let attachments = &msg.attachments;
     if !attachments.is_empty() {
         let mut metadata = HashMap::new();
@@ -26,7 +34,32 @@ pub async fn message(msg: &Message) -> Result<(), crate::Error> {
                 .await
                 .expect("Failed to read metadata");
         }
-    }
 
-    Ok(())
+        let channel_id = msg.channel_id;
+        let message_id = msg.id;
+
+        add_reaction_to_message(
+            http,
+            channel_id,
+            message_id,
+            ReactionType::Unicode("🔎".to_string()),
+        )
+        .await;
+    }
+}
+
+async fn add_reaction_to_message(
+    http: Arc<Http>,
+    channel_id: ChannelId,
+    message_id: MessageId,
+    reaction: ReactionType,
+) {
+    let message = http
+        .get_message(channel_id, message_id)
+        .await
+        .expect("Failed to get message");
+    message
+        .react(&http, reaction)
+        .await
+        .expect("Failed to react to message");
 }
