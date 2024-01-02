@@ -17,8 +17,8 @@
 use crate::util::uses::*;
 
 pub async fn on_not_an_owner(ctx: crate::Context<'_>) {
-    let author = ctx.author();
-    ctx.reply(format!("You're not my owner, {author}!"))
+    let author_name = &ctx.author().name;
+    ctx.reply(format!("You're not my owner, {author_name}!"))
         .await
         .unwrap();
 }
