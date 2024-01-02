@@ -51,8 +51,7 @@ impl Embed {
         footer: Option<String>,
         color: Option<u32>,
     ) -> CreateEmbed {
-        let mut embed = CreateEmbed::default();
-        embed = embed
+        let embed = CreateEmbed::default()
             .title(title.unwrap_or_default())
             .description(description.unwrap_or_default())
             .url(url.unwrap_or_default())
@@ -73,12 +72,11 @@ impl Embed {
         footer: String,
         color: u32,
     ) -> CreateEmbed {
-        let mut embed = CreateEmbed::default();
-        embed = embed
+        let embed = CreateEmbed::default()
             .author(CreateEmbedAuthor::new(&post.tag_string_artist.clone()).icon_url(icon_url))
             .title(format!("Post #{}", id))
             .description(description.unwrap_or_default())
-            .url(url)
+            .url(format!("{url}/posts/{id}"))
             .image(image)
             .footer(CreateEmbedFooter::new(footer))
             .color(color);
