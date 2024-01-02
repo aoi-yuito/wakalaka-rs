@@ -1,3 +1,5 @@
+pub mod metadata;
+
 /**
  * Copyright (C) 2024 Kasutaja
  *
@@ -14,8 +16,6 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
  */
-pub mod metadata;
-
 use crate::util::uses::*;
 
 pub fn format_size(size: f64) -> String {

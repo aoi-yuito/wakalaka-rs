@@ -31,9 +31,9 @@ pub use poise::builtins;
 pub use poise::serenity_prelude::{
     self as serenity, Activity, Attachment, ClientBuilder, Context, CreateEmbed, CreateEmbedAuthor,
     CreateEmbedFooter, CreateMessage, EventHandler, FullEvent, GatewayIntents, GuildId, Message,
-    Ready,
+    Permissions, Ready,
 };
-pub use poise::{CreateReply, Framework, FrameworkError, FrameworkOptions};
+pub use poise::{ApplicationContext, CreateReply, Framework, FrameworkError, FrameworkOptions};
 pub use serde::{Deserialize, Serialize};
 pub use serde_json::Map;
 pub use std::collections::hash_map::IntoIter;
