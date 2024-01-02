@@ -24,7 +24,7 @@ pub const AIBOORU_LOGO_PNG: &str =
 
 #[derive(Default)]
 pub struct Post {
-    tag_string_artist: String,
+    pub tag_string_artist: String,
     file_url: String,
     score: String,
     fav_count: i64,
@@ -131,7 +131,7 @@ impl Post {
         }
     }
 
-    fn generate_footer(post: &Self) -> String {
+    pub fn generate_footer(post: &Self) -> String {
         format!(
             "{0} {1}❤️ | {2} | {3} .{4} ({5} x {6}) | {7}",
             post.score,
@@ -143,23 +143,5 @@ impl Post {
             post.image_size.1,
             post.created_at
         )
-    }
-
-    fn create_embed(
-        post: &Self,
-        id: i64,
-        description: Option<&'static str>,
-        url: &'static str,
-    ) -> CreateEmbed {
-        CreateEmbed::default()
-            .author(
-                CreateEmbedAuthor::new(post.tag_string_artist.clone()).icon_url(AIBOORU_LOGO_PNG),
-            )
-            .title(format!("Post #{id}"))
-            .description(description.unwrap_or_default())
-            .url(format!("{url}/posts/{id}"))
-            .image(post.file_url.clone())
-            .footer(CreateEmbedFooter::new(Self::generate_footer(post)))
-            .color(0x7EB900)
     }
 }

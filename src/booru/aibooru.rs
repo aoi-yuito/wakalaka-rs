@@ -44,7 +44,17 @@ pub async fn post(
         let success = Post::is_success(ctx, &response_json, _reply, id).await?;
         if success {
             let post_data = Post::extract_post_data(&response_json);
-            let embed = Post::create_embed(&post_data, id, None, AIBOORU_URL);
+
+            let embed = Embed::create_embed_for_booru(
+                &post_data,
+                AIBOORU_LOGO_PNG.to_string(),
+                id,
+                None,
+                AIBOORU_URL.to_string(),
+                post_data.file_url.clone(),
+                Post::generate_footer(&post_data),
+                0x7EB900,
+            );
 
             _reply = CreateReply {
                 content: None,
