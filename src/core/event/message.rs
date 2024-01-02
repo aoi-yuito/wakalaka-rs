@@ -131,3 +131,32 @@ pub async fn send_dm_if_embed_attachment(
 
     Ok(())
 }
+
+pub async fn send_dm_if_embed_attachment_reactive(
+    msg: &Message,
+    ctx: &Context,
+    reaction_type: ReactionType,
+    channel_id: ChannelId,
+    http: Arc<Http>,
+    message: CreateMessage,
+) {
+    let mut reactions = msg.await_reactions(ctx).stream();
+    while let Some(reaction) = reactions.next().await {
+        if reaction.emoji == reaction_type {
+            let dm_sent = event::message::send_dm_if_embed_attachment(
+                reaction.clone(),
+                channel_id.into(),
+                http.clone(),
+                ctx,
+                reaction_type.clone(),
+                message.clone(),
+            )
+            .await;
+            if dm_sent.is_ok() {
+                let _ = msg
+                    .delete_reaction(ctx, reaction.user_id, reaction_type.clone())
+                    .await;
+            }
+        }
+    }
+}
