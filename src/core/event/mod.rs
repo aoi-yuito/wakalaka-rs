@@ -23,8 +23,8 @@ use crate::util::uses::*;
 
 pub async fn event_handler(
     ctx: &serenity::Context,
-    event: &serenity::FullEvent,
-    _framework: poise::FrameworkContext<'_, crate::Data, crate::Error>,
+    event: &FullEvent,
+    _framework: FrameworkContext<'_, crate::Data, crate::Error>,
     _data: &crate::Data,
 ) -> Result<(), crate::Error> {
     match event {
