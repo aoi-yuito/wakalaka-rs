@@ -29,9 +29,9 @@ pub use png::{Decoder, Info, Transformations};
 pub use poise::async_trait;
 pub use poise::builtins;
 pub use poise::serenity_prelude::{
-    self as serenity, Activity, Attachment, ClientBuilder, Context, CreateEmbed, CreateEmbedAuthor,
-    CreateEmbedFooter, CreateMessage, EventHandler, FullEvent, GatewayIntents, GuildId, Message,
-    Permissions, Ready,
+    self as serenity, Activity, Attachment, CacheHttp, ChannelId, ClientBuilder, Context,
+    CreateEmbed, CreateEmbedAuthor, CreateEmbedFooter, CreateMessage, EventHandler, FullEvent,
+    GatewayIntents, GuildId, Http, Message, MessageId, Permissions, ReactionType, Ready,
 };
 pub use poise::{ApplicationContext, CreateReply, Framework, FrameworkError, FrameworkOptions};
 pub use serde::{Deserialize, Serialize};
@@ -43,4 +43,5 @@ pub use std::fs;
 pub use std::fs::{File, Metadata, OpenOptions};
 pub use std::io::{BufRead, BufReader, Cursor, Read, Write};
 pub use std::path::{Path, PathBuf};
+pub use std::sync::Arc;
 pub use std::*;
