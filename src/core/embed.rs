@@ -34,7 +34,7 @@ pub struct Embed {
     author: Option<String>,
     title: Option<String>,
     description: Option<String>,
-    url: Option<String>,
+    url: Option<&'static str>,
     image: Option<String>,
     thumbnail: Option<String>,
     footer: Option<String>,
@@ -43,12 +43,12 @@ pub struct Embed {
 
 impl Embed {
     pub fn create_embed(
-        title: Option<String>,
-        description: Option<String>,
-        url: Option<String>,
-        image: Option<String>,
-        thumbnail: Option<String>,
-        footer: Option<String>,
+        title: Option<&'static str>,
+        description: Option<&'static str>,
+        url: Option<&'static str>,
+        image: Option<&'static str>,
+        thumbnail: Option<&'static str>,
+        footer: Option<&'static str>,
         color: Option<u32>,
     ) -> CreateEmbed {
         let embed = CreateEmbed::default()
@@ -64,10 +64,10 @@ impl Embed {
 
     pub fn create_embed_for_booru(
         post: &Post,
-        icon_url: String,
+        icon_url: &'static str,
         id: i64,
         description: Option<String>,
-        url: String,
+        url: &'static str,
         image: String,
         footer: String,
         color: u32,
