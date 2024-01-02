@@ -23,7 +23,7 @@ pub fn is_message_embed(msg: &Message) -> bool {
 pub async fn on_message(ctx: &Context, msg: &Message) -> Result<(), crate::Error> {
     let http = ctx.http.clone();
 
-    FileMetadata::attachment_metadata(msg).await;
+    FileMetadata::attachment_metadata(http, msg).await;
 
     Ok(())
 }
