@@ -1,0 +1,15 @@
+/target
+
+Cargo.lock
+Settings.toml
+
+### IntelliJ IDEA ###
+.idea/
+*.iws
+*.iml
+*.ipr
+
+### Visual Studio Code ###
+.vscode/
+
+.DS_Store
