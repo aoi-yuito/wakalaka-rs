@@ -27,12 +27,13 @@ pub use crate::util::strings;
 pub use chrono::{Duration, NaiveDate};
 pub use png::{Decoder, Info, Transformations};
 pub use poise::async_trait;
+pub use poise::builtins;
 pub use poise::serenity_prelude::{
     self as serenity, Activity, Attachment, ClientBuilder, Context, CreateEmbed, CreateEmbedAuthor,
     CreateEmbedFooter, CreateMessage, EventHandler, FullEvent, GatewayIntents, GuildId, Message,
     Ready,
 };
-pub use poise::{CreateReply, Framework, FrameworkOptions};
+pub use poise::{CreateReply, Framework, FrameworkError, FrameworkOptions};
 pub use serde::{Deserialize, Serialize};
 pub use serde_json::Map;
 pub use std::collections::hash_map::IntoIter;
