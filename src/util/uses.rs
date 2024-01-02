@@ -19,6 +19,7 @@ pub use crate::booru::*;
 pub use crate::core::embed;
 pub use crate::core::event;
 pub use crate::core::framework;
+pub use crate::embed::Embed;
 pub use crate::files::metadata::FileMetadata;
 pub use crate::util::files;
 pub use crate::util::settings::Settings;
