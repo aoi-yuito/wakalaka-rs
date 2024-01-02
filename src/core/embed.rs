@@ -16,11 +16,7 @@
  */
 use crate::util::uses::*;
 
-pub fn is_message_embed(msg: &Message) -> bool {
-    !msg.embeds.is_empty()
-}
-
-pub fn is_embed_containing_image(msg: &Message) -> bool {
+pub fn is_embed_image(msg: &Message) -> bool {
     for embed in &msg.embeds {
         if embed.image.is_some() || embed.thumbnail.is_some() {
             return true;
@@ -29,71 +25,42 @@ pub fn is_embed_containing_image(msg: &Message) -> bool {
     false
 }
 
-#[derive(Default)]
-pub struct Embed {
-    author: Option<String>,
-    title: Option<String>,
+pub fn create_embed_for_booru(
+    post: &Post,
+    icon_url: &'static str,
+    id: i64,
     description: Option<String>,
-    url: Option<&'static str>,
-    image: Option<String>,
-    thumbnail: Option<String>,
-    footer: Option<String>,
-    color: Option<u32>,
+    url: &'static str,
+    image: String,
+    footer: String,
+    color: u32,
+) -> CreateEmbed {
+    let embed = CreateEmbed::default()
+        .author(CreateEmbedAuthor::new(&post.tag_string_artist.clone()).icon_url(icon_url))
+        .title(format!("Post #{}", id))
+        .description(description.unwrap_or_default())
+        .url(format!("{url}/posts/{id}"))
+        .image(image)
+        .footer(CreateEmbedFooter::new(footer))
+        .color(color);
+    embed
 }
 
-impl Embed {
-    pub fn create_embed(
-        title: Option<&'static str>,
-        description: Option<&'static str>,
-        url: Option<&'static str>,
-        image: Option<&'static str>,
-        thumbnail: Option<&'static str>,
-        footer: Option<&'static str>,
-        color: Option<u32>,
-    ) -> CreateEmbed {
-        let embed = CreateEmbed::default()
-            .title(title.unwrap_or_default())
-            .description(description.unwrap_or_default())
-            .url(url.unwrap_or_default())
-            .image(image.unwrap_or_default())
-            .thumbnail(thumbnail.unwrap_or_default())
-            .footer(CreateEmbedFooter::new(footer.unwrap_or_default()))
-            .color(color.unwrap_or_default());
-        embed
-    }
+pub fn create_embed_for_metadata(title: String, color: u32) -> CreateEmbed {
+    let embed = CreateEmbed::default().title(title).color(color);
+    embed
+}
 
-    pub fn create_embed_for_booru(
-        post: &Post,
-        icon_url: &'static str,
-        id: i64,
-        description: Option<String>,
-        url: &'static str,
-        image: String,
-        footer: String,
-        color: u32,
-    ) -> CreateEmbed {
-        let embed = CreateEmbed::default()
-            .author(CreateEmbedAuthor::new(&post.tag_string_artist.clone()).icon_url(icon_url))
-            .title(format!("Post #{}", id))
-            .description(description.unwrap_or_default())
-            .url(format!("{url}/posts/{id}"))
-            .image(image)
-            .footer(CreateEmbedFooter::new(footer))
-            .color(color);
-        embed
-    }
+pub fn embed_urls(msg: &Message) -> Vec<String> {
+    let mut urls = Vec::new();
 
-    pub fn embed_urls(msg: &Message) -> Vec<String> {
-        let mut urls = Vec::new();
-
-        for embed in &msg.embeds {
-            if let Some(image) = &embed.image {
-                urls.push(image.url.clone());
-            }
-            if let Some(thumbnail) = &embed.thumbnail {
-                urls.push(thumbnail.url.clone());
-            }
+    for embed in &msg.embeds {
+        if let Some(image) = &embed.image {
+            urls.push(image.url.clone());
         }
-        urls
+        if let Some(thumbnail) = &embed.thumbnail {
+            urls.push(thumbnail.url.clone());
+        }
     }
+    urls
 }
