@@ -92,9 +92,19 @@ impl FileMetadata {
         }
     }
 
-    pub async fn attachment_metadata(msg: &Message) {
+    pub async fn attachment_metadata(http: Arc<Http>, msg: &Message) {
         let mut metadata = LinkedHashMap::new();
+        let mut metadata_read_res_ok = false;
+
         let mut message = CreateMessage::default();
+
+        let settings = Settings::read_settings().unwrap();
+
+        let channel_id = msg.channel_id;
+        if channel_id != ChannelId::from(settings.metadata_channel_id) {
+            return;
+        }
+        let message_id = msg.id;
 
         let attachments = &msg.attachments;
         if !attachments.is_empty() {
@@ -102,7 +112,8 @@ impl FileMetadata {
                 let metadata_read_res =
                     Self::read_attachment_metadata(index, attachment, &mut metadata).await;
 
-                if metadata_read_res.is_ok() {
+                metadata_read_res_ok = metadata_read_res.is_ok();
+                if metadata_read_res_ok {
                     for attachment in attachments {
                         let mut file_name = attachment.filename.as_str();
                         file_name = file_name.split(".").collect::<Vec<&str>>()[0];
@@ -116,6 +127,17 @@ impl FileMetadata {
                     }
                 }
             }
+        }
+
+        if metadata_read_res_ok {
+            let mag_right = ReactionType::Unicode("🔎".to_string());
+            event::reaction_add::add_reaction_to_message(
+                http.clone(),
+                channel_id,
+                message_id,
+                mag_right,
+            )
+            .await;
         }
     }
 
