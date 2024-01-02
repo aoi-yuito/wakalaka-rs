@@ -1,5 +1,6 @@
 pub mod error;
-mod message;
+pub mod message;
+pub mod reaction_add;
 mod ready;
 
 /**
@@ -31,7 +32,10 @@ pub async fn event_handler(
             ready::ready(data_about_bot).await?;
         }
         FullEvent::Message { new_message } => {
-            message::message(ctx, new_message).await?;
+            message::on_message(ctx, new_message).await?;
+        }
+        FullEvent::ReactionAdd { add_reaction } => {
+            reaction_add::on_reaction_add(ctx, add_reaction.clone()).await?;
         }
         _ => {}
     }
