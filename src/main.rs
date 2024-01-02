@@ -1,3 +1,7 @@
+mod booru;
+mod core;
+mod util;
+
 /**
  * Copyright (C) 2024 Kasutaja
  *
@@ -15,10 +19,6 @@
  * along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
  */
 use crate::util::uses::*;
-
-mod booru;
-mod core;
-mod util;
 
 pub type Error = Box<dyn std::error::Error + Send + Sync>;
 pub type Context<'a> = poise::Context<'a, Data, Error>;
@@ -38,8 +38,10 @@ pub async fn main() {
             process::exit(1);
         }
     };
-    let intents =
-        GatewayIntents::default() | GatewayIntents::GUILD_MEMBERS | GatewayIntents::MESSAGE_CONTENT;
+    let intents = GatewayIntents::default()
+        | GatewayIntents::GUILD_MEMBERS
+        | GatewayIntents::GUILD_MESSAGES
+        | GatewayIntents::MESSAGE_CONTENT;
 
     let client = ClientBuilder::new(settings.discord_token, intents)
         .framework(framework)
