@@ -1,7 +1,3 @@
-mod booru;
-mod core;
-mod util;
-
 /**
  * Copyright (C) 2024 Kasutaja
  *
@@ -18,7 +14,11 @@ mod util;
  * You should have received a copy of the GNU Lesser General Public License
  * along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
  */
-use crate::util::uses::*;
+mod cogs;
+mod core;
+mod uses;
+
+use crate::uses::*;
 
 pub type Error = Box<dyn std::error::Error + Send + Sync>;
 pub type Context<'a> = poise::Context<'a, Data, Error>;
@@ -27,12 +27,12 @@ pub struct Data {}
 
 #[tokio::main]
 pub async fn main() {
-    let options = framework::setup_framework_options().await;
+    let options = cogs::framework::setup_framework_options().await;
 
-    let framework = framework::build_framework(options).await;
+    let framework = cogs::framework::build_framework(options).await;
 
-    let settings = match Settings::new() {
-        Ok(settings) => settings,
+    let config = match config::Config::new() {
+        Ok(config) => config,
         Err(e) => {
             eprintln!("Error: {e}");
             process::exit(1);
@@ -43,7 +43,7 @@ pub async fn main() {
         | GatewayIntents::GUILD_MESSAGES
         | GatewayIntents::MESSAGE_CONTENT;
 
-    let client = ClientBuilder::new(settings.token, intents)
+    let client = ClientBuilder::new(config.token, intents)
         .framework(framework)
         .await;
 
