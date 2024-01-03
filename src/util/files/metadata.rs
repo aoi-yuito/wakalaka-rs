@@ -207,17 +207,29 @@ impl FileMetadata {
         attachment: &Attachment,
         map: &mut LinkedHashMap<usize, String>,
     ) -> Result<(), Box<dyn error::Error>> {
-        let bytes = attachment.download().await?;
+        let download_bytes = attachment.download().await?;
 
-        let png = decode_png(bytes)?;
+        let mut _png = Vec::new();
 
-        let metadata_string = metadata_string(png);
+        // Hacky way to convert JPEG to PNG...
+        if attachment.filename.ends_with(".jpg") {
+            let jpeg = image::load_from_memory_with_format(&download_bytes, ImageFormat::Jpeg)?;
+
+            let mut png_bytes = Cursor::new(Vec::new());
+            jpeg.write_to(&mut png_bytes, ImageFormat::Png)?;
+
+            _png = decode_png(png_bytes.into_inner())?;
+        } else {
+            _png = decode_png(download_bytes)?;
+        };
+
+        let metadata_string = metadata_string(_png);
         let metadata_json = strings::str_to_json(&metadata_string);
 
         let file_metadata = Self::new(metadata_json);
         insert_into_map(&mut index, file_metadata, map);
 
-        Ok(())
+        return Ok(());
     }
 
     fn format_attachment_metadata(map: &LinkedHashMap<usize, String>, embed: &mut CreateEmbed) {
@@ -245,7 +257,7 @@ fn decode_png(bytes: Vec<u8>) -> Result<Vec<(String, String)>, Box<dyn error::Er
     let mut png = Vec::new();
     reader.read_to_end(&mut png)?;
 
-    let mut decoder = Decoder::new(&*png);
+    let mut decoder = png::Decoder::new(&*png);
     decoder.set_transformations(Transformations::IDENTITY);
 
     let reader = match decoder.read_info() {
