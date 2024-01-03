@@ -31,3 +31,21 @@ pub fn str_to_json(input: &str) -> LinkedHashMap<String, String> {
 
     json
 }
+
+pub fn snakecase_to_titlecase(input: &str) -> String {
+    let mut output = String::new();
+
+    let mut last_char = ' ';
+    for char in input.chars() {
+        if char == '_' {
+            output.push(' ');
+        } else if last_char == ' ' {
+            output.push(char.to_ascii_uppercase());
+        } else {
+            output.push(char);
+        }
+        last_char = char;
+    }
+
+    output
+}
