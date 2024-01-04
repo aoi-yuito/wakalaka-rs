@@ -14,7 +14,7 @@
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
 use serenity::{
-    all::{CommandInteraction, Interaction, Ready},
+    all::{CommandInteraction, GuildId, Interaction, Ready},
     async_trait,
     builder::{CreateCommand, CreateInteractionResponse, CreateInteractionResponseMessage},
     client::EventHandler,
@@ -34,7 +34,6 @@ impl EventHandler for Handler {
             let command_name = &command.data.name;
             let channel_name = &command.channel_id.name(&ctx).await.unwrap_or_else(|why| {
                 error!("{why}");
-
                 panic!("Error while retrieving channel name");
             });
             info!("@{command_user} executed {command_name:?} in #{channel_name}");
@@ -44,49 +43,39 @@ impl EventHandler for Handler {
         }
     }
 
-    async fn ready(&self, ctx: Context, ready: Ready) {
-        let user_name = &ready.user.name;
-        info!("Logged in as @{user_name}");
+    async fn cache_ready(&self, ctx: Context, guilds: Vec<GuildId>) {
+        let guild_count = guilds.len();
+        info!("Cache for {guild_count} guild(s) ready");
+
+        for guild in guilds {
+            let guild_name = guild.name(&ctx).unwrap_or_else(|| {
+                error!("No guild name found");
+                panic!("Error while retrieving guild name");
+            });
+            info!("\t{guild_name}");
+        }
 
         let cache = &ctx.cache;
-        let http = &ctx.http;
 
         let guild_ids = cache.guilds();
         for guild_id in guild_ids {
-            let partial_guild = guild_id
-                .to_partial_guild(&ctx.http)
-                .await
-                .unwrap_or_else(|why| {
-                    error!("{why}");
-
-                    panic!("Error while retrieving partial guild information");
+            let (guild_name, guild_member_count, guild_role_count, guild_channel_count) = {
+                let guild = cache.guild(guild_id).unwrap_or_else(|| {
+                    error!("No guild found");
+                    panic!("Error while retrieving guild");
                 });
 
-            let guild_name = &partial_guild.name;
+                (
+                    guild.name.clone(),
+                    guild.members.len(),
+                    guild.roles.len(),
+                    guild.channels.len(),
+                )
+            };
             info!("Connected to {guild_name}");
-
-            let guild_members_count = &partial_guild
-                .members(&ctx.http, None, None)
-                .await
-                .unwrap_or_else(|why| {
-                    error!("{why}");
-
-                    panic!("Error while retrieving guild members");
-                })
-                .len();
-            let guild_roles_count = &partial_guild.roles.len();
-            let guild_channels_count = &partial_guild
-                .channels(http)
-                .await
-                .unwrap_or_else(|why| {
-                    error!("{why}");
-
-                    panic!("Error while retrieving guild channels");
-                })
-                .len();
-            info!("\t{guild_name} has {guild_members_count} members");
-            info!("\t{guild_name} has {guild_roles_count} roles");
-            info!("\t{guild_name} has {guild_channels_count} channels");
+            info!("\t{guild_name} has {guild_member_count} members");
+            info!("\t{guild_name} has {guild_role_count} roles");
+            info!("\t{guild_name} has {guild_channel_count} channels");
 
             let registered_commands = guild_id.set_commands(&ctx.http, created_commands()).await;
             if let Ok(registered_commands) = registered_commands {
@@ -100,6 +89,13 @@ impl EventHandler for Handler {
                 }
             }
         }
+    }
+
+    async fn ready(&self, ctx: Context, ready: Ready) {
+        let user_name = &ready.user.name;
+        info!("Logged in as @{user_name}");
+
+        let cache = &ctx.cache;
     }
 }
 
