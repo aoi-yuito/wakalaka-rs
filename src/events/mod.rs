@@ -45,7 +45,7 @@ impl EventHandler for Handler {
 
     async fn cache_ready(&self, ctx: Context, guilds: Vec<GuildId>) {
         let guild_count = guilds.len();
-        info!("Cache for {guild_count} guild(s) ready");
+        info!("Prepared cache for {guild_count} guild(s)");
 
         for guild in guilds {
             let guild_name = guild.name(&ctx).unwrap_or_else(|| {
