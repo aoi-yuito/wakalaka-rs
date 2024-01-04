@@ -15,17 +15,21 @@
 
 use std::time::Duration;
 
-use serenity::all::{CommandOptionType, ResolvedValue};
+use serenity::all::{CommandInteraction, CommandOptionType, ResolvedValue};
 
 use serenity::builder::{CreateCommand, CreateCommandOption};
 use serenity::model::application::ResolvedOption;
 
-use crate::commands::is_owner_of_guild;
 use crate::Context;
 
-pub async fn run(ctx: &Context, options: &[ResolvedOption<'_>]) -> String {
-    let owner = is_owner_of_guild(ctx).await;
-    if !owner {
+pub async fn run(
+    ctx: &Context,
+    interaction: &CommandInteraction,
+    options: &[ResolvedOption<'_>],
+) -> String {
+    let administrator_permission =
+        crate::commands::has_administrator_permission(ctx, interaction).await;
+    if !administrator_permission {
         return "You don't have rights to execute this command!".to_string();
     }
 
@@ -43,8 +47,8 @@ pub async fn run(ctx: &Context, options: &[ResolvedOption<'_>]) -> String {
     }
 
     let cloned_ctx = ctx.clone();
-    std::thread::spawn(move || {
-        std::thread::sleep(Duration::from_secs(timer as u64));
+    tokio::spawn(async move {
+        tokio::time::sleep(Duration::from_secs(timer as u64)).await;
 
         cloned_ctx.shard.shutdown_clean();
     });
