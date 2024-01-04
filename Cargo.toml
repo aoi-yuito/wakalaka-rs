@@ -7,11 +7,9 @@ rust-version = "1.75.0"
 # readme = "README.md"
 description = "No-bullshit general-purpose Discord bot written with love in Rust."
 repository = "https://github.com/Kawaxte/wakalaka-rs"
-license = "LGPL-3.0"
 license-file = "LICENSE"
 
 [dependencies]
-chrono = "0.4.31"
 dirs = "5.0.1"
 futures-util = "0.3.30"
 image = "0.24.7"
