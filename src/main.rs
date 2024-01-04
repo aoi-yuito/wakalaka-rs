@@ -67,6 +67,7 @@ fn initialise_config() -> Config {
 
 fn initialise_intents() -> GatewayIntents {
     GatewayIntents::default()
+        | GatewayIntents::GUILDS
         | GatewayIntents::GUILD_MEMBERS
         | GatewayIntents::GUILD_MESSAGES
         | GatewayIntents::MESSAGE_CONTENT
