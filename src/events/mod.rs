@@ -14,12 +14,12 @@
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
 use serenity::{
-    all::{CommandInteraction, Interaction, Ready},
+    all::{Command, CommandInteraction, Interaction, Ready},
     async_trait,
-    builder::{CreateInteractionResponse, CreateInteractionResponseMessage},
+    builder::{CreateCommand, CreateInteractionResponse, CreateInteractionResponseMessage},
     client::EventHandler,
 };
-use tracing::{error, log::info};
+use tracing::{log::error, log::info};
 
 use crate::commands::*;
 use crate::Context;
@@ -30,22 +30,28 @@ pub struct Handler;
 impl EventHandler for Handler {
     async fn interaction_create(&self, ctx: Context, interaction: Interaction) {
         if let Interaction::Command(command) = interaction {
-            let command_user = &command.user.global_name;
-            let command_name = format!("/{}", &command.data.name);
-            info!("{command_user:#?} invoked '{command_name}'");
+            let command_user = &command.user.name;
+            let command_name = &command.data.name;
+            let channel_name = &command.channel_id.name(&ctx).await.unwrap();
+            info!("@{command_user} executed {command_name:?} in #{channel_name}");
 
-            let content = register_command(&ctx, &command);
+            let content = register_command(&ctx, &command).await;
             register_slash_commands(&ctx, &command, content).await;
         }
     }
 
     async fn ready(&self, ctx: Context, ready: Ready) {
         let user_name = &ready.user.name;
-        info!("Logged in as {user_name}");
+        info!("Logged in as @{user_name}");
 
-        let guild_ids = ctx.cache.guilds();
+        let cache = &ctx.cache;
+
+        let guild_ids = cache.guilds();
         for guild_id in guild_ids {
             let mut guild_name = String::new();
+            let guild_members = guild_id.members(&ctx.http, None, None).await.unwrap().len();
+            let guild_roles = guild_id.roles(&ctx.http).await.unwrap().len();
+            let guild_channels = guild_id.channels(&ctx.http).await.unwrap().len();
 
             let partial_guild = guild_id.to_partial_guild(&ctx.http).await;
             if let Ok(guild) = partial_guild {
@@ -53,18 +59,23 @@ impl EventHandler for Handler {
             }
 
             info!("Connected to {guild_name}");
+            info!("\t{guild_name} has {guild_members} members");
+            info!("\t{guild_name} has {guild_roles} roles");
+            info!("\t{guild_name} has {guild_channels} channels");
 
-            let commands = guild_id
-                .set_commands(&ctx.http, vec![core::restart::register()])
-                .await;
-            if let Ok(command) = commands {
-                let command_count = &command.len();
-                info!("Registered {command_count} command(s) in {guild_name}");
+            let registered_commands = guild_id.set_commands(&ctx.http, created_commands()).await;
+            if let Ok(registered_command) = registered_commands {
+                let commands = &registered_command.len();
+                info!("Registered {commands} command(s) in {guild_name}");
             }
 
             // if you want to make globals, use "Command::create_global_command"
         }
     }
+}
+
+fn created_commands() -> Vec<CreateCommand> {
+    vec![core::restart::register()]
 }
 
 async fn register_slash_commands(
@@ -81,12 +92,12 @@ async fn register_slash_commands(
     }
 }
 
-fn register_command(ctx: &Context, command: &CommandInteraction) -> Option<String> {
+async fn register_command(ctx: &Context, command: &CommandInteraction) -> Option<String> {
     let command_data_name = &command.data.name;
     let command_data_options = &command.data.options();
 
     match command_data_name.as_str() {
-        "restart" => Some(core::restart::run(&ctx, command_data_options)),
-        _ => Some("Unknown command. Try /help for a list of commands".to_string()),
+        "restart" => Some(core::restart::run(&ctx, command_data_options).await),
+        _ => Some("Unknown command.".to_string()),
     }
 }
