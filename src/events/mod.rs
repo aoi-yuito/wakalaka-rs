@@ -14,7 +14,7 @@
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
 use serenity::{
-    all::{Interaction, Ready},
+    all::{CommandInteraction, Interaction, Ready},
     async_trait,
     builder::{CreateInteractionResponse, CreateInteractionResponseMessage},
     client::EventHandler,
@@ -30,46 +30,63 @@ pub struct Handler;
 impl EventHandler for Handler {
     async fn interaction_create(&self, ctx: Context, interaction: Interaction) {
         if let Interaction::Command(command) = interaction {
-            let command_user_id = &command.user.id;
-            let command_name = &command.data.name;
-            let command_channel_id = &command.channel_id;
-            info!("{command_user_id} invoked the '{command_name}' command in {command_channel_id}");
+            let command_user = &command.user.global_name;
+            let command_name = format!("/{}", &command.data.name);
+            info!("{command_user:#?} invoked '{command_name}'");
 
-            let command_data_name = &command.data.name;
-            let command_data_options = &command.data.options();
-
-            let content = match command_data_name.as_str() {
-                "restart" => Some(core::restart::run(&ctx, command_data_options)),
-                _ => Some(format!("{command_data_name} isn't a known command")),
-            };
-
-            if let Some(content) = content {
-                let data = CreateInteractionResponseMessage::new().content(content);
-                let builder = CreateInteractionResponse::Message(data);
-                if let Err(why) = command.create_response(&ctx.http, builder).await {
-                    error!("An error occurred while responding to command: {why}")
-                }
-            }
+            let content = register_command(&ctx, &command);
+            register_slash_commands(&ctx, &command, content).await;
         }
     }
 
     async fn ready(&self, ctx: Context, ready: Ready) {
-        let user_id = &ready.user.id;
-        info!("Logged in as {user_id}");
+        let user_name = &ready.user.name;
+        info!("Logged in as {user_name}");
 
         let guild_ids = ctx.cache.guilds();
         for guild_id in guild_ids {
-            info!("Connected to {guild_id}");
+            let mut guild_name = String::new();
+
+            let partial_guild = guild_id.to_partial_guild(&ctx.http).await;
+            if let Ok(guild) = partial_guild {
+                guild_name = guild.name;
+            }
+
+            info!("Connected to {guild_name}");
 
             let commands = guild_id
                 .set_commands(&ctx.http, vec![core::restart::register()])
                 .await;
             if let Ok(command) = commands {
                 let command_count = &command.len();
-                info!("Registered {command_count} command(s) in {guild_id}");
+                info!("Registered {command_count} command(s) in {guild_name}");
             }
 
             // if you want to make globals, use "Command::create_global_command"
         }
+    }
+}
+
+async fn register_slash_commands(
+    ctx: &Context,
+    command: &CommandInteraction,
+    content: Option<String>,
+) {
+    if let Some(content) = content {
+        let data = CreateInteractionResponseMessage::new().content(content);
+        let builder = CreateInteractionResponse::Message(data);
+        if let Err(why) = command.create_response(&ctx.http, builder).await {
+            error!("An error occurred while responding to command: {why}")
+        }
+    }
+}
+
+fn register_command(ctx: &Context, command: &CommandInteraction) -> Option<String> {
+    let command_data_name = &command.data.name;
+    let command_data_options = &command.data.options();
+
+    match command_data_name.as_str() {
+        "restart" => Some(core::restart::run(&ctx, command_data_options)),
+        _ => Some("Unknown command. Try /help for a list of commands".to_string()),
     }
 }
