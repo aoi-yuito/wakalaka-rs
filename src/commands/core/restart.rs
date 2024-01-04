@@ -13,6 +13,8 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
+use std::time::Duration;
+
 use serenity::all::{CommandOptionType, ResolvedValue};
 
 use serenity::builder::{CreateCommand, CreateCommandOption};
@@ -29,12 +31,14 @@ pub fn run(ctx: &Context, options: &[ResolvedOption<'_>]) -> String {
         })
         .unwrap_or(5);
     if timer < 5 {
-        return "Timer must be at least 5 seconds".to_string();
+        return "Cannot restart in less than 5 seconds".to_string();
+    } else if timer > 60 {
+        return "Cannot restart in more than 1 minute(s)".to_string();
     }
 
     let cloned_ctx = ctx.clone();
     std::thread::spawn(move || {
-        std::thread::sleep(std::time::Duration::from_secs(timer as u64));
+        std::thread::sleep(Duration::from_secs(timer as u64));
 
         cloned_ctx.shard.shutdown_clean();
     });
@@ -49,7 +53,7 @@ pub fn register() -> CreateCommand {
             CreateCommandOption::new(
                 CommandOptionType::Integer,
                 "timer",
-                "The time in seconds to wait before restarting",
+                "Time (in seconds) to wait before restarting",
             )
             .required(false),
         )
