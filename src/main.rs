@@ -19,7 +19,6 @@ use serde::ser::StdError;
 use serenity::{all::GatewayIntents, framework::StandardFramework};
 use tracing::Level;
 use tracing_subscriber::fmt::Subscriber;
-use tracing_subscriber::EnvFilter;
 use util::config::Config;
 
 mod commands;
@@ -45,11 +44,8 @@ pub async fn main() {
 }
 
 fn initialise_subscriber() {
-    let filter = EnvFilter::new("info").add_directive("serenity=info".parse().unwrap());
-
     Subscriber::builder()
-        .with_max_level(Level::DEBUG)
-        .with_env_filter(filter)
+        .with_max_level(Level::INFO)
         .compact()
         .init();
 }
