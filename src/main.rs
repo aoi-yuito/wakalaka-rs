@@ -29,9 +29,46 @@ mod util;
 type Context = serenity::client::Context;
 type Error = Box<(dyn StdError + marker::Send + Sync + 'static)>;
 
+#[tokio::main]
+pub async fn main() {
+    initialise_subscriber();
+
+    let framework = initialise_framework();
+    let intents = initialise_intents();
+    let config = initialise_config();
+
+    let mut client = initialise_client(config, intents, framework).await;
+    client
+        .start_autosharded()
+        .await
+        .expect("An error occurred while running the client");
+}
+
+fn initialise_subscriber() {
+    let filter = EnvFilter::new("info").add_directive("serenity=info".parse().unwrap());
+
+    Subscriber::builder()
+        .with_max_level(Level::DEBUG)
+        .with_env_filter(filter)
+        .compact()
+        .init();
+}
+
 fn initialise_framework() -> StandardFramework {
     let framework = StandardFramework::new();
     framework
+}
+
+fn initialise_config() -> Config {
+    let config = Config::new().expect("An error occurred while reading the config");
+    config
+}
+
+fn initialise_intents() -> GatewayIntents {
+    GatewayIntents::default()
+        | GatewayIntents::GUILD_MEMBERS
+        | GatewayIntents::GUILD_MESSAGES
+        | GatewayIntents::MESSAGE_CONTENT
 }
 
 async fn initialise_client(
@@ -47,41 +84,4 @@ async fn initialise_client(
         .await
         .expect("An error occurred while building the client");
     client
-}
-
-fn initialise_intents() -> GatewayIntents {
-    GatewayIntents::default()
-        | GatewayIntents::GUILD_MEMBERS
-        | GatewayIntents::GUILD_MESSAGES
-        | GatewayIntents::MESSAGE_CONTENT
-}
-
-fn initialise_config() -> Config {
-    let config = Config::new().expect("An error occurred while reading the config");
-    config
-}
-
-fn initialise_subscriber() {
-    let filter = EnvFilter::new("info").add_directive("serenity=info".parse().unwrap());
-
-    Subscriber::builder()
-        .with_max_level(Level::DEBUG)
-        .with_env_filter(filter)
-        .compact()
-        .init();
-}
-
-#[tokio::main]
-pub async fn main() {
-    initialise_subscriber();
-
-    let framework = initialise_framework();
-    let intents = initialise_intents();
-    let config = initialise_config();
-
-    let mut client = initialise_client(config, intents, framework).await;
-    client
-        .start_autosharded()
-        .await
-        .expect("An error occurred while running the client");
 }
