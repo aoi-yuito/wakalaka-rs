@@ -14,7 +14,7 @@
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
 use serenity::{
-    all::{Command, CommandInteraction, Interaction, Ready},
+    all::{CommandInteraction, Interaction, Ready},
     async_trait,
     builder::{CreateCommand, CreateInteractionResponse, CreateInteractionResponseMessage},
     client::EventHandler,
@@ -32,7 +32,11 @@ impl EventHandler for Handler {
         if let Interaction::Command(command) = interaction {
             let command_user = &command.user.name;
             let command_name = &command.data.name;
-            let channel_name = &command.channel_id.name(&ctx).await.unwrap();
+            let channel_name = &command.channel_id.name(&ctx).await.unwrap_or_else(|why| {
+                error!("{why}");
+
+                panic!("Error while retrieving channel name");
+            });
             info!("@{command_user} executed {command_name:?} in #{channel_name}");
 
             let content = register_command(&ctx, &command).await;
@@ -45,31 +49,56 @@ impl EventHandler for Handler {
         info!("Logged in as @{user_name}");
 
         let cache = &ctx.cache;
+        let http = &ctx.http;
 
         let guild_ids = cache.guilds();
         for guild_id in guild_ids {
-            let mut guild_name = String::new();
-            let guild_members = guild_id.members(&ctx.http, None, None).await.unwrap().len();
-            let guild_roles = guild_id.roles(&ctx.http).await.unwrap().len();
-            let guild_channels = guild_id.channels(&ctx.http).await.unwrap().len();
+            let partial_guild = guild_id
+                .to_partial_guild(&ctx.http)
+                .await
+                .unwrap_or_else(|why| {
+                    error!("{why}");
 
-            let partial_guild = guild_id.to_partial_guild(&ctx.http).await;
-            if let Ok(guild) = partial_guild {
-                guild_name = guild.name;
-            }
+                    panic!("Error while retrieving partial guild information");
+                });
 
+            let guild_name = &partial_guild.name;
             info!("Connected to {guild_name}");
-            info!("\t{guild_name} has {guild_members} members");
-            info!("\t{guild_name} has {guild_roles} roles");
-            info!("\t{guild_name} has {guild_channels} channels");
+
+            let guild_members_count = &partial_guild
+                .members(&ctx.http, None, None)
+                .await
+                .unwrap_or_else(|why| {
+                    error!("{why}");
+
+                    panic!("Error while retrieving guild members");
+                })
+                .len();
+            let guild_roles_count = &partial_guild.roles.len();
+            let guild_channels_count = &partial_guild
+                .channels(http)
+                .await
+                .unwrap_or_else(|why| {
+                    error!("{why}");
+
+                    panic!("Error while retrieving guild channels");
+                })
+                .len();
+            info!("\t{guild_name} has {guild_members_count} members");
+            info!("\t{guild_name} has {guild_roles_count} roles");
+            info!("\t{guild_name} has {guild_channels_count} channels");
 
             let registered_commands = guild_id.set_commands(&ctx.http, created_commands()).await;
-            if let Ok(registered_command) = registered_commands {
-                let commands = &registered_command.len();
-                info!("Registered {commands} command(s) in {guild_name}");
-            }
+            if let Ok(registered_commands) = registered_commands {
+                let registered_command_count = &registered_commands.len();
+                info!("Registered {registered_command_count} command(s) in {guild_name}");
 
-            // if you want to make globals, use "Command::create_global_command"
+                for registered_command in registered_commands {
+                    let registered_command_name = &registered_command.name;
+                    let registered_command_description = &registered_command.description;
+                    info!("\t{registered_command_name:?} - {registered_command_description}");
+                }
+            }
         }
     }
 }
@@ -87,7 +116,7 @@ async fn register_slash_commands(
         let data = CreateInteractionResponseMessage::new().content(content);
         let builder = CreateInteractionResponse::Message(data);
         if let Err(why) = command.create_response(&ctx.http, builder).await {
-            error!("An error occurred while responding to command: {why}")
+            error!("{why}")
         }
     }
 }
@@ -97,7 +126,7 @@ async fn register_command(ctx: &Context, command: &CommandInteraction) -> Option
     let command_data_options = &command.data.options();
 
     match command_data_name.as_str() {
-        "restart" => Some(core::restart::run(&ctx, command_data_options).await),
+        "restart" => Some(core::restart::run(&ctx, command, command_data_options).await),
         _ => Some("Unknown command.".to_string()),
     }
 }
