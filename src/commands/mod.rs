@@ -1,8 +1,4 @@
-use serenity::{
-    all::{GuildId, Message, UserId},
-    client::Cache,
-};
-use tracing::warn;
+use serenity::all::CommandInteraction;
 
 use crate::Context;
 
@@ -22,44 +18,42 @@ use crate::Context;
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 pub mod core;
 
-use tracing::log::error;
+use tracing::{log::error, log::warn};
 
-pub async fn is_owner_of_guild(ctx: &Context) -> bool {
-    let cloned_cache = ctx.cache.clone();
+pub async fn has_administrator_permission(ctx: &Context, interaction: &CommandInteraction) -> bool {
+    let guild_id = match interaction.guild_id {
+        Some(guild_id) => guild_id,
+        None => return false,
+    };
 
-    let guild_ids = cloned_cache.guilds();
-    for guild_id in guild_ids {
-        let http = &ctx.http;
+    let member = guild_id
+        .member(&ctx.http, interaction.user.id)
+        .await
+        .unwrap_or_else(|why| {
+            error!("{why}");
 
-        let guild = guild_id.to_partial_guild(http).await.unwrap_or_else(|why| {
-            error!("An error occurred while retrieving guild: {why}");
-
-            panic!();
+            panic!("Error while retrieving guild member");
         });
 
-        let guild_owner_id = guild.owner_id;
+    let cache = &ctx.cache;
 
-        let guild_members = guild_id
-            .members(http, None, None)
-            .await
-            .unwrap_or_else(|why| {
-                error!("An error occurred while retrieving guild members: {why}");
-
-                panic!();
-            });
-        for guild_member in guild_members {
-            let user_bot = guild_member.user.bot;
-            if user_bot {
-                continue;
-            }
-
-            if guild_member.user.id.eq(&guild_owner_id) {
-                true;
-            } else {
-                false;
-            }
-        }
+    let permissions = member.permissions(cache);
+    if let Ok(permissions) = permissions {
+        return permissions.administrator();
     }
 
-    false
+    let user_name = &interaction.user.name;
+    let command_name = &interaction.data.name;
+    let channel_name = &interaction
+        .channel_id
+        .name(&ctx)
+        .await
+        .unwrap_or_else(|why| {
+            error!("{why}");
+
+            panic!("Error while retrieving channel name");
+        });
+    warn!("@{user_name} doesn't have permission(s) to execute {command_name:?} in #{channel_name}");
+
+    return false;
 }
