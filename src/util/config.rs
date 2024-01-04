@@ -78,9 +78,8 @@ impl Config {
 
         let application_id = Self::read_section(GENERAL_SECTION, "application_id")?
             .parse::<u64>()
-            .map_err(|why| format!("An error occurred while parsing Application ID: {why}"))?;
-        let token = Self::read_section(GENERAL_SECTION, "token")
-            .map_err(|why| format!("An error occurred while reading Token: {why}"))?;
+            .map_err(|why| format!("{why}"))?;
+        let token = Self::read_section(GENERAL_SECTION, "token").map_err(|why| format!("{why}"))?;
 
         let config = Self {
             application_id,
