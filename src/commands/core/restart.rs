@@ -63,7 +63,7 @@ pub fn register() -> CreateCommand {
             CreateCommandOption::new(
                 CommandOptionType::Integer,
                 "seconds",
-                "Seconds to wait before restarting.",
+                "Delay in seconds before restarting.",
             )
             .required(false),
         )
