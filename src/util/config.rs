@@ -15,6 +15,7 @@
 
 use serde::{Deserialize, Serialize};
 use std::{fs::File, *};
+use tracing::log::error;
 
 use super::files;
 
@@ -22,30 +23,41 @@ const CONFIG_TOML: &str = "Config.toml";
 
 #[derive(Deserialize, Serialize, Default)]
 pub struct Config {
-    pub application_id: u64,
-    pub client_id: u64,
+    pub application_id: u64, // Same as Client ID
     pub token: String,
 }
 
 impl Config {
     pub fn new() -> Result<Self, Box<dyn error::Error>> {
         let mut config = Self::read_config()?;
-        if config.token.is_empty() {
+        if config.token.is_empty() || config.application_id == 0 {
             if let Ok(discord_token) = env::var("DISCORD_TOKEN") {
                 config.token = discord_token;
-
-                Self::write_config(&config)?;
             } else {
-                println!("'DISCORD_TOKEN' not found in environment variables");
-                println!("Please enter the Token found in the Discord Developer Portal:");
+                error!("DISCORD_TOKEN not found in environment variable");
 
+                println!("Please enter Token from Discord Developer Portal:");
                 let mut input_token = String::new();
                 io::stdin().read_line(&mut input_token)?;
                 input_token = input_token.trim().to_owned();
 
                 config.token = input_token;
-                Self::write_config(&config)?;
             }
+
+            if let Ok(application_id) = env::var("APPLICATION_ID") {
+                config.application_id = application_id.parse::<u64>().unwrap_or(0);
+            } else {
+                error!("APPLICATION_ID not found in environment variable");
+
+                println!("Please enter Application ID from Discord Developer Portal:");
+                let mut input_id = String::new();
+                io::stdin().read_line(&mut input_id)?;
+                input_id = input_id.trim().to_owned();
+
+                config.application_id = input_id.parse::<u64>().unwrap_or(0);
+            }
+
+            Self::write_config(&config)?;
         }
         Ok(config)
     }
@@ -62,17 +74,16 @@ impl Config {
     }
 
     pub fn read_config() -> Result<Self, Box<dyn error::Error>> {
-        let application_id = Self::read_section("Developer", "application_id")?
+        const GENERAL_SECTION: &str = "General";
+
+        let application_id = Self::read_section(GENERAL_SECTION, "application_id")?
             .parse::<u64>()
-            .map_err(|_| "application_id is not an integer")?;
-        let client_id = Self::read_section("Developer", "client_id")?
-            .parse::<u64>()
-            .map_err(|_| "client_id is not an integer")?;
-        let token = Self::read_section("Developer", "token")?;
+            .map_err(|why| format!("An error occurred while parsing Application ID: {why}"))?;
+        let token = Self::read_section(GENERAL_SECTION, "token")
+            .map_err(|why| format!("An error occurred while reading Token: {why}"))?;
 
         let config = Self {
             application_id,
-            client_id,
             token,
         };
         Ok(config)
@@ -88,12 +99,10 @@ impl Config {
         let contents = fs::read_to_string(CONFIG_TOML)?;
         let value: toml::Value = toml::from_str(&contents)?;
 
-        let section = value
-            .get(section)
-            .ok_or(format!("'{}' section not found", section))?;
+        let section = value.get(section).ok_or(format!("{section} not found"))?;
         let key = section
             .get(key)
-            .ok_or(format!("'{}' not found in '{}' section", key, section))?;
+            .ok_or(format!("{key} not found in {section}"))?;
 
         let value = match key {
             toml::Value::String(s) => s.clone(),
