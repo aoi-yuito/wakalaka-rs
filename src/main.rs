@@ -18,7 +18,7 @@ use std::marker;
 use serde::ser::StdError;
 use serenity::{all::GatewayIntents, framework::StandardFramework};
 use tracing::Level;
-use tracing_subscriber::fmt::Subscriber;
+use tracing_subscriber::{fmt::Subscriber, EnvFilter};
 use util::config::Config;
 
 mod commands;
@@ -40,12 +40,17 @@ pub async fn main() {
     client
         .start_autosharded()
         .await
-        .expect("An error occurred while running the client");
+        .expect("Error while running client");
 }
 
 fn initialise_subscriber() {
+    let filter = EnvFilter::try_from_default_env()
+        .or_else(|_| EnvFilter::try_new("wakalaka_rs=info"))
+        .expect("Error while creating filter");
+
     Subscriber::builder()
         .with_max_level(Level::INFO)
+        .with_env_filter(filter)
         .compact()
         .init();
 }
@@ -56,7 +61,7 @@ fn initialise_framework() -> StandardFramework {
 }
 
 fn initialise_config() -> Config {
-    let config = Config::new().expect("An error occurred while reading the config");
+    let config = Config::new().expect("Error while reading config");
     config
 }
 
@@ -78,6 +83,6 @@ async fn initialise_client(
         .event_handler(events::Handler)
         .framework(framework)
         .await
-        .expect("An error occurred while building the client");
+        .expect("Error while building client");
     client
 }
