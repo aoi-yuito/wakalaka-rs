@@ -1,51 +1,87 @@
-/**
- * Copyright (C) 2024 Kasutaja
- *
- * wakalaka-rs is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * wakalaka-rs is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
- */
-mod cogs;
-mod core;
-mod uses;
+// Copyright (C) 2024 Kawaxte
+//
+// wakalaka-rs is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Lesser General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// wakalaka-rs is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Lesser General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public License
+// along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-use crate::uses::*;
+use std::marker;
 
-pub type Error = Box<dyn std::error::Error + Send + Sync>;
-pub type Context<'a> = poise::Context<'a, Data, Error>;
+use serde::ser::StdError;
+use serenity::{all::GatewayIntents, framework::StandardFramework};
+use tracing::Level;
+use tracing_subscriber::fmt::Subscriber;
+use tracing_subscriber::EnvFilter;
+use util::config::Config;
 
-pub struct Data {}
+mod commands;
+mod events;
+mod util;
+
+type Context = serenity::client::Context;
+type Error = Box<(dyn StdError + marker::Send + Sync + 'static)>;
+
+fn initialise_framework() -> StandardFramework {
+    let framework = StandardFramework::new();
+    framework
+}
+
+async fn initialise_client(
+    config: Config,
+    intents: GatewayIntents,
+    framework: StandardFramework,
+) -> serenity::Client {
+    let token = config.token;
+
+    let client = serenity::Client::builder(token, intents)
+        .event_handler(events::Handler)
+        .framework(framework)
+        .await
+        .expect("An error occurred while building the client");
+    client
+}
+
+fn initialise_intents() -> GatewayIntents {
+    GatewayIntents::default()
+        | GatewayIntents::GUILD_MEMBERS
+        | GatewayIntents::GUILD_MESSAGES
+        | GatewayIntents::MESSAGE_CONTENT
+}
+
+fn initialise_config() -> Config {
+    let config = Config::new().expect("An error occurred while reading the config");
+    config
+}
+
+fn initialise_subscriber() {
+    let filter = EnvFilter::new("info").add_directive("serenity=info".parse().unwrap());
+
+    Subscriber::builder()
+        .with_max_level(Level::DEBUG)
+        .with_env_filter(filter)
+        .compact()
+        .init();
+}
 
 #[tokio::main]
 pub async fn main() {
-    let options = cogs::framework::setup_framework_options().await;
+    initialise_subscriber();
 
-    let framework = cogs::framework::build_framework(options).await;
+    let framework = initialise_framework();
+    let intents = initialise_intents();
+    let config = initialise_config();
 
-    let config = match config::Config::new() {
-        Ok(config) => config,
-        Err(e) => {
-            eprintln!("Error: {e}");
-            process::exit(1);
-        }
-    };
-    let intents = GatewayIntents::default()
-        | GatewayIntents::GUILD_MEMBERS
-        | GatewayIntents::GUILD_MESSAGES
-        | GatewayIntents::MESSAGE_CONTENT;
-
-    let client = ClientBuilder::new(config.token, intents)
-        .framework(framework)
-        .await;
-
-    client.unwrap().start().await.unwrap()
+    let mut client = initialise_client(config, intents, framework).await;
+    client
+        .start_autosharded()
+        .await
+        .expect("An error occurred while running the client");
 }
