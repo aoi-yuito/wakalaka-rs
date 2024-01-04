@@ -20,9 +20,15 @@ use serenity::all::{CommandOptionType, ResolvedValue};
 use serenity::builder::{CreateCommand, CreateCommandOption};
 use serenity::model::application::ResolvedOption;
 
+use crate::commands::is_owner_of_guild;
 use crate::Context;
 
-pub fn run(ctx: &Context, options: &[ResolvedOption<'_>]) -> String {
+pub async fn run(ctx: &Context, options: &[ResolvedOption<'_>]) -> String {
+    let owner = is_owner_of_guild(ctx).await;
+    if !owner {
+        return "You don't have rights to execute this command!".to_string();
+    }
+
     let timer = options
         .get(0)
         .and_then(|opt| match &opt.value {
@@ -31,9 +37,9 @@ pub fn run(ctx: &Context, options: &[ResolvedOption<'_>]) -> String {
         })
         .unwrap_or(5);
     if timer < 5 {
-        return "Cannot restart in less than 5 seconds".to_string();
+        return "Cannot restart in less than 5 seconds.".to_string();
     } else if timer > 60 {
-        return "Cannot restart in more than 1 minute(s)".to_string();
+        return "Cannot restart in more than 1 minute.".to_string();
     }
 
     let cloned_ctx = ctx.clone();
@@ -43,17 +49,17 @@ pub fn run(ctx: &Context, options: &[ResolvedOption<'_>]) -> String {
         cloned_ctx.shard.shutdown_clean();
     });
 
-    format!("Restarting in {timer} seconds...",)
+    return format!("Restarting in {timer} seconds...",);
 }
 
 pub fn register() -> CreateCommand {
     CreateCommand::new("restart")
-        .description("Restarts the bot")
+        .description("Restarts the bot.")
         .add_option(
             CreateCommandOption::new(
                 CommandOptionType::Integer,
-                "timer",
-                "Time (in seconds) to wait before restarting",
+                "seconds",
+                "Seconds to wait before restarting.",
             )
             .required(false),
         )
