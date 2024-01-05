@@ -13,10 +13,9 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
+use crate::Context;
 use serenity::all::Ready;
 use tracing::log::info;
-
-use crate::Context;
 
 pub async fn handle(_ctx: Context, ready: Ready) {
     let user_name = &ready.user.name;
