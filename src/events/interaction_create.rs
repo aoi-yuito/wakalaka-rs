@@ -58,7 +58,7 @@ async fn register_command(ctx: &Context, command: &CommandInteraction) -> Option
     let command_name = &command.data.name;
     match command_name.as_str() {
         "avatar" => Some(general::avatar::run(&ctx, command).await?),
-        "restart" => Some(core::restart::run(&ctx, command, command_options).await),
+        "restart" => Some(core::restart::run(&ctx, command, command_options).await?),
         _ => {
             warn!("{command_name:?} isn't implemented yet");
             None
