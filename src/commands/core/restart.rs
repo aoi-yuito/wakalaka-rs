@@ -13,14 +13,11 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-use std::time::Duration;
-
+use crate::{commands, Context};
 use serenity::all::{CommandInteraction, CommandOptionType, ResolvedValue};
-
 use serenity::builder::{CreateCommand, CreateCommandOption};
 use serenity::model::application::ResolvedOption;
-
-use crate::{commands, Context};
+use tokio::time::Duration;
 use tracing::log::info;
 
 pub async fn run(
@@ -35,8 +32,8 @@ pub async fn run(
         ));
     }
 
-    let subcommand = commands::subcommand(interaction);
-    match subcommand.name.as_str() {
+    let command = commands::command(interaction, 0);
+    match command.name.as_str() {
         "reason" => reason(ctx, options),
         "delay" => delay(options),
         _ => None,
