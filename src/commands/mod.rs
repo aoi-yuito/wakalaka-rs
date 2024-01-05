@@ -13,14 +13,14 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-use serenity::all::CommandInteraction;
+pub mod core;
+pub mod general;
 
 use crate::Context;
-pub mod core;
-
+use serenity::all::CommandInteraction;
 use tracing::{log::error, log::warn};
 
-pub async fn has_administrator_permission(ctx: &Context, interaction: &CommandInteraction) -> bool {
+pub async fn is_administrator(ctx: &Context, interaction: &CommandInteraction) -> bool {
     let guild_id = match interaction.guild_id {
         Some(guild_id) => guild_id,
         None => return false,
@@ -34,9 +34,7 @@ pub async fn has_administrator_permission(ctx: &Context, interaction: &CommandIn
             panic!("Error while retrieving guild member");
         });
 
-    let cache = &ctx.cache;
-
-    let permissions = member.permissions(cache);
+    let permissions = member.permissions(&ctx.cache);
     if let Ok(permissions) = permissions {
         return permissions.administrator();
     }
