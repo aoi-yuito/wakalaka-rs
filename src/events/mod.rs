@@ -48,5 +48,9 @@ fn created_global_commands() -> Vec<CreateCommand> {
 }
 
 fn created_commands() -> Vec<CreateCommand> {
-    vec![core::restart::register(), web::booru::aibooru::register()]
+    vec![
+        core::restart::register(),
+        web::booru::aibooru::register(),
+        web::booru::danbooru::register(),
+    ]
 }
