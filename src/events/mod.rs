@@ -17,15 +17,14 @@ pub mod cache_ready;
 pub mod interaction_create;
 pub mod ready;
 
+use crate::commands::*;
+use crate::Context;
 use serenity::{
     all::{GuildId, Interaction, Ready},
     async_trait,
     builder::CreateCommand,
     client::EventHandler,
 };
-
-use crate::commands::*;
-use crate::Context;
 
 pub struct Handler;
 
@@ -49,5 +48,5 @@ fn created_global_commands() -> Vec<CreateCommand> {
 }
 
 fn created_commands() -> Vec<CreateCommand> {
-    vec![core::restart::register()]
+    vec![core::restart::register(), web::booru::aibooru::register()]
 }
