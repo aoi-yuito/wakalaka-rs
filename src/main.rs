@@ -26,7 +26,7 @@ mod events;
 mod util;
 
 type Context = serenity::client::Context;
-type Error = Box<(dyn StdError + marker::Send + Sync + 'static)>;
+// type Error = Box<(dyn StdError + marker::Send + Sync + 'static)>;
 
 #[tokio::main]
 pub async fn main() {
