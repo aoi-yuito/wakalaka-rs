@@ -40,14 +40,11 @@ pub async fn run(
 }
 
 async fn id(options: &[ResolvedOption<'_>]) -> Option<String> {
-    let option = options.get(0)?;
-    if option.name == "post" {
+    for option in options {
         if let ResolvedValue::SubCommand(subcommand) = &option.value {
-            let suboption = subcommand.get(0)?;
-            if suboption.name == "id" {
-                if let ResolvedValue::Integer(id) = &suboption.value {
-                    return Some(id.to_string());
-                }
+            let id = subcommand.get(0)?;
+            if let ResolvedValue::Integer(id) = &id.value {
+                return Some(id.to_string());
             }
         }
     }
