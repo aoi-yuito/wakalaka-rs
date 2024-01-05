@@ -13,7 +13,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-use serenity::{all::GuildId, builder::CreateCommand};
+use serenity::all::GuildId;
 
 use crate::events::*;
 use crate::Context;
@@ -31,12 +31,10 @@ pub async fn handle(ctx: Context, guilds: Vec<GuildId>) {
         info!("\t{guild_name}");
     }
 
-    let cache = &ctx.cache;
-
-    let guild_ids = cache.guilds();
+    let guild_ids = &ctx.cache.guilds();
     for guild_id in guild_ids {
         let (guild_name, guild_member_count, guild_role_count, guild_channel_count) = {
-            let guild = cache.guild(guild_id).unwrap_or_else(|| {
+            let guild = &ctx.cache.guild(guild_id).unwrap_or_else(|| {
                 error!("No guild found");
                 panic!("Error while retrieving guild");
             });
@@ -53,22 +51,22 @@ pub async fn handle(ctx: Context, guilds: Vec<GuildId>) {
         info!("\t{guild_name} has {guild_role_count} roles");
         info!("\t{guild_name} has {guild_channel_count} channels");
 
-        let registered_commands = guild_id.set_commands(&ctx.http, created_commands()).await;
-        if let Ok(registered_commands) = registered_commands {
-            let registered_command_count = &registered_commands.len();
-            info!("Registered {registered_command_count} command(s) in {guild_name}");
-
-            for registered_command in registered_commands {
-                let registered_command_name = &registered_command.name;
-                let registered_command_description = &registered_command.description;
-                info!("\t{registered_command_name:?} - {registered_command_description}");
-            }
-        } else {
-            panic!("Error while registering command(s)");
-        }
+        register_commands(&ctx, *guild_id, guild_name).await;
     }
 }
 
-fn created_commands() -> Vec<CreateCommand> {
-    vec![core::restart::register()]
+async fn register_commands(ctx: &Context, guild_id: GuildId, guild_name: String) {
+    let commands = guild_id.set_commands(&ctx.http, created_commands()).await;
+    if let Ok(commands) = commands {
+        let command_count = &commands.len();
+        info!("Registered {command_count} command(s) in {guild_name}");
+
+        for command in commands {
+            let command_name = &command.name;
+            let command_description = &command.description;
+            info!("\t{command_name:?} - {command_description}");
+        }
+    } else {
+        panic!("Error while registering command(s)");
+    }
 }
