@@ -23,14 +23,6 @@ pub async fn handle(ctx: Context, guilds: Vec<GuildId>) {
     let guild_count = guilds.len();
     info!("Prepared cache for {guild_count} guild(s)");
 
-    for guild in guilds {
-        let guild_name = guild.name(&ctx).unwrap_or_else(|| {
-            error!("No guild name found");
-            panic!("Error while retrieving guild name");
-        });
-        info!("\t{guild_name}");
-    }
-
     let guild_ids = &ctx.cache.guilds();
     for guild_id in guild_ids {
         let (guild_name, guild_member_count, guild_role_count, guild_channel_count) = {
@@ -38,7 +30,6 @@ pub async fn handle(ctx: Context, guilds: Vec<GuildId>) {
                 error!("No guild found");
                 panic!("Error while retrieving guild");
             });
-
             (
                 guild.name.clone(),
                 guild.members.len(),
@@ -51,22 +42,35 @@ pub async fn handle(ctx: Context, guilds: Vec<GuildId>) {
         info!("\t{guild_name} has {guild_role_count} roles");
         info!("\t{guild_name} has {guild_channel_count} channels");
 
-        register_commands(&ctx, *guild_id, guild_name).await;
+        register_commands(&ctx, *guild_id, guild_name.clone()).await;
+        register_global_commands(&ctx, guild_name).await;
+    }
+}
+
+async fn register_global_commands(ctx: &Context, guild_name: String) {
+    let global_commands = created_global_commands();
+    for global_command in global_commands {
+        if let Ok(command) = ctx.http.create_global_command(&global_command).await {
+            let (global_command_count, global_command_name, global_command_description) =
+                (&command.options.len(), &command.name, &command.description);
+            info!("Registered {global_command_count} global command(s) in {guild_name}");
+            info!("\t{global_command_name:?} - {global_command_description}");
+        } else {
+            panic!("Error while registering global command(s)");
+        }
     }
 }
 
 async fn register_commands(ctx: &Context, guild_id: GuildId, guild_name: String) {
-    let commands = guild_id.set_commands(&ctx.http, created_commands()).await;
-    if let Ok(commands) = commands {
-        let command_count = &commands.len();
-        info!("Registered {command_count} command(s) in {guild_name}");
-
-        for command in commands {
-            let command_name = &command.name;
-            let command_description = &command.description;
+    let commands = created_commands();
+    for command in commands {
+        if let Ok(command) = ctx.http.create_guild_command(guild_id, &command).await {
+            let (command_count, command_name, command_description) =
+                (&command.options.len(), &command.name, &command.description);
+            info!("Registered {command_count} command(s) in {guild_name}");
             info!("\t{command_name:?} - {command_description}");
+        } else {
+            panic!("Error while registering command(s)");
         }
-    } else {
-        panic!("Error while registering command(s)");
     }
 }
