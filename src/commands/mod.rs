@@ -15,12 +15,22 @@
 
 pub mod core;
 pub mod general;
+pub mod web;
 
 use crate::Context;
-use serenity::all::CommandInteraction;
+use serenity::all::{CommandDataOption, CommandInteraction};
 use tracing::{log::error, log::warn};
 
-pub async fn is_administrator(ctx: &Context, interaction: &CommandInteraction) -> bool {
+fn command(interaction: &CommandInteraction, index: usize) -> &CommandDataOption {
+    let command = interaction
+        .data
+        .options
+        .get(index)
+        .expect("Error while getting command");
+    command
+}
+
+async fn is_administrator(ctx: &Context, interaction: &CommandInteraction) -> bool {
     let guild_id = match interaction.guild_id {
         Some(guild_id) => guild_id,
         None => return false,
@@ -30,8 +40,8 @@ pub async fn is_administrator(ctx: &Context, interaction: &CommandInteraction) -
         .member(&ctx.http, interaction.user.id)
         .await
         .unwrap_or_else(|why| {
-            error!("{why}");
-            panic!("Error while retrieving guild member");
+            error!("Error while retrieving guild member: {why}");
+            panic!("{why:?}");
         });
 
     let permissions = member.permissions(&ctx.cache);
@@ -46,8 +56,8 @@ pub async fn is_administrator(ctx: &Context, interaction: &CommandInteraction) -
         .name(&ctx)
         .await
         .unwrap_or_else(|why| {
-            error!("{why}");
-            panic!("Error while retrieving channel name");
+            error!("Error while retrieving channel name: {why}");
+            panic!("{why:?}");
         });
     warn!("@{user_name} doesn't have permission(s) to execute {command_name:?} in #{channel_name}");
 
