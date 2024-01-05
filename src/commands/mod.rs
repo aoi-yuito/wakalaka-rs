@@ -1,7 +1,3 @@
-use serenity::all::CommandInteraction;
-
-use crate::Context;
-
 // Copyright (C) 2024 Kawaxte
 //
 // wakalaka-rs is free software: you can redistribute it and/or modify
@@ -16,6 +12,10 @@ use crate::Context;
 //
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
+
+use serenity::all::CommandInteraction;
+
+use crate::Context;
 pub mod core;
 
 use tracing::{log::error, log::warn};
