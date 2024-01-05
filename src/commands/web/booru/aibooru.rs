@@ -17,11 +17,14 @@ use super::Post;
 use crate::{commands, Context};
 use serenity::{
     all::{CommandInteraction, CommandOptionType, ResolvedOption, ResolvedValue},
-    builder::{CreateCommand, CreateCommandOption, CreateMessage},
+    builder::{
+        CreateCommand, CreateCommandOption, CreateInteractionResponse,
+        CreateInteractionResponseMessage, CreateMessage,
+    },
 };
 
-pub const AIBOORU_URL: &str = "https://aibooru.online";
-pub const AIBOORU_LOGO_PNG: &str =
+const AIBOORU_URL: &str = "https://aibooru.online";
+const AIBOORU_LOGO_PNG: &str =
     "https://aibooru.online/packs/static/images/danbooru-logo-128x128-5dfe4b292bd64a786b41.png";
 
 pub async fn run(
@@ -37,14 +40,18 @@ pub async fn run(
 }
 
 async fn id(options: &[ResolvedOption<'_>]) -> Option<String> {
-    let id = options
-        .get(0)
-        .and_then(|opt| match &opt.value {
-            ResolvedValue::Integer(i) => Some(i),
-            _ => None,
-        })
-        .unwrap_or(&54291);
-    Some(id.to_string())
+    let option = options.get(0)?;
+    if option.name == "post" {
+        if let ResolvedValue::SubCommand(subcommand) = &option.value {
+            let suboption = subcommand.get(0)?;
+            if suboption.name == "id" {
+                if let ResolvedValue::Integer(id) = &suboption.value {
+                    return Some(id.to_string());
+                }
+            }
+        }
+    }
+    None
 }
 
 async fn post(
@@ -91,10 +98,12 @@ async fn post(
                 0x7EB900,
             );
 
-            let message = CreateMessage::new();
-            let embed_message = message.embed(embed);
+            let response_message = CreateInteractionResponseMessage::default();
 
-            let _ = channel_id.send_message(ctx, embed_message).await;
+            let message = response_message.add_embed(embed);
+            let response = CreateInteractionResponse::Message(message);
+
+            let _ = interaction.create_response(&ctx.http, response).await;
         }
     }
     None
@@ -107,7 +116,7 @@ pub fn register() -> CreateCommand {
             CreateCommandOption::new(
                 CommandOptionType::SubCommand,
                 "post",
-                "Gets a post from AIBooru",
+                "Previews a post from AIBooru",
             )
             .add_sub_option(
                 CreateCommandOption::new(CommandOptionType::Integer, "id", "Index of the post.")
