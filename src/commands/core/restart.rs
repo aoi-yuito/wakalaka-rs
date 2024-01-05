@@ -21,6 +21,7 @@ use serenity::builder::{CreateCommand, CreateCommandOption};
 use serenity::model::application::ResolvedOption;
 
 use crate::Context;
+use tracing::log::info;
 
 pub async fn run(
     ctx: &Context,
@@ -33,63 +34,43 @@ pub async fn run(
         return "You don't have rights to execute this command!".to_string();
     }
 
-    let second_count = match seconds(options) {
+    let seconds = match seconds(options) {
+        Ok(value) => value,
+        Err(value) => return value,
+    };
+    let reason = match reason(options) {
         Ok(value) => value,
         Err(value) => return value,
     };
 
-    if let Some(value) = reason(options) {
-        return value;
-    }
-
     let cloned_ctx = ctx.clone();
     tokio::spawn(async move {
-        tokio::time::sleep(Duration::from_secs(second_count as u64)).await;
+        tokio::time::sleep(Duration::from_secs(seconds as u64)).await;
 
         cloned_ctx.shard.shutdown_clean();
     });
 
-    return format!("Restarting in {second_count} seconds...",);
+    info!("Restarting in {seconds} seconds: {reason}");
+    return "Restarting...".to_string();
 }
 
-pub fn register() -> CreateCommand {
-    CreateCommand::new("restart")
-        .description("Restarts the bot.")
-        .add_option(
-            CreateCommandOption::new(
-                CommandOptionType::Integer,
-                "seconds",
-                "Delay in seconds before restarting.",
-            )
-            .required(false),
-        )
-        .add_option(
-            CreateCommandOption::new(
-                CommandOptionType::String,
-                "reason",
-                "Reason for restarting the bot.",
-            )
-            .required(true),
-        )
-}
-
-fn reason(options: &[ResolvedOption<'_>]) -> Option<String> {
+fn reason(options: &[ResolvedOption<'_>]) -> Result<String, String> {
     let reason = options
-        .get(1)
+        .get(0)
         .and_then(|opt| match &opt.value {
             ResolvedValue::String(s) => Some(s),
             _ => None,
         })
         .unwrap_or(&"Cannot restart if no reason is provided.");
     if reason.len() > 50 {
-        return Some("Reason cannot be longer than 50 characters.".to_string());
+        return Err("Reason cannot be longer than 50 characters.".to_string());
     }
-    None
+    Ok(reason.to_string())
 }
 
 fn seconds(options: &[ResolvedOption<'_>]) -> Result<i64, String> {
     let seconds = options
-        .get(0)
+        .get(1)
         .and_then(|opt| match &opt.value {
             ResolvedValue::Integer(i) => Some(*i),
             _ => None,
@@ -101,4 +82,25 @@ fn seconds(options: &[ResolvedOption<'_>]) -> Result<i64, String> {
         return Err("Delay cannot be more than 60 seconds (1 minute).".to_string());
     }
     Ok(seconds)
+}
+
+pub fn register() -> CreateCommand {
+    CreateCommand::new("restart")
+        .description("Restarts the bot.")
+        .add_option(
+            CreateCommandOption::new(
+                CommandOptionType::String,
+                "reason",
+                "Reason for restarting the bot.",
+            )
+            .required(true),
+        )
+        .add_option(
+            CreateCommandOption::new(
+                CommandOptionType::Integer,
+                "seconds",
+                "Delay in seconds before restarting.",
+            )
+            .required(false),
+        )
 }
