@@ -31,7 +31,6 @@ pub async fn has_administrator_permission(ctx: &Context, interaction: &CommandIn
         .await
         .unwrap_or_else(|why| {
             error!("{why}");
-
             panic!("Error while retrieving guild member");
         });
 
@@ -50,7 +49,6 @@ pub async fn has_administrator_permission(ctx: &Context, interaction: &CommandIn
         .await
         .unwrap_or_else(|why| {
             error!("{why}");
-
             panic!("Error while retrieving channel name");
         });
     warn!("@{user_name} doesn't have permission(s) to execute {command_name:?} in #{channel_name}");
