@@ -28,10 +28,9 @@ pub async fn run(
     interaction: &CommandInteraction,
     options: &[ResolvedOption<'_>],
 ) -> String {
-    let administrator_permission =
-        crate::commands::has_administrator_permission(ctx, interaction).await;
-    if !administrator_permission {
-        return "You don't have rights to execute this command!".to_string();
+    let administrator = crate::commands::is_administrator(ctx, interaction).await;
+    if !administrator {
+        return "You don't have permission(s) to execute this command!".to_string();
     }
 
     let seconds = match seconds(options) {
