@@ -13,19 +13,18 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
+use crate::{commands, Context};
 use serenity::{
-    all::{colours::branding, CommandInteraction, CommandOptionType, User},
+    all::{colours::branding, CommandInteraction, CommandOptionType},
     builder::{
         CreateCommand, CreateCommandOption, CreateEmbed, CreateInteractionResponse,
         CreateInteractionResponseMessage,
     },
 };
 
-use crate::{commands, Context};
-
 pub async fn run(ctx: &Context, interaction: &CommandInteraction) -> Option<String> {
-    let subcommand = commands::subcommand(interaction);
-    match subcommand.name.as_str() {
+    let command = commands::command(interaction, 0);
+    match command.name.as_str() {
         "user" => user(interaction, ctx).await,
         _ => None,
     }
@@ -62,7 +61,7 @@ async fn user(
 
     match interaction.create_response(&ctx.http, response).await {
         Ok(_) => None,
-        Err(why) => Some(format!("Error while responding to interaction: {}", why)),
+        Err(why) => Some(format!("Error while creating response: {why}")),
     }
 }
 
@@ -73,7 +72,7 @@ pub fn register() -> CreateCommand {
             CreateCommandOption::new(
                 CommandOptionType::User,
                 "user",
-                "User to get the avatar of.",
+                "ID (or mention) of the user.",
             )
             .required(true),
         )
