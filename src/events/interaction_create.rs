@@ -58,6 +58,7 @@ async fn register_command(ctx: &Context, command: &CommandInteraction) -> Option
     match command_name.as_str() {
         "aibooru" => Some(web::booru::aibooru::run(&ctx, command, command_options).await?),
         "avatar" => Some(general::avatar::run(&ctx, command).await?),
+        "danbooru" => Some(web::booru::danbooru::run(&ctx, command, command_options).await?),
         "restart" => Some(core::restart::run(&ctx, command, command_options).await?),
         _ => {
             warn!("{command_name:?} isn't implemented yet");
