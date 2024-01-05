@@ -45,6 +45,7 @@ async fn register_slash_commands(
     if let Some(content) = content {
         let response_message = CreateInteractionResponseMessage::new().content(content);
         let response = CreateInteractionResponse::Message(response_message);
+
         if let Err(why) = command.create_response(&ctx.http, response).await {
             error!("{why}")
         }
@@ -52,19 +53,14 @@ async fn register_slash_commands(
 }
 
 async fn register_command(ctx: &Context, command: &CommandInteraction) -> Option<String> {
-    let user_name = &command.user.name;
-    let command_name = &command.data.name;
-    let channel_name = &command.channel_id.name(&ctx).await.unwrap_or_else(|why| {
-        error!("{why}");
-        panic!("Error while retrieving channel name");
-    });
-
     let command_options = &command.data.options();
 
+    let command_name = &command.data.name;
     match command_name.as_str() {
+        "avatar" => Some(general::avatar::run(&ctx, command).await?),
         "restart" => Some(core::restart::run(&ctx, command, command_options).await),
         _ => {
-            warn!("@{user_name} tried to execute {command_name:?} in #{channel_name} but it doesn't exist");
+            warn!("{command_name:?} isn't implemented yet");
             None
         }
     }
