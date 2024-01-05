@@ -24,7 +24,7 @@ use serenity::{
 };
 
 #[derive(Default)]
-struct Post {
+struct BooruPost {
     tag_string_artist: String,
     file_url: String,
     score: String,
@@ -36,7 +36,7 @@ struct Post {
     created_at: String,
 }
 
-impl Post {
+impl BooruPost {
     fn new(response: &serde_json::Value) -> Self {
         let tag_string_artist = response["tag_string_artist"]
             .as_str()
@@ -96,7 +96,7 @@ impl Post {
     }
 
     pub fn embed(
-        post: &Post,
+        post: &BooruPost,
         icon_url: &'static str,
         post_id: i64,
         description: Option<String>,

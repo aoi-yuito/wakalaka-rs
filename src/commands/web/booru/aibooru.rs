@@ -13,7 +13,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-use super::Post;
+use super::BooruPost;
 use crate::{commands, Context};
 use serenity::{
     all::{CommandInteraction, CommandOptionType, ResolvedOption, ResolvedValue},
@@ -63,7 +63,7 @@ async fn post(
         .expect("Error while parsing ID");
     let channel_id = interaction.channel_id;
 
-    let exists = Post::exists(ctx, channel_id, id).await;
+    let exists = BooruPost::exists(ctx, channel_id, id).await;
     if exists {
         let posts_json = format!("{AIBOORU_URL}/posts/{id}.json");
 
@@ -80,18 +80,18 @@ async fn post(
         let response_json =
             serde_json::from_str(&response_text).expect("Error while parsing JSON from response");
 
-        let success = Post::has_success(ctx, &response_json, channel_id, id).await;
+        let success = BooruPost::has_success(ctx, &response_json, channel_id, id).await;
         if success {
-            let post = Post::new(&response_json);
+            let post = BooruPost::new(&response_json);
 
-            let embed = Post::embed(
+            let embed = BooruPost::embed(
                 &post,
                 AIBOORU_LOGO_PNG,
                 id,
                 None,
                 AIBOORU_URL,
                 post.file_url.clone(),
-                Post::generate_footer(&post),
+                BooruPost::generate_footer(&post),
                 0x7EB900,
             );
 
