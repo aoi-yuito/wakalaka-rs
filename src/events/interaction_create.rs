@@ -13,13 +13,12 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
+use crate::events::*;
+use crate::Context;
 use serenity::{
     all::{CommandInteraction, Interaction},
     builder::{CreateInteractionResponse, CreateInteractionResponseMessage},
 };
-
-use crate::events::*;
-use crate::Context;
 use tracing::{log::error, log::info, log::warn};
 
 pub async fn handle(ctx: Context, interaction: Interaction) {
@@ -27,8 +26,8 @@ pub async fn handle(ctx: Context, interaction: Interaction) {
         let command_user = &command.user.name;
         let command_name = &command.data.name;
         let channel_name = &command.channel_id.name(&ctx).await.unwrap_or_else(|why| {
-            error!("{why}");
-            panic!("Error while retrieving channel name");
+            error!("Error while retrieving channel name: {why}");
+            panic!("{why:?}");
         });
         info!("@{command_user} executed {command_name:?} in #{channel_name}");
 
@@ -47,7 +46,7 @@ async fn register_slash_commands(
         let response = CreateInteractionResponse::Message(response_message);
 
         if let Err(why) = command.create_response(&ctx.http, response).await {
-            error!("{why}")
+            error!("{why:?}");
         }
     }
 }
@@ -57,6 +56,7 @@ async fn register_command(ctx: &Context, command: &CommandInteraction) -> Option
 
     let command_name = &command.data.name;
     match command_name.as_str() {
+        "aibooru" => Some(web::booru::aibooru::run(&ctx, command, command_options).await?),
         "avatar" => Some(general::avatar::run(&ctx, command).await?),
         "restart" => Some(core::restart::run(&ctx, command, command_options).await?),
         _ => {
