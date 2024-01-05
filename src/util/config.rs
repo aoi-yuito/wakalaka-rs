@@ -13,11 +13,10 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
+use super::files;
 use serde::{Deserialize, Serialize};
 use std::{fs::File, *};
 use tracing::log::error;
-
-use super::files;
 
 const CONFIG_TOML: &str = "Config.toml";
 
@@ -78,8 +77,9 @@ impl Config {
 
         let application_id = Self::read_section(GENERAL_SECTION, "application_id")?
             .parse::<u64>()
-            .map_err(|why| format!("{why}"))?;
-        let token = Self::read_section(GENERAL_SECTION, "token").map_err(|why| format!("{why}"))?;
+            .map_err(|why| format!("Error while parsing application ID: {why}"))?;
+        let token = Self::read_section(GENERAL_SECTION, "token")
+            .map_err(|why| format!("Error while reading token: {why}"))?;
 
         let config = Self {
             application_id,
