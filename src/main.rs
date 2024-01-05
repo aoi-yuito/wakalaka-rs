@@ -12,21 +12,16 @@
 //
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
+mod commands;
+mod events;
+mod util;
 
-use std::marker;
-
-use serde::ser::StdError;
 use serenity::{all::GatewayIntents, framework::StandardFramework};
 use tracing::Level;
 use tracing_subscriber::{fmt::Subscriber, EnvFilter};
 use util::config::Config;
 
-mod commands;
-mod events;
-mod util;
-
 type Context = serenity::client::Context;
-// type Error = Box<(dyn StdError + marker::Send + Sync + 'static)>;
 
 #[tokio::main]
 pub async fn main() {
