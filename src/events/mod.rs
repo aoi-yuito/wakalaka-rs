@@ -44,6 +44,10 @@ impl EventHandler for Handler {
     }
 }
 
+fn created_global_commands() -> Vec<CreateCommand> {
+    vec![general::avatar::register()]
+}
+
 fn created_commands() -> Vec<CreateCommand> {
     vec![core::restart::register()]
 }
