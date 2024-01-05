@@ -20,6 +20,7 @@ pub mod ready;
 use serenity::{
     all::{GuildId, Interaction, Ready},
     async_trait,
+    builder::CreateCommand,
     client::EventHandler,
 };
 
@@ -41,4 +42,8 @@ impl EventHandler for Handler {
     async fn ready(&self, ctx: Context, ready: Ready) {
         ready::handle(ctx, ready).await;
     }
+}
+
+fn created_commands() -> Vec<CreateCommand> {
+    vec![core::restart::register()]
 }
