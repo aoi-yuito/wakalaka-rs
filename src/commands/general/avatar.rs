@@ -21,10 +21,30 @@ use serenity::{
     },
 };
 
-use crate::Context;
+use crate::{commands, Context};
 
 pub async fn run(ctx: &Context, interaction: &CommandInteraction) -> Option<String> {
-    let user = user(ctx, interaction).await;
+    let subcommand = commands::subcommand(interaction);
+    match subcommand.name.as_str() {
+        "user" => user(interaction, ctx).await,
+        _ => None,
+    }
+}
+
+async fn user(
+    interaction: &CommandInteraction,
+    ctx: &serenity::prelude::Context,
+) -> Option<String> {
+    let user_id = interaction
+        .data
+        .options
+        .get(0)
+        .and_then(|option| option.value.as_user_id())
+        .expect("Error while getting user ID");
+    let user = user_id
+        .to_user(&ctx.http)
+        .await
+        .expect("Error while getting user from user ID");
     let user_avatar_url = user
         .avatar_url()
         .unwrap_or_else(|| user.default_avatar_url());
@@ -44,19 +64,6 @@ pub async fn run(ctx: &Context, interaction: &CommandInteraction) -> Option<Stri
         Ok(_) => None,
         Err(why) => Some(format!("Error while responding to interaction: {}", why)),
     }
-}
-
-async fn user(ctx: &Context, interaction: &CommandInteraction) -> User {
-    let user_id = interaction
-        .data
-        .options
-        .get(0)
-        .and_then(|option| option.value.as_user_id())
-        .expect("Error while getting user ID");
-    user_id
-        .to_user(&ctx.http)
-        .await
-        .expect("Error while getting user from user ID")
 }
 
 pub fn register() -> CreateCommand {

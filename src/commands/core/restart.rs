@@ -20,40 +20,30 @@ use serenity::all::{CommandInteraction, CommandOptionType, ResolvedValue};
 use serenity::builder::{CreateCommand, CreateCommandOption};
 use serenity::model::application::ResolvedOption;
 
-use crate::Context;
+use crate::{commands, Context};
 use tracing::log::info;
 
 pub async fn run(
     ctx: &Context,
     interaction: &CommandInteraction,
     options: &[ResolvedOption<'_>],
-) -> String {
+) -> Option<String> {
     let administrator = crate::commands::is_administrator(ctx, interaction).await;
     if !administrator {
-        return "You don't have permission(s) to execute this command!".to_string();
+        return Some(format!(
+            "You don't have permission(s) to execute this command!"
+        ));
     }
 
-    let seconds = match seconds(options) {
-        Ok(value) => value,
-        Err(value) => return value,
-    };
-    let reason = match reason(options) {
-        Ok(value) => value,
-        Err(value) => return value,
-    };
-
-    let cloned_ctx = ctx.clone();
-    tokio::spawn(async move {
-        tokio::time::sleep(Duration::from_secs(seconds as u64)).await;
-
-        cloned_ctx.shard.shutdown_clean();
-    });
-
-    info!("Restarting in {seconds} seconds: {reason}");
-    return "Restarting...".to_string();
+    let subcommand = commands::subcommand(interaction);
+    match subcommand.name.as_str() {
+        "reason" => reason(ctx, options),
+        "delay" => delay(options),
+        _ => None,
+    }
 }
 
-fn reason(options: &[ResolvedOption<'_>]) -> Result<String, String> {
+fn reason(ctx: &Context, options: &[ResolvedOption<'_>]) -> Option<String> {
     let reason = options
         .get(0)
         .and_then(|opt| match &opt.value {
@@ -62,12 +52,25 @@ fn reason(options: &[ResolvedOption<'_>]) -> Result<String, String> {
         })
         .unwrap_or(&"Cannot restart if no reason is provided.");
     if reason.len() > 50 {
-        return Err("Reason cannot be longer than 50 characters.".to_string());
+        return None;
     }
-    Ok(reason.to_string())
+
+    let seconds = delay(options)
+        .and_then(|s| s.parse::<u64>().ok())
+        .unwrap_or(5);
+    info!("Restarting in {seconds} seconds: {reason}");
+
+    let cloned_ctx = ctx.clone();
+    tokio::spawn(async move {
+        tokio::time::sleep(Duration::from_secs(seconds as u64)).await;
+
+        cloned_ctx.shard.shutdown_clean();
+    });
+
+    Some(format!("Restarting in {seconds} seconds..."))
 }
 
-fn seconds(options: &[ResolvedOption<'_>]) -> Result<i64, String> {
+fn delay(options: &[ResolvedOption<'_>]) -> Option<String> {
     let seconds = options
         .get(1)
         .and_then(|opt| match &opt.value {
@@ -76,11 +79,12 @@ fn seconds(options: &[ResolvedOption<'_>]) -> Result<i64, String> {
         })
         .unwrap_or(5);
     if seconds < 5 {
-        return Err("Delay cannot be less than 5 seconds.".to_string());
+        return Some("Delay cannot be less than 5 seconds.".to_string());
     } else if seconds > 60 {
-        return Err("Delay cannot be more than 60 seconds (1 minute).".to_string());
+        return Some("Delay cannot be more than 60 seconds (1 minute).".to_string());
     }
-    Ok(seconds)
+
+    None
 }
 
 pub fn register() -> CreateCommand {
@@ -97,8 +101,8 @@ pub fn register() -> CreateCommand {
         .add_option(
             CreateCommandOption::new(
                 CommandOptionType::Integer,
-                "seconds",
-                "Delay in seconds before restarting.",
+                "delay",
+                "Seconds to wait before restarting the bot.",
             )
             .required(false),
         )
