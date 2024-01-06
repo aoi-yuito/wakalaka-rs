@@ -22,7 +22,6 @@ use serenity::{
         CreateInteractionResponseMessage,
     },
 };
-use tokio::time::Duration;
 
 const DANBOORU_URL: &str = "https://danbooru.donmai.us";
 const DANBOORU_LOGO_PNG: &str =
