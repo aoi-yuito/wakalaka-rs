@@ -46,7 +46,36 @@ fn command(interaction: &CommandInteraction, index: usize) -> &CommandDataOption
     command
 }
 
-async fn is_administrator(ctx: &Context, interaction: &CommandInteraction) -> bool {
+async fn has_manage_messages_permission(ctx: &Context, interaction: &CommandInteraction) -> bool {
+    let guild_id = match interaction.guild_id {
+        Some(guild_id) => guild_id,
+        None => {
+            return false;
+        }
+    };
+
+    let member = guild_id.member(&ctx.http, interaction.user.id).await.unwrap_or_else(|why| {
+        error!("Error while retrieving guild member: {why}");
+        panic!("{why:?}");
+    });
+
+    let permissions = member.permissions(&ctx.cache);
+    if let Ok(permissions) = permissions {
+        return permissions.manage_messages();
+    }
+
+    let user_name = &interaction.user.name;
+    let command_name = &interaction.data.name;
+    let channel_name = &interaction.channel_id.name(&ctx).await.unwrap_or_else(|why| {
+        error!("Error while retrieving channel name: {why}");
+        panic!("{why:?}");
+    });
+    warn!("@{user_name} doesn't have permission(s) to execute {command_name:?} in #{channel_name}");
+
+    return false;
+}
+
+async fn has_administrator_permission(ctx: &Context, interaction: &CommandInteraction) -> bool {
     let guild_id = match interaction.guild_id {
         Some(guild_id) => guild_id,
         None => {
