@@ -13,12 +13,12 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-use crate::events::*;
-use crate::Context;
 use serenity::all::Command;
 use serenity::all::GuildId;
-
 use tracing::{ log::error, log::info };
+
+use crate::commands;
+use crate::Context;
 
 pub async fn handle(ctx: Context, guilds: Vec<GuildId>) {
     let guild_count = guilds.len();
@@ -67,28 +67,6 @@ async fn update_commands(
         error!("No global command(s) found in {guild_name}");
     }
 
-    add_guild_commands(&ctx, guild_id, &guild_name).await;
-    add_global_commands(&ctx, &guild_name).await;
-}
-
-async fn add_global_commands(ctx: &Context, guild_name: &String) {
-    let global_commands = registered_global_commands();
-    let global_commands_count = global_commands.len();
-    Command::set_global_commands(&ctx.http, global_commands).await.unwrap_or_else(|why| {
-        error!("Error while registering global command(s): {why:?}");
-        panic!("{why:?}");
-    });
-
-    info!("Registered {global_commands_count} global command(s) in {guild_name}");
-}
-
-async fn add_guild_commands(ctx: &Context, guild_id: &GuildId, guild_name: &String) {
-    let commands = registered_guild_commands();
-    let command_count = registered_guild_commands().len();
-    guild_id.set_commands(&ctx.http, commands).await.unwrap_or_else(|why| {
-        error!("Error while registering guild command(s): {why:?}");
-        panic!("{why:?}");
-    });
-
-    info!("Registered {command_count} guild command(s) in {guild_name}");
+    commands::register_guild_commands(&ctx, guild_id, &guild_name).await;
+    commands::register_global_commands(&ctx, &guild_name).await;
 }
