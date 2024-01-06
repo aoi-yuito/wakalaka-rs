@@ -31,12 +31,12 @@ pub async fn handle(ctx: Context, interaction: Interaction) {
         });
         info!("@{command_user} executed {command_name:?} in #{channel_name}");
 
-        let content = register_command(&ctx, &command).await;
-        register_slash_commands(&ctx, &command, content).await;
+        let content = command_content(&ctx, &command).await;
+        register_command_response(&ctx, &command, content).await;
     }
 }
 
-async fn register_slash_commands(
+async fn register_command_response(
     ctx: &Context,
     command: &CommandInteraction,
     content: Option<String>,
@@ -51,14 +51,13 @@ async fn register_slash_commands(
     }
 }
 
-async fn register_command(ctx: &Context, command: &CommandInteraction) -> Option<String> {
+async fn command_content(ctx: &Context, command: &CommandInteraction) -> Option<String> {
     let command_options = &command.data.options();
 
     let command_name = &command.data.name;
     match command_name.as_str() {
         "aibooru" => Some(web::booru::aibooru::run(&ctx, command, command_options).await?),
         "avatar" => Some(general::avatar::run(&ctx, command).await?),
-        "danbooru" => Some(web::booru::danbooru::run(&ctx, command, command_options).await?),
         "restart" => Some(core::restart::run(&ctx, command, command_options).await?),
         _ => {
             warn!("{command_name:?} isn't implemented yet");
