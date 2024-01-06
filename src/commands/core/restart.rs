@@ -86,12 +86,12 @@ fn delay(options: &[ResolvedOption<'_>]) -> Option<String> {
 
 pub fn register() -> CreateCommand {
     CreateCommand::new("restart")
-        .description("Restarts the bot.")
+        .description("Restarts yours truly.")
         .add_option(
             CreateCommandOption::new(
                 CommandOptionType::String,
                 "reason",
-                "Reason for restarting the bot.",
+                "Short explanation for restarting.",
             )
             .required(true),
         )
@@ -99,7 +99,7 @@ pub fn register() -> CreateCommand {
             CreateCommandOption::new(
                 CommandOptionType::Integer,
                 "delay",
-                "Seconds to wait before restarting the bot.",
+                "Seconds to wait before restarting.",
             )
             .required(false),
         )

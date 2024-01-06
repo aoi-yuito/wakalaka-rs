@@ -67,12 +67,12 @@ async fn user(
 
 pub fn register() -> CreateCommand {
     CreateCommand::new("avatar")
-        .description("Gets the user's avatar.")
+        .description("Fetches user's avatar.")
         .add_option(
             CreateCommandOption::new(
                 CommandOptionType::User,
                 "user",
-                "ID (or mention) of the user.",
+                "ID (or mention) of user to fetch avatar from.",
             )
             .required(true),
         )

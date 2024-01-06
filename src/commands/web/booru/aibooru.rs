@@ -19,12 +19,12 @@ use serenity::{
     all::{CommandInteraction, CommandOptionType, ResolvedOption, ResolvedValue},
     builder::{
         CreateCommand, CreateCommandOption, CreateInteractionResponse,
-        CreateInteractionResponseMessage, CreateMessage,
+        CreateInteractionResponseMessage,
     },
 };
 
 const AIBOORU_URL: &str = "https://aibooru.online";
-const AIBOORU_LOGO_PNG: &str =
+const AIBOORU_PNG_LOGO_URL: &str =
     "https://aibooru.online/packs/static/images/danbooru-logo-128x128-5dfe4b292bd64a786b41.png";
 
 pub async fn run(
@@ -65,15 +65,15 @@ async fn post(
 
     let exists = BooruPost::exists(ctx, channel_id, id).await;
     if exists {
-        let posts_json = format!("{AIBOORU_URL}/posts/{id}.json");
+        let posts_show_json = format!("{AIBOORU_URL}/posts/{id}.json");
 
         let client = reqwest::Client::new();
 
         let response_text = client
-            .get(&posts_json)
+            .get(&posts_show_json)
             .send()
             .await
-            .expect("Error while sending get request")
+            .expect("Error while sending GET request")
             .text()
             .await
             .expect("Error while getting text from response");
@@ -86,7 +86,7 @@ async fn post(
 
             let embed = BooruPost::embed(
                 &post,
-                AIBOORU_LOGO_PNG,
+                AIBOORU_PNG_LOGO_URL,
                 id,
                 None,
                 AIBOORU_URL,
@@ -116,7 +116,7 @@ pub fn register() -> CreateCommand {
                 "Previews a post from AIBooru",
             )
             .add_sub_option(
-                CreateCommandOption::new(CommandOptionType::Integer, "id", "Index of the post.")
+                CreateCommandOption::new(CommandOptionType::Integer, "id", "Index of post.")
                     .required(true),
             ),
         )
