@@ -18,6 +18,7 @@ pub mod aibooru;
 pub mod danbooru;
 
 use chrono::NaiveDate;
+use regex::{Captures, Regex};
 use serenity::{
     all::ChannelId,
     builder::{CreateEmbed, CreateEmbedAuthor, CreateEmbedFooter},
@@ -95,18 +96,20 @@ impl BooruPost {
         }
     }
 
-    pub fn embed(
+    fn embed(
         post: &BooruPost,
         icon_url: &'static str,
         post_id: i64,
         description: Option<String>,
         url: &'static str,
-        image: String,
+        image: &String,
         footer: String,
         color: u32,
     ) -> CreateEmbed {
+        let tag_string_artist = &post.tag_string_artist;
+
         let embed = CreateEmbed::default()
-            .author(CreateEmbedAuthor::new(&post.tag_string_artist.clone()).icon_url(icon_url))
+            .author(CreateEmbedAuthor::new(tag_string_artist).icon_url(icon_url))
             .title(format!("Post #{post_id}"))
             .description(description.unwrap_or_default())
             .url(format!("{url}/posts/{post_id}"))
@@ -116,22 +119,22 @@ impl BooruPost {
         embed
     }
 
-    fn generate_footer(post: &Self) -> String {
+    fn embed_footer(post: &Self) -> String {
         let (score, favourites, rating, file_size, file_extension, width, height, creation_date) = (
-            post.score.clone(),
+            &post.score,
             post.fav_count,
-            post.rating.clone(),
+            &post.rating,
             files::format_file_size(post.file_size),
-            post.file_ext.clone(),
+            &post.file_ext,
             post.image_size.0,
             post.image_size.1,
-            post.created_at.clone(),
+            &post.created_at,
         );
         format!(
             "{score} {favourites}❤️ | {rating} | {file_size} .{file_extension} ({width} x {height}) | {creation_date}")
     }
 
-    async fn exists(ctx: &Context, channel_id: ChannelId, id: i64) -> bool {
+    async fn post_exists(ctx: &Context, channel_id: ChannelId, id: i64) -> bool {
         if id <= 0 {
             let content = format!("Post ID must be greater than 0.");
             let _ = channel_id.say(&ctx.http, &content).await;
@@ -140,22 +143,166 @@ impl BooruPost {
         }
         true
     }
+}
 
-    async fn has_success(
-        ctx: &Context,
-        response: &serde_json::Value,
-        channel_id: ChannelId,
-        id: i64,
-    ) -> bool {
-        if let Some(success) = response.get("success") {
-            if !success.as_bool().unwrap_or_default() {
-                let content = format!("Post `#{}` not found.", id);
-                let _ = channel_id.say(&ctx.http, &content).await;
+#[derive(Default)]
+struct BooruWikiPages {
+    title: String,
+    body: String,
+    created_at: String,
+    _other_names: Option<Vec<String>>,
+}
 
-                return false;
-            }
+impl BooruWikiPages {
+    fn new(url: &'static str, response: &serde_json::Value) -> Self {
+        let title = response["title"].as_str().unwrap_or_default().to_string();
+        let body = response["body"].as_str().unwrap_or_default().to_string();
+        let created_at = response["created_at"]
+            .as_str()
+            .map(|date| {
+                date.split('T')
+                    .next()
+                    .map(|ymd| {
+                        NaiveDate::parse_from_str(ymd, "%Y-%m-%d")
+                            .map(|d| d.format("%e %b %Y").to_string())
+                    })
+                    .unwrap_or_else(|| Ok(format!("Unknown")))
+            })
+            .unwrap_or_else(|| Ok(format!("Unknown")))
+            .unwrap_or_default();
+        let other_names = response["other_names"]
+            .as_array()
+            .map(|names| {
+                names
+                    .iter()
+                    .map(|name| name.as_str().unwrap_or_default().to_string())
+                    .collect::<Vec<String>>()
+            })
+            .ok_or("Error while parsing other_names from JSON");
+
+        Self {
+            title,
+            body: Self::format_body(&url, &body),
+            created_at,
+            _other_names: other_names.ok(),
         }
+    }
 
+    fn embed(
+        wiki_pages: &BooruWikiPages,
+        title: &String,
+        url: &'static str,
+        footer: String,
+        color: u32,
+    ) -> CreateEmbed {
+        let body = &wiki_pages.body;
+
+        let embed = CreateEmbed::default()
+            .title(title)
+            .description(Self::format_body(url, body))
+            .url(url)
+            .footer(CreateEmbedFooter::new(footer))
+            .color(color);
+        embed
+    }
+
+    fn format_body(url: &str, body: &String) -> String {
+        let link_re = Regex::new(r"\[\[(.*?)\]\]").expect("Error while compiling regex");
+        let symbol_re =
+            Regex::new(r"\[(\w)\](.*?)\[\/(\w)\]").expect("Error while compiling regex");
+        let header_re = Regex::new(r"h(\d)\.(.*)").expect("Error while compiling regex");
+
+        let mut formatted_body = body.to_string();
+        formatted_body = link_re
+            .replace_all(&formatted_body, |caps: &Captures| {
+                let tag = caps.get(1).map_or("", |m| m.as_str());
+                let tag = tag.replace(" ", "_").to_lowercase();
+                let tag = tag.split('|').next().unwrap_or_default();
+
+                if tag.contains("tag_group:") {
+                    let tag = tag.replace("tag_group:", "");
+
+                    let wiki_pages_tag_group = format!("{url}/wiki_pages/tag_group%3A{tag}");
+
+                    let tag = tag.split(':').last().unwrap_or_default();
+                    let tag = tag.replace("_", " ");
+                    format!("[{tag}]({wiki_pages_tag_group})")
+                } else {
+                    let wiki_pages = format!("{url}/wiki_pages/{tag}");
+
+                    let tag = tag.replace("_", " ");
+                    format!("[{tag}]({wiki_pages})")
+                }
+            })
+            .to_string();
+        formatted_body = symbol_re
+            .replace_all(&formatted_body, |caps: &Captures| {
+                let symbol = caps.get(1).map_or("", |m| m.as_str());
+                let text = caps.get(2).map_or("", |m| m.as_str());
+
+                let markdown_symbol = match symbol {
+                    "b" => "**",
+                    "i" => "*",
+                    "u" => "__",
+                    "s" => "~~",
+                    "code" => "`",
+                    "quote" => "> ",
+                    "spoiler" => "||",
+                    _ => "",
+                };
+                format!("{markdown_symbol}{text}{markdown_symbol}")
+            })
+            .to_string();
+        formatted_body = header_re
+            .replace_all(&formatted_body, |caps: &Captures| {
+                let level = caps.get(1).map_or("", |m| m.as_str());
+                let text = caps.get(2).map_or("", |m| m.as_str());
+
+                let markdown_level = match level {
+                    "1" => "#",
+                    "2" => "#",
+                    "3" => "#",
+                    "4" => "#",
+                    "5" => "#",
+                    "6" => "#",
+                    _ => "",
+                };
+                format!("{markdown_level} {text}")
+            })
+            .to_string();
+
+        format!("{formatted_body}")
+    }
+
+    fn embed_footer(wiki_pages: &Self) -> String {
+        let created_at = &wiki_pages.created_at;
+        format!("{created_at}")
+    }
+
+    async fn tag_exists(ctx: &Context, channel_id: ChannelId, tag: &str) -> bool {
+        if tag.is_empty() {
+            let content = format!("Tag must not be empty.");
+            let _ = channel_id.say(&ctx.http, &content).await;
+
+            return false;
+        }
         true
     }
+}
+
+pub async fn has_success(
+    ctx: &Context,
+    response: &serde_json::Value,
+    channel_id: ChannelId,
+) -> bool {
+    if let Some(success) = response.get("success") {
+        if !success.as_bool().unwrap_or_default() {
+            let content = format!("Content(s) not found.");
+            let _ = channel_id.say(&ctx.http, &content).await;
+
+            return false;
+        }
+    }
+
+    true
 }
