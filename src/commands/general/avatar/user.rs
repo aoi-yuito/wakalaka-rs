@@ -14,27 +14,17 @@
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
 use serenity::{
-    all::{colours::branding, CommandInteraction},
-    builder::{CreateEmbed, CreateInteractionResponse, CreateInteractionResponseMessage},
+    all::{ colours::branding, CommandInteraction, UserId },
+    builder::{ CreateEmbed, CreateInteractionResponse, CreateInteractionResponseMessage },
 };
 
-pub(super) async fn user(
-    interaction: &CommandInteraction,
-    ctx: &serenity::prelude::Context,
-) -> Option<String> {
-    let user_id = interaction
-        .data
-        .options
-        .get(0)
-        .and_then(|option| option.value.as_user_id())
-        .expect("Error while getting user ID");
-    let user = user_id
-        .to_user(&ctx.http)
-        .await
-        .expect("Error while getting user from user ID");
-    let user_avatar_url = user
-        .avatar_url()
-        .unwrap_or_else(|| user.default_avatar_url());
+use crate::Context;
+
+pub(super) async fn user(ctx: &Context, interaction: &CommandInteraction) -> Option<String> {
+    let user_id = user_id(interaction);
+
+    let user = user_id.to_user(&ctx.http).await.expect("Error while getting user from user ID");
+    let user_avatar_url = user.avatar_url().unwrap_or_else(|| user.default_avatar_url());
     let user_name = user.name;
 
     let embed = CreateEmbed::default()
@@ -51,4 +41,13 @@ pub(super) async fn user(
         Ok(_) => None,
         Err(why) => Some(format!("Error while creating response: {why}")),
     }
+}
+
+fn user_id(interaction: &CommandInteraction) -> UserId {
+    let user_id = interaction.data.options
+        .get(0)
+        .and_then(|option| Some(option.value.clone()))
+        .and_then(|value| value.as_user_id())
+        .unwrap_or(interaction.user.id);
+    user_id
 }
