@@ -29,6 +29,11 @@ pub async fn run(
     interaction: &CommandInteraction,
     options: &[ResolvedOption<'_>]
 ) -> Option<String> {
+    let manage_messages = commands::has_manage_messages_permission(ctx, interaction).await;
+    if !manage_messages {
+        return Some("You don't have permission to delete messages!".to_string());
+    }
+
     let command = commands::command(interaction, 0);
     match command.name.as_str() {
         "count" => count::count(ctx, interaction, options).await,
