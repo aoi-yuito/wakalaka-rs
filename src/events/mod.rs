@@ -20,7 +20,7 @@ pub mod ready;
 use crate::commands::*;
 use crate::Context;
 use serenity::{
-    all::{GuildId, Interaction, Ready},
+    all::{ GuildId, Interaction, Ready },
     async_trait,
     builder::CreateCommand,
     client::EventHandler,
@@ -46,8 +46,9 @@ impl EventHandler for Handler {
 fn created_guild_commands() -> Vec<CreateCommand> {
     vec![
         core::restart::register(),
+        moderation::purge::register(),
         web::booru::aibooru::register(),
-        web::booru::danbooru::register(),
+        web::booru::danbooru::register()
     ]
 }
 
