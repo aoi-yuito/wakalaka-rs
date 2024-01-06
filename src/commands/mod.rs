@@ -15,6 +15,7 @@
 
 pub mod core;
 pub mod general;
+pub mod moderation;
 pub mod web;
 
 use crate::Context;
