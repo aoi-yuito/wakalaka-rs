@@ -12,13 +12,14 @@
 //
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
+
 mod commands;
 mod events;
 mod util;
 
-use serenity::{all::GatewayIntents, framework::StandardFramework};
+use serenity::{ all::GatewayIntents, framework::StandardFramework };
 use tracing::Level;
-use tracing_subscriber::{fmt::Subscriber, EnvFilter};
+use tracing_subscriber::{ fmt::Subscriber, EnvFilter };
 use util::config::Config;
 
 type Context = serenity::client::Context;
@@ -32,10 +33,7 @@ pub async fn main() {
     let config = initialise_config();
 
     let mut client = initialise_client(config, intents, framework).await;
-    client
-        .start_autosharded()
-        .await
-        .expect("Error while running client");
+    client.start_autosharded().await.expect("Error while running client");
 }
 
 fn initialise_subscriber() {
@@ -43,11 +41,7 @@ fn initialise_subscriber() {
         .or_else(|_| EnvFilter::try_new("wakalaka_rs=info"))
         .expect("Error while creating filter");
 
-    Subscriber::builder()
-        .with_max_level(Level::INFO)
-        .with_env_filter(filter)
-        .compact()
-        .init();
+    Subscriber::builder().with_max_level(Level::INFO).with_env_filter(filter).compact().init();
 }
 
 fn initialise_framework() -> StandardFramework {
@@ -61,24 +55,24 @@ fn initialise_config() -> Config {
 }
 
 fn initialise_intents() -> GatewayIntents {
-    GatewayIntents::default()
-        | GatewayIntents::GUILDS
-        | GatewayIntents::GUILD_MEMBERS
-        | GatewayIntents::GUILD_MESSAGES
-        | GatewayIntents::MESSAGE_CONTENT
+    GatewayIntents::default() |
+        GatewayIntents::GUILDS |
+        GatewayIntents::GUILD_MEMBERS |
+        GatewayIntents::GUILD_MESSAGES |
+        GatewayIntents::MESSAGE_CONTENT
 }
 
 async fn initialise_client(
     config: Config,
     intents: GatewayIntents,
-    framework: StandardFramework,
+    framework: StandardFramework
 ) -> serenity::Client {
     let token = config.token;
 
-    let client = serenity::Client::builder(token, intents)
+    let client = serenity::Client
+        ::builder(token, intents)
         .event_handler(events::Handler)
-        .framework(framework)
-        .await
+        .framework(framework).await
         .expect("Error while building client");
     client
 }
