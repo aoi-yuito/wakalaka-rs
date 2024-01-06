@@ -13,13 +13,14 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-use crate::events::*;
-use crate::Context;
 use serenity::{
     all::{ CommandInteraction, Interaction },
     builder::{ CreateInteractionResponse, CreateInteractionResponseMessage },
 };
 use tracing::{ log::error, log::info, log::warn };
+
+use crate::events::*;
+use crate::Context;
 
 pub async fn handle(ctx: Context, interaction: Interaction) {
     if let Interaction::Command(command) = interaction {
@@ -66,6 +67,7 @@ async fn command_content(ctx: &Context, command: &CommandInteraction) -> Option<
         "danbooru" => Some(web::booru::danbooru::run(&ctx, command, command_options).await?),
         "shutdown" => Some(core::shutdown::run(&ctx).await?),
         "purge" => Some(moderation::purge::run(&ctx, command, command_options).await?),
+        "reload" => Some(core::reload::run(&ctx, command, command_options).await?),
         "restart" => Some(core::restart::run(&ctx, command, command_options).await?),
         _ => {
             warn!("{command_name:?} isn't implemented yet");

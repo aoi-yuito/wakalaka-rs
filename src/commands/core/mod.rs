@@ -15,3 +15,4 @@
 
 pub mod restart;
 pub mod shutdown;
+pub mod reload;
