@@ -14,10 +14,12 @@
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
 use crate::Context;
-use serenity::all::Ready;
+use serenity::{ all::{ Ready, OnlineStatus }, gateway::ActivityData };
 use tracing::log::info;
 
-pub async fn handle(_ctx: Context, ready: Ready) {
+pub async fn handle(ctx: Context, ready: Ready) {
     let user_name = &ready.user.name;
     info!("Logged in as @{user_name}");
+
+    ctx.set_presence(Some(ActivityData::listening("Dubidubidu")), OnlineStatus::Online);
 }
