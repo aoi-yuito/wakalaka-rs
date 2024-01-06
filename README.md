@@ -36,18 +36,18 @@ While there's no set way to contribute to this project, please do follow the [Ru
 [![gh_issues_a](https://img.shields.io/github/issues/Kawaxte/wakalaka-rs?logo=github&style=for-the-badge)](https://github.com/Kawaxte/wakalaka-rs/issues)
 [![gh_issues_b](https://img.shields.io/github/issues-closed/Kawaxte/wakalaka-rs?logo=github&style=for-the-badge)](https://github.com/Kawaxte/wakalaka-rs/issues?q=is%3Aissue+is%3Aclosed)
 
-If you spot any issues or have any ideas, feel free to raise an issue. I'll aim to sort out the problem or add the feature as quickly as I can.
+If you spot any issues or have any ideas, feel free to open an issue. I'll aim to sort out the problem or add the feature as quickly as I can.
 
-To raise an issue, follow these steps:
+To open an issue, follow these steps:
 
 1. Click the `Issues` tab at the top of the project page.
 2. Click the `New issue` button at the top right of the project page.
-3. Choose the type of issue you want to raise.
+3. Choose the type of issue you want to open.
 4. Fill in the required details and click the `Submit new issue` button.
 
 ---
 
-## Forking and Submitting Pull Requests
+## Forking and Making Pull Requests
 
 [![gh_pr_a](https://img.shields.io/github/issues-pr/Kawaxte/wakalaka-rs?logo=github&style=for-the-badge)](https://github.com/Kawaxte/wakalaka-rs/pulls)
 [![gh_pr_b](https://img.shields.io/github/issues-pr-closed/Kawaxte/wakalaka-rs?logo=github&style=for-the-badge)](https://github.com/Kawaxte/wakalaka-rs/pulls?q=is%3Apr+is%3Aclosed)
