@@ -16,21 +16,19 @@
 mod delay;
 mod reason;
 
-use crate::{commands, Context};
-use serenity::all::{CommandInteraction, CommandOptionType};
-use serenity::builder::{CreateCommand, CreateCommandOption};
+use crate::{ commands, Context };
+use serenity::all::{ CommandInteraction, CommandOptionType };
+use serenity::builder::{ CreateCommand, CreateCommandOption };
 use serenity::model::application::ResolvedOption;
 
 pub async fn run(
     ctx: &Context,
     interaction: &CommandInteraction,
-    options: &[ResolvedOption<'_>],
+    options: &[ResolvedOption<'_>]
 ) -> Option<String> {
-    let administrator = crate::commands::is_administrator(ctx, interaction).await;
+    let administrator = crate::commands::has_administrator_permission(ctx, interaction).await;
     if !administrator {
-        return Some(format!(
-            "You don't have permission(s) to execute this command!"
-        ));
+        return Some(format!("You don't have permission(s) to execute this command!"));
     }
 
     let command = commands::command(interaction, 0);
@@ -48,16 +46,14 @@ pub fn register() -> CreateCommand {
             CreateCommandOption::new(
                 CommandOptionType::String,
                 "reason",
-                "Short explanation for restarting.",
-            )
-            .required(true),
+                "Short explanation for restarting."
+            ).required(true)
         )
         .add_option(
             CreateCommandOption::new(
                 CommandOptionType::Integer,
                 "delay",
-                "Seconds to wait before restarting.",
-            )
-            .required(false),
+                "Seconds to wait before restarting."
+            ).required(false)
         )
 }
