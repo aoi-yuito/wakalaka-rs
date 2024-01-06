@@ -18,7 +18,7 @@ use crate::Context;
 use serenity::all::Command;
 use serenity::all::GuildId;
 
-use tracing::{log::error, log::info};
+use tracing::{ log::error, log::info };
 
 pub async fn handle(ctx: Context, guilds: Vec<GuildId>) {
     let guild_count = guilds.len();
@@ -36,13 +36,10 @@ pub async fn handle(ctx: Context, guilds: Vec<GuildId>) {
         info!("Connected to {guild_name}");
 
         let (existing_guild_commands, existing_global_commands) = (
-            guild_id
-                .get_commands(&ctx.http)
-                .await
-                .unwrap_or_else(|why| {
-                    error!("Error while retrieving existing guild commands: {why}");
-                    panic!("{why:?}");
-                }),
+            guild_id.get_commands(&ctx.http).await.unwrap_or_else(|why| {
+                error!("Error while retrieving existing guild commands: {why}");
+                panic!("{why:?}");
+            }),
             Command::get_global_commands(&ctx.http),
         );
 
@@ -51,9 +48,8 @@ pub async fn handle(ctx: Context, guilds: Vec<GuildId>) {
             guild_id,
             &guild_name,
             existing_guild_commands,
-            existing_global_commands.await.unwrap(),
-        )
-        .await;
+            existing_global_commands.await.unwrap()
+        ).await;
     }
 }
 
@@ -62,7 +58,7 @@ async fn update_commands(
     guild_id: &GuildId,
     guild_name: &String,
     guild_commands: Vec<Command>,
-    global_commands: Vec<Command>,
+    global_commands: Vec<Command>
 ) {
     let (guild_command_count, global_command_count) = (guild_commands.len(), global_commands.len());
     if guild_command_count == 0 {
@@ -71,13 +67,10 @@ async fn update_commands(
         error!("No global command(s) found in {guild_name}");
     }
 
-    let existing_guild_commands = guild_id
-        .get_commands(&ctx.http)
-        .await
-        .unwrap_or_else(|why| {
-            error!("Error while retrieving existing guild command(s): {why}");
-            panic!("{why:?}");
-        });
+    let existing_guild_commands = guild_id.get_commands(&ctx.http).await.unwrap_or_else(|why| {
+        error!("Error while retrieving existing guild command(s): {why}");
+        panic!("{why:?}");
+    });
 
     let existing_guild_command_names: Vec<String> = existing_guild_commands
         .iter()
@@ -91,14 +84,11 @@ async fn update_commands(
         if existing_guild_command_names.contains(existing_command_name) {
             let existing_command_id = &existing_command.id;
 
-            guild_id
-                .delete_command(&ctx.http, *existing_command_id)
-                .await
-                .unwrap_or_else(|why| {
-                    error!("Error while deleting guild command(s): {why:?}");
-                    panic!("{why:?}");
-                });
-            info!("Deleted {existing_command_name:?} from {guild_name}",);
+            guild_id.delete_command(&ctx.http, *existing_command_id).await.unwrap_or_else(|why| {
+                error!("Error while deleting guild command(s): {why:?}");
+                panic!("{why:?}");
+            });
+            info!("Deleted {existing_command_name:?} from {guild_name}");
         }
     }
 
@@ -113,12 +103,12 @@ async fn add_global_commands(ctx: &Context, guild_name: &String) {
     let global_commands = created_global_commands();
     let global_commands_count = global_commands.len();
     for global_command in &global_commands {
-        Command::create_global_command(&ctx.http, global_command.clone())
-            .await
-            .unwrap_or_else(|why| {
+        Command::create_global_command(&ctx.http, global_command.clone()).await.unwrap_or_else(
+            |why| {
                 error!("Error while registering global command(s): {why:?}");
                 panic!("{why:?}");
-            });
+            }
+        );
     }
 
     info!("Registered {global_commands_count} global command(s) in {guild_name}");
@@ -127,13 +117,10 @@ async fn add_global_commands(ctx: &Context, guild_name: &String) {
 async fn add_guild_commands(ctx: &Context, guild_id: &GuildId, guild_name: &String) {
     let commands = created_guild_commands();
     let command_count = created_guild_commands().len();
-    guild_id
-        .set_commands(&ctx.http, commands)
-        .await
-        .unwrap_or_else(|why| {
-            error!("Error while registering guild command(s): {why:?}");
-            panic!("{why:?}");
-        });
+    guild_id.set_commands(&ctx.http, commands).await.unwrap_or_else(|why| {
+        error!("Error while registering guild command(s): {why:?}");
+        panic!("{why:?}");
+    });
 
     info!("Registered {command_count} guild command(s) in {guild_name}");
 }
