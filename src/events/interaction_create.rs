@@ -64,6 +64,7 @@ async fn command_content(ctx: &Context, command: &CommandInteraction) -> Option<
         "aibooru" => Some(web::booru::aibooru::run(&ctx, command, command_options).await?),
         "avatar" => Some(general::avatar::run(&ctx, command).await?),
         "danbooru" => Some(web::booru::danbooru::run(&ctx, command, command_options).await?),
+        "shutdown" => Some(core::shutdown::run(&ctx).await?),
         "purge" => Some(moderation::purge::run(&ctx, command, command_options).await?),
         "restart" => Some(core::restart::run(&ctx, command, command_options).await?),
         _ => {

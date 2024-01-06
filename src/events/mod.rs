@@ -43,15 +43,16 @@ impl EventHandler for Handler {
     }
 }
 
-fn created_guild_commands() -> Vec<CreateCommand> {
+fn registered_guild_commands() -> Vec<CreateCommand> {
     vec![
         core::restart::register(),
+        core::shutdown::register(),
         moderation::purge::register(),
         web::booru::aibooru::register(),
         web::booru::danbooru::register()
     ]
 }
 
-fn created_global_commands() -> Vec<CreateCommand> {
+fn registered_global_commands() -> Vec<CreateCommand> {
     vec![general::avatar::register()]
 }
