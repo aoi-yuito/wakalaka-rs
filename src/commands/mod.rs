@@ -18,9 +18,10 @@ pub mod general;
 pub mod moderation;
 pub mod web;
 
-use crate::Context;
-use serenity::all::{ CommandDataOption, CommandInteraction };
-use tracing::{ log::error, log::warn };
+use serenity::all::{ CommandDataOption, CommandInteraction, GuildId, Command };
+use tracing::{ log::error, log::warn, log::info };
+
+use crate::{ Context, events };
 
 pub(crate) async fn is_testing_channel(ctx: &Context, interaction: &CommandInteraction) -> bool {
     let channel_name = &interaction.channel_id.name(&ctx).await.unwrap_or_else(|why| {
@@ -44,6 +45,32 @@ pub(crate) async fn is_testing_channel(ctx: &Context, interaction: &CommandInter
 fn command(interaction: &CommandInteraction, index: usize) -> &CommandDataOption {
     let command = interaction.data.options.get(index).expect("Error while getting command");
     command
+}
+
+pub(super) async fn register_global_commands(ctx: &Context, guild_name: &String) {
+    let global_commands = events::registered_global_commands();
+    let global_commands_count = global_commands.len();
+    Command::set_global_commands(&ctx.http, global_commands).await.unwrap_or_else(|why| {
+        error!("Error while registering global command(s): {why:?}");
+        panic!("{why:?}");
+    });
+
+    info!("Registered {global_commands_count} global command(s) in {guild_name}");
+}
+
+pub(super) async fn register_guild_commands(
+    ctx: &Context,
+    guild_id: &GuildId,
+    guild_name: &String
+) {
+    let commands = events::registered_guild_commands();
+    let command_count = commands.len();
+    guild_id.set_commands(&ctx.http, commands).await.unwrap_or_else(|why| {
+        error!("Error while registering guild command(s): {why:?}");
+        panic!("{why:?}");
+    });
+
+    info!("Registered {command_count} guild command(s) in {guild_name}");
 }
 
 async fn has_manage_messages_permission(ctx: &Context, interaction: &CommandInteraction) -> bool {
