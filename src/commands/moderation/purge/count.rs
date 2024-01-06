@@ -17,7 +17,6 @@ use serenity::{ all::{ CommandInteraction, ResolvedOption, ResolvedValue }, buil
 use tracing::{ log::error, log::info };
 
 use crate::Context;
-use crate::commands;
 
 pub(super) async fn count(
     ctx: &Context,
