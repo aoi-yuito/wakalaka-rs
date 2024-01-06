@@ -92,7 +92,7 @@ async fn post(
                 AIBOORU_URL,
                 post.file_url.clone(),
                 BooruPost::generate_footer(&post),
-                0x7EB900,
+                0x77B91E,
             );
 
             let response_message = CreateInteractionResponseMessage::default();
