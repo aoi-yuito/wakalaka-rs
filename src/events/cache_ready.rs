@@ -15,6 +15,7 @@
 
 use crate::events::*;
 use crate::Context;
+use serenity::all::Command;
 use serenity::all::GuildId;
 
 use tracing::{log::error, log::info};
@@ -34,20 +35,36 @@ pub async fn handle(ctx: Context, guilds: Vec<GuildId>) {
         };
         info!("Connected to {guild_name}");
 
-        register_commands(guild_name.clone()).await;
-        register_global_commands(guild_name).await;
+        add_guild_commands(&ctx, guild_id, guild_name.clone()).await;
+        add_global_commands(&ctx, guild_name).await;
     }
 }
 
-async fn register_global_commands(guild_name: String) {
-    let global_commands = created_global_commands();
+async fn add_global_commands(ctx: &Context, guild_name: String) {
+    let commands = created_global_commands();
+    let global_commands_count = commands.len();
+    for command in &commands {
+        Command::create_global_command(&ctx.http, command.clone())
+            .await
+            .unwrap_or_else(|why| {
+                error!("Error while registering global command(s): {why:?}");
+                panic!("{why:?}");
+            });
+    }
 
-    let global_commands_count = &global_commands.len();
     info!("Registered {global_commands_count} global command(s) in {guild_name}");
 }
 
-async fn register_commands(guild_name: String) {
-    let commands = created_commands();
-    let command_count = &commands.len();
-    info!("Registered {command_count} command(s) in {guild_name}");
+async fn add_guild_commands(ctx: &Context, guild_id: &GuildId, guild_name: String) {
+    let commands = created_guild_commands();
+    let command_count = created_guild_commands().len();
+    guild_id
+        .set_commands(&ctx.http, commands)
+        .await
+        .unwrap_or_else(|why| {
+            error!("Error while registering guild command(s): {why:?}");
+            panic!("{why:?}");
+        });
+
+    info!("Registered {command_count} guild command(s) in {guild_name}");
 }
