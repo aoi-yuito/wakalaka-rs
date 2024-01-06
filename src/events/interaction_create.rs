@@ -16,10 +16,10 @@
 use crate::events::*;
 use crate::Context;
 use serenity::{
-    all::{CommandInteraction, Interaction},
-    builder::{CreateInteractionResponse, CreateInteractionResponseMessage},
+    all::{ CommandInteraction, Interaction },
+    builder::{ CreateInteractionResponse, CreateInteractionResponseMessage },
 };
-use tracing::{log::error, log::info, log::warn};
+use tracing::{ log::error, log::info, log::warn };
 
 pub async fn handle(ctx: Context, interaction: Interaction) {
     if let Interaction::Command(command) = interaction {
@@ -44,7 +44,7 @@ pub async fn handle(ctx: Context, interaction: Interaction) {
 async fn register_command_response(
     ctx: &Context,
     command: &CommandInteraction,
-    content: Option<String>,
+    content: Option<String>
 ) {
     if let Some(content) = content {
         let response_message = CreateInteractionResponseMessage::new().content(content);
@@ -64,6 +64,7 @@ async fn command_content(ctx: &Context, command: &CommandInteraction) -> Option<
         "aibooru" => Some(web::booru::aibooru::run(&ctx, command, command_options).await?),
         "avatar" => Some(general::avatar::run(&ctx, command).await?),
         "danbooru" => Some(web::booru::danbooru::run(&ctx, command, command_options).await?),
+        "purge" => Some(moderation::purge::run(&ctx, command, command_options).await?),
         "restart" => Some(core::restart::run(&ctx, command, command_options).await?),
         _ => {
             warn!("{command_name:?} isn't implemented yet");
