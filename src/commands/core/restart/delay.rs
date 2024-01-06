@@ -19,9 +19,11 @@ use serenity::model::application::ResolvedOption;
 pub(super) fn delay(options: &[ResolvedOption<'_>]) -> Option<String> {
     let seconds = options
         .get(1)
-        .and_then(|opt| match &opt.value {
-            ResolvedValue::Integer(i) => Some(*i),
-            _ => None,
+        .and_then(|opt| {
+            match &opt.value {
+                ResolvedValue::Integer(i) => Some(*i),
+                _ => None,
+            }
         })
         .unwrap_or(5);
     if seconds < 5 {
@@ -29,6 +31,5 @@ pub(super) fn delay(options: &[ResolvedOption<'_>]) -> Option<String> {
     } else if seconds > 60 {
         return Some("Delay cannot be more than 60 seconds (1 minute).".to_string());
     }
-
     None
 }

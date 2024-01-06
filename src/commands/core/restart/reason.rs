@@ -23,16 +23,19 @@ use tracing::log::info;
 pub(super) fn reason(ctx: &Context, options: &[ResolvedOption<'_>]) -> Option<String> {
     let reason = options
         .get(0)
-        .and_then(|opt| match &opt.value {
-            ResolvedValue::String(s) => Some(s),
-            _ => None,
+        .and_then(|option| {
+            match &option.value {
+                ResolvedValue::String(s) => Some(s),
+                _ => None,
+            }
         })
         .unwrap_or(&"Cannot restart if no reason is provided.");
     if reason.len() > 50 {
         return None;
     }
 
-    let seconds = delay::delay(options)
+    let seconds = delay
+        ::delay(options)
         .and_then(|s| s.parse::<u64>().ok())
         .unwrap_or(5);
     info!("Restarting in {seconds} seconds: {reason}");

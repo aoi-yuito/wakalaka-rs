@@ -13,26 +13,19 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-use super::{AIBOORU_COLOUR, AIBOORU_URL};
-use crate::{
-    commands::web::booru::{self, BooruWikiPages},
-    Context,
-};
+use super::{ AIBOORU_COLOUR, AIBOORU_URL };
+use crate::{ commands::web::booru::{ self, BooruWikiPages }, Context };
 use serenity::{
-    all::{CommandInteraction, ResolvedOption, ResolvedValue},
-    builder::{CreateInteractionResponse, CreateInteractionResponseMessage},
+    all::{ CommandInteraction, ResolvedOption, ResolvedValue },
+    builder::{ CreateInteractionResponse, CreateInteractionResponseMessage },
 };
 
 pub(super) async fn wiki(
     ctx: &Context,
-    options: &[ResolvedOption<'_>],
     interaction: &CommandInteraction,
+    options: &[ResolvedOption<'_>]
 ) -> Option<String> {
-    let tag = tag(options)
-        .await
-        .unwrap_or_default()
-        .replace(" ", "_")
-        .to_lowercase();
+    let tag = tag(options).await.unwrap_or_default().replace(" ", "_").to_lowercase();
     let channel_id = interaction.channel_id;
     let tag_exists = BooruWikiPages::tag_exists(ctx, channel_id, &tag).await;
     if tag_exists {
@@ -43,14 +36,13 @@ pub(super) async fn wiki(
 
         let response_text = client
             .get(&wiki_pages_show_json)
-            .send()
-            .await
+            .send().await
             .expect("Error while sending GET request")
-            .text()
-            .await
+            .text().await
             .expect("Error while getting text from response");
-        let response_json =
-            serde_json::from_str(&response_text).expect("Error while parsing JSON from response");
+        let response_json = serde_json
+            ::from_str(&response_text)
+            .expect("Error while parsing JSON from response");
 
         let success = booru::has_success(ctx, &response_json, channel_id).await;
         if success {
@@ -62,7 +54,7 @@ pub(super) async fn wiki(
                 &wiki_pages_title,
                 AIBOORU_URL,
                 BooruWikiPages::embed_footer(&wiki_pages),
-                AIBOORU_COLOUR,
+                AIBOORU_COLOUR
             );
 
             let response_message = CreateInteractionResponseMessage::default();

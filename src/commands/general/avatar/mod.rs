@@ -15,16 +15,16 @@
 
 mod user;
 
-use crate::{commands, Context};
+use crate::{ commands, Context };
 use serenity::{
-    all::{CommandInteraction, CommandOptionType},
-    builder::{CreateCommand, CreateCommandOption},
+    all::{ CommandInteraction, CommandOptionType },
+    builder::{ CreateCommand, CreateCommandOption },
 };
 
 pub async fn run(ctx: &Context, interaction: &CommandInteraction) -> Option<String> {
     let command = commands::command(interaction, 0);
     match command.name.as_str() {
-        "user" => user::user(interaction, ctx).await,
+        "user" => user::user(ctx, interaction).await,
         _ => None,
     }
 }
@@ -36,8 +36,7 @@ pub fn register() -> CreateCommand {
             CreateCommandOption::new(
                 CommandOptionType::User,
                 "user",
-                "ID (or mention) of user to fetch avatar from.",
-            )
-            .required(true),
+                "ID (or mention) of user to fetch avatar from."
+            ).required(true)
         )
 }

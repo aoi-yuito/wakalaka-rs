@@ -16,27 +16,27 @@
 mod post;
 mod wiki;
 
-use crate::{commands, Context};
+use crate::{ commands, Context };
 use serenity::{
-    all::{CommandInteraction, CommandOptionType, ResolvedOption},
-    builder::{CreateCommand, CreateCommandOption},
+    all::{ CommandInteraction, CommandOptionType, ResolvedOption },
+    builder::{ CreateCommand, CreateCommandOption },
 };
 
 const AIBOORU_URL: &str = "https://aibooru.online";
 const AIBOORU_PNG_LOGO_URL: &str =
     "https://aibooru.online/packs/static/images/danbooru-logo-128x128-5dfe4b292bd64a786b41.png";
 
-const AIBOORU_COLOUR: u32 = 0x77B91E;
+const AIBOORU_COLOUR: u32 = 0x77b91e;
 
 pub async fn run(
     ctx: &Context,
     interaction: &CommandInteraction,
-    options: &[ResolvedOption<'_>],
+    options: &[ResolvedOption<'_>]
 ) -> Option<String> {
     let command = commands::command(interaction, 0);
     match command.name.as_str() {
-        "post" => post::post(ctx, options, interaction).await,
-        "wiki" => wiki::wiki(ctx, options, interaction).await,
+        "post" => post::post(ctx, interaction, options).await,
+        "wiki" => wiki::wiki(ctx, interaction, options).await,
         _ => None,
     }
 }
@@ -48,22 +48,24 @@ pub fn register() -> CreateCommand {
             CreateCommandOption::new(
                 CommandOptionType::SubCommand,
                 "post",
-                "Fetches info for post.",
+                "Fetches info for post."
+            ).add_sub_option(
+                CreateCommandOption::new(
+                    CommandOptionType::Integer,
+                    "id",
+                    "Index of post."
+                ).required(true)
             )
-            .add_sub_option(
-                CreateCommandOption::new(CommandOptionType::Integer, "id", "Index of post.")
-                    .required(true),
-            ),
         )
         .add_option(
             CreateCommandOption::new(
                 CommandOptionType::SubCommand,
                 "wiki",
-                "Previews wiki for tag.",
+                "Previews wiki for tag."
+            ).add_sub_option(
+                CreateCommandOption::new(CommandOptionType::String, "tag", "Name of tag.").required(
+                    true
+                )
             )
-            .add_sub_option(
-                CreateCommandOption::new(CommandOptionType::String, "tag", "Name of tag.")
-                    .required(true),
-            ),
         )
 }
