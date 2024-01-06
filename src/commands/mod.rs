@@ -19,7 +19,7 @@ pub mod moderation;
 pub mod web;
 
 use crate::Context;
-use serenity::all::{ CommandDataOption, CommandInteraction, ChannelId, UserId };
+use serenity::all::{ CommandDataOption, CommandInteraction };
 use tracing::{ log::error, log::warn };
 
 pub(crate) async fn is_testing_channel(ctx: &Context, interaction: &CommandInteraction) -> bool {
