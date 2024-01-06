@@ -41,7 +41,6 @@ pub async fn run(
     }
 }
 
-// /purge <o:count> <o:user> <o:channel>
 pub fn register() -> CreateCommand {
     CreateCommand::new("purge")
         .description("Purges messages from channel.")
