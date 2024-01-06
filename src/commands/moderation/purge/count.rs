@@ -17,12 +17,18 @@ use serenity::{ all::{ CommandInteraction, ResolvedOption, ResolvedValue }, buil
 use tracing::{ log::error, log::info };
 
 use crate::Context;
+use crate::commands;
 
 pub(super) async fn count(
     ctx: &Context,
     interaction: &CommandInteraction,
     options: &[ResolvedOption<'_>]
 ) -> Option<String> {
+    let manage_messages = commands::has_message_manage_permission(ctx, interaction).await;
+    if !manage_messages {
+        return Some("You don't have permission to delete messages!".to_string());
+    }
+
     let count = options
         .get(0)
         .and_then(|option| {
