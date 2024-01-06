@@ -15,13 +15,18 @@
 
 // pub async fn run
 
-use serenity::builder::CreateCommand;
+use serenity::{ builder::CreateCommand, all::CommandInteraction };
 
 use tracing::log::info;
 
-use crate::Context;
+use crate::{ Context, commands };
 
-pub async fn run(ctx: &Context) -> Option<String> {
+pub async fn run(ctx: &Context, interaction: &CommandInteraction) -> Option<String> {
+    let administrator = commands::has_administrator_permission(ctx, interaction).await;
+    if !administrator {
+        return Some(format!("You don't have permission(s) to execute this command!"));
+    }
+
     let seconds = 1;
 
     let application_name = ctx.http.get_current_application_info().await.unwrap().name;
