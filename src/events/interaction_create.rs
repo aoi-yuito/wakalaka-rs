@@ -57,18 +57,18 @@ async fn register_command_response(
     }
 }
 
-async fn command_content(ctx: &Context, command: &CommandInteraction) -> Option<String> {
-    let command_options = &command.data.options();
+async fn command_content(ctx: &Context, interaction: &CommandInteraction) -> Option<String> {
+    let command_options = &interaction.data.options();
 
-    let command_name = &command.data.name;
+    let command_name = &interaction.data.name;
     match command_name.as_str() {
-        "aibooru" => Some(web::booru::aibooru::run(&ctx, command, command_options).await?),
-        "avatar" => Some(general::avatar::run(&ctx, command).await?),
-        "danbooru" => Some(web::booru::danbooru::run(&ctx, command, command_options).await?),
-        "shutdown" => Some(core::shutdown::run(&ctx).await?),
-        "purge" => Some(moderation::purge::run(&ctx, command, command_options).await?),
-        "reload" => Some(core::reload::run(&ctx, command, command_options).await?),
-        "restart" => Some(core::restart::run(&ctx, command, command_options).await?),
+        "aibooru" => Some(web::booru::aibooru::run(&ctx, interaction, command_options).await?),
+        "avatar" => Some(general::avatar::run(&ctx, interaction).await?),
+        "danbooru" => Some(web::booru::danbooru::run(&ctx, interaction, command_options).await?),
+        "shutdown" => Some(core::shutdown::run(&ctx, interaction).await?),
+        "purge" => Some(moderation::purge::run(&ctx, interaction, command_options).await?),
+        "reload" => Some(core::reload::run(&ctx, interaction, command_options).await?),
+        "restart" => Some(core::restart::run(&ctx, interaction, command_options).await?),
         _ => {
             warn!("{command_name:?} isn't implemented yet");
             None

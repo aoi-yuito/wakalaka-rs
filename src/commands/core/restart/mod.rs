@@ -26,7 +26,7 @@ pub async fn run(
     interaction: &CommandInteraction,
     options: &[ResolvedOption<'_>]
 ) -> Option<String> {
-    let administrator = crate::commands::has_administrator_permission(ctx, interaction).await;
+    let administrator = commands::has_administrator_permission(ctx, interaction).await;
     if !administrator {
         return Some(format!("You don't have permission(s) to execute this command!"));
     }
