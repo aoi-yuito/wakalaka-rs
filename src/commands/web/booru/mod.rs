@@ -1,5 +1,3 @@
-use crate::{util::files, Context};
-
 // Copyright (C) 2024 Kawaxte
 //
 // wakalaka-rs is free software: you can redistribute it and/or modify
@@ -17,6 +15,7 @@ use crate::{util::files, Context};
 pub mod aibooru;
 pub mod danbooru;
 
+use crate::{util::files, Context};
 use chrono::NaiveDate;
 use regex::{Captures, Regex};
 use serenity::{
@@ -76,7 +75,7 @@ impl BooruPost {
                     .next()
                     .map(|ymd| {
                         NaiveDate::parse_from_str(ymd, "%Y-%m-%d")
-                            .map(|d| d.format("%e %b %Y").to_string())
+                            .map(|date| date.format("%e %b %Y").to_string())
                     })
                     .unwrap_or_else(|| Ok(format!("Unknown")))
             })
@@ -164,7 +163,7 @@ impl BooruWikiPages {
                     .next()
                     .map(|ymd| {
                         NaiveDate::parse_from_str(ymd, "%Y-%m-%d")
-                            .map(|d| d.format("%e %b %Y").to_string())
+                            .map(|date| date.format("%e %b %Y").to_string())
                     })
                     .unwrap_or_else(|| Ok(format!("Unknown")))
             })
