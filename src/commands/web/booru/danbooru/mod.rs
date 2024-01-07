@@ -45,7 +45,7 @@ pub(crate) async fn run(
 
 pub(crate) fn register() -> CreateCommand {
     CreateCommand::new("danbooru")
-        .description(format!("Provides interactibility with {DANBOORU_URL:?}").as_str())
+        .description(format!("Provides interactibility with Danbooru API").as_str())
         .add_option(
             CreateCommandOption::new(
                 CommandOptionType::SubCommand,

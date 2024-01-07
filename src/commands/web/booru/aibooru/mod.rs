@@ -43,7 +43,7 @@ pub(crate) async fn run(
 
 pub(crate) fn register() -> CreateCommand {
     CreateCommand::new("aibooru")
-        .description(format!("Provides interactibility with {AIBOORU_URL:?}").as_str())
+        .description("Provides interactibility with AIBooru API")
         .add_option(
             CreateCommandOption::new(
                 CommandOptionType::SubCommand,

@@ -19,7 +19,7 @@ use serenity::{
 };
 use tracing::{ log::error, log::info, log::warn };
 
-use crate::events::*;
+use crate::commands;
 use crate::Context;
 
 pub async fn handle(ctx: Context, interaction: Interaction) {
@@ -57,14 +57,17 @@ async fn command_content(ctx: &Context, interaction: &CommandInteraction) -> Opt
 
     let command_name = &interaction.data.name;
     match command_name.as_str() {
-        "aibooru" => Some(web::booru::aibooru::run(&ctx, interaction, command_options).await?),
-        "avatar" => Some(general::avatar::run(&ctx, interaction).await?),
-        "danbooru" => Some(web::booru::danbooru::run(&ctx, interaction, command_options).await?),
-        "shutdown" => Some(core::shutdown::run(&ctx, interaction).await?),
-        "suggest" => Some(misc::suggest::run(&ctx, interaction, command_options).await?),
-        "purge" => Some(moderation::purge::run(&ctx, interaction, command_options).await?),
-        "reload" => Some(core::reload::run(&ctx, interaction, command_options).await?),
-        "restart" => Some(core::restart::run(&ctx, interaction, command_options).await?),
+        "aibooru" =>
+            Some(commands::web::booru::aibooru::run(&ctx, interaction, command_options).await?),
+        "avatar" => Some(commands::general::avatar::run(&ctx, interaction).await?),
+        "danbooru" =>
+            Some(commands::web::booru::danbooru::run(&ctx, interaction, command_options).await?),
+        "shutdown" => Some(commands::core::shutdown::run(&ctx, interaction).await?),
+        "suggest" => Some(commands::misc::suggest::run(&ctx, interaction, command_options).await?),
+        "purge" =>
+            Some(commands::moderation::purge::run(&ctx, interaction, command_options).await?),
+        "reload" => Some(commands::core::reload::run(&ctx, interaction, command_options).await?),
+        "restart" => Some(commands::core::restart::run(&ctx, interaction, command_options).await?),
         _ => {
             warn!("{command_name:?} isn't implemented yet");
             None

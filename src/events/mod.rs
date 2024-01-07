@@ -17,14 +17,14 @@ pub mod cache_ready;
 pub mod interaction_create;
 pub mod ready;
 
-use crate::commands::*;
-use crate::Context;
 use serenity::{
     all::{ GuildId, Interaction, Ready },
     async_trait,
     builder::CreateCommand,
     client::EventHandler,
 };
+
+use crate::{ Context, commands };
 
 pub struct Handler;
 
@@ -45,16 +45,16 @@ impl EventHandler for Handler {
 
 pub(super) fn registered_guild_commands() -> Vec<CreateCommand> {
     vec![
-        core::reload::register(),
-        core::restart::register(),
-        core::shutdown::register(),
-        misc::suggest::register(),
-        moderation::purge::register(),
-        web::booru::aibooru::register(),
-        web::booru::danbooru::register()
+        commands::core::reload::register(),
+        commands::core::restart::register(),
+        commands::core::shutdown::register(),
+        commands::misc::suggest::register(),
+        commands::moderation::purge::register(),
+        commands::web::booru::aibooru::register(),
+        commands::web::booru::danbooru::register()
     ]
 }
 
 pub(super) fn registered_global_commands() -> Vec<CreateCommand> {
-    vec![general::avatar::register()]
+    vec![commands::general::avatar::register()]
 }
