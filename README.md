@@ -42,7 +42,7 @@ I'm always open to feedback and interested in hearing what you think about my pr
 
 All Rust users are invited to contribute to this project. You can suggest improvements, report issues, or submit changes directly.
 
-If you find this project helpful, feel free to give it a star ⭐. This helps me understand how popular the project is and encourages me to continue improving it.
+If you find this project helpful, feel free to give it a ⭐. This helps me understand how popular the project is and encourages me to continue improving it.
 
 
 While there's no set way to contribute to this project, please do follow the [Rust Code of Conduct](https://www.rust-lang.org/policies/code-of-conduct). As I'm more familiar with Java, my Rust code may not be perfect. I welcome any corrections or suggestions.
