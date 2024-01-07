@@ -16,3 +16,4 @@
 pub mod restart;
 pub mod shutdown;
 pub mod reload;
+pub mod bot;
