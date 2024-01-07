@@ -13,100 +13,121 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-use super::files;
-use serde::{Deserialize, Serialize};
-use std::{fs::File, *};
+use serde::{ Deserialize, Serialize };
+use tokio::{ fs::{ File, self }, io::{ AsyncReadExt, AsyncWriteExt } };
 use tracing::log::error;
 
-const CONFIG_TOML: &str = "Config.toml";
+use super::files;
 
-#[derive(Deserialize, Serialize, Default)]
-pub struct Config {
-    pub application_id: u64, // Same as Client ID
-    pub token: String,
+const WAKALAKA_DIRECTORY: &str = ".wakalaka";
+const WAKALAKA_TOML: &str = "Wakalaka.toml";
+
+pub(crate) struct Config {
+    pub(crate) general: General,
 }
 
 impl Config {
-    pub fn new() -> Result<Self, Box<dyn error::Error>> {
-        let mut config = Self::read_config()?;
-        if config.token.is_empty() || config.application_id == 0 {
-            if let Ok(discord_token) = env::var("DISCORD_TOKEN") {
-                config.token = discord_token;
-            } else {
-                error!("DISCORD_TOKEN not found in environment variable");
-
-                println!("Please enter Token from Discord Developer Portal:");
-                let mut input_token = String::new();
-                io::stdin().read_line(&mut input_token)?;
-                input_token = input_token.trim().to_owned();
-
-                config.token = input_token;
-            }
-
-            if let Ok(application_id) = env::var("APPLICATION_ID") {
-                config.application_id = application_id.parse::<u64>().unwrap_or(0);
-            } else {
-                error!("APPLICATION_ID not found in environment variable");
-
-                println!("Please enter Application ID from Discord Developer Portal:");
-                let mut input_id = String::new();
-                io::stdin().read_line(&mut input_id)?;
-                input_id = input_id.trim().to_owned();
-
-                config.application_id = input_id.parse::<u64>().unwrap_or(0);
-            }
-
-            Self::write_config(&config)?;
+    pub(crate) async fn new() -> Self {
+        let general = General::new().await;
+        Self {
+            general,
         }
-        Ok(config)
+    }
+}
+
+#[derive(Serialize, Deserialize)]
+pub(crate) struct General {
+    pub(crate) application_id: u64,
+    pub(crate) token: String,
+}
+
+impl General {
+    pub(crate) async fn new() -> Self {
+        if
+            !dirs
+                ::data_dir()
+                .expect("Error while getting data directory")
+                .join(WAKALAKA_DIRECTORY)
+                .join(WAKALAKA_TOML)
+                .exists()
+        {
+            let token = prompt_token();
+            let application_id = prompt_application_id();
+            Self::write_to_toml(application_id, token).await
+        } else {
+            Self::read_from_toml().await
+        }
     }
 
-    pub fn write_config(&self) -> Result<(), Box<dyn error::Error>> {
-        if !files::exists(CONFIG_TOML) {
-            File::create(CONFIG_TOML)?;
+    async fn write_to_toml(application_id: u64, token: String) -> Self {
+        let mut data_dir = dirs::data_dir().expect("Error while getting data directory");
+        data_dir.push(".wakalaka");
+
+        if !data_dir.exists() {
+            fs::create_dir_all(&data_dir).await.unwrap_or_else(|why| {
+                error!("Error while creating data directory: {why}");
+                panic!("{why:?}");
+            });
         }
+        data_dir.push("Wakalaka.toml");
 
-        let contents = toml::to_string(&self)?;
-        fs::write(CONFIG_TOML, contents)?;
-
-        Ok(())
-    }
-
-    pub fn read_config() -> Result<Self, Box<dyn error::Error>> {
-        const GENERAL_SECTION: &str = "General";
-
-        let application_id = Self::read_section(GENERAL_SECTION, "application_id")?
-            .parse::<u64>()
-            .map_err(|why| format!("Error while parsing application ID: {why}"))?;
-        let token = Self::read_section(GENERAL_SECTION, "token")
-            .map_err(|why| format!("Error while reading token: {why}"))?;
-
-        let config = Self {
+        let general = General {
             application_id,
             token,
         };
-        Ok(config)
+
+        let toml = toml::to_string(&general).expect("Error while serialising TOML");
+
+        let mut file = File::create(data_dir).await.unwrap_or_else(|why| {
+            error!("Error while creating file: {why}");
+            panic!("{why:?}");
+        });
+        file.write_all(toml.as_bytes()).await.unwrap_or_else(|why| {
+            error!("Error while writing to false: {why}");
+            panic!("{why:?}");
+        });
+
+        general
     }
 
-    fn read_section(section: &str, key: &'static str) -> Result<String, Box<dyn error::Error>> {
-        if !files::exists(CONFIG_TOML) {
-            let default_config = Self::default();
+    async fn read_from_toml() -> Self {
+        let mut data_dir = dirs::data_dir().expect("Error while getting data directory");
+        data_dir.push(".wakalaka");
+        data_dir.push("Wakalaka.toml");
 
-            Self::write_config(&default_config)?;
-        }
+        let mut file = File::open(data_dir).await.unwrap_or_else(|why| {
+            error!("Error while opening file: {why}");
+            panic!("{why:?}");
+        });
 
-        let contents = fs::read_to_string(CONFIG_TOML)?;
-        let value: toml::Value = toml::from_str(&contents)?;
+        let mut toml = String::new();
+        file.read_to_string(&mut toml).await.unwrap_or_else(|why| {
+            error!("Error while reading file: {why}");
+            panic!("{why:?}");
+        });
 
-        let section = value.get(section).ok_or(format!("{section} not found"))?;
-        let key = section
-            .get(key)
-            .ok_or(format!("{key} not found in {section}"))?;
-
-        let value = match key {
-            toml::Value::String(s) => s.clone(),
-            _ => key.to_string(),
-        };
-        Ok(value)
+        let general = toml::from_str(&toml).expect("Error while deserialising TOML");
+        general
     }
+}
+
+fn prompt_token() -> String {
+    println!("Enter token from Discord Developer Portal:");
+    let mut token = String::new();
+    std::io::stdin().read_line(&mut token).expect("Error while reading token");
+    format!("{}", token.trim())
+}
+
+fn prompt_application_id() -> u64 {
+    println!("Enter application ID from Discord Developer Portal:");
+    let mut application_id = String::new();
+    std::io::stdin().read_line(&mut application_id).expect("Error while reading application ID");
+    let parsed_application_id = application_id
+        .trim()
+        .parse::<u64>()
+        .unwrap_or_else(|why| {
+            error!("Error while parsing application ID: {why}");
+            panic!("{why:?}");
+        });
+    parsed_application_id
 }
