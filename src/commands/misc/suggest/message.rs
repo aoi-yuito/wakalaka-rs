@@ -37,7 +37,7 @@ use serenity::{
 
 static SUGGESTION_ID: AtomicUsize = AtomicUsize::new(1);
 
-pub(super) async fn description(
+pub(super) async fn message(
     ctx: &Context,
     interaction: &CommandInteraction,
     options: &[ResolvedOption<'_>]

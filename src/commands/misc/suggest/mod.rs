@@ -13,7 +13,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-mod description;
+mod message;
 
 use serenity::{
     builder::{ CreateCommand, CreateCommandOption },
@@ -29,7 +29,7 @@ pub(crate) async fn run(
 ) -> Option<String> {
     let command = commands::command(interaction, 0);
     match command.name.as_str() {
-        "description" => description::description(ctx, interaction, options).await,
+        "message" => message::message(ctx, interaction, options).await,
         _ => None,
     }
 }
@@ -40,8 +40,8 @@ pub(crate) fn register() -> CreateCommand {
         .add_option(
             CreateCommandOption::new(
                 CommandOptionType::String,
-                "description",
-                "Description of suggestion (max 400 characters)"
+                "message",
+                "Message describing your suggestion."
             ).required(true)
         )
 }
