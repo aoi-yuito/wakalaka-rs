@@ -14,7 +14,6 @@
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
 pub mod core;
-pub mod general;
 pub mod moderation;
 pub mod web;
 pub mod misc;
