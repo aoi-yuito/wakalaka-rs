@@ -18,12 +18,17 @@ use crate::Context;
 
 use serenity::all::CommandInteraction;
 use serenity::all::CommandOptionType;
+use serenity::all::ResolvedOption;
 use serenity::builder::CreateCommand;
 use serenity::builder::CreateCommandOption;
 
 mod info;
 
-pub(crate) async fn run(ctx: &Context, interaction: &CommandInteraction) -> Option<String> {
+pub(crate) async fn run(
+    ctx: &Context,
+    interaction: &CommandInteraction,
+    _options: &[ResolvedOption<'_>]
+) -> Option<String> {
     let option = commands::command_option(interaction, 0)?;
     match option.name.as_str() {
         "info" => info::info(ctx, interaction).await,
@@ -35,6 +40,10 @@ pub(crate) fn register() -> CreateCommand {
     CreateCommand::new("bot")
         .description("Commands related to yours truly.")
         .add_option(
-            CreateCommandOption::new(CommandOptionType::SubCommand, "info", "Bot information.")
+            CreateCommandOption::new(
+                CommandOptionType::SubCommand,
+                "info",
+                "Retrieves information about yours truly."
+            )
         )
 }

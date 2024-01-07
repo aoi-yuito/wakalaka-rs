@@ -12,6 +12,7 @@
 //
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
+
 pub mod aibooru;
 pub mod danbooru;
 
@@ -177,11 +178,15 @@ impl BooruWikiPages {
     }
 
     fn format_body(url: &str, body: &String) -> String {
-        let link_re = Regex::new(r"\[\[(.*?)\]\]").expect("Error while compiling regex");
-        let symbol_re = Regex::new(r"\[(\w)\](.*?)\[\/(\w)\]").expect(
-            "Error while compiling regex"
+        let link_re = Regex::new(r"\[\[(.*?)\]\]").expect(
+            "Expected valid regex for link(s), but didn't find one"
         );
-        let header_re = Regex::new(r"h(\d)\.(.*)").expect("Error while compiling regex");
+        let symbol_re = Regex::new(r"\[(\w)\](.*?)\[\/(\w)\]").expect(
+            "Expected valid regex for symbol(s), but didn't find one"
+        );
+        let header_re = Regex::new(r"h(\d)\.(.*)").expect(
+            "Expected valid regex for header(s), but didn't find one"
+        );
 
         let mut formatted_body = body.to_string();
         formatted_body = link_re

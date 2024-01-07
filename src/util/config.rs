@@ -15,7 +15,6 @@
 
 use serde::{ Deserialize, Serialize };
 use tokio::{ fs::{ File, self }, io::{ AsyncReadExt, AsyncWriteExt } };
-use tracing::log::error;
 
 const WAKALAKA_DIRECTORY: &str = ".wakalaka";
 const WAKALAKA_TOML: &str = "Wakalaka.toml";
@@ -44,7 +43,7 @@ impl General {
         if
             !dirs
                 ::data_dir()
-                .expect("Error while getting data directory")
+                .expect("Expected data directory, but didn't find one")
                 .join(WAKALAKA_DIRECTORY)
                 .join(WAKALAKA_TOML)
                 .exists()
@@ -62,10 +61,9 @@ impl General {
         data_dir.push(".wakalaka");
 
         if !data_dir.exists() {
-            fs::create_dir_all(&data_dir).await.unwrap_or_else(|why| {
-                error!("Error while creating data directory: {why}");
-                panic!("{why:?}");
-            });
+            fs::create_dir_all(&data_dir).await.expect(
+                "Expected data directory, but didn't find one"
+            );
         }
         data_dir.push("Wakalaka.toml");
 
@@ -74,37 +72,33 @@ impl General {
             token,
         };
 
-        let toml = toml::to_string(&general).expect("Error while serialising TOML");
+        let toml = toml::to_string(&general).expect("Expected TOML file, but didn't find one");
 
-        let mut file = File::create(data_dir).await.unwrap_or_else(|why| {
-            error!("Error while creating file: {why}");
-            panic!("{why:?}");
-        });
-        file.write_all(toml.as_bytes()).await.unwrap_or_else(|why| {
-            error!("Error while writing to false: {why}");
-            panic!("{why:?}");
-        });
+        let mut file = File::create(data_dir).await.expect(
+            "Expected file in data directory, but didn't find one"
+        );
+        file.write_all(toml.as_bytes()).await.expect(
+            "Expected TOML file in data directory, but didn't find one"
+        );
 
         general
     }
 
     async fn read_from_toml() -> Self {
-        let mut data_dir = dirs::data_dir().expect("Error while getting data directory");
+        let mut data_dir = dirs::data_dir().expect("Expected data directory, but didn't find one");
         data_dir.push(".wakalaka");
         data_dir.push("Wakalaka.toml");
 
-        let mut file = File::open(data_dir).await.unwrap_or_else(|why| {
-            error!("Error while opening file: {why}");
-            panic!("{why:?}");
-        });
+        let mut file = File::open(data_dir).await.expect(
+            "Expected file in data directory, but didn't find one"
+        );
 
         let mut toml = String::new();
-        file.read_to_string(&mut toml).await.unwrap_or_else(|why| {
-            error!("Error while reading file: {why}");
-            panic!("{why:?}");
-        });
+        file.read_to_string(&mut toml).await.expect(
+            "Expected TOML file in data directory, but didn't find one"
+        );
 
-        let general = toml::from_str(&toml).expect("Error while deserialising TOML");
+        let general = toml::from_str(&toml).expect("Expected TOML file, but didn't find one");
         general
     }
 }
@@ -112,20 +106,24 @@ impl General {
 fn prompt_token() -> String {
     println!("Enter token from Discord Developer Portal:");
     let mut token = String::new();
-    std::io::stdin().read_line(&mut token).expect("Error while reading token");
+    std::io
+        ::stdin()
+        .read_line(&mut token)
+        .expect("Expected token from Discord Developer Portal, but didn't find one");
+
     format!("{}", token.trim())
 }
 
 fn prompt_application_id() -> u64 {
     println!("Enter application ID from Discord Developer Portal:");
     let mut application_id = String::new();
-    std::io::stdin().read_line(&mut application_id).expect("Error while reading application ID");
-    let parsed_application_id = application_id
+    std::io
+        ::stdin()
+        .read_line(&mut application_id)
+        .expect("Expectedpplication ID from Discord Developer Portal, but didn't find one");
+
+    application_id
         .trim()
         .parse::<u64>()
-        .unwrap_or_else(|why| {
-            error!("Error while parsing application ID: {why}");
-            panic!("{why:?}");
-        });
-    parsed_application_id
+        .expect("Expected u64 of application ID from Discord Developer Portal, but didn't find one")
 }

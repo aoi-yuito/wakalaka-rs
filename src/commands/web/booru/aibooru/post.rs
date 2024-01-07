@@ -25,7 +25,10 @@ pub(super) async fn post(
     interaction: &CommandInteraction,
     options: &[ResolvedOption<'_>]
 ) -> Option<String> {
-    let id = id(options).await.unwrap_or_default().parse::<i64>().expect("Error while parsing ID");
+    let id = id(options).await
+        .unwrap_or_default()
+        .parse::<i64>()
+        .expect("Expected post ID, but didn't find one");
     let channel_id = interaction.channel_id;
 
     let post_exists = BooruPost::post_exists(ctx, channel_id, id).await;
@@ -37,12 +40,12 @@ pub(super) async fn post(
         let response_text = client
             .get(&posts_show_json)
             .send().await
-            .expect("Error while sending GET request")
+            .expect("Expected response, but didn't find one")
             .text().await
-            .expect("Error while getting text from response");
+            .expect("Expected response text, but didn't find one");
         let response_json = serde_json
             ::from_str(&response_text)
-            .expect("Error while parsing JSON from response");
+            .expect("Expected response JSON, but didn't find one");
 
         let success = booru::has_success(ctx, &response_json, channel_id).await;
         if success {
@@ -71,13 +74,12 @@ pub(super) async fn post(
 
 async fn id(options: &[ResolvedOption<'_>]) -> Option<String> {
     for option in options {
-        if let ResolvedValue::SubCommand(subcommand) = &option.value {
-            let id = subcommand.get(0)?;
+        if let ResolvedValue::SubCommand(command) = &option.value {
+            let id = command.get(0)?;
             if let ResolvedValue::Integer(id) = &id.value {
                 return Some(id.to_string());
             }
         }
     }
-
     None
 }

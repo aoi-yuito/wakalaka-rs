@@ -23,7 +23,7 @@ use crate::Context;
 pub(super) async fn user(ctx: &Context, interaction: &CommandInteraction) -> Option<String> {
     let user_id = user_id(interaction);
 
-    let user = user_id.to_user(&ctx.http).await.expect("Error while getting user from user ID");
+    let user = user_id.to_user(&ctx.http).await.expect("Expected user, but didn't find one");
     let user_avatar_url = user.avatar_url().unwrap_or_else(|| user.default_avatar_url());
     let user_name = user.name;
 
@@ -42,10 +42,11 @@ pub(super) async fn user(ctx: &Context, interaction: &CommandInteraction) -> Opt
 }
 
 fn user_id(interaction: &CommandInteraction) -> UserId {
-    let user_id = interaction.data.options
+    let current_user_id = interaction.user.id;
+
+    interaction.data.options
         .get(0)
         .and_then(|option| Some(option.value.clone()))
         .and_then(|value| value.as_user_id())
-        .unwrap_or(interaction.user.id);
-    user_id
+        .unwrap_or(current_user_id)
 }

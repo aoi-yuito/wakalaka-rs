@@ -17,7 +17,7 @@ use serenity::{
     all::{ CommandInteraction, Interaction },
     builder::{ CreateInteractionResponse, CreateInteractionResponseMessage },
 };
-use tracing::{ log::error, log::info, log::warn };
+use tracing::{ log::info, log::warn };
 
 use crate::commands;
 use crate::Context;
@@ -26,10 +26,9 @@ pub async fn handle(ctx: Context, interaction: Interaction) {
     if let Interaction::Command(command) = interaction {
         let command_user = &command.user.name;
         let command_name = &command.data.name;
-        let channel_name = &command.channel_id.name(&ctx).await.unwrap_or_else(|why| {
-            error!("Error while retrieving channel name: {why}");
-            panic!("{why:?}");
-        });
+        let channel_name = &command.channel_id
+            .name(&ctx).await
+            .expect("Expected channel name, but didn't find one");
         info!("@{command_user} executed {command_name:?} in #{channel_name}");
 
         let content = command_content(&ctx, &command).await;
@@ -46,9 +45,9 @@ async fn register_command_response(
         let response_message = CreateInteractionResponseMessage::new().content(content);
         let response = CreateInteractionResponse::Message(response_message);
 
-        if let Err(why) = command.create_response(&ctx.http, response).await {
-            error!("{why:?}");
-        }
+        command
+            .create_response(&ctx.http, response).await
+            .expect("Expected response, but didn't find one");
     }
 }
 
@@ -60,15 +59,15 @@ async fn command_content(ctx: &Context, interaction: &CommandInteraction) -> Opt
         "aibooru" =>
             Some(commands::web::booru::aibooru::run(&ctx, interaction, command_options).await?),
         "avatar" => Some(commands::misc::avatar::run(&ctx, interaction).await?),
-        "bot" => Some(commands::core::bot::run(&ctx, interaction).await?),
+        "bot" => Some(commands::core::bot::run(&ctx, interaction, command_options).await?),
         "danbooru" =>
             Some(commands::web::booru::danbooru::run(&ctx, interaction, command_options).await?),
-        "shutdown" => Some(commands::core::shutdown::run(&ctx, interaction).await?),
-        "suggest" => Some(commands::misc::suggest::run(&ctx, interaction, command_options).await?),
         "purge" =>
             Some(commands::moderation::purge::run(&ctx, interaction, command_options).await?),
         "reload" => Some(commands::core::reload::run(&ctx, interaction, command_options).await?),
         "restart" => Some(commands::core::restart::run(&ctx, interaction, command_options).await?),
+        "shutdown" => Some(commands::core::shutdown::run(&ctx, interaction).await?),
+        "suggest" => Some(commands::misc::suggest::run(&ctx, interaction, command_options).await?),
         _ => {
             warn!("{command_name:?} isn't implemented yet");
             None

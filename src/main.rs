@@ -28,30 +28,20 @@ type Context = serenity::client::Context;
 pub async fn main() {
     initialise_subscriber();
 
-    let framework = initialise_framework();
+    let framework = StandardFramework::new();
     let intents = initialise_intents();
-    let config = initialise_config();
+    let config = Config::new().await;
 
-    let mut client = initialise_client(config.await, intents, framework).await;
-    client.start_autosharded().await.expect("Error while running client");
+    let mut client = initialise_client(config, intents, framework).await;
+    client.start_autosharded().await.expect("Expected client, but didn't find one");
 }
 
 fn initialise_subscriber() {
     let filter = EnvFilter::try_from_default_env()
         .or_else(|_| EnvFilter::try_new("wakalaka_rs=info"))
-        .expect("Error while creating filter");
+        .expect("Expected valid filter, but didn't find one");
 
     Subscriber::builder().with_max_level(Level::INFO).with_env_filter(filter).compact().init();
-}
-
-fn initialise_framework() -> StandardFramework {
-    let framework = StandardFramework::new();
-    framework
-}
-
-async fn initialise_config() -> Config {
-    let config = Config::new().await;
-    config
 }
 
 fn initialise_intents() -> GatewayIntents {
@@ -69,10 +59,9 @@ async fn initialise_client(
 ) -> serenity::Client {
     let token = config.general.token;
 
-    let client = serenity::Client
+    serenity::Client
         ::builder(token, intents)
         .event_handler(events::Handler)
         .framework(framework).await
-        .expect("Error while building client");
-    client
+        .expect("Expected client, but didn't find one")
 }

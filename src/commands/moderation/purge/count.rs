@@ -22,7 +22,7 @@ use serenity::{
         EditInteractionResponse,
     },
 };
-use tracing::{ log::error, log::info };
+use tracing::log::info;
 
 use crate::Context;
 
@@ -40,10 +40,10 @@ pub(super) async fn count(
             }
         })
         .unwrap_or(1);
-    if count < 1 {
-        return Some("Can't delete less than 1 message!".to_string());
-    } else if count > 100 {
-        return Some("Can't delete more than 100 messages at once!".to_string());
+    if count < 1 || count > 100 {
+        return Some(
+            "Cannot delete less than 1 message or more than 100 messages at once!".to_string()
+        );
     }
 
     let response_message = CreateInteractionResponseMessage::default()
@@ -51,7 +51,9 @@ pub(super) async fn count(
         .ephemeral(true);
     let response = CreateInteractionResponse::Message(response_message);
 
-    interaction.create_response(&ctx.http, response).await.unwrap();
+    interaction
+        .create_response(&ctx.http, response).await
+        .expect("Expected response, but didn't find one");
 
     let ctx = ctx.clone();
     let interaction = interaction.clone();
@@ -63,20 +65,15 @@ pub(super) async fn count(
 
         let channel_id = interaction.channel_id;
         let (channel_name, channel_messages) = (
-            channel_id.name(&ctx.http).await.unwrap_or_else(|why| {
-                error!("Error while retrieving channel name: {why}");
-                panic!("{why:?}");
-            }),
-            channel_id.messages(&ctx.http, messages).await.unwrap_or_else(|why| {
-                error!("Error while retrieving messages: {why}");
-                panic!("{why:?}");
-            }),
+            channel_id.name(&ctx.http).await.expect("Expected channel name, but didn't find one"),
+            channel_id
+                .messages(&ctx.http, messages).await
+                .expect("Expected channel messages, but didn't find one"),
         );
         for channel_message in channel_messages {
-            channel_message.delete(&ctx.http).await.unwrap_or_else(|why| {
-                error!("Error while deleting message: {why}");
-                panic!("{why:?}");
-            });
+            channel_message
+                .delete(&ctx.http).await
+                .expect("Expected channel message, but didn't find one");
 
             deleted_message_count += 1;
         }
@@ -87,7 +84,9 @@ pub(super) async fn count(
         let message = format!("Deleted {deleted_message_count} message(s)!");
         let edit_response = EditInteractionResponse::new().content(message);
 
-        interaction.edit_response(&ctx.http, edit_response).await.unwrap();
+        interaction
+            .edit_response(&ctx.http, edit_response).await
+            .expect("Expected edited response, but didn't find one");
     });
 
     None

@@ -15,7 +15,7 @@
 
 use chrono::Utc;
 use serenity::all::{ ResolvedOption, CommandInteraction, ResolvedValue };
-use tracing::{ log::error, log::info };
+use tracing::log::info;
 
 use crate::Context;
 
@@ -34,27 +34,24 @@ pub(super) async fn command(
                 _ => None,
             }
         })
-        .expect("Error while reading command name");
+        .expect("Expected command name, but didn't find one");
 
-    let guild_id = interaction.guild_id.expect("Error while reading guild ID");
+    let guild_id = interaction.guild_id.expect("Expected guild ID, but didn't find one");
 
     let (existing_guild_commands, existing_global_commands) = (
-        ctx.http.get_guild_commands(guild_id).await.unwrap_or_else(|why| {
-            error!("Error while retrieving existing guild command(s): {why}");
-            panic!("{why:?}");
-        }),
-        ctx.http.get_global_commands().await.unwrap_or_else(|why| {
-            error!("Error while retrieving existing global command(s): {why}");
-            panic!("{why:?}");
-        }),
+        ctx.http
+            .get_guild_commands(guild_id).await
+            .expect("Expected existing guild commands, but didn't find any"),
+        ctx.http
+            .get_global_commands().await
+            .expect("Expected existing global commands, but didn't find any"),
     );
 
     let mut existing_commands = existing_guild_commands
         .iter()
         .chain(existing_global_commands.iter());
-
-    let commands = existing_commands.find(|command| command.name == existing_command_name);
-    if let Some(command) = commands {
+    let existing_command = existing_commands.find(|command| command.name == existing_command_name);
+    if let Some(command) = existing_command {
         let command_guild_id = command.guild_id;
         if command_guild_id.is_some() {
             let _ = ctx.http.edit_guild_command(guild_id, command.id, command);

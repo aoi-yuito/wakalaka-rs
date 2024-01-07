@@ -15,10 +15,10 @@
 
 use serenity::all::Command;
 use serenity::all::GuildId;
-use tracing::{ log::error, log::info };
+use tracing::log::info;
 
-use crate::commands;
 use crate::Context;
+use crate::events;
 
 pub async fn handle(ctx: Context, guilds: Vec<GuildId>) {
     let guild_count = guilds.len();
@@ -27,46 +27,28 @@ pub async fn handle(ctx: Context, guilds: Vec<GuildId>) {
     let guild_ids = &ctx.cache.guilds();
     for guild_id in guild_ids {
         let guild_name = {
-            let guild = &ctx.cache.guild(guild_id).unwrap_or_else(|| {
-                error!("No guild found");
-                panic!("Error while retrieving guild");
-            });
+            let guild = &ctx.cache
+                .guild(guild_id)
+                .expect("Expected guild in cache, but didn't find one");
             guild.name.clone()
         };
         info!("Connected to {guild_name}");
 
         let (existing_guild_commands, existing_global_commands) = (
-            guild_id.get_commands(&ctx.http).await.unwrap_or_else(|why| {
-                error!("Error while retrieving existing guild commands: {why}");
-                panic!("{why:?}");
-            }),
+            guild_id
+                .get_commands(&ctx.http).await
+                .expect("Expected existing guild commands, but didn't find any"),
             Command::get_global_commands(&ctx.http),
         );
 
-        update_commands(
+        events::register_commands(
             &ctx,
             guild_id,
             &guild_name,
             existing_guild_commands,
-            existing_global_commands.await.unwrap()
+            existing_global_commands.await.expect(
+                "Expected existing global commands, but didn't find any"
+            )
         ).await;
     }
-}
-
-async fn update_commands(
-    ctx: &Context,
-    guild_id: &GuildId,
-    guild_name: &String,
-    guild_commands: Vec<Command>,
-    global_commands: Vec<Command>
-) {
-    let (guild_command_count, global_command_count) = (guild_commands.len(), global_commands.len());
-    if guild_command_count == 0 {
-        error!("No guild command(s) found in {guild_name}");
-    } else if global_command_count == 0 {
-        error!("No global command(s) found in {guild_name}");
-    }
-
-    commands::register_guild_commands(&ctx, guild_id, &guild_name).await;
-    commands::register_global_commands(&ctx, &guild_name).await;
 }

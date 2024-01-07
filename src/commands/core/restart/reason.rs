@@ -29,13 +29,11 @@ pub(super) fn reason(ctx: &Context, options: &[ResolvedOption<'_>]) -> Option<St
                 _ => None,
             }
         })
-        .expect("Error while getting reason");
+        .expect("Expected reason, but didn't find one");
 
     let reason_characters_count = reason.chars().count();
-    if reason_characters_count > 50 {
-        return Some(format!("Reason cannot be more than 50 characters."));
-    } else if reason_characters_count < 3 {
-        return Some(format!("Reason cannot be less than 3 characters."));
+    if reason_characters_count > 50 || reason_characters_count < 3 {
+        return Some(format!("Reason must be between 3 and 50 characters."));
     }
 
     let seconds = 5u64;

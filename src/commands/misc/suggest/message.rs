@@ -36,13 +36,11 @@ pub(super) async fn message(
                 _ => None,
             }
         })
-        .expect("Error while getting description")
+        .expect("Expected description, but didn't find one")
         .trim();
     let description_character_count = description.chars().count();
-    if description_character_count > 400 {
-        return Some(format!("Description can't be longer than 400 characters!"));
-    } else if description_character_count < 50 {
-        return Some(format!("Description can't be shorter than 50 characters!"));
+    if description_character_count < 30 || description_character_count > 1000 {
+        return Some(format!("Description must be between 30 and 1000 characters!"));
     }
 
     let user = &interaction.user;
@@ -55,26 +53,29 @@ pub(super) async fn message(
         .description(description)
         .color(branding::BLURPLE);
 
-    let guild_id = interaction.guild_id.expect("Error while getting guild ID");
+    let guild_id = interaction.guild_id?;
 
-    let channel_ids = guild_id.channels(&ctx.http).await.expect("Error while getting channels");
-    let suggestions_channel = channel_ids.values().find(|channel| channel.name == "suggestions");
+    let channels = guild_id
+        .channels(&ctx.http).await
+        .expect("Expected guild channels, but didn't find one");
+
+    let suggestions_channel = channels.values().find(|channel| channel.name == "suggestions");
     if let Some(suggestions_channel) = suggestions_channel {
         let suggestions_channel_id = suggestions_channel.id;
 
         let message = CreateMessage::default().add_embed(embed);
-        let suggestions_message = suggestions_channel_id
+        let suggestion_message = suggestions_channel_id
             .send_message(&ctx.http, message).await
-            .expect("Error while sending message");
+            .expect("Expected suggestion message, but didn't find one");
 
         let thumbs_up = ReactionType::Unicode(format!("👍"));
         let thumbs_down = ReactionType::Unicode(format!("👎"));
         for reaction in &[thumbs_up, thumbs_down] {
-            suggestions_message
+            suggestion_message
                 .react(&ctx.http, reaction.clone()).await
-                .expect("Error while reacting to message");
+                .expect("Expected reaction, but didn't find one");
         }
-        return Some(format!("Suggestion sent!"));
+        return Some(format!("Successfully sent your suggestion to #suggestions !"));
     }
     None
 }

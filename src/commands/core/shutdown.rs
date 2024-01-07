@@ -27,7 +27,9 @@ pub(crate) async fn run(ctx: &Context, interaction: &CommandInteraction) -> Opti
 
     let seconds = 1;
 
-    let application_name = ctx.http.get_current_application_info().await.unwrap().name;
+    let application_name = ctx.http
+        .get_current_application_info().await
+        .expect("Expected current application info, but didn't find one").name;
     info!("Shutting down @{application_name} in {seconds} second(s)...");
 
     tokio::spawn(async move {

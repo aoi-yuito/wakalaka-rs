@@ -26,7 +26,9 @@ pub(super) async fn wiki(
     options: &[ResolvedOption<'_>]
 ) -> Option<String> {
     let tag = tag(options).await.unwrap_or_default().replace(" ", "_").to_lowercase();
+
     let channel_id = interaction.channel_id;
+
     let tag_exists = BooruWikiPages::tag_exists(ctx, channel_id, &tag).await;
     if tag_exists {
         let wiki_pages_show = format!("{AIBOORU_URL}/wiki_pages/{tag}");
@@ -37,12 +39,12 @@ pub(super) async fn wiki(
         let response_text = client
             .get(&wiki_pages_show_json)
             .send().await
-            .expect("Error while sending GET request")
+            .expect("Expected response, but didn't find one")
             .text().await
-            .expect("Error while getting text from response");
+            .expect("Expected response text, but didn't find one");
         let response_json = serde_json
             ::from_str(&response_text)
-            .expect("Error while parsing JSON from response");
+            .expect("Expected response JSON, but didn't find one");
 
         let success = booru::has_success(ctx, &response_json, channel_id).await;
         if success {
@@ -68,10 +70,10 @@ pub(super) async fn wiki(
 
 async fn tag(options: &[ResolvedOption<'_>]) -> Option<String> {
     for option in options {
-        if let ResolvedValue::SubCommand(subcommand) = &option.value {
-            let tags = subcommand.get(0)?;
-            if let ResolvedValue::String(tags) = &tags.value {
-                return Some(tags.to_string());
+        if let ResolvedValue::SubCommand(command) = &option.value {
+            let tags = command.get(0)?;
+            if let ResolvedValue::String(tag) = &tags.value {
+                return Some(tag.to_string());
             }
         }
     }
