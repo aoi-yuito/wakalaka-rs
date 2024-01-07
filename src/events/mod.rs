@@ -56,5 +56,5 @@ pub(super) fn registered_guild_commands() -> Vec<CreateCommand> {
 }
 
 pub(super) fn registered_global_commands() -> Vec<CreateCommand> {
-    vec![commands::general::avatar::register()]
+    vec![commands::misc::avatar::register()]
 }
