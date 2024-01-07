@@ -32,7 +32,7 @@ pub async fn main() {
     let intents = initialise_intents();
     let config = initialise_config();
 
-    let mut client = initialise_client(config, intents, framework).await;
+    let mut client = initialise_client(config.await, intents, framework).await;
     client.start_autosharded().await.expect("Error while running client");
 }
 
@@ -49,8 +49,8 @@ fn initialise_framework() -> StandardFramework {
     framework
 }
 
-fn initialise_config() -> Config {
-    let config = Config::new().expect("Error while reading config");
+async fn initialise_config() -> Config {
+    let config = Config::new().await;
     config
 }
 
@@ -67,7 +67,7 @@ async fn initialise_client(
     intents: GatewayIntents,
     framework: StandardFramework
 ) -> serenity::Client {
-    let token = config.token;
+    let token = config.general.token;
 
     let client = serenity::Client
         ::builder(token, intents)
