@@ -24,6 +24,8 @@ Wakalaka is planned to be a completely free Discord bot. It's being designed to 
 
 While it's being developed, there won't be any versions available. But, as soon as a version that everyone can use is ready, it will be shared under the [GNU Lesser General Public Licence v3.0](https://www.gnu.org/Licences/lgpl-3.0.en.html).
 
+---
+
 ## Contributing
 
 [![gh_stars](https://img.shields.io/github/stars/Kawaxte/wakalaka-rs?logo=github&style=for-the-badge)](https://github.com/Kawaxte/wakalaka-rs/stargazers)
