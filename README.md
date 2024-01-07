@@ -15,8 +15,6 @@
  along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 -->
 
-
-
 ## Contributing
 
 [![gh_stars](https://img.shields.io/github/stars/Kawaxte/wakalaka-rs?logo=github&style=for-the-badge)](https://github.com/Kawaxte/wakalaka-rs/stargazers)
