@@ -48,6 +48,7 @@ pub(super) fn registered_guild_commands() -> Vec<CreateCommand> {
         core::reload::register(),
         core::restart::register(),
         core::shutdown::register(),
+        misc::suggest::register(),
         moderation::purge::register(),
         web::booru::aibooru::register(),
         web::booru::danbooru::register()

@@ -17,6 +17,7 @@ pub mod core;
 pub mod general;
 pub mod moderation;
 pub mod web;
+pub mod misc;
 
 use serenity::all::{ CommandDataOption, CommandInteraction, GuildId, Command };
 use tracing::{ log::error, log::warn, log::info };

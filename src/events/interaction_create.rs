@@ -61,6 +61,7 @@ async fn command_content(ctx: &Context, interaction: &CommandInteraction) -> Opt
         "avatar" => Some(general::avatar::run(&ctx, interaction).await?),
         "danbooru" => Some(web::booru::danbooru::run(&ctx, interaction, command_options).await?),
         "shutdown" => Some(core::shutdown::run(&ctx, interaction).await?),
+        "suggest" => Some(misc::suggest::run(&ctx, interaction, command_options).await?),
         "purge" => Some(moderation::purge::run(&ctx, interaction, command_options).await?),
         "reload" => Some(core::reload::run(&ctx, interaction, command_options).await?),
         "restart" => Some(core::restart::run(&ctx, interaction, command_options).await?),
