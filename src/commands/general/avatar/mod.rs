@@ -21,7 +21,7 @@ use serenity::{
     builder::{ CreateCommand, CreateCommandOption },
 };
 
-pub async fn run(ctx: &Context, interaction: &CommandInteraction) -> Option<String> {
+pub(crate) async fn run(ctx: &Context, interaction: &CommandInteraction) -> Option<String> {
     let command = commands::command(interaction, 0);
     match command.name.as_str() {
         "user" => user::user(ctx, interaction).await,
@@ -29,7 +29,7 @@ pub async fn run(ctx: &Context, interaction: &CommandInteraction) -> Option<Stri
     }
 }
 
-pub fn register() -> CreateCommand {
+pub(crate) fn register() -> CreateCommand {
     CreateCommand::new("avatar")
         .description("Fetches user's avatar.")
         .add_option(

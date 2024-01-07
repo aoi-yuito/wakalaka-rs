@@ -21,7 +21,7 @@ use serenity::all::{ CommandInteraction, CommandOptionType };
 use serenity::builder::{ CreateCommand, CreateCommandOption };
 use serenity::model::application::ResolvedOption;
 
-pub async fn run(
+pub(crate) async fn run(
     ctx: &Context,
     interaction: &CommandInteraction,
     options: &[ResolvedOption<'_>]
@@ -39,7 +39,7 @@ pub async fn run(
     }
 }
 
-pub fn register() -> CreateCommand {
+pub(crate) fn register() -> CreateCommand {
     CreateCommand::new("restart")
         .description("Restarts yours truly.")
         .add_option(

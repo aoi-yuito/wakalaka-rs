@@ -13,15 +13,13 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-// pub async fn run
-
 use serenity::{ builder::CreateCommand, all::CommandInteraction };
 
 use tracing::log::info;
 
 use crate::{ Context, commands };
 
-pub async fn run(ctx: &Context, interaction: &CommandInteraction) -> Option<String> {
+pub(crate) async fn run(ctx: &Context, interaction: &CommandInteraction) -> Option<String> {
     let administrator = commands::has_administrator_permission(ctx, interaction).await;
     if !administrator {
         return Some(format!("You don't have permission(s) to execute this command!"));
@@ -40,6 +38,6 @@ pub async fn run(ctx: &Context, interaction: &CommandInteraction) -> Option<Stri
     Some(format!("Shutting down in {seconds} second(s)..."))
 }
 
-pub fn register() -> CreateCommand {
+pub(crate) fn register() -> CreateCommand {
     CreateCommand::new("shutdown").description("Shuts down yours truly.")
 }

@@ -24,7 +24,7 @@ use serenity::all::ResolvedOption;
 use crate::commands;
 use crate::Context;
 
-pub async fn run(
+pub(crate) async fn run(
     ctx: &Context,
     interaction: &CommandInteraction,
     options: &[ResolvedOption<'_>]
@@ -41,7 +41,7 @@ pub async fn run(
     }
 }
 
-pub fn register() -> CreateCommand {
+pub(crate) fn register() -> CreateCommand {
     CreateCommand::new("purge")
         .description("Purges messages from channel.")
         .add_option(

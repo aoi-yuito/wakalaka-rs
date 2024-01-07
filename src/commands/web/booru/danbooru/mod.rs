@@ -16,24 +16,24 @@
 mod post;
 mod wiki;
 
-use crate::{commands, Context};
+use crate::{ commands, Context };
 use serenity::{
-    all::{CommandInteraction, CommandOptionType, ResolvedOption},
-    builder::{CreateCommand, CreateCommandOption},
+    all::{ CommandInteraction, CommandOptionType, ResolvedOption },
+    builder::{ CreateCommand, CreateCommandOption },
 };
 
 const DANBOORU_URL: &str = "https://danbooru.donmai.us";
 const DANBOORU_PNG_LOGO_URL: &str =
     "https://danbooru.donmai.us/packs/static/images/danbooru-logo-128x128-ea111b6658173e847734.png";
 
-const DANBOORU_COLOUR: u32 = 0xAC8A64;
+const DANBOORU_COLOUR: u32 = 0xac8a64;
 
 const POSTMAN_USER_AGENT: &str = "PostmanRuntime/7.36.0";
 
-pub async fn run(
+pub(crate) async fn run(
     ctx: &Context,
     interaction: &CommandInteraction,
-    options: &[ResolvedOption<'_>],
+    options: &[ResolvedOption<'_>]
 ) -> Option<String> {
     let command = commands::command(interaction, 0);
     match command.name.as_str() {
@@ -43,29 +43,33 @@ pub async fn run(
     }
 }
 
-pub fn register() -> CreateCommand {
+pub(crate) fn register() -> CreateCommand {
     CreateCommand::new("danbooru")
         .description(format!("Provides interactibility with {DANBOORU_URL:?}").as_str())
         .add_option(
             CreateCommandOption::new(
                 CommandOptionType::SubCommand,
                 "post",
-                "Fetches info for post.",
+                "Fetches info for post."
+            ).add_sub_option(
+                CreateCommandOption::new(
+                    CommandOptionType::Integer,
+                    "id",
+                    "Index of post."
+                ).required(true)
             )
-            .add_sub_option(
-                CreateCommandOption::new(CommandOptionType::Integer, "id", "Index of post.")
-                    .required(true),
-            ),
         )
         .add_option(
             CreateCommandOption::new(
                 CommandOptionType::SubCommand,
                 "wiki",
-                "Previews a wiki page from Danbooru.",
+                "Previews a wiki page from Danbooru."
+            ).add_sub_option(
+                CreateCommandOption::new(
+                    CommandOptionType::String,
+                    "tag",
+                    "Tag of wiki page."
+                ).required(true)
             )
-            .add_sub_option(
-                CreateCommandOption::new(CommandOptionType::String, "tag", "Tag of wiki page.")
-                    .required(true),
-            ),
         )
 }

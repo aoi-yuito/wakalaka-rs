@@ -28,7 +28,7 @@ const AIBOORU_PNG_LOGO_URL: &str =
 
 const AIBOORU_COLOUR: u32 = 0x77b91e;
 
-pub async fn run(
+pub(crate) async fn run(
     ctx: &Context,
     interaction: &CommandInteraction,
     options: &[ResolvedOption<'_>]
@@ -41,7 +41,7 @@ pub async fn run(
     }
 }
 
-pub fn register() -> CreateCommand {
+pub(crate) fn register() -> CreateCommand {
     CreateCommand::new("aibooru")
         .description(format!("Provides interactibility with {AIBOORU_URL:?}").as_str())
         .add_option(

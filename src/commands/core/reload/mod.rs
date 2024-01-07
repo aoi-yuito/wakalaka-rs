@@ -21,7 +21,7 @@ use serenity::all::ResolvedOption;
 
 use crate::{ Context, commands };
 
-pub async fn run(
+pub(crate) async fn run(
     ctx: &Context,
     interaction: &CommandInteraction,
     options: &[ResolvedOption<'_>]
@@ -38,7 +38,7 @@ pub async fn run(
     }
 }
 
-pub fn register() -> CreateCommand {
+pub(crate) fn register() -> CreateCommand {
     CreateCommand::new("reload")
         .description("Reloads a command.")
         .add_option(
