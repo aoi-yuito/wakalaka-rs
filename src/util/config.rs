@@ -17,8 +17,6 @@ use serde::{ Deserialize, Serialize };
 use tokio::{ fs::{ File, self }, io::{ AsyncReadExt, AsyncWriteExt } };
 use tracing::log::error;
 
-use super::files;
-
 const WAKALAKA_DIRECTORY: &str = ".wakalaka";
 const WAKALAKA_TOML: &str = "Wakalaka.toml";
 
