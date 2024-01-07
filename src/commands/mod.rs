@@ -23,25 +23,6 @@ use tracing::{ log::error, log::warn, log::info };
 
 use crate::{ Context, events };
 
-pub(crate) async fn is_testing_channel(ctx: &Context, interaction: &CommandInteraction) -> bool {
-    let channel_name = &interaction.channel_id.name(&ctx).await.unwrap_or_else(|why| {
-        error!("Error while retrieving channel name: {why}");
-        panic!("{why:?}");
-    });
-
-    if channel_name == "lurid-bot-testing" {
-        return true;
-    }
-
-    let user_name = &interaction.user.name;
-    let command_name = &interaction.data.name;
-    warn!(
-        "@{user_name} tried to execute {command_name:?} in #{channel_name} but it's not testing channel"
-    );
-
-    return false;
-}
-
 fn command(interaction: &CommandInteraction, index: usize) -> &CommandDataOption {
     let command = interaction.data.options.get(index).expect("Error while getting command");
     command

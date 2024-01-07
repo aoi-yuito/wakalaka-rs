@@ -24,11 +24,6 @@ use crate::Context;
 
 pub async fn handle(ctx: Context, interaction: Interaction) {
     if let Interaction::Command(command) = interaction {
-        let testing_channel = is_testing_channel(&ctx, &command).await;
-        if !testing_channel {
-            return;
-        }
-
         let command_user = &command.user.name;
         let command_name = &command.data.name;
         let channel_name = &command.channel_id.name(&ctx).await.unwrap_or_else(|why| {
