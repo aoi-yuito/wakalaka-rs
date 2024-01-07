@@ -60,10 +60,8 @@ pub(super) async fn post(
                 AIBOORU_COLOUR
             );
 
-            let response_message = CreateInteractionResponseMessage::default();
-
-            let message = response_message.add_embed(embed);
-            let response = CreateInteractionResponse::Message(message);
+            let response_message = CreateInteractionResponseMessage::default().add_embed(embed);
+            let response = CreateInteractionResponse::Message(response_message);
 
             let _ = interaction.create_response(&ctx.http, response).await;
         }

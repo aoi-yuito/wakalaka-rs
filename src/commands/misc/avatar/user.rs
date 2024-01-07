@@ -32,10 +32,8 @@ pub(super) async fn user(ctx: &Context, interaction: &CommandInteraction) -> Opt
         .image(user_avatar_url)
         .color(branding::BLURPLE);
 
-    let response_message = CreateInteractionResponseMessage::default();
-
-    let message = response_message.add_embed(embed);
-    let response = CreateInteractionResponse::Message(message);
+    let response_message = CreateInteractionResponseMessage::default().add_embed(embed);
+    let response = CreateInteractionResponse::Message(response_message);
 
     match interaction.create_response(&ctx.http, response).await {
         Ok(_) => None,

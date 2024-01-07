@@ -15,10 +15,11 @@
 
 mod reason;
 
-use crate::{ commands, Context };
 use serenity::all::{ CommandInteraction, CommandOptionType };
 use serenity::builder::{ CreateCommand, CreateCommandOption };
 use serenity::model::application::ResolvedOption;
+
+use crate::{ commands, Context };
 
 pub(crate) async fn run(
     ctx: &Context,
@@ -30,8 +31,8 @@ pub(crate) async fn run(
         return Some(format!("You don't have permission(s) to execute this command!"));
     }
 
-    let command = commands::command(interaction, 0);
-    match command.name.as_str() {
+    let option = commands::command_option(interaction, 0)?;
+    match option.name.as_str() {
         "reason" => reason::reason(ctx, options),
         _ => None,
     }
@@ -45,6 +46,6 @@ pub(crate) fn register() -> CreateCommand {
                 CommandOptionType::String,
                 "reason",
                 "Short explanation for restarting."
-            ).required(false)
+            ).required(true)
         )
 }

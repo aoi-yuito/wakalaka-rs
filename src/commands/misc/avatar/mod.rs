@@ -22,8 +22,8 @@ use serenity::{
 };
 
 pub(crate) async fn run(ctx: &Context, interaction: &CommandInteraction) -> Option<String> {
-    let command = commands::command(interaction, 0);
-    match command.name.as_str() {
+    let option = commands::command_option(interaction, 0)?;
+    match option.name.as_str() {
         "user" => user::user(ctx, interaction).await,
         _ => None,
     }

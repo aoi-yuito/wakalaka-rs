@@ -15,13 +15,10 @@
 pub mod aibooru;
 pub mod danbooru;
 
-use crate::{util::files, Context};
+use crate::{ util::files, Context };
 use chrono::NaiveDate;
-use regex::{Captures, Regex};
-use serenity::{
-    all::ChannelId,
-    builder::{CreateEmbed, CreateEmbedAuthor, CreateEmbedFooter},
-};
+use regex::{ Captures, Regex };
+use serenity::{ all::ChannelId, builder::{ CreateEmbed, CreateEmbedAuthor, CreateEmbedFooter } };
 
 #[derive(Default)]
 struct BooruPost {
@@ -42,43 +39,30 @@ impl BooruPost {
             .as_str()
             .unwrap_or_default()
             .to_string();
-        let file_url = response["file_url"]
-            .as_str()
-            .unwrap_or_default()
-            .to_string();
+        let file_url = response["file_url"].as_str().unwrap_or_default().to_string();
         let score = match response["up_score"].as_i64().unwrap_or_default() >= 0 {
             true => format!("{0}🔼", response["up_score"].as_i64().unwrap_or_default()),
             false => format!("{0}🔽", response["down_score"].as_i64().unwrap_or_default()),
         };
         let fav_count = response["fav_count"].as_i64().unwrap_or_default();
-        let rating = match response["rating"].as_str().unwrap_or_default() {
-            "g" => "General😊",
-            "s" => "Sensitive⚠️",
-            "q" => "Questionable❓",
-            "e" => "Explicit🔞",
-            _ => "Unknown",
-        }
-        .to_string();
+        let rating = (
+            match response["rating"].as_str().unwrap_or_default() {
+                "g" => "General😊",
+                "s" => "Sensitive⚠️",
+                "q" => "Questionable❓",
+                "e" => "Explicit🔞",
+                _ => "Unknown",
+            }
+        ).to_string();
         let image_size = (
             response["image_width"].as_i64().unwrap_or_default(),
             response["image_height"].as_i64().unwrap_or_default(),
         );
         let file_size = response["file_size"].as_f64().unwrap_or_default();
-        let file_ext = response["file_ext"]
-            .as_str()
-            .unwrap_or_default()
-            .to_string();
+        let file_ext = response["file_ext"].as_str().unwrap_or_default().to_string();
         let created_at = response["created_at"]
             .as_str()
-            .map(|date| {
-                date.split('T')
-                    .next()
-                    .map(|ymd| {
-                        NaiveDate::parse_from_str(ymd, "%Y-%m-%d")
-                            .map(|date| date.format("%e %b %Y").to_string())
-                    })
-                    .unwrap_or_else(|| Ok(format!("Unknown")))
-            })
+            .map(format_creation_date())
             .unwrap_or_else(|| Ok(format!("Unknown")))
             .unwrap_or_default();
 
@@ -96,16 +80,16 @@ impl BooruPost {
     }
 
     fn embed(
-        post: &BooruPost,
+        &self,
         icon_url: &'static str,
         post_id: i64,
         description: Option<String>,
         url: &'static str,
         image: &String,
         footer: String,
-        color: u32,
+        color: u32
     ) -> CreateEmbed {
-        let tag_string_artist = &post.tag_string_artist;
+        let tag_string_artist = &self.tag_string_artist;
 
         let embed = CreateEmbed::default()
             .author(CreateEmbedAuthor::new(tag_string_artist).icon_url(icon_url))
@@ -118,19 +102,20 @@ impl BooruPost {
         embed
     }
 
-    fn embed_footer(post: &Self) -> String {
+    fn embed_footer(&self) -> String {
         let (score, favourites, rating, file_size, file_extension, width, height, creation_date) = (
-            &post.score,
-            post.fav_count,
-            &post.rating,
-            files::format_file_size(post.file_size),
-            &post.file_ext,
-            post.image_size.0,
-            post.image_size.1,
-            &post.created_at,
+            &self.score,
+            self.fav_count,
+            &self.rating,
+            files::format_file_size(self.file_size),
+            &self.file_ext,
+            self.image_size.0,
+            self.image_size.1,
+            &self.created_at,
         );
         format!(
-            "{score} {favourites}❤️ | {rating} | {file_size} .{file_extension} ({width} x {height}) | {creation_date}")
+            "{score} {favourites}❤️ | {rating} | {file_size} .{file_extension} ({width} x {height}) | {creation_date}"
+        )
     }
 
     async fn post_exists(ctx: &Context, channel_id: ChannelId, id: i64) -> bool {
@@ -158,15 +143,7 @@ impl BooruWikiPages {
         let body = response["body"].as_str().unwrap_or_default().to_string();
         let created_at = response["created_at"]
             .as_str()
-            .map(|date| {
-                date.split('T')
-                    .next()
-                    .map(|ymd| {
-                        NaiveDate::parse_from_str(ymd, "%Y-%m-%d")
-                            .map(|date| date.format("%e %b %Y").to_string())
-                    })
-                    .unwrap_or_else(|| Ok(format!("Unknown")))
-            })
+            .map(format_creation_date())
             .unwrap_or_else(|| Ok(format!("Unknown")))
             .unwrap_or_default();
         let other_names = response["other_names"]
@@ -187,14 +164,8 @@ impl BooruWikiPages {
         }
     }
 
-    fn embed(
-        wiki_pages: &BooruWikiPages,
-        title: &String,
-        url: &'static str,
-        footer: String,
-        color: u32,
-    ) -> CreateEmbed {
-        let body = &wiki_pages.body;
+    fn embed(&self, title: &String, url: &'static str, footer: String, color: u32) -> CreateEmbed {
+        let body = &self.body;
 
         let embed = CreateEmbed::default()
             .title(title)
@@ -207,8 +178,9 @@ impl BooruWikiPages {
 
     fn format_body(url: &str, body: &String) -> String {
         let link_re = Regex::new(r"\[\[(.*?)\]\]").expect("Error while compiling regex");
-        let symbol_re =
-            Regex::new(r"\[(\w)\](.*?)\[\/(\w)\]").expect("Error while compiling regex");
+        let symbol_re = Regex::new(r"\[(\w)\](.*?)\[\/(\w)\]").expect(
+            "Error while compiling regex"
+        );
         let header_re = Regex::new(r"h(\d)\.(.*)").expect("Error while compiling regex");
 
         let mut formatted_body = body.to_string();
@@ -273,8 +245,8 @@ impl BooruWikiPages {
         format!("{formatted_body}")
     }
 
-    fn embed_footer(wiki_pages: &Self) -> String {
-        let created_at = &wiki_pages.created_at;
+    fn embed_footer(&self) -> String {
+        let created_at = &self.created_at;
         format!("{created_at}")
     }
 
@@ -292,7 +264,7 @@ impl BooruWikiPages {
 pub async fn has_success(
     ctx: &Context,
     response: &serde_json::Value,
-    channel_id: ChannelId,
+    channel_id: ChannelId
 ) -> bool {
     if let Some(success) = response.get("success") {
         if !success.as_bool().unwrap_or_default() {
@@ -304,4 +276,17 @@ pub async fn has_success(
     }
 
     true
+}
+
+fn format_creation_date() -> impl Fn(&str) -> Result<String, chrono::ParseError> {
+    |date| {
+        date.split('T')
+            .next()
+            .map(|ymd| {
+                NaiveDate::parse_from_str(ymd, "%Y-%m-%d").map(|date|
+                    date.format("%b %e, %Y").to_string()
+                )
+            })
+            .unwrap_or_else(|| Ok(format!("Unknown")))
+    }
 }

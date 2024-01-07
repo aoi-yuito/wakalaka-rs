@@ -62,15 +62,15 @@ pub(super) async fn message(
     if let Some(suggestions_channel) = suggestions_channel {
         let suggestions_channel_id = suggestions_channel.id;
 
-        let response_message = CreateMessage::default().add_embed(embed);
-        let message = suggestions_channel_id
-            .send_message(&ctx.http, response_message).await
+        let message = CreateMessage::default().add_embed(embed);
+        let suggestions_message = suggestions_channel_id
+            .send_message(&ctx.http, message).await
             .expect("Error while sending message");
 
         let thumbs_up = ReactionType::Unicode(format!("👍"));
         let thumbs_down = ReactionType::Unicode(format!("👎"));
         for reaction in &[thumbs_up, thumbs_down] {
-            message
+            suggestions_message
                 .react(&ctx.http, reaction.clone()).await
                 .expect("Error while reacting to message");
         }

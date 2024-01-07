@@ -33,8 +33,8 @@ pub(crate) async fn run(
     interaction: &CommandInteraction,
     options: &[ResolvedOption<'_>]
 ) -> Option<String> {
-    let command = commands::command(interaction, 0);
-    match command.name.as_str() {
+    let option = commands::command_option(interaction, 0)?;
+    match option.name.as_str() {
         "post" => post::post(ctx, interaction, options).await,
         "wiki" => wiki::wiki(ctx, interaction, options).await,
         _ => None,
@@ -43,7 +43,7 @@ pub(crate) async fn run(
 
 pub(crate) fn register() -> CreateCommand {
     CreateCommand::new("aibooru")
-        .description("Provides interactibility with AIBooru API")
+        .description("Commands related to interacting with AIBooru API.")
         .add_option(
             CreateCommandOption::new(
                 CommandOptionType::SubCommand,

@@ -31,8 +31,8 @@ pub(crate) async fn run(
         return Some(format!("You don't have permission(s) to execute this command!"));
     }
 
-    let command = commands::command(interaction, 0);
-    match command.name.as_str() {
+    let option = commands::command_option(interaction, 0)?;
+    match option.name.as_str() {
         "command" => command::command(ctx, interaction, options).await,
         _ => None,
     }

@@ -35,8 +35,8 @@ pub(crate) async fn run(
     interaction: &CommandInteraction,
     options: &[ResolvedOption<'_>]
 ) -> Option<String> {
-    let command = commands::command(interaction, 0);
-    match command.name.as_str() {
+    let option = commands::command_option(interaction, 0)?;
+    match option.name.as_str() {
         "post" => post::post(ctx, options, interaction).await,
         "wiki" => wiki::wiki(ctx, options, interaction).await,
         _ => None,
@@ -45,7 +45,7 @@ pub(crate) async fn run(
 
 pub(crate) fn register() -> CreateCommand {
     CreateCommand::new("danbooru")
-        .description(format!("Provides interactibility with Danbooru API").as_str())
+        .description("Commands related to interacting with Danbooru API")
         .add_option(
             CreateCommandOption::new(
                 CommandOptionType::SubCommand,

@@ -13,26 +13,19 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-use super::{DANBOORU_COLOUR, DANBOORU_PNG_LOGO_URL, DANBOORU_URL, POSTMAN_USER_AGENT};
-use crate::{
-    commands::web::booru::{self, BooruPost},
-    Context,
-};
+use super::{ DANBOORU_COLOUR, DANBOORU_PNG_LOGO_URL, DANBOORU_URL, POSTMAN_USER_AGENT };
+use crate::{ commands::web::booru::{ self, BooruPost }, Context };
 use serenity::{
-    all::{CommandInteraction, ResolvedOption, ResolvedValue},
-    builder::{CreateInteractionResponse, CreateInteractionResponseMessage},
+    all::{ CommandInteraction, ResolvedOption, ResolvedValue },
+    builder::{ CreateInteractionResponse, CreateInteractionResponseMessage },
 };
 
 pub(super) async fn post(
     ctx: &Context,
     options: &[ResolvedOption<'_>],
-    interaction: &CommandInteraction,
+    interaction: &CommandInteraction
 ) -> Option<String> {
-    let id = id(options)
-        .await
-        .unwrap_or_default()
-        .parse::<i64>()
-        .expect("Error while parsing ID");
+    let id = id(options).await.unwrap_or_default().parse::<i64>().expect("Error while parsing ID");
     let channel_id = interaction.channel_id;
 
     let exists = BooruPost::post_exists(ctx, channel_id, id).await;
@@ -44,14 +37,13 @@ pub(super) async fn post(
         let response_text = client
             .get(&posts_json)
             .header(reqwest::header::USER_AGENT, POSTMAN_USER_AGENT) // Fucking Cloudflare...
-            .send()
-            .await
+            .send().await
             .expect("Error while sending GET request")
-            .text()
-            .await
+            .text().await
             .expect("Error while getting text from response");
-        let response_json =
-            serde_json::from_str(&response_text).expect("Error while parsing JSON from response");
+        let response_json = serde_json
+            ::from_str(&response_text)
+            .expect("Error while parsing JSON from response");
 
         let success = booru::has_success(ctx, &response_json, channel_id).await;
         if success {
@@ -66,13 +58,11 @@ pub(super) async fn post(
                 DANBOORU_URL,
                 post_file_url,
                 BooruPost::embed_footer(&post),
-                DANBOORU_COLOUR,
+                DANBOORU_COLOUR
             );
 
-            let response_message = CreateInteractionResponseMessage::default();
-
-            let message = response_message.add_embed(embed);
-            let response = CreateInteractionResponse::Message(message);
+            let response_message = CreateInteractionResponseMessage::default().add_embed(embed);
+            let response = CreateInteractionResponse::Message(response_message);
 
             let _ = interaction.create_response(&ctx.http, response).await;
         }

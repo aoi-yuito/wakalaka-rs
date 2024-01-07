@@ -34,8 +34,8 @@ pub(crate) async fn run(
         return Some("You don't have permission to delete messages!".to_string());
     }
 
-    let command = commands::command(interaction, 0);
-    match command.name.as_str() {
+    let option = commands::command_option(interaction, 0)?;
+    match option.name.as_str() {
         "count" => count::count(ctx, interaction, options).await,
         _ => None,
     }
