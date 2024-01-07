@@ -13,8 +13,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-use std::path::Path;
-
 pub fn format_file_size(size: f64) -> String {
     const KB: f64 = 1024.0;
     const MB: f64 = 1024.0 * KB;
@@ -26,8 +24,4 @@ pub fn format_file_size(size: f64) -> String {
         size if size >= KB => format!("{:.2} KB", size / KB),
         size => format!("{:.0} B", size),
     }
-}
-
-pub fn exists(file_name: &str) -> bool {
-    Path::new(file_name).exists()
 }
