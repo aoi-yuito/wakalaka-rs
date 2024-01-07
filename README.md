@@ -22,7 +22,7 @@
 
 Wakalaka is planned to be a completely free Discord bot. It's being designed to (hopefully) be straightforward and efficient. It will be written in Rust and aims to have more features than any other Discord bot written in Rust.
 
-While it's being developed, there won't be any versions available. But, as soon as a version that everyone can use is ready, it will be shared under the [GNU Lesser General Public Licence v3.0](https://www.gnu.org/Licences/lgpl-3.0.en.html).
+While it's being developed, there won't be any versions available. But, as soon as a version that everyone can use is ready, it will be shared under the [GNU Lesser General Public Licence v3.0](https://www.gnu.org/licenses/lgpl-3.0.html).
 
 ### Community
 
