@@ -60,6 +60,7 @@ async fn command_content(ctx: &Context, interaction: &CommandInteraction) -> Opt
         "aibooru" =>
             Some(commands::web::booru::aibooru::run(&ctx, interaction, command_options).await?),
         "avatar" => Some(commands::misc::avatar::run(&ctx, interaction).await?),
+        "bot" => Some(commands::core::bot::run(&ctx, interaction).await?),
         "danbooru" =>
             Some(commands::web::booru::danbooru::run(&ctx, interaction, command_options).await?),
         "shutdown" => Some(commands::core::shutdown::run(&ctx, interaction).await?),
