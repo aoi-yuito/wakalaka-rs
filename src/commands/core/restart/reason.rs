@@ -13,7 +13,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-use crate::commands::core::restart::delay;
 use crate::Context;
 use serenity::all::ResolvedValue;
 use serenity::model::application::ResolvedOption;
@@ -29,20 +28,18 @@ pub(super) fn reason(ctx: &Context, options: &[ResolvedOption<'_>]) -> Option<St
                 _ => None,
             }
         })
-        .unwrap_or(&"Cannot restart if no reason is provided.");
-    if reason.len() > 50 {
-        return None;
+        .expect("Error while getting reason");
+    let reason_characters_count = reason.chars().count();
+    if reason_characters_count > 50 {
+        return Some(format!("Reason cannot be longer than 50 characters."));
     }
 
-    let seconds = delay
-        ::delay(options)
-        .and_then(|s| s.parse::<u64>().ok())
-        .unwrap_or(5);
+    let seconds = 5u64;
     info!("Restarting in {seconds} seconds: {reason}");
 
     let cloned_ctx = ctx.clone();
     tokio::spawn(async move {
-        tokio::time::sleep(Duration::from_secs(seconds as u64)).await;
+        tokio::time::sleep(Duration::from_secs(seconds)).await;
 
         cloned_ctx.shard.shutdown_clean();
     });

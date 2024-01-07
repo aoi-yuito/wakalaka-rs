@@ -13,7 +13,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-mod delay;
 mod reason;
 
 use crate::{ commands, Context };
@@ -34,7 +33,6 @@ pub(crate) async fn run(
     let command = commands::command(interaction, 0);
     match command.name.as_str() {
         "reason" => reason::reason(ctx, options),
-        "delay" => delay::delay(options),
         _ => None,
     }
 }
@@ -47,13 +45,6 @@ pub(crate) fn register() -> CreateCommand {
                 CommandOptionType::String,
                 "reason",
                 "Short explanation for restarting."
-            ).required(true)
-        )
-        .add_option(
-            CreateCommandOption::new(
-                CommandOptionType::Integer,
-                "delay",
-                "Seconds to wait before restarting."
             ).required(false)
         )
 }
