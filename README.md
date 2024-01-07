@@ -27,7 +27,7 @@ While it's being developed, there won't be any versions available. But, as soon 
 ### Community
 
 [![gh_discussions](https://img.shields.io/github/discussions/Kawaxte/wakalaka-rs?logo=github&style=for-the-badge)](https://github.com/Kawaxte/wakalaka-rs/discussions)
-[![discord](https://img.shields.io/discord/890866624624879360?logo=discord&style=for-the-badge)](https://discord.gg/jUZVWk7q2q)
+[![discord](https://img.shields.io/discord/1186451961848008866?logo=discord&style=for-the-badge)](https://discord.gg/jUZVWk7q2q)
 
 If you have any questions or ideas, or if you want to share your thoughts about the project, you're welcome to join our [Discord server](https://discord.gg/jUZVWk7q2q) or start a chat on [GitHub Discussions](https://github.com/Kawaxte/wakalaka-rs/discussions). 
 
