@@ -14,3 +14,4 @@
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
 pub mod suggest;
+pub mod avatar;
