@@ -15,6 +15,15 @@
  along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 -->
 
+# Wakalaka
+
+[![gh_release](https://img.shields.io/github/v/release/Kawaxte/wakalaka-rs?sort=date&logo=github&label=latest&style=for-the-badge)](https://github.com/Kawaxte/wakalaka-rs/releases/latest)
+[![gh_release_pre](https://img.shields.io/github/v/release/Kawaxte/wakalaka-rs?include_prereleases&sort=date&logo=github&label=pre-release&style=for-the-badge)](https://github.com/Kawaxte/wakalaka-rs/releases)
+
+Wakalaka is planned to be a completely free Discord bot. It's being designed to (hopefully) be straightforward and efficient. It will be written in Rust and aims to have more features than any other Discord bot written in Rust.
+
+While it's being developed, there won't be any versions available. But, as soon as a version that everyone can use is ready, it will be shared under the [GNU Lesser General Public Licence v3.0](https://www.gnu.org/Licences/lgpl-3.0.en.html).
+
 ## Contributing
 
 [![gh_stars](https://img.shields.io/github/stars/Kawaxte/wakalaka-rs?logo=github&style=for-the-badge)](https://github.com/Kawaxte/wakalaka-rs/stargazers)
