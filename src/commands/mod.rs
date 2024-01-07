@@ -23,9 +23,8 @@ use tracing::{ log::error, log::warn, log::info };
 
 use crate::{ Context, events };
 
-fn command(interaction: &CommandInteraction, index: usize) -> &CommandDataOption {
-    let command = interaction.data.options.get(index).expect("Error while getting command");
-    command
+fn command_option(interaction: &CommandInteraction, index: usize) -> Option<&CommandDataOption> {
+    if let Some(option) = interaction.data.options.get(index) { Some(option) } else { None }
 }
 
 pub(super) async fn register_global_commands(ctx: &Context, guild_name: &String) {
