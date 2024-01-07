@@ -17,22 +17,8 @@ use crate::Context;
 
 use std::sync::atomic::{ AtomicUsize, Ordering };
 use serenity::{
-    all::{
-        ResolvedOption,
-        ResolvedValue,
-        CommandInteraction,
-        colours::branding,
-        ReactionType,
-        ChannelId,
-    },
-    builder::{
-        CreateEmbedAuthor,
-        CreateEmbed,
-        CreateMessage,
-        GetMessages,
-        CreateInteractionResponseMessage,
-        CreateButton,
-    },
+    all::{ ResolvedOption, ResolvedValue, CommandInteraction, colours::branding, ReactionType },
+    builder::{ CreateEmbedAuthor, CreateEmbed, CreateMessage },
 };
 
 static SUGGESTION_ID: AtomicUsize = AtomicUsize::new(1);
@@ -52,7 +38,6 @@ pub(super) async fn message(
         })
         .expect("Error while getting description")
         .trim();
-
     let description_character_count = description.chars().count();
     if description_character_count > 400 {
         return Some(format!("Description can't be longer than 400 characters!"));
@@ -73,23 +58,23 @@ pub(super) async fn message(
     let guild_id = interaction.guild_id.expect("Error while getting guild ID");
 
     let channel_ids = guild_id.channels(&ctx.http).await.expect("Error while getting channels");
-    let channel_id = channel_ids
-        .values()
-        .find(|channel| channel.name == "suggestions")
-        .expect("Error while getting #suggestions channel").id;
-    if let Some(channel) = channel_ids.get(&channel_id) {
-        let message = CreateMessage::new().embed(embed);
-        let suggest_message = channel
-            .send_message(&ctx.http, message).await
-            .expect("Error while sending suggestion message");
+    let suggestions_channel = channel_ids.values().find(|channel| channel.name == "suggestions");
+    if let Some(suggestions_channel) = suggestions_channel {
+        let suggestions_channel_id = suggestions_channel.id;
+
+        let response_message = CreateMessage::default().add_embed(embed);
+        let message = suggestions_channel_id
+            .send_message(&ctx.http, response_message).await
+            .expect("Error while sending message");
 
         let thumbs_up = ReactionType::Unicode(format!("👍"));
         let thumbs_down = ReactionType::Unicode(format!("👎"));
         for reaction in &[thumbs_up, thumbs_down] {
-            suggest_message
+            message
                 .react(&ctx.http, reaction.clone()).await
-                .expect("Error while reacting to suggestion message");
+                .expect("Error while reacting to message");
         }
+        return Some(format!("Suggestion sent!"));
     }
     None
 }
