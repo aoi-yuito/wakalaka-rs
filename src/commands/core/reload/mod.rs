@@ -40,7 +40,7 @@ pub(crate) async fn run(
 
 pub(crate) fn register() -> CreateCommand {
     CreateCommand::new("reload")
-        .description("Reloads a command.")
+        .description("Reloads a command (to update changes).")
         .add_option(
             CreateCommandOption::new(
                 CommandOptionType::String,

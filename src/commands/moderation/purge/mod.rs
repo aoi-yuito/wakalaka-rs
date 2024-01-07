@@ -43,12 +43,12 @@ pub(crate) async fn run(
 
 pub(crate) fn register() -> CreateCommand {
     CreateCommand::new("purge")
-        .description("Purges messages from channel.")
+        .description("Delete a number of messages from channel.")
         .add_option(
             CreateCommandOption::new(
                 CommandOptionType::Integer,
                 "count",
-                "Number of messages to purge."
+                "Number of messages to delete."
             ).required(true)
         )
 }

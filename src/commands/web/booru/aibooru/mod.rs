@@ -48,12 +48,12 @@ pub(crate) fn register() -> CreateCommand {
             CreateCommandOption::new(
                 CommandOptionType::SubCommand,
                 "post",
-                "Fetches info for post."
+                "Previews post for a given ID."
             ).add_sub_option(
                 CreateCommandOption::new(
                     CommandOptionType::Integer,
                     "id",
-                    "Index of post."
+                    "ID of post to preview."
                 ).required(true)
             )
         )
@@ -61,11 +61,13 @@ pub(crate) fn register() -> CreateCommand {
             CreateCommandOption::new(
                 CommandOptionType::SubCommand,
                 "wiki",
-                "Previews wiki for tag."
+                "Previews wiki entry for a given tag."
             ).add_sub_option(
-                CreateCommandOption::new(CommandOptionType::String, "tag", "Name of tag.").required(
-                    true
-                )
+                CreateCommandOption::new(
+                    CommandOptionType::String,
+                    "tag",
+                    "Tag to preview wiki entry for."
+                ).required(true)
             )
         )
 }

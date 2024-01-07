@@ -36,12 +36,12 @@ pub(crate) async fn run(
 
 pub(crate) fn register() -> CreateCommand {
     CreateCommand::new("suggest")
-        .description("Suggest a feature for bot")
+        .description("Opens a suggestion for the community.")
         .add_option(
             CreateCommandOption::new(
                 CommandOptionType::String,
                 "message",
-                "Message describing your suggestion."
+                "Brief summary of your suggestion."
             ).required(true)
         )
 }
