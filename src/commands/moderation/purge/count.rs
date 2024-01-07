@@ -82,12 +82,11 @@ pub(super) async fn count(
         }
 
         let user_name = &interaction.user.name;
-        info!("{user_name} deleted {deleted_message_count} message(s) from #{channel_name}.");
+        info!("{user_name} deleted {deleted_message_count} message(s) from #{channel_name}");
 
         let message = format!("Deleted {deleted_message_count} message(s)!");
         let edit_response = EditInteractionResponse::new().content(message);
 
-        // Edit the response with the final message
         interaction.edit_response(&ctx.http, edit_response).await.unwrap();
     });
 
