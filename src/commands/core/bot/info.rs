@@ -77,9 +77,9 @@ impl BotInfo {
 
 pub(crate) async fn info(ctx: &Context, interaction: &CommandInteraction) -> Option<String> {
     let bot_user = ctx.http.get_current_user().await.expect("Error while getting bot user");
-    let bot_avatar = bot_user.avatar_url().unwrap_or_default();
+    let bot_avatar_url = bot_user.avatar_url().unwrap_or_default();
 
-    let embed = BotInfo::new().embed(&bot_avatar);
+    let embed = BotInfo::new().embed(&bot_avatar_url);
 
     let response_message = CreateInteractionResponseMessage::default().add_embed(embed);
     let response = CreateInteractionResponse::Message(response_message);
