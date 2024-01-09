@@ -23,12 +23,44 @@ use crate::{commands, util, Data, Error};
 pub(crate) async fn handle(ctx: &Context) -> Result<Data, Error> {
     register_guild_commands(ctx).await;
 
-    let data = Data {
+    Ok(Data {
         suggestion_id: AtomicUsize::new(1),
         restricted_channels: Default::default(),
-    };
-    Ok(data)
+    })
 }
+
+// async fn unregister_global_commands(ctx: &Context) {
+//     let global_commands = ctx
+//         .http
+//         .get_global_commands().await
+//         .unwrap();
+//     let global_command_count = global_commands.len();
+
+//     for global_command in global_commands {
+//         ctx.http.delete_global_command(global_command.id).await.unwrap();
+//     }
+
+//     info!("Unregistered {global_command_count} global command(s)");
+// }
+
+// async fn unregister_guild_commands(ctx: &Context) {
+//     let guild_id = match util::guild_id_raw(ctx).await {
+//         Some(value) => value,
+//         None => return,
+//     };
+
+//     let guild_commands = ctx
+//         .http
+//         .get_guild_commands(guild_id).await
+//         .unwrap();
+//     let guild_command_count = guild_commands.len();
+
+//     for guild_command in guild_commands {
+//         ctx.http.delete_guild_command(guild_id, guild_command.id).await.unwrap();
+//     }
+
+//     info!("Unregistered {guild_command_count} guild command(s)");
+// }
 
 async fn register_guild_commands(ctx: &Context) {
     let guild_id = match util::guild_id_raw(ctx).await {
@@ -43,8 +75,9 @@ async fn register_guild_commands(ctx: &Context) {
     let guild_commands = commands::guild_commands().await;
 
     let guild_command_count = guild_commands.len();
+    //if none
     if guild_command_count == 0 {
-        warn!("No guild command found to register in {guild_name}");
+        warn!("No guild command(s) to register in {guild_name}");
         return;
     }
 
