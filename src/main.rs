@@ -30,7 +30,7 @@ use dashmap::DashSet;
 use tokio::sync::RwLock;
 use tokio::time::Duration;
 use tokio::time::Instant;
-use tracing::{debug, error, info, subscriber, Level};
+use tracing::{debug, error, subscriber, Level};
 use tracing_subscriber::{fmt::Subscriber, EnvFilter};
 use util::settings::Settings;
 
@@ -56,8 +56,6 @@ pub async fn main() {
 
     let manager = client.shard_manager.clone();
     tokio::spawn(monitor_shards(manager, 300));
-
-    info!("Starting client");
     if let Err(why) = client.start_shards(2).await {
         error!("Couldn't start client: {why:?}");
     }
