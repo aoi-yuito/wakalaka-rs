@@ -32,30 +32,34 @@ pub(crate) async fn purge(ctx: Context<'_>,
         return Ok(());
     }
 
-    let user_name = &ctx.author().name;
+    let http = ctx.serenity_context().http.clone();
+
+    let user_name = ctx.author().name.clone();
 
     let channel_id = ctx.channel_id();
     let channel_name = channel_id.name(&ctx.http()).await?;
 
-    let messages = GetMessages::default().limit(count);
-    let channel_messages = channel_id.messages(&ctx.http(), messages).await?;
+    tokio::spawn(async move {
+        let messages = GetMessages::default().limit(count);
 
-    let mut deleted_messages_count = 0;
+        let mut deleted_messages_count = 0;
+    
+        let channel_messages = channel_id.messages(&http, messages).await.unwrap();
+        for channel_message in channel_messages {
+            channel_message.delete(&http).await.unwrap();
+    
+            deleted_messages_count += 1;
+        }
 
-    for channel_message in channel_messages {
-        channel_message.delete(&ctx.http()).await?;
-
-        deleted_messages_count += 1;
-    }
+        info!("@{user_name} deleted {deleted_messages_count} message(s) from #{channel_name}");
+    });
 
     let reply = CreateReply {
-        content: Some(format!("I've deleted {deleted_messages_count} message(s) from <#{channel_id}>")),
+        content: Some(format!("Deleting {count} message(s)...")),
         ephemeral: Some(true),
         ..Default::default()
     };
     let _ = ctx.send(reply).await;
-
-    info!("@{user_name} deleted {deleted_messages_count} message(s) from #{channel_name}");
 
     Ok(())
 }
