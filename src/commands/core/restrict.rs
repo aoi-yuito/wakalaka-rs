@@ -18,7 +18,7 @@ use serenity::all::ChannelId;
 use crate::{Context, Error};
 
 /// Disables usage of yours truly in specified channel.
-#[poise::command(slash_command, required_permissions = "ADMINISTRATOR")]
+#[poise::command(slash_command, owners_only)]
 pub(crate) async fn restrict(
     ctx: Context<'_>,
     #[description = "Name of channel to forbid usage in."]

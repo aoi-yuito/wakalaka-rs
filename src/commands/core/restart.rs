@@ -18,7 +18,7 @@ use tracing::info;
 use crate::{Context, Error};
 
 /// Restarts yours truly.
-#[poise::command(slash_command, required_permissions = "ADMINISTRATOR")]
+#[poise::command(slash_command, owners_only)]
 pub(crate) async fn restart(ctx: Context<'_>) -> Result<(), Error> {
     let message = "Restarting...";
     let _ = ctx.reply(message).await;
