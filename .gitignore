@@ -1,14 +1,13 @@
-/target
+# macOS
+.DS_Store
 
+# Cargo
+/target
 Cargo.lock
 
 ### IntelliJ IDEA ###
 .idea/
-*.iws
-*.iml
-*.ipr
+.idea_modules/
 
-### Visual Studio Code ###
+### VSCode ###
 .vscode/
-
-.DS_Store
