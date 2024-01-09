@@ -17,11 +17,11 @@ use serenity::all::ChannelId;
 
 use crate::{Context, Error};
 
-/// Disables usage of yours truly in specified channel.
+/// Disables usage of yours truly in provided channel.
 #[poise::command(slash_command, owners_only)]
 pub(crate) async fn restrict(
     ctx: Context<'_>,
-    #[description = "Name of channel to forbid usage in."]
+    #[description = "Channel to restrain usage in."]
     #[rename = "channel"]
     channel_id: ChannelId,
 ) -> Result<(), Error> {
@@ -52,7 +52,7 @@ pub(crate) async fn restrict(
         }
         restricted_channels.insert(channel_id);
 
-        let message = format!("I'm no longer able to be utilised in <#{channel_id}> anymore.");
+        let message = format!("Fine, I won't respond to commands in <#{channel_id}> anymore.");
         let _ = ctx.reply(message).await;
 
         return Ok(());

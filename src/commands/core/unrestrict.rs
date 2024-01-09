@@ -17,18 +17,18 @@ use serenity::all::ChannelId;
 
 use crate::{Context, Error};
 
-/// Enables usage of yours truly in specified channel.
+/// Enables usage of yours truly in provided channel.
 #[poise::command(slash_command, owners_only)]
 pub(crate) async fn unrestrict(
     ctx: Context<'_>,
-    #[description = "Name of channel to restrict usage in."]
+    #[description = "Channel to unrestrain usage in."]
     #[rename = "channel"]
     channel_id: ChannelId,
 ) -> Result<(), Error> {
     let restricted_channels = ctx.data().restricted_channels.write().await;
     restricted_channels.remove(&channel_id);
 
-    let message = format!("I'm able to be utilised in <#{channel_id}> again.");
+    let message = format!("Alright, I'll respond to commands in <#{channel_id}> again.");
     let _ = ctx.reply(message).await;
 
     Ok(())
