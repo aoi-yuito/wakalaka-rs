@@ -131,7 +131,7 @@ async fn initialise_framework() -> Framework<Data, Error> {
         .setup(|ctx, _, _| Box::pin(handlers::setup::handle(ctx)))
         .options(FrameworkOptions {
             commands: commands::guild_commands().await,
-            pre_command: |ctx| Box::pin(handlers::pre_command::handle(ctx)),
+            post_command: |ctx| Box::pin(handlers::post_command::handle(ctx)),
             event_handler: |ctx, event, framework, data| {
                 Box::pin(handlers::event::handle(ctx, event, framework, data))
             },
