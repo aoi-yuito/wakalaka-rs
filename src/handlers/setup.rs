@@ -22,12 +22,27 @@ use crate::{commands, util, Data, Error};
 
 pub(crate) async fn handle(ctx: &Context) -> Result<Data, Error> {
     register_guild_commands(ctx).await;
+    register_global_commands(ctx).await;
 
     let data = Data {
         suggestion_id: AtomicUsize::new(1),
         restricted_channels: Default::default(),
     };
     Ok(data)
+}
+
+async fn register_global_commands(ctx: &Context) {
+    let global_commands = commands::global_commands().await;
+    let global_command_count = global_commands.len();
+
+    match poise::builtins::register_globally(&ctx.http, &global_commands).await {
+        Ok(_) => {}
+        Err(why) => {
+            error!("Couldn't register global commands: {why:?}");
+            panic!("{why:?}");
+        }
+    }
+    info!("Registered {global_command_count} global command(s)");
 }
 
 async fn register_guild_commands(ctx: &Context) {
