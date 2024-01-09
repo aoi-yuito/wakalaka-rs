@@ -20,7 +20,7 @@ mod moderator;
 
 use poise::Command;
 
-use crate::{util, Context, Data, Error};
+use crate::{Context, Data, Error};
 
 #[macro_export]
 macro_rules! check_channel_restriction {
@@ -35,77 +35,11 @@ macro_rules! check_channel_restriction {
     };
 }
 
-#[macro_export]
-macro_rules! check_manage_messages_permission {
-    ($ctx:expr) => {
-        let manage_messages_permission =
-            crate::commands::has_manage_messages_permission($ctx.clone()).await;
-        if !manage_messages_permission {
-            let message = "Sorry, but you lack permission(s) to delete messages.";
-            let _ = $ctx.reply(message).await;
-
-            return Ok(());
-        }
-    };
-}
-
-#[macro_export]
-macro_rules! check_administrator_permission {
-    ($ctx:expr) => {
-        let administrator_permission =
-            crate::commands::has_administrator_permission($ctx.clone()).await;
-        if !administrator_permission {
-            let message = "Sorry, but you lack permission(s) to restart yours truly.";
-            let _ = $ctx.reply(message).await;
-
-            return Ok(());
-        }
-    };
-}
-
 async fn is_channel_restricted(ctx: Context<'_>) -> bool {
     let channel_id = ctx.channel_id();
 
     let restricted_channels = ctx.data().restricted_channels.read().await;
     restricted_channels.contains(&channel_id)
-}
-
-async fn has_manage_messages_permission(ctx: Context<'_>) -> bool {
-    let guild_id = match ctx.guild_id() {
-        Some(value) => value,
-        None => return false,
-    };
-
-    let author = ctx.author();
-    let author_id = author.id;
-
-    let member = util::member(guild_id, ctx, author_id).await;
-
-    let permissions = member.permissions(&ctx.cache());
-    if let Ok(permissions) = permissions {
-        return permissions.manage_messages();
-    } else {
-        return false;
-    }
-}
-
-async fn has_administrator_permission(ctx: Context<'_>) -> bool {
-    let guild_id = match ctx.guild_id() {
-        Some(value) => value,
-        None => return false,
-    };
-
-    let author = ctx.author();
-    let author_id = author.id;
-
-    let member = util::member(guild_id, ctx, author_id).await;
-
-    let permissions = member.permissions(&ctx.cache());
-    if let Ok(permissions) = permissions {
-        return permissions.administrator();
-    } else {
-        return false;
-    }
 }
 
 pub(crate) async fn global_commands() -> Vec<Command<Data, Error>> {
