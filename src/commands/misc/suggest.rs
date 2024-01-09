@@ -21,7 +21,7 @@ use serenity::{
 };
 use tracing::error;
 
-use crate::{Context, Error};
+use crate::{Context, Error, check_channel_restriction};
 
 /// Suggest things for yours truly, or for community.
 #[poise::command(slash_command)]
@@ -29,6 +29,8 @@ pub(crate) async fn suggest(
     ctx: Context<'_>,
     #[description = "Brief overview of your suggestion."] message: String,
 ) -> Result<(), Error> {
+    check_channel_restriction!(ctx);
+    
     let suggestion_id = &ctx.data().suggestion_id;
 
     let message_character_count = message.chars().count();
