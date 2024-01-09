@@ -26,14 +26,10 @@ pub(crate) async fn restrict(
     channel_id: ChannelId,
 ) -> Result<(), Error> {
     let guild_id = match ctx.guild_id() {
-        Some(guild_id) => guild_id,
-        None => {
-            let message = format!("Sorry, but this command can only be used in a guild.");
-            let _ = ctx.reply(message).await;
-
-            return Ok(());
-        }
+        Some(value) => value,
+        None => return Ok(()),
     };
+
     let guild_channels = match guild_id.channels(&ctx).await {
         Ok(guild_channels) => guild_channels,
         Err(why) => {

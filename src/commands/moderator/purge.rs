@@ -19,7 +19,7 @@ use tracing::info;
 
 use crate::{Context, Error};
 
-///Deletes messages from specified channel.
+/// Deletes messages from specified channel.
 #[poise::command(slash_command, required_permissions = "MANAGE_MESSAGES")]
 pub(crate) async fn purge(ctx: Context<'_>,
     #[description = "Amount of messages to delete."]

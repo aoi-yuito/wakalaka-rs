@@ -17,11 +17,11 @@ use serenity::all::{Mentionable, User};
 
 use crate::{check_channel_restriction, Context, Error};
 
-/// Hugs one of your fellow users for some reason.
+/// Hugs one of your fellow users.
 #[poise::command(slash_command)]
 pub(crate) async fn hug(
     ctx: Context<'_>,
-    #[description = "ID (or mention) of user to hug."] user: User,
+    #[description = "Mention of user to firmly hug."] user: User,
 ) -> Result<(), Error> {
     check_channel_restriction!(ctx);
 

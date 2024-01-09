@@ -54,7 +54,7 @@ pub(crate) fn guild_from_cache<'a>(
     let guild = {
         let guild = match ctx.cache.guild(*guild_id) {
             Some(value) => value,
-            None => return Err(Some("Couldn't get guild from cache".to_string())),
+            None => return Err(None),
         };
         guild.clone()
     };
