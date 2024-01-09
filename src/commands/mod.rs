@@ -42,6 +42,10 @@ async fn is_channel_restricted(ctx: Context<'_>) -> bool {
     restricted_channels.contains(&channel_id)
 }
 
+// pub(crate) async fn global_commands() -> Vec<Command<Data, Error>> {
+//     vec![]
+// }
+
 pub(crate) async fn guild_commands() -> Vec<Command<Data, Error>> {
     vec![
         core::info::info(),
