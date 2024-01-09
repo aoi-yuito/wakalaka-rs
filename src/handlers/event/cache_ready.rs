@@ -24,6 +24,6 @@ pub(super) async fn handle(guild_ids: &Vec<GuildId>, ctx: &Context) {
             Some(value) => value,
             None => return,
         };
-        info!("Cache is now ready for {guild_name}");
+        info!("Cache is ready for {guild_name}");
     }
 }
