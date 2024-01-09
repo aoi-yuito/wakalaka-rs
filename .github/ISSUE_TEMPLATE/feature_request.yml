@@ -1,0 +1,58 @@
+# Copyright (C) 2024 Kawaxte
+# 
+# wakalaka-rs is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+# 
+# wakalaka-rs is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
+# 
+# You should have received a copy of the GNU Lesser General Public License
+# along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
+
+name: Feature Request
+description: |
+  Ask developer(s) to add new feature(s) to yours truly.
+title: "[Feature]:"
+labels: [ feature ]
+assignees:
+  - Kawaxte
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Before submitting a feature request, ensure that you have searched for similar requests. There is a chance that somebody else has already requested the same feature.
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: |
+        Describe this feature you would like to see.
+      placeholder: |
+        I would like to see...
+    validations:
+      required: true
+  - type: textarea
+    id: benefit
+    attributes:
+      label: Usefulness
+      description: |
+        Describe what benefit(s) this feature would bring.
+      placeholder: |
+        This feature would...
+    validations:
+      required: true
+  - type: textarea
+    id: implementation
+    attributes:
+      label: Implementation
+      description: |
+        Describe how this feature could be implemented.
+      placeholder: |
+        This feature could be implemented by...
+    validations:
+      required: false
+  
