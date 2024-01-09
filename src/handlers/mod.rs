@@ -14,5 +14,5 @@
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
 pub(super) mod event;
-pub(super) mod pre_command;
+pub(super) mod post_command;
 pub(super) mod setup;
