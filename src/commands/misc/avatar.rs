@@ -22,7 +22,7 @@ use crate::{check_channel_restriction, Context, Error};
 #[poise::command(slash_command)]
 pub(crate) async fn avatar(
     ctx: Context<'_>,
-    #[description = "ID (or mention) of user to fetch avatar of."] user: User,
+    #[description = "Mention of user to fetch avatar of."] user: User,
 ) -> Result<(), Error> {
     check_channel_restriction!(ctx);
 
