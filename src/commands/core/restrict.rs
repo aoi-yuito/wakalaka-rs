@@ -21,17 +21,48 @@ use crate::{check_administrator_permission, Context, Error};
 #[poise::command(slash_command)]
 pub(crate) async fn restrict(
     ctx: Context<'_>,
-    #[description = "Name of channel to restrict usage in."]
+    #[description = "Name of channel to forbid usage in."]
     #[rename = "channel"]
     channel_id: ChannelId,
 ) -> Result<(), Error> {
     check_administrator_permission!(ctx);
 
-    let restricted_channels = ctx.data().restricted_channels.write().await;
-    restricted_channels.insert(channel_id);
+    let guild_id = match ctx.guild_id() {
+        Some(guild_id) => guild_id,
+        None => {
+            let message = format!("Sorry, but this command can only be used in a guild.");
+            let _ = ctx.reply(message).await;
 
-    let message = format!("I'm no longer able to be utilised in <#{channel_id}> anymore.");
-    let _ = ctx.reply(message).await;
+            return Ok(());
+        }
+    };
+    let guild_channels = match guild_id.channels(&ctx).await {
+        Ok(guild_channels) => guild_channels,
+        Err(why) => {
+            let message = format!("Sorry, but I couldn't get the channels for this guild: {why:?}");
+            let _ = ctx.reply(message).await;
+
+            return Ok(());
+        }
+    };
+    for guild_channel in guild_channels {
+        let first_guild_channel = guild_channel.1;
+        let first_guild_channel_id = first_guild_channel.id;
+        if first_guild_channel_id == channel_id {
+            continue;
+        }
+
+        let restricted_channels = ctx.data().restricted_channels.read().await;
+        if restricted_channels.contains(&first_guild_channel_id) {
+            continue;
+        }
+        restricted_channels.insert(channel_id);
+
+        let message = format!("I'm no longer able to be utilised in <#{channel_id}> anymore.");
+        let _ = ctx.reply(message).await;
+
+        return Ok(());
+    }
 
     Ok(())
 }
