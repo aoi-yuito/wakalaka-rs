@@ -15,34 +15,19 @@
 
 use std::sync::atomic::AtomicUsize;
 
-use tracing::{error, info};
+use tracing::{error, info, warn};
 
 use crate::serenity::Context;
 use crate::{commands, util, Data, Error};
 
 pub(crate) async fn handle(ctx: &Context) -> Result<Data, Error> {
     register_guild_commands(ctx).await;
-    register_global_commands(ctx).await;
 
     let data = Data {
         suggestion_id: AtomicUsize::new(1),
         restricted_channels: Default::default(),
     };
     Ok(data)
-}
-
-async fn register_global_commands(ctx: &Context) {
-    let global_commands = commands::global_commands().await;
-    let global_command_count = global_commands.len();
-
-    match poise::builtins::register_globally(&ctx.http, &global_commands).await {
-        Ok(_) => {}
-        Err(why) => {
-            error!("Couldn't register global commands: {why:?}");
-            panic!("{why:?}");
-        }
-    }
-    info!("Registered {global_command_count} global command(s)");
 }
 
 async fn register_guild_commands(ctx: &Context) {
@@ -56,7 +41,12 @@ async fn register_guild_commands(ctx: &Context) {
     };
 
     let guild_commands = commands::guild_commands().await;
+
     let guild_command_count = guild_commands.len();
+    if guild_command_count == 0 {
+        warn!("No guild command found to register in {guild_name}");
+        return;
+    }
 
     match poise::builtins::register_in_guild(&ctx.http, &guild_commands, guild_id).await {
         Ok(_) => {}
