@@ -16,16 +16,14 @@
 use tokio::time::Duration;
 use tracing::info;
 
-use crate::{check_administrator_permission, Context, Error};
+use crate::{Context, Error};
 
 /// Puts yours truly to sleep.
-#[poise::command(slash_command)]
+#[poise::command(slash_command, required_permissions = "ADMINISTRATOR")]
 pub(crate) async fn shutdown(
     ctx: Context<'_>,
     #[description = "Seconds before yours truly falls asleep."] delay: u64,
 ) -> Result<(), Error> {
-    check_administrator_permission!(ctx);
-
     if delay < 1 || delay > 5 {
         let message = "Delay must be between 1 and 5 seconds.";
         let _ = ctx.reply(message).await?;

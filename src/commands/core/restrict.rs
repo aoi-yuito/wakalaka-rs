@@ -15,18 +15,16 @@
 
 use serenity::all::ChannelId;
 
-use crate::{check_administrator_permission, Context, Error};
+use crate::{Context, Error};
 
 /// Disables usage of yours truly in specified channel.
-#[poise::command(slash_command)]
+#[poise::command(slash_command, required_permissions = "ADMINISTRATOR")]
 pub(crate) async fn restrict(
     ctx: Context<'_>,
     #[description = "Name of channel to forbid usage in."]
     #[rename = "channel"]
     channel_id: ChannelId,
 ) -> Result<(), Error> {
-    check_administrator_permission!(ctx);
-
     let guild_id = match ctx.guild_id() {
         Some(guild_id) => guild_id,
         None => {

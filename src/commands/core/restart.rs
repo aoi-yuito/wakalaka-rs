@@ -15,13 +15,11 @@
 
 use tracing::info;
 
-use crate::{check_administrator_permission, Context, Error};
+use crate::{Context, Error};
 
 /// Restarts yours truly.
-#[poise::command(slash_command)]
+#[poise::command(slash_command, required_permissions = "ADMINISTRATOR")]
 pub(crate) async fn restart(ctx: Context<'_>) -> Result<(), Error> {
-    check_administrator_permission!(ctx);
-
     let message = "Restarting...";
     let _ = ctx.reply(message).await;
 

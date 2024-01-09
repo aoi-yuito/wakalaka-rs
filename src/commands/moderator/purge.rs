@@ -17,16 +17,14 @@ use poise::CreateReply;
 use serenity::builder::GetMessages;
 use tracing::info;
 
-use crate::{Context, Error, check_manage_messages_permission};
+use crate::{Context, Error};
 
 ///Deletes messages from specified channel.
-#[poise::command(slash_command)]
+#[poise::command(slash_command, required_permissions = "MANAGE_MESSAGES")]
 pub(crate) async fn purge(ctx: Context<'_>,
     #[description = "Amount of messages to delete."]
     count: u8,
 ) -> Result<(), Error> {
-    check_manage_messages_permission!(ctx);
-
     if count < 1 || count > 100 {
         let message = format!("Sorry, but you can only delete between  and 100 messages at a time.");
         let _ = ctx.reply(message).await;
