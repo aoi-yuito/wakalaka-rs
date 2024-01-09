@@ -15,24 +15,10 @@
 
 pub(crate) mod settings;
 
-use serenity::all::{Guild, GuildId, Member, UserId};
+use serenity::all::{Guild, GuildId};
 use tracing::error;
 
-use crate::{serenity::Context, Data, Error};
-
-pub(crate) async fn member(
-    guild_id: GuildId,
-    ctx: poise::Context<'_, Data, Error>,
-    author_id: UserId,
-) -> Member {
-    match guild_id.member(&ctx.http(), author_id).await {
-        Ok(value) => value,
-        Err(why) => {
-            error!("Couldn't get guild member: {why:?}");
-            panic!("{why:?}");
-        }
-    }
-}
+use crate::serenity::Context;
 
 pub(crate) fn guild_name_raw(guild_id: &GuildId, ctx: &Context) -> Option<String> {
     let guild_name = {
