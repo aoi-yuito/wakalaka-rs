@@ -130,7 +130,7 @@ async fn initialise_framework() -> Framework<Data, Error> {
     let framework = Framework::builder()
         .setup(|ctx, _, _| Box::pin(handlers::setup::handle(ctx)))
         .options(FrameworkOptions {
-            commands: commands::commands().await,
+            commands: commands::guild_commands().await,
             pre_command: |ctx| Box::pin(handlers::pre_command::handle(ctx)),
             event_handler: |ctx, event, framework, data| {
                 Box::pin(handlers::event::handle(ctx, event, framework, data))
