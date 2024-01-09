@@ -39,23 +39,20 @@ pub(crate) async fn purge(ctx: Context<'_>,
     let channel_id = ctx.channel_id();
     let channel_name = channel_id.name(&ctx.http()).await?;
 
-    tokio::spawn(async move {
-        let messages = GetMessages::default().limit(count);
+    let mut deleted_messages_count = 0;
 
-        let mut deleted_messages_count = 0;
-    
-        let channel_messages = channel_id.messages(&http, messages).await.unwrap();
-        for channel_message in channel_messages {
-            channel_message.delete(&http).await.unwrap();
-    
-            deleted_messages_count += 1;
-        }
+    let messages = GetMessages::default().limit(count);
+    let channel_messages = channel_id.messages(&http, messages).await?;
+    for channel_message in channel_messages {
+        channel_message.delete(&http).await?;
 
-        info!("@{user_name} deleted {deleted_messages_count} message(s) from #{channel_name}");
-    });
+        deleted_messages_count += 1;
+    }
+
+    info!("@{user_name} deleted {deleted_messages_count} message(s) from #{channel_name}");
 
     let reply = CreateReply {
-        content: Some(format!("Deleting {count} message(s)...")),
+        content: Some(format!("Deleted {deleted_messages_count} message(s).")),
         ephemeral: Some(true),
         ..Default::default()
     };
