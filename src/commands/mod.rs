@@ -16,6 +16,7 @@
 mod core;
 mod fun;
 mod misc;
+mod moderator;
 
 use poise::Command;
 
@@ -27,6 +28,20 @@ macro_rules! check_channel_restriction {
         let channel_restricted = crate::commands::is_channel_restricted($ctx).await;
         if channel_restricted {
             let message = "Sorry, but I can't be utilised in this channel.";
+            let _ = $ctx.reply(message).await;
+
+            return Ok(());
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! check_manage_messages_permission {
+    ($ctx:expr) => {
+        let manage_messages_permission =
+            crate::commands::has_manage_messages_permission($ctx.clone()).await;
+        if !manage_messages_permission {
+            let message = "Sorry, but you lack permission(s) to delete messages.";
             let _ = $ctx.reply(message).await;
 
             return Ok(());
@@ -48,11 +63,30 @@ macro_rules! check_administrator_permission {
     };
 }
 
-pub(crate) async fn is_channel_restricted(ctx: Context<'_>) -> bool {
+async fn is_channel_restricted(ctx: Context<'_>) -> bool {
     let channel_id = ctx.channel_id();
 
     let restricted_channels = ctx.data().restricted_channels.read().await;
     restricted_channels.contains(&channel_id)
+}
+
+async fn has_manage_messages_permission(ctx: Context<'_>) -> bool {
+    let guild_id = match ctx.guild_id() {
+        Some(value) => value,
+        None => return false,
+    };
+
+    let author = ctx.author();
+    let author_id = author.id;
+
+    let member = util::member(guild_id, ctx, author_id).await;
+
+    let permissions = member.permissions(&ctx.cache());
+    if let Ok(permissions) = permissions {
+        return permissions.manage_messages();
+    } else {
+        return false;
+    }
 }
 
 async fn has_administrator_permission(ctx: Context<'_>) -> bool {
@@ -74,15 +108,9 @@ async fn has_administrator_permission(ctx: Context<'_>) -> bool {
     }
 }
 
-pub(crate) async fn commands() -> Vec<Command<Data, Error>> {
-    let mut commands = vec![];
-    commands.append(&mut guild_commands().await);
-    commands
+pub(crate) async fn global_commands() -> Vec<Command<Data, Error>> {
+    vec![fun::hug::hug(), misc::avatar::avatar()]
 }
-
-// pub(crate) async fn global_commands() -> Vec<Command<Data, Error>> {
-//     vec![]
-// }
 
 pub(crate) async fn guild_commands() -> Vec<Command<Data, Error>> {
     vec![
@@ -91,8 +119,7 @@ pub(crate) async fn guild_commands() -> Vec<Command<Data, Error>> {
         core::restrict::restrict(),
         core::shutdown::shutdown(),
         core::unrestrict::unrestrict(),
-        fun::hug::hug(),
-        misc::avatar::avatar(),
         misc::suggest::suggest(),
+        moderator::purge::purge(),
     ]
 }
