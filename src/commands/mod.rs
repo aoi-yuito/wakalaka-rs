@@ -11,66 +11,88 @@
 // GNU Lesser General Public License for more details.
 //
 // You should have received a copy of the GNU Lesser General Public License
-// along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
+// along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.\
 
-pub mod core;
-pub mod moderation;
-pub mod web;
-pub mod misc;
+mod core;
+mod fun;
+mod misc;
 
-use serenity::all::{ CommandDataOption, CommandInteraction };
-use tracing::log::warn;
+use poise::Command;
 
-use crate::Context;
+use crate::{util, Context, Data, Error};
 
-fn command_option(interaction: &CommandInteraction, index: usize) -> Option<&CommandDataOption> {
-    if let Some(option) = interaction.data.options.get(index) { Some(option) } else { None }
+#[macro_export]
+macro_rules! check_channel_restriction {
+    ($ctx:expr) => {
+        let channel_restricted = crate::commands::is_channel_restricted($ctx).await;
+        if channel_restricted {
+            let message = "Sorry, but I can't be utilised in this channel.";
+            let _ = $ctx.reply(message).await;
+
+            return Ok(());
+        }
+    };
 }
 
-async fn has_manage_messages_permission(ctx: &Context, interaction: &CommandInteraction) -> bool {
-    let guild_id = interaction.guild_id.expect("Expected guild ID, but didn't find one");
+#[macro_export]
+macro_rules! check_administrator_permission {
+    ($ctx:expr) => {
+        let administrator_permission =
+            crate::commands::has_administrator_permission($ctx.clone()).await;
+        if !administrator_permission {
+            let message = "Sorry, but you lack permission(s) to restart yours truly.";
+            let _ = $ctx.reply(message).await;
 
-    let current_user_id = interaction.user.id;
-
-    let member = guild_id
-        .member(&ctx.http, current_user_id).await
-        .expect("Expected guild member, but didn't find one");
-
-    let permissions = member.permissions(&ctx.cache);
-    if let Ok(permissions) = permissions {
-        return permissions.manage_messages();
-    }
-
-    let user_name = &interaction.user.name;
-    let command_name = &interaction.data.name;
-    let channel_name = &interaction.channel_id
-        .name(&ctx).await
-        .expect("Expected channel name, but didn't find one");
-    warn!("@{user_name} doesn't have permission(s) to execute {command_name:?} in #{channel_name}");
-
-    return false;
+            return Ok(());
+        }
+    };
 }
 
-async fn has_administrator_permission(ctx: &Context, interaction: &CommandInteraction) -> bool {
-    let guild_id = interaction.guild_id.expect("Expected guild ID, but didn't find one");
+pub(crate) async fn is_channel_restricted(ctx: Context<'_>) -> bool {
+    let channel_id = ctx.channel_id();
 
-    let current_user_id = interaction.user.id;
+    let restricted_channels = ctx.data().restricted_channels.read().await;
+    restricted_channels.contains(&channel_id)
+}
 
-    let member = guild_id
-        .member(&ctx.http, current_user_id).await
-        .expect("Expected guild member, but didn't find one");
+async fn has_administrator_permission(ctx: Context<'_>) -> bool {
+    let guild_id = match ctx.guild_id() {
+        Some(value) => value,
+        None => return false,
+    };
 
-    let permissions = member.permissions(&ctx.cache);
+    let author = ctx.author();
+    let author_id = author.id;
+
+    let member = util::member(guild_id, ctx, author_id).await;
+
+    let permissions = member.permissions(&ctx.cache());
     if let Ok(permissions) = permissions {
         return permissions.administrator();
+    } else {
+        return false;
     }
+}
 
-    let user_name = &interaction.user.name;
-    let command_name = &interaction.data.name;
-    let channel_name = &interaction.channel_id
-        .name(&ctx).await
-        .expect("Expected channel name, but didn't find one");
-    warn!("@{user_name} doesn't have permission(s) to execute {command_name:?} in #{channel_name}");
+pub(crate) async fn commands() -> Vec<Command<Data, Error>> {
+    let mut commands = vec![];
+    commands.append(&mut guild_commands().await);
+    commands
+}
 
-    return false;
+// pub(crate) async fn global_commands() -> Vec<Command<Data, Error>> {
+//     vec![]
+// }
+
+pub(crate) async fn guild_commands() -> Vec<Command<Data, Error>> {
+    vec![
+        core::info::info(),
+        core::restart::restart(),
+        core::restrict::restrict(),
+        core::shutdown::shutdown(),
+        core::unrestrict::unrestrict(),
+        fun::hug::hug(),
+        misc::avatar::avatar(),
+        misc::suggest::suggest(),
+    ]
 }

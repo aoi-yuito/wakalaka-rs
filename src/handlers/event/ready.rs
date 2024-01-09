@@ -13,5 +13,14 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-pub(crate) mod avatar;
-pub(crate) mod suggest;
+use poise::serenity_prelude::{ActivityData, OnlineStatus};
+
+use crate::serenity::Context;
+use crate::serenity::Ready;
+
+pub(super) fn handle(_: &Ready, ctx: &Context) {
+    ctx.set_presence(
+        Some(ActivityData::listening("Dubidubidu")),
+        OnlineStatus::Online,
+    );
+}

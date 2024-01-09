@@ -13,5 +13,17 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-pub(crate) mod avatar;
-pub(crate) mod suggest;
+use serenity::all::GuildId;
+use tracing::info;
+
+use crate::{serenity::Context, util};
+
+pub(super) async fn handle(guild_ids: &Vec<GuildId>, ctx: &Context) {
+    for guild_id in guild_ids {
+        let guild_name = match util::guild_name_raw(guild_id, ctx) {
+            Some(value) => value,
+            None => return,
+        };
+        info!("Cache is now ready for {guild_name}");
+    }
+}

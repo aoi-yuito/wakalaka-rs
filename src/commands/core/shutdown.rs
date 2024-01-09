@@ -13,33 +13,46 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-use serenity::{ builder::CreateCommand, all::CommandInteraction };
+use tokio::time::Duration;
+use tracing::info;
 
-use tracing::log::info;
+use crate::{check_administrator_permission, Context, Error};
 
-use crate::{ Context, commands };
+/// Puts yours truly to sleep.
+#[poise::command(slash_command)]
+pub(crate) async fn shutdown(
+    ctx: Context<'_>,
+    #[description = "Seconds before yours truly falls asleep."] delay: u64,
+) -> Result<(), Error> {
+    check_administrator_permission!(ctx);
 
-pub(crate) async fn run(ctx: &Context, interaction: &CommandInteraction) -> Option<String> {
-    let administrator = commands::has_administrator_permission(ctx, interaction).await;
-    if !administrator {
-        return Some(format!("You don't have permission(s) to execute this command!"));
+    if delay < 1 || delay > 5 {
+        let message = "Delay must be between 1 and 5 seconds.";
+        let _ = ctx.reply(message).await?;
+
+        return Ok(());
     }
 
-    let seconds = 1;
+    let message = format!("Shutting down in {delay} second(s)...");
+    let _ = ctx.reply(message).await;
 
-    let application_name = ctx.http
-        .get_current_application_info().await
-        .expect("Expected current application info, but didn't find one").name;
-    info!("Shutting down @{application_name} in {seconds} second(s)...");
+    let manager = ctx.framework().shard_manager.clone();
 
-    tokio::spawn(async move {
-        let _ = tokio::time::sleep(tokio::time::Duration::from_secs(seconds)).await;
+    let shard_ids = manager
+        .runners
+        .lock()
+        .await
+        .keys()
+        .cloned()
+        .collect::<Vec<_>>();
+    for shard_id in shard_ids {
+        info!("Shutting down shard {}", shard_id);
+        manager.shutdown_finished(shard_id);
+
+        tokio::time::sleep(Duration::from_secs(delay)).await;
+
         std::process::exit(0);
-    });
+    }
 
-    Some(format!("Shutting down in {seconds} second(s)..."))
-}
-
-pub(crate) fn register() -> CreateCommand {
-    CreateCommand::new("shutdown").description("Shuts down yours truly.")
+    Ok(())
 }

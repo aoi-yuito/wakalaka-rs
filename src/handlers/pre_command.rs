@@ -13,5 +13,18 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-pub(crate) mod avatar;
-pub(crate) mod suggest;
+use tracing::info;
+
+use crate::Context;
+
+pub(crate) async fn handle(ctx: Context<'_>) {
+    let (user_name, command_name, channel_name) = (
+        &ctx.author().name,
+        &ctx.command().qualified_name,
+        ctx.channel_id()
+            .name(&ctx)
+            .await
+            .expect("No channel name found"),
+    );
+    info!("@{user_name} invoked {command_name:?} in #{channel_name}");
+}

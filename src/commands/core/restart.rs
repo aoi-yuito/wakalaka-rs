@@ -13,5 +13,30 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-pub(crate) mod avatar;
-pub(crate) mod suggest;
+use tracing::info;
+
+use crate::{check_administrator_permission, Context, Error};
+
+/// Restarts yours truly.
+#[poise::command(slash_command)]
+pub(crate) async fn restart(ctx: Context<'_>) -> Result<(), Error> {
+    check_administrator_permission!(ctx);
+
+    let message = "Restarting...";
+    let _ = ctx.reply(message).await;
+
+    let shard_manager = ctx.framework().shard_manager.clone();
+    let shard_ids = shard_manager
+        .runners
+        .lock()
+        .await
+        .keys()
+        .cloned()
+        .collect::<Vec<_>>();
+    for shard_id in shard_ids {
+        info!("Restarting shard {}", shard_id);
+        shard_manager.restart(shard_id).await;
+    }
+
+    Ok(())
+}
