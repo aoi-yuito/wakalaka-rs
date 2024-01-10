@@ -16,7 +16,6 @@
 
 mod config;
 mod framework;
-mod helpers;
 
 #[macro_use]
 mod modules;
@@ -27,10 +26,8 @@ use std::sync::Arc;
 use config::Settings;
 use poise::{serenity_prelude as serenity, Framework, FrameworkOptions};
 
-use ::serenity::all::{ChannelId, GatewayIntents};
+use ::serenity::all::GatewayIntents;
 use ::serenity::gateway::ShardManager;
-use dashmap::DashSet;
-use tokio::sync::RwLock;
 use tokio::time::Duration;
 use tokio::time::Instant;
 use tracing::{debug, error, subscriber, Level};
@@ -38,7 +35,6 @@ use tracing_subscriber::{fmt::Subscriber, EnvFilter};
 
 pub struct Data {
     pub suggestion_id: AtomicUsize,
-    pub restricted_channels: RwLock<DashSet<ChannelId>>,
 }
 
 type Error = Box<dyn std::error::Error + Send + Sync>;
@@ -59,7 +55,8 @@ pub async fn main() {
     let manager = client.shard_manager.clone();
     tokio::spawn(monitor_shards(manager, 300));
     if let Err(why) = client.start_shards(2).await {
-        error!("Couldn't start client: {why:?}");
+        error!("Couldn't start client");
+        panic!("{why:?}");
     }
 }
 
@@ -97,7 +94,7 @@ async fn initialise_client(
     {
         Ok(client) => client,
         Err(why) => {
-            error!("Couldn't initialise client: {why:?}");
+            error!("Couldn't initialise client");
             panic!("{why:?}");
         }
     };
@@ -150,8 +147,8 @@ fn initialise_subscriber(crate_level: &'static str, level: Level) {
 
     let filter = match EnvFilter::try_new(format!("wakalaka_rs={crate_level}")) {
         Ok(filter) => filter,
-        Err(why) => {
-            error!("Couldn't get filter from environment variable: {why:?}");
+        Err(_) => {
+            error!("Couldn't get filter from environment variable, setting default...");
             EnvFilter::default()
         }
     };
@@ -164,7 +161,13 @@ fn initialise_subscriber(crate_level: &'static str, level: Level) {
 
     match subscriber::set_global_default(subscriber) {
         Ok(_) => (),
-        Err(why) => error!("Couldn't set global default for logger: {why:?}"),
+        Err(_) => {
+            error!("Couldn't set global default subscriber, setting default...");
+
+            let default_subscriber = Subscriber::default();
+            let _ = subscriber::set_global_default(default_subscriber);
+
+        }
     };
 
     let elapsed_time = start_time.elapsed();
