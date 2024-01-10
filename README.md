@@ -22,14 +22,16 @@
 
 Wakalaka is planned to be a completely free Discord bot. It's being designed to (hopefully) be straightforward and efficient. It will be written in Rust and aims to have more features than any other Discord bot written in Rust.
 
-While it's being developed, there won't be any versions available. But, as soon as a version that everyone can use is ready, it will be shared under the [GNU Lesser General Public Licence v3.0](https://www.gnu.org/licenses/lgpl-3.0.html).
+While under development (nightly), there won't be any version(s) available. But, as soon as a version that everyone can use is ready, it will be shared under the [GNU Lesser General Public Licence v3.0](https://www.gnu.org/licenses/lgpl-3.0.html).
 
-### Community
+---
+
+## Community
 
 [![gh_discussions](https://img.shields.io/github/discussions/Kawaxte/wakalaka-rs?logo=github&style=for-the-badge)](https://github.com/Kawaxte/wakalaka-rs/discussions)
 [![discord](https://img.shields.io/discord/1186451961848008866?logo=discord&style=for-the-badge)](https://discord.gg/jUZVWk7q2q)
 
-If you have any questions or ideas, or if you want to share your thoughts about the project, you're welcome to join our [Discord server](https://discord.gg/jUZVWk7q2q) or start a chat on [GitHub Discussions](https://github.com/Kawaxte/wakalaka-rs/discussions). 
+If you have any questions or ideas, or if you want to share your thoughts about the project, you're welcome to join our [Discord server](https://discord.gg/jUZVWk7q2q) or start a chat on [GitHub Discussions](https://github.com/Kawaxte/wakalaka-rs/discussions).
 
 I'm always open to feedback and interested in hearing what you think about my projects. Your input can help make Wakalaka even better!
 
@@ -42,8 +44,7 @@ I'm always open to feedback and interested in hearing what you think about my pr
 
 All Rust users are invited to contribute to this project. You can suggest improvements, report issues, or submit changes directly.
 
-If you find this project helpful, feel free to give it a ⭐. This helps me understand how popular the project is and encourages me to continue improving it.
-
+If you find this project useful, or meaningful, feel free to give it a ⭐. This helps me understand how popular the project is and encourages me to continue improving it.
 
 While there's no set way to contribute to this project, please do follow the [Rust Code of Conduct](https://www.rust-lang.org/policies/code-of-conduct). As I'm more familiar with Java, my Rust code may not be perfect. I welcome any corrections or suggestions.
 
