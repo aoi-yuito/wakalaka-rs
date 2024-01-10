@@ -53,7 +53,9 @@ pub async fn main() {
     let mut client = initialise_client(settings, intents, framework).await;
 
     let manager = client.shard_manager.clone();
+    
     tokio::spawn(monitor_shards(manager, 300));
+    
     if let Err(why) = client.start_shards(2).await {
         error!("Couldn't start client");
         panic!("{why:?}");
@@ -70,7 +72,6 @@ async fn monitor_shards(manager: Arc<ShardManager>, seconds: u64) {
         tokio::time::sleep(Duration::from_secs(seconds)).await;
 
         let runners = manager.runners.lock().await;
-
         for (id, runner) in runners.iter() {
             let stage = runner.stage;
             let latency = runner.latency;
