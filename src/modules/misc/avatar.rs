@@ -16,7 +16,7 @@
 use poise::CreateReply;
 use serenity::{all::User, builder::CreateEmbed};
 
-use crate::{check_channel_restriction, Context, Error};
+use crate::{Context, Error};
 
 /// Fetches image of users' avatar.
 #[poise::command(slash_command, context_menu_command = "User Avatar")]
@@ -24,8 +24,6 @@ pub(crate) async fn avatar(
     ctx: Context<'_>,
     #[description = "Mention of user to fetch avatar of."] user: User,
 ) -> Result<(), Error> {
-    check_channel_restriction!(ctx);
-
     let user_name = &user.name;
     let user_avatar_url = match user.avatar_url() {
         Some(value) => value,

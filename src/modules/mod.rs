@@ -21,27 +21,7 @@ mod moderator;
 
 use poise::Command;
 
-use crate::{Context, Data, Error};
-
-#[macro_export]
-macro_rules! check_channel_restriction {
-    ($ctx:expr) => {
-        let channel_restricted = crate::modules::is_channel_restricted($ctx).await;
-        if channel_restricted {
-            let message = "Sorry, but I can't be utilised in this channel.";
-            let _ = $ctx.reply(message).await;
-
-            return Ok(());
-        }
-    };
-}
-
-async fn is_channel_restricted(ctx: Context<'_>) -> bool {
-    let channel_id = ctx.channel_id();
-
-    let restricted_channels = ctx.data().restricted_channels.read().await;
-    restricted_channels.contains(&channel_id)
-}
+use crate::{Data, Error};
 
 // pub(crate) async fn global_commands() -> Vec<Command<Data, Error>> {
 //     vec![]
@@ -51,9 +31,7 @@ pub(crate) async fn guild_commands() -> Vec<Command<Data, Error>> {
     vec![
         info::info(),
         core::restart::restart(),
-        core::restrict::restrict(),
         core::shutdown::shutdown(),
-        core::unrestrict::unrestrict(),
         fun::hug::hug(),
         misc::avatar::avatar(),
         misc::suggest::suggest(),
