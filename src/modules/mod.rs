@@ -14,6 +14,7 @@
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.\
 
 mod core;
+mod info;
 mod fun;
 mod misc;
 mod moderator;
@@ -25,7 +26,7 @@ use crate::{Context, Data, Error};
 #[macro_export]
 macro_rules! check_channel_restriction {
     ($ctx:expr) => {
-        let channel_restricted = crate::commands::is_channel_restricted($ctx).await;
+        let channel_restricted = crate::modules::is_channel_restricted($ctx).await;
         if channel_restricted {
             let message = "Sorry, but I can't be utilised in this channel.";
             let _ = $ctx.reply(message).await;
@@ -48,7 +49,7 @@ async fn is_channel_restricted(ctx: Context<'_>) -> bool {
 
 pub(crate) async fn guild_commands() -> Vec<Command<Data, Error>> {
     vec![
-        core::info::info(),
+        info::info(),
         core::restart::restart(),
         core::restrict::restrict(),
         core::shutdown::shutdown(),

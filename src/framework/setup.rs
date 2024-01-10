@@ -18,7 +18,7 @@ use std::sync::atomic::AtomicUsize;
 use tracing::{error, info, warn};
 
 use crate::serenity::Context;
-use crate::{commands, util, Data, Error};
+use crate::{modules, helpers, Data, Error};
 
 pub(crate) async fn handle(ctx: &Context) -> Result<Data, Error> {
     register_guild_commands(ctx).await;
@@ -63,16 +63,16 @@ pub(crate) async fn handle(ctx: &Context) -> Result<Data, Error> {
 // }
 
 async fn register_guild_commands(ctx: &Context) {
-    let guild_id = match util::guild_id_raw(ctx).await {
+    let guild_id = match helpers::guild_id_raw(ctx).await {
         Some(value) => value,
         None => return,
     };
-    let guild_name = match util::guild_name_raw(&guild_id, ctx) {
+    let guild_name = match helpers::guild_name_raw(&guild_id, ctx) {
         Some(value) => value,
         None => return,
     };
 
-    let guild_commands = commands::guild_commands().await;
+    let guild_commands = modules::guild_commands().await;
 
     let guild_command_count = guild_commands.len();
     //if none

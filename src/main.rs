@@ -13,15 +13,18 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-#[macro_use]
-mod commands;
 
-mod handlers;
-mod util;
+mod config;
+mod framework;
+mod helpers;
+
+#[macro_use]
+mod modules;
 
 use std::sync::atomic::AtomicUsize;
 use std::sync::Arc;
 
+use config::Settings;
 use poise::{serenity_prelude as serenity, Framework, FrameworkOptions};
 
 use ::serenity::all::{ChannelId, GatewayIntents};
@@ -32,7 +35,6 @@ use tokio::time::Duration;
 use tokio::time::Instant;
 use tracing::{debug, error, subscriber, Level};
 use tracing_subscriber::{fmt::Subscriber, EnvFilter};
-use util::settings::Settings;
 
 pub struct Data {
     pub suggestion_id: AtomicUsize,
@@ -126,12 +128,12 @@ async fn initialise_framework() -> Framework<Data, Error> {
     let start_time = Instant::now();
 
     let framework = Framework::builder()
-        .setup(|ctx, _, _| Box::pin(handlers::setup::handle(ctx)))
+        .setup(|ctx, _, _| Box::pin(framework::setup::handle(ctx)))
         .options(FrameworkOptions {
-            commands: commands::guild_commands().await,
-            post_command: |ctx| Box::pin(handlers::post_command::handle(ctx)),
+            commands: modules::guild_commands().await,
+            post_command: |ctx| Box::pin(framework::options::post_command::handle(ctx)),
             event_handler: |ctx, event, framework, data| {
-                Box::pin(handlers::event::handle(ctx, event, framework, data))
+                Box::pin(framework::options::event_handler::handle(ctx, event, framework, data))
             },
             ..Default::default()
         })
