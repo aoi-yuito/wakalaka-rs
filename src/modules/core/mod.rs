@@ -14,6 +14,4 @@
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
 pub(super) mod restart;
-pub(super) mod restrict;
 pub(super) mod shutdown;
-pub(super) mod unrestrict;
