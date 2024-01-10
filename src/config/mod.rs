@@ -48,7 +48,7 @@ impl Settings {
             match Self::write_to_toml(application_id, token).await {
                 Ok(value) => value,
                 Err(why) => {
-                    error!("Couldn't write to TOML: {why:?}");
+                    error!("Couldn't write to TOML");
                     panic!("{why:?}");
                 }
             }
@@ -56,7 +56,7 @@ impl Settings {
             match Self::read_from_toml().await {
                 Ok(value) => value,
                 Err(why) => {
-                    error!("Couldn't read from TOML: {why:?}");
+                    error!("Couldn't read from TOML");
                     panic!("{why:?}");
                 }
             }
