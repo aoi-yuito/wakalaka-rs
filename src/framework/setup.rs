@@ -18,58 +18,42 @@ use std::sync::atomic::AtomicUsize;
 use tracing::{error, info, warn};
 
 use crate::serenity::Context;
-use crate::{modules, helpers, Data, Error};
+use crate::{modules, Data, Error};
 
 pub(crate) async fn handle(ctx: &Context) -> Result<Data, Error> {
     register_guild_commands(ctx).await;
 
     Ok(Data {
         suggestion_id: AtomicUsize::new(1),
-        restricted_channels: Default::default(),
     })
 }
 
-// async fn unregister_global_commands(ctx: &Context) {
-//     let global_commands = ctx
-//         .http
-//         .get_global_commands().await
-//         .unwrap();
-//     let global_command_count = global_commands.len();
-
-//     for global_command in global_commands {
-//         ctx.http.delete_global_command(global_command.id).await.unwrap();
-//     }
-
-//     info!("Unregistered {global_command_count} global command(s)");
-// }
-
-// async fn unregister_guild_commands(ctx: &Context) {
-//     let guild_id = match util::guild_id_raw(ctx).await {
-//         Some(value) => value,
-//         None => return,
-//     };
-
-//     let guild_commands = ctx
-//         .http
-//         .get_guild_commands(guild_id).await
-//         .unwrap();
-//     let guild_command_count = guild_commands.len();
-
-//     for guild_command in guild_commands {
-//         ctx.http.delete_guild_command(guild_id, guild_command.id).await.unwrap();
-//     }
-
-//     info!("Unregistered {guild_command_count} guild command(s)");
-// }
-
 async fn register_guild_commands(ctx: &Context) {
-    let guild_id = match helpers::guild_id_raw(ctx).await {
-        Some(value) => value,
-        None => return,
+    let current_application_info = match ctx.http.get_current_application_info().await {
+        Ok(value) => value,
+        Err(why) => {
+            error!("Couldn't get current application info");
+            panic!("{why:?}");
+        }
     };
-    let guild_name = match helpers::guild_name_raw(&guild_id, ctx) {
+
+
+    let guild_id = match current_application_info.guild_id {
         Some(value) => value,
-        None => return,
+        None => {
+            warn!("No guild ID found in current application");
+            return;
+        }
+    };
+    let guild_name = {
+        let guild = match ctx.cache.guild(guild_id) {
+            Some(value) => value,
+            None => {
+                warn!("No guild found in cache");
+                return;
+            }
+        };
+        guild.name.clone()
     };
 
     let guild_commands = modules::guild_commands().await;
@@ -84,7 +68,7 @@ async fn register_guild_commands(ctx: &Context) {
     match poise::builtins::register_in_guild(&ctx.http, &guild_commands, guild_id).await {
         Ok(_) => {}
         Err(why) => {
-            error!("Couldn't register guild commands: {why:?}");
+            error!("Couldn't register guild commands");
             panic!("{why:?}");
         }
     }

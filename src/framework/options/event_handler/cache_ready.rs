@@ -14,15 +14,18 @@
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
 use serenity::all::GuildId;
-use tracing::info;
+use tracing::{info, error};
 
-use crate::{serenity::Context, helpers};
+use crate::serenity::Context;
 
 pub(super) async fn handle(guild_ids: &Vec<GuildId>, ctx: &Context) {
     for guild_id in guild_ids {
-        let guild_name = match helpers::guild_name_raw(guild_id, ctx) {
+        let guild_name = match guild_id.name(&ctx.cache) {
             Some(value) => value,
-            None => return,
+            None => {
+                error!("Couldn't return guild name for {guild_id}, default to Unknown");
+                String::from("Unknown")
+            }
         };
         info!("Cache is ready for {guild_name}");
     }

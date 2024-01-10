@@ -16,8 +16,9 @@
 use ::serenity::builder::CreateEmbed;
 use poise::CreateReply;
 use serenity::builder::{CreateEmbedAuthor, CreateEmbedFooter};
+use tracing::error;
 
-use crate::{check_channel_restriction, Context, Error};
+use crate::{Context, Error};
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 const NAME: &str = env!("CARGO_PKG_NAME");
@@ -30,9 +31,13 @@ const GITHUB_URL: &str = "https://github.com/Kawaxte";
 /// Fetches basic information about yours truly.
 #[poise::command(slash_command)]
 pub(crate) async fn info(ctx: Context<'_>) -> Result<(), Error> {
-    check_channel_restriction!(ctx);
-
-    let current_user = ctx.http().get_current_user().await.unwrap();
+    let current_user = match ctx.http().get_current_user().await {
+        Ok(value) => value,
+        Err(why) => {
+            error!("Couldn't get information about current user");
+            return Err(why.into());
+        }
+    };
     let current_user_avatar_url = match current_user.avatar_url() {
         Some(avatar_url) => avatar_url,
         None => current_user.default_avatar_url(),

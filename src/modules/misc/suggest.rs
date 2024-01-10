@@ -21,7 +21,7 @@ use serenity::{
 };
 use tracing::error;
 
-use crate::{Context, Error, check_channel_restriction};
+use crate::{Context, Error};
 
 /// Suggest things for yours truly, or for community.
 #[poise::command(slash_command)]
@@ -29,13 +29,11 @@ pub(crate) async fn suggest(
     ctx: Context<'_>,
     #[description = "Brief overview of your suggestion."] message: String,
 ) -> Result<(), Error> {
-    check_channel_restriction!(ctx);
-    
     let suggestion_id = &ctx.data().suggestion_id;
 
     let message_character_count = message.chars().count();
     if message_character_count < 10 || message_character_count > 2000 {
-        let message_ = format!("Suggestion must be between 10 and 2000 characters!");
+        let message_ = format!("Suggestion must be between 10 and 2000 characters.");
         let _ = ctx.reply(message_).await;
 
         return Ok(());
@@ -67,7 +65,8 @@ pub(crate) async fn suggest(
             .create_permission(&ctx.http(), permissions)
             .await
         {
-            error!("Couldn't create permission overwrite: {why:?}");
+            error!("Couldn't create permission overwrite for #suggestions");
+            return Err(why.into());
         }
 
         let user_name = &ctx.author().name;
@@ -77,7 +76,7 @@ pub(crate) async fn suggest(
         };
 
         let embed = embed(
-            suggestion_id.fetch_add(1, Ordering::Relaxed),
+            suggestion_id.fetch_add(1, Ordering::Relaxed), 
             user_name,
             user_avatar_url,
             message,
@@ -88,7 +87,10 @@ pub(crate) async fn suggest(
             .await
         {
             Ok(value) => value,
-            Err(why) => return Err(why.into()),
+            Err(why) => {
+                error!("Couldn't send message in #suggestions");
+                return Err(why.into());
+            }
         };
 
         let (thumbs_up, thumbs_down) = (
@@ -110,6 +112,7 @@ fn embed(id: usize, name: &String, avatar_url: String, description: String) -> C
         .title(format!("Suggestion #{}", id))
         .author(embed_author(name, avatar_url))
         .description(description)
+        .color(rand::random::<u32>() & 0xFFFFFF)
 }
 
 fn embed_author(user_name: &String, user_avatar_url: String) -> CreateEmbedAuthor {
