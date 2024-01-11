@@ -16,7 +16,7 @@
 use serenity::all::Message;
 use crate::serenity::Context;
 
-pub(crate) async fn handle(msg: &Message, ctx: &Context) {
+pub(crate) async fn handle(msg: &Message, _: &Context) {
     let author_bot = msg.author.bot;
     if author_bot {
         return;
