@@ -13,19 +13,15 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-use std::sync::atomic::AtomicUsize;
-
 use tracing::{error, info, warn};
 
 use crate::serenity::Context;
-use crate::{modules, Data, Error};
+use crate::{commands, Data, Error};
 
-pub(crate) async fn handle(ctx: &Context) -> Result<Data, Error> {
+pub(crate) async fn handle(ctx: &Context, data: Data) -> Result<Data, Error> {
     register_guild_commands(ctx).await;
 
-    Ok(Data {
-        suggestion_id: AtomicUsize::new(1),
-    })
+    Ok(data)
 }
 
 async fn register_guild_commands(ctx: &Context) {
@@ -56,7 +52,7 @@ async fn register_guild_commands(ctx: &Context) {
         guild.name.clone()
     };
 
-    let guild_commands = modules::guild_commands().await;
+    let guild_commands = commands::guild_commands().await;
 
     let guild_command_count = guild_commands.len();
     //if none
