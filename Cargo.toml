@@ -27,3 +27,7 @@ tokio = { version = "1.35.1", features = ["macros", "rt-multi-thread", "io-std"]
 toml = "0.8.8"
 tracing = "0.1.40"
 tracing-subscriber = { version = "0.3.18", features = ["env-filter"] }
+dotenvy = "0.15.7"
+sqlx = { version = "0.7.3", features = ["runtime-tokio", "tls-rustls", "sqlite", "macros", "migrate", "chrono", "json"] }
+lazy_static = "1.4.0"
+sqlx-cli = { version = "0.7.3", features = ["sqlite", "rustls"] }
