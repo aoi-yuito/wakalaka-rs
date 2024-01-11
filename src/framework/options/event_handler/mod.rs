@@ -14,9 +14,14 @@
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
 mod cache_ready;
+mod channel_create;
+mod channel_delete;
+mod channel_update;
+mod guild_create;
+mod guild_delete;
+mod guild_update;
 mod message;
 mod ready;
-mod guild_create;
 
 use poise::serenity_prelude::FullEvent;
 use poise::FrameworkContext;
@@ -31,11 +36,29 @@ pub(crate) async fn handle(
     data: &Data,
 ) -> Result<(), Error> {
     match event {
+        FullEvent::CacheReady { guilds, .. } => {
+            cache_ready::handle(guilds, ctx).await;
+        }
+        FullEvent::ChannelCreate { channel, .. } => {
+            channel_create::handle(channel, data).await;
+        }
+        FullEvent::ChannelDelete { channel, .. } => {
+            channel_delete::handle(channel, data).await;
+        }
+        FullEvent::ChannelUpdate { old, new, .. } => {
+            channel_update::handle(old, new, data).await;
+        }
         FullEvent::GuildCreate { guild, is_new } => {
             guild_create::handle(guild, is_new.is_some(), ctx, data).await;
         }
-        FullEvent::CacheReady { guilds, .. } => {
-            cache_ready::handle(guilds, ctx).await;
+        FullEvent::GuildDelete { incomplete, full } => {
+            guild_delete::handle(incomplete, full, data).await;
+        }
+        FullEvent::GuildUpdate {
+            old_data_if_available,
+            new_data,
+        } => {
+            guild_update::handle(old_data_if_available, new_data, ctx, data).await;
         }
         FullEvent::Ready { data_about_bot, .. } => {
             ready::handle(data_about_bot, ctx);
