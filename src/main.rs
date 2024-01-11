@@ -13,23 +13,18 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-
-mod config;
+mod database;
 mod framework;
-
-#[macro_use]
 mod modules;
 
 use std::sync::atomic::AtomicUsize;
 use std::sync::Arc;
 
-use config::Settings;
 use poise::{serenity_prelude as serenity, Framework, FrameworkOptions};
 
 use ::serenity::all::GatewayIntents;
 use ::serenity::gateway::ShardManager;
-use tokio::time::Duration;
-use tokio::time::Instant;
+use tokio::time::{Instant, Duration};
 use tracing::{debug, error, subscriber, Level};
 use tracing_subscriber::{fmt::Subscriber, EnvFilter};
 
@@ -44,18 +39,18 @@ type Context<'a> = poise::Context<'a, Data, Error>;
 pub async fn main() {
     initialise_subscriber("debug", Level::DEBUG);
 
-    let (framework, intents, settings) = (
-        initialise_framework().await,
+    let token = dotenv::var("DISCORD_TOKEN").expect("Couldn't find token in .env");
+    let (intents, framework) = (
         initialise_intents(),
-        Settings::new().await,
+        initialise_framework().await,
     );
 
-    let mut client = initialise_client(settings, intents, framework).await;
+    let mut client = initialise_client(token, intents, framework).await;
 
     let manager = client.shard_manager.clone();
-    
+
     tokio::spawn(monitor_shards(manager, 300));
-    
+
     if let Err(why) = client.start_shards(2).await {
         error!("Couldn't start client");
         panic!("{why:?}");
@@ -81,13 +76,11 @@ async fn monitor_shards(manager: Arc<ShardManager>, seconds: u64) {
 }
 
 async fn initialise_client(
-    settings: Settings,
+    token: String,
     intents: GatewayIntents,
     framework: Framework<Data, Error>,
 ) -> serenity::Client {
     let start_time = Instant::now();
-
-    let token = settings.general.token;
 
     let client = match serenity::Client::builder(token, intents)
         .framework(framework)
@@ -131,7 +124,9 @@ async fn initialise_framework() -> Framework<Data, Error> {
             commands: modules::guild_commands().await,
             post_command: |ctx| Box::pin(framework::options::post_command::handle(ctx)),
             event_handler: |ctx, event, framework, data| {
-                Box::pin(framework::options::event_handler::handle(ctx, event, framework, data))
+                Box::pin(framework::options::event_handler::handle(
+                    ctx, event, framework, data,
+                ))
             },
             ..Default::default()
         })
@@ -167,7 +162,6 @@ fn initialise_subscriber(crate_level: &'static str, level: Level) {
 
             let default_subscriber = Subscriber::default();
             let _ = subscriber::set_global_default(default_subscriber);
-
         }
     };
 
