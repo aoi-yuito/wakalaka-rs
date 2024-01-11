@@ -1,0 +1,10 @@
+CREATE TABLE IF NOT EXISTS Users (
+    id BIGINT NOT NULL,
+    locale TEXT,
+    verified BOOLEAN DEFAULT FALSE,
+    warnings INTEGER DEFAULT 0,
+    isMuted BOOLEAN DEFAULT FALSE,
+    isDeafened BOOLEAN DEFAULT FALSE,
+    isBanned BOOLEAN DEFAULT FALSE,
+    PRIMARY KEY (id)
+);

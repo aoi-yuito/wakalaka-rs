@@ -15,7 +15,7 @@
 
 mod database;
 mod framework;
-mod modules;
+mod commands;
 
 use std::sync::atomic::AtomicUsize;
 use std::sync::Arc;
@@ -24,11 +24,13 @@ use poise::{serenity_prelude as serenity, Framework, FrameworkOptions};
 
 use ::serenity::all::GatewayIntents;
 use ::serenity::gateway::ShardManager;
+use sqlx::{Pool, Sqlite};
 use tokio::time::{Instant, Duration};
-use tracing::{debug, error, subscriber, Level};
+use tracing::{debug, error, subscriber, level_filters::LevelFilter};
 use tracing_subscriber::{fmt::Subscriber, EnvFilter};
 
 pub struct Data {
+    pub database: Pool<Sqlite>,
     pub suggestion_id: AtomicUsize,
 }
 
@@ -37,13 +39,24 @@ type Context<'a> = poise::Context<'a, Data, Error>;
 
 #[tokio::main]
 pub async fn main() {
-    initialise_subscriber("debug", Level::DEBUG);
+    initialise_subscriber();
 
-    let token = dotenv::var("DISCORD_TOKEN").expect("Couldn't find token in .env");
-    let (intents, framework) = (
-        initialise_intents(),
-        initialise_framework().await,
-    );
+    let token = match dotenvy::var("TOKEN") {
+        Ok(token) => token,
+        Err(why) => {
+            error!("Couldn't find token in environment");
+            panic!("{why:?}");
+        }
+    };
+    let intents = initialise_intents();
+
+    let database = database::initialise_database().await;
+    let data = Data {
+        database: database.clone(),
+        suggestion_id: AtomicUsize::new(1),
+    };
+
+    let framework = initialise_framework(data).await;
 
     let mut client = initialise_client(token, intents, framework).await;
 
@@ -51,7 +64,7 @@ pub async fn main() {
 
     tokio::spawn(monitor_shards(manager, 300));
 
-    if let Err(why) = client.start_shards(2).await {
+    if let Err(why) = client.start_autosharded().await {
         error!("Couldn't start client");
         panic!("{why:?}");
     }
@@ -99,6 +112,33 @@ async fn initialise_client(
     client
 }
 
+async fn initialise_framework(data: Data) -> Framework<Data, Error> {
+    let start_time = Instant::now();
+
+    let framework = Framework::builder()
+    .setup(|ctx, _, _| {
+        Box::pin(async move {
+            framework::setup::handle(ctx, data).await
+        })
+    })
+    .options(FrameworkOptions {
+        commands: commands::guild_commands().await,
+        post_command: |ctx| Box::pin(framework::options::post_command::handle(ctx)),
+        event_handler: |ctx, event, framework, data| {
+            Box::pin(framework::options::event_handler::handle(
+                ctx, event, framework, data,
+            ))
+        },
+        ..Default::default()
+    })
+    .build();
+
+    let elapsed_time = start_time.elapsed();
+    debug!("Initialised framework in {elapsed_time:.2?}");
+
+    framework
+}
+
 fn initialise_intents() -> GatewayIntents {
     let start_time = Instant::now();
 
@@ -115,42 +155,27 @@ fn initialise_intents() -> GatewayIntents {
     intents
 }
 
-async fn initialise_framework() -> Framework<Data, Error> {
+fn initialise_subscriber() {
     let start_time = Instant::now();
 
-    let framework = Framework::builder()
-        .setup(|ctx, _, _| Box::pin(framework::setup::handle(ctx)))
-        .options(FrameworkOptions {
-            commands: modules::guild_commands().await,
-            post_command: |ctx| Box::pin(framework::options::post_command::handle(ctx)),
-            event_handler: |ctx, event, framework, data| {
-                Box::pin(framework::options::event_handler::handle(
-                    ctx, event, framework, data,
-                ))
-            },
-            ..Default::default()
-        })
-        .build();
+    let rust_log = match dotenvy::var("RUST_LOG") {
+        Ok(level) => level,
+        Err(_) => {
+            error!("Couldn't get log level from environment, setting default...");
+            "info".to_string()
+        }
+    };
 
-    let elapsed_time = start_time.elapsed();
-    debug!("Initialised framework in {elapsed_time:.2?}");
-
-    framework
-}
-
-fn initialise_subscriber(crate_level: &'static str, level: Level) {
-    let start_time = Instant::now();
-
-    let filter = match EnvFilter::try_new(format!("wakalaka_rs={crate_level}")) {
+    let filter = match EnvFilter::try_new(format!("wakalaka_rs={rust_log}")) {
         Ok(filter) => filter,
         Err(_) => {
-            error!("Couldn't get filter from environment variable, setting default...");
+            error!("Couldn't get filter from environment, setting default...");
             EnvFilter::default()
         }
     };
 
     let subscriber = Subscriber::builder()
-        .with_max_level(level)
+        .with_max_level(LevelFilter::TRACE)
         .with_env_filter(filter)
         .compact()
         .finish();
@@ -158,7 +183,7 @@ fn initialise_subscriber(crate_level: &'static str, level: Level) {
     match subscriber::set_global_default(subscriber) {
         Ok(_) => (),
         Err(_) => {
-            error!("Couldn't set global default subscriber, setting default...");
+            error!("Couldn't set custom global subscriber, setting default global...");
 
             let default_subscriber = Subscriber::default();
             let _ = subscriber::set_global_default(default_subscriber);
