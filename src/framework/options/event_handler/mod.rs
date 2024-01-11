@@ -14,7 +14,9 @@
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
 mod cache_ready;
+mod message;
 mod ready;
+mod guild_create;
 
 use poise::serenity_prelude::FullEvent;
 use poise::FrameworkContext;
@@ -26,18 +28,21 @@ pub(crate) async fn handle(
     ctx: &Context,
     event: &FullEvent,
     _framework: FrameworkContext<'_, Data, Error>,
-    _data: &Data,
+    data: &Data,
 ) -> Result<(), Error> {
     match event {
+        FullEvent::GuildCreate { guild, is_new } => {
+            guild_create::handle(guild, is_new.is_some(), ctx, data).await;
+        }
         FullEvent::CacheReady { guilds, .. } => {
             cache_ready::handle(guilds, ctx).await;
         }
         FullEvent::Ready { data_about_bot, .. } => {
             ready::handle(data_about_bot, ctx);
         }
-        // FullEvent::Message { new_message, .. } => {
-        //     // message::handle(new_message, ctx).await;
-        // }
+        FullEvent::Message { new_message, .. } => {
+            message::handle(new_message, ctx).await;
+        }
         _ => {}
     }
 
