@@ -13,14 +13,17 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-use poise::serenity_prelude::{ActivityData, OnlineStatus};
+use poise::serenity_prelude::ActivityData;
 
-use crate::serenity::Context;
-use crate::serenity::Ready;
+use crate::serenity::{Ready, Context};
 
 pub(super) fn handle(_: &Ready, ctx: &Context) {
-    ctx.set_presence(
-        Some(ActivityData::listening("Dubidubidu")),
-        OnlineStatus::Online,
-    );
+    set_activity(ctx);  
+}
+
+fn set_activity(ctx: &Context) {
+    let guild_count = ctx.cache.guilds().len();
+
+    let activity = format!("Blue As You Are in {} guild(s)", guild_count);
+    ctx.set_activity(Some(ActivityData::listening(&activity)));
 }
