@@ -1,6 +1,9 @@
 # macOS
 .DS_Store
 
+# dotenv
+.env
+
 # Cargo
 /target
 Cargo.lock
