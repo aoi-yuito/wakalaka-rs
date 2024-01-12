@@ -15,8 +15,8 @@
 
 use tracing::{error, info, warn};
 
-use crate::serenity::Context;
 use crate::{commands, Data, Error};
+use poise::serenity_prelude::Context;
 
 pub(crate) async fn handle(ctx: &Context, data: Data) -> Result<Data, Error> {
     register_guild_commands(ctx).await;
@@ -28,8 +28,8 @@ async fn register_guild_commands(ctx: &Context) {
     let current_application_info = match ctx.http.get_current_application_info().await {
         Ok(value) => value,
         Err(why) => {
-            error!("Couldn't get current application info");
-            panic!("{why:?}");
+            error!("Couldn't get current application info: {why:?}");
+            return;
         }
     };
 
@@ -62,11 +62,12 @@ async fn register_guild_commands(ctx: &Context) {
     }
 
     match poise::builtins::register_in_guild(&ctx.http, &guild_commands, guild_id).await {
-        Ok(_) => {}
+        Ok(_) => {
+            info!("Registered {guild_command_count} guild command(s) in {guild_name}");
+        }
         Err(why) => {
-            error!("Couldn't register guild commands");
-            panic!("{why:?}");
+            error!("Couldn't register guild commands: {why:?}");
+            return;
         }
     }
-    info!("Registered {guild_command_count} command(s) in {guild_name}");
 }
