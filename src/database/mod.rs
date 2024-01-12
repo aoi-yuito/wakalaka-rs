@@ -1,101 +1,88 @@
 // Copyright (C) 2024 Kawaxte
-// 
+//
 // wakalaka-rs is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // wakalaka-rs is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU Lesser General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-use serenity::prelude::TypeMapKey;
-use sqlx::sqlite::SqlitePoolOptions;
-use sqlx::{Sqlite, Pool};
-use sqlx::migrate::MigrateDatabase;
-use tokio::time::Instant;
-use tracing::{error, debug};
+pub(crate) mod channels;
+pub(crate) mod guilds;
+pub(crate) mod users;
+
 use lazy_static::lazy_static;
+use sqlx::{sqlite::SqlitePoolOptions, SqlitePool};
+use tokio::time::Instant;
+use tracing::{debug, error, info};
 
 lazy_static! {
     pub(crate) static ref DB_URL: String = match dotenvy::var("DATABASE_URL") {
         Ok(url) => url,
         Err(why) => {
-            error!("Couldn't find database in environment");
+            error!("Couldn't find database in environment: {why:?}");
             panic!("{why:?}")
-        },
+        }
     };
 }
 
-pub(crate) struct DatabaseContainer;
+pub(crate) async fn initialise() -> SqlitePool {
+    let start_time = Instant::now();
 
-impl TypeMapKey for DatabaseContainer {
-    type Value = Pool<Sqlite>;
-}
+    let pool = connect().await.unwrap();
 
-pub(crate) async fn initialise_database() -> Pool<Sqlite> {
-    create().await;
-    let pool = connect().await;
+    match migrate(&pool).await {
+        Ok(_) => (),
+        Err(why) => {
+            error!("Couldn't migrate database: {why:?}");
+            panic!("{why:?}")
+        }
+    }
 
-    migrate(&pool).await;
+    let elapsed_time = start_time.elapsed();
+    debug!("Initialised database in {elapsed_time:?}");
+
     pool
 }
 
-async fn migrate(pool: &Pool<Sqlite>) {
+async fn migrate(pool: &SqlitePool) -> Result<(), sqlx::Error> {
     let start_time = Instant::now();
 
     match sqlx::migrate!("./migrations").run(pool).await {
         Ok(_) => {
             let elapsed_time = start_time.elapsed();
-            debug!("Migrated database in {elapsed_time:?}");
-        },
+            info!("Migrated database in {elapsed_time:?}");
+            Ok(())
+        }
         Err(why) => {
-            error!("Couldn't migrate database");
-            panic!("{why:?}")
-        },
-    }
-}
-
-async fn connect() -> Pool<Sqlite> {
-    let start_time = Instant::now();
-
-    match SqlitePoolOptions::new()
-    .max_connections(5)
-    .min_connections(1)
-    .connect(&DB_URL).await {
-        Ok(pool) => {
-            let elapsed_time = start_time.elapsed();
-            debug!("Connected to database in {elapsed_time:?}");
-            pool
-        },
-        Err(why) => {
-            error!("Couldn't connect to database");
-            panic!("{why:?}")
-        },
-    }
-}
-
-async fn create() {
-    if !exists().await {
-        let start_time = Instant::now();
-
-        match Sqlite::create_database(&DB_URL).await {
-            Ok(_) => {
-                let elapsed_time = start_time.elapsed();
-                debug!("Created database in {elapsed_time:?}");
-            },
-            Err(why) => {
-                error!("Couldn't create database");
-                panic!("{why:?}")
-            },
+            error!("Couldn't migrate database: {why:?}");
+            Err(why.into())
         }
     }
 }
 
-async fn exists() -> bool {
-    Sqlite::database_exists(&DB_URL).await.unwrap_or(false)
+async fn connect() -> Result<SqlitePool, sqlx::Error> {
+    let start_time = Instant::now();
+
+    match SqlitePoolOptions::new()
+        .max_connections(5)
+        .connect(&DB_URL)
+        .await
+    {
+        Ok(pool) => {
+            let elapsed_time = start_time.elapsed();
+            info!("Connected to database in {elapsed_time:?}");
+            Ok(pool)
+        }
+        Err(why) => {
+            error!("Couldn't connect to database: {why:?}");
+            Err(why)
+        }
+    }
 }
