@@ -26,7 +26,7 @@ mod ready;
 use poise::serenity_prelude::FullEvent;
 use poise::FrameworkContext;
 
-use crate::serenity::Context;
+use poise::serenity_prelude::Context;
 use crate::{Data, Error};
 
 pub(crate) async fn handle(
@@ -37,7 +37,7 @@ pub(crate) async fn handle(
 ) -> Result<(), Error> {
     match event {
         FullEvent::CacheReady { guilds, .. } => {
-            cache_ready::handle(guilds, ctx).await;
+            cache_ready::handle(guilds, ctx, data).await;
         }
         FullEvent::ChannelCreate { channel, .. } => {
             channel_create::handle(channel, data).await;

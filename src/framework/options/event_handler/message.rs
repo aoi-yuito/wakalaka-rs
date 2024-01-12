@@ -14,7 +14,7 @@
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
 use serenity::all::Message;
-use crate::serenity::Context;
+use poise::serenity_prelude::Context;
 
 pub(crate) async fn handle(msg: &Message, _: &Context) {
     let author_bot = msg.author.bot;

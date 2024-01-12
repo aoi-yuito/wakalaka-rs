@@ -15,7 +15,7 @@
 
 use poise::serenity_prelude::ActivityData;
 
-use crate::serenity::{Ready, Context};
+use poise::serenity_prelude::{Ready, Context};
 
 pub(super) fn handle(_: &Ready, ctx: &Context) {
     set_activity(ctx);  
