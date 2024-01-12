@@ -13,6 +13,8 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
+pub(crate) mod guilds;
+
 use lazy_static::lazy_static;
 use sqlx::{sqlite::SqlitePoolOptions, SqlitePool};
 use tokio::time::Instant;
