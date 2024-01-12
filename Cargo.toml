@@ -8,26 +8,20 @@ readme = "README.md"
 description = "No-bullshit general-purpose Discord bot written with love in Rust."
 repository = "https://github.com/Kawaxte/wakalaka-rs"
 license-file = "LICENSE"
+build = "build.rs"
 
 [dependencies]
 chrono = "0.4.31"
 dashmap = "5.5.3"
 dirs = "5.0.1"
-futures-util = "0.3.30"
-image = "0.24.7"
-png = "0.17.10"
 poise = "0.6.1-rc1"
 rand = "0.8.5"
-regex = "1.10.2"
-reqwest = "0.11.23"
 serde = "1.0.193"
 serde_json = "1.0.108"
 serenity = { version = "0.12.0", features = ["model"] }
 tokio = { version = "1.35.1", features = ["macros", "rt-multi-thread", "io-std"] }
-toml = "0.8.8"
 tracing = "0.1.40"
 tracing-subscriber = { version = "0.3.18", features = ["env-filter"] }
 dotenvy = "0.15.7"
-sqlx = { version = "0.7.3", features = ["runtime-tokio", "tls-rustls", "sqlite", "migrate", "chrono", "json"] }
 lazy_static = "1.4.0"
-sqlx-cli = { version = "0.7.3", features = ["sqlite", "rustls"] }
+sqlx = { version = "0.7.3", features = ["migrate", "chrono", "runtime-tokio", "runtime-tokio-rustls", "sqlite"] }
