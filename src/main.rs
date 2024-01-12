@@ -20,17 +20,17 @@ mod commands;
 use std::sync::atomic::AtomicUsize;
 use std::sync::Arc;
 
-use poise::{serenity_prelude as serenity, Framework, FrameworkOptions};
+use poise::Framework;
 
 use ::serenity::all::GatewayIntents;
 use ::serenity::gateway::ShardManager;
-use sqlx::{Pool, Sqlite};
+use sqlx::SqlitePool;
 use tokio::time::{Instant, Duration};
-use tracing::{debug, error, subscriber, level_filters::LevelFilter};
+use tracing::{debug, error, subscriber, level_filters::LevelFilter, info};
 use tracing_subscriber::{fmt::Subscriber, EnvFilter};
 
 pub struct Data {
-    pub database: Pool<Sqlite>,
+    pub pool: SqlitePool,
     pub suggestion_id: AtomicUsize,
 }
 
@@ -41,32 +41,33 @@ type Context<'a> = poise::Context<'a, Data, Error>;
 pub async fn main() {
     initialise_subscriber();
 
+    let pool = database::initialise().await;
+
+    let data = Data {
+        pool: pool.clone(),
+        suggestion_id: AtomicUsize::new(1),
+    };
+
     let token = match dotenvy::var("TOKEN") {
         Ok(token) => token,
         Err(why) => {
-            error!("Couldn't find token in environment");
-            panic!("{why:?}");
+            error!("Couldn't find token in environment: {why:?}");
+            return;
         }
     };
     let intents = initialise_intents();
 
-    let database = database::initialise_database().await;
-    let data = Data {
-        database: database.clone(),
-        suggestion_id: AtomicUsize::new(1),
-    };
-
-    let framework = initialise_framework(data).await;
+    let framework = framework::initialise_framework(data).await;
 
     let mut client = initialise_client(token, intents, framework).await;
 
     let manager = client.shard_manager.clone();
-
     tokio::spawn(monitor_shards(manager, 300));
 
+    info!("Starting client...");
     if let Err(why) = client.start_autosharded().await {
-        error!("Couldn't start client");
-        panic!("{why:?}");
+        error!("Couldn't start client: {why:?}");
+        return;
     }
 }
 
@@ -101,42 +102,15 @@ async fn initialise_client(
     {
         Ok(client) => client,
         Err(why) => {
-            error!("Couldn't initialise client");
-            panic!("{why:?}");
+            error!("Couldn't initialise client: {why:?}");
+            panic!("why:?");
         }
     };
 
     let elapsed_time = start_time.elapsed();
-    debug!("Initialised client in {elapsed_time:.2?}");
+    info!("Initialised client in {elapsed_time:.2?}");
 
     client
-}
-
-async fn initialise_framework(data: Data) -> Framework<Data, Error> {
-    let start_time = Instant::now();
-
-    let framework = Framework::builder()
-    .setup(|ctx, _, _| {
-        Box::pin(async move {
-            framework::setup::handle(ctx, data).await
-        })
-    })
-    .options(FrameworkOptions {
-        commands: commands::guild_commands().await,
-        post_command: |ctx| Box::pin(framework::options::post_command::handle(ctx)),
-        event_handler: |ctx, event, framework, data| {
-            Box::pin(framework::options::event_handler::handle(
-                ctx, event, framework, data,
-            ))
-        },
-        ..Default::default()
-    })
-    .build();
-
-    let elapsed_time = start_time.elapsed();
-    debug!("Initialised framework in {elapsed_time:.2?}");
-
-    framework
 }
 
 fn initialise_intents() -> GatewayIntents {
@@ -150,7 +124,7 @@ fn initialise_intents() -> GatewayIntents {
         | GatewayIntents::MESSAGE_CONTENT;
 
     let elapsed_time = start_time.elapsed();
-    debug!("Initialised intents in {elapsed_time:.2?}");
+    info!("Initialised intents in {elapsed_time:.2?}");
 
     intents
 }
@@ -191,5 +165,5 @@ fn initialise_subscriber() {
     };
 
     let elapsed_time = start_time.elapsed();
-    debug!("Initialised logger in {elapsed_time:.2?}");
+    info!("Initialised logger in {elapsed_time:.2?}");
 }
