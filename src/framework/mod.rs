@@ -14,6 +14,7 @@
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
 use poise::{Framework, FrameworkOptions};
+use serenity::all::GatewayIntents;
 use tokio::time::Instant;
 use tracing::info;
 
@@ -47,4 +48,20 @@ pub(crate) async fn initialise_framework(data: Data) -> Framework<Data, Error> {
     info!("Initialised framework in {elapsed_time:.2?}");
 
     framework
+}
+
+pub(crate) fn initialise_intents() -> GatewayIntents {
+    let start_time = Instant::now();
+
+    let intents = GatewayIntents::non_privileged()
+        | GatewayIntents::GUILDS
+        | GatewayIntents::GUILD_MEMBERS
+        | GatewayIntents::GUILD_MODERATION
+        | GatewayIntents::GUILD_MESSAGES
+        | GatewayIntents::MESSAGE_CONTENT;
+
+    let elapsed_time = start_time.elapsed();
+    info!("Initialised intents in {elapsed_time:.2?}");
+
+    intents
 }
