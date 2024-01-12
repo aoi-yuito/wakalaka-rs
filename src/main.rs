@@ -13,9 +13,9 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
+mod commands;
 mod database;
 mod framework;
-mod commands;
 
 use std::sync::atomic::AtomicUsize;
 use std::sync::Arc;
@@ -23,10 +23,9 @@ use std::sync::Arc;
 use poise::Framework;
 
 use ::serenity::all::GatewayIntents;
-use ::serenity::gateway::ShardManager;
 use sqlx::SqlitePool;
-use tokio::time::{Instant, Duration};
-use tracing::{debug, error, subscriber, level_filters::LevelFilter, info};
+use tokio::time::Instant;
+use tracing::{error, info, level_filters::LevelFilter, subscriber};
 use tracing_subscriber::{fmt::Subscriber, EnvFilter};
 
 pub struct Data {
@@ -56,13 +55,12 @@ pub async fn main() {
         }
     };
     let intents = initialise_intents();
-
     let framework = framework::initialise_framework(data).await;
 
     let mut client = initialise_client(token, intents, framework).await;
 
-    let manager = client.shard_manager.clone();
-    tokio::spawn(monitor_shards(manager, 300));
+    // let manager = client.shard_manager.clone();
+    // tokio::spawn(monitor_shards(manager, 300));
 
     info!("Starting client...");
     if let Err(why) = client.start_autosharded().await {
@@ -71,23 +69,23 @@ pub async fn main() {
     }
 }
 
-async fn monitor_shards(manager: Arc<ShardManager>, seconds: u64) {
-    if seconds < 30 || seconds > 300 {
-        error!("Interval must be between 30 and 300 seconds");
-        return;
-    }
+// async fn monitor_shards(manager: Arc<ShardManager>, seconds: u64) {
+//     if seconds < 30 || seconds > 300 {
+//         error!("Interval must be between 30 and 300 seconds");
+//         return;
+//     }
 
-    loop {
-        tokio::time::sleep(Duration::from_secs(seconds)).await;
+//     loop {
+//         tokio::time::sleep(Duration::from_secs(seconds)).await;
 
-        let runners = manager.runners.lock().await;
-        for (id, runner) in runners.iter() {
-            let stage = runner.stage;
-            let latency = runner.latency;
-            debug!("Shard {id} is {stage} with latency of {latency:.2?}");
-        }
-    }
-}
+//         let runners = manager.runners.lock().await;
+//         for (id, runner) in runners.iter() {
+//             let stage = runner.stage;
+//             let latency = runner.latency;
+//             debug!("Shard {id} is {stage} with latency of {latency:.2?}");
+//         }
+//     }
+// }
 
 async fn initialise_client(
     token: String,
