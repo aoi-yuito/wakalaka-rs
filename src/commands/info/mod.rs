@@ -16,7 +16,6 @@
 use ::serenity::builder::CreateEmbed;
 use poise::CreateReply;
 use serenity::{builder::{CreateEmbedAuthor, CreateEmbedFooter}, all::colours::branding, model::Colour};
-use tracing::error;
 
 use crate::{Context, Error};
 
@@ -34,8 +33,7 @@ pub(crate) async fn info(ctx: Context<'_>) -> Result<(), Error> {
     let current_user = match ctx.http().get_current_user().await {
         Ok(value) => value,
         Err(why) => {
-            error!("Couldn't get information about current user");
-            return Err(why.into());
+            return Err(format!("Couldn't get information of current user: {why:?}").into());
         }
     };
     let current_user_avatar_url = match current_user.avatar_url() {

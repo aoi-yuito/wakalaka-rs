@@ -26,7 +26,7 @@ pub(crate) async fn purge(ctx: Context<'_>,
     count: u8,
 ) -> Result<(), Error> {
     if count < 1 || count > 100 {
-        let message = format!("Sorry, but you can only delete between  and 100 messages at a time.");
+        let message = format!("Sorry, but you can only delete between 1 and 100 messages at a time.");
         let _ = ctx.reply(message).await;
 
         return Ok(());

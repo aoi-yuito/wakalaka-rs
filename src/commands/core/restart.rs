@@ -20,7 +20,7 @@ use crate::{Context, Error};
 /// Restarts yours truly.
 #[poise::command(slash_command, owners_only)]
 pub(crate) async fn restart(ctx: Context<'_>) -> Result<(), Error> {
-    let message = "Restarting...";
+    let message = "Restarting yours truly...";
     let _ = ctx.reply(message).await;
 
     let shard_manager = ctx.framework().shard_manager.clone();

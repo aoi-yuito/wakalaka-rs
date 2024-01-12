@@ -41,12 +41,17 @@ pub(crate) async fn suggest(
 
     let guild_id = match ctx.guild_id() {
         Some(value) => value,
-        None => return Ok(()),
+        None => {
+            error!("Couldn't get guild ID");
+            return Ok(());
+        }
     };
 
     let guild_channels = match ctx.http().get_channels(guild_id).await {
         Ok(value) => value,
-        Err(why) => return Err(why.into()),
+        Err(why) => {
+            return Err(format!("Couldn't get channels in guild: {why:?}").into());
+        }
     };
 
     let suggestions_channel = guild_channels
@@ -65,18 +70,21 @@ pub(crate) async fn suggest(
             .create_permission(&ctx.http(), permissions)
             .await
         {
-            error!("Couldn't create permission overwrite for #suggestions");
-            return Err(why.into());
+            return Err(
+                format!("Couldn't create permission overwrite for #suggestions: {why:?}").into(),
+            );
         }
 
-        let user_name = &ctx.author().name;
-        let user_avatar_url = match ctx.author().avatar_url() {
-            Some(url) => url,
-            None => ctx.author().default_avatar_url(),
-        };
+        let (user_name, user_avatar_url) = (
+            &ctx.author().name,
+            match ctx.author().avatar_url() {
+                Some(url) => url,
+                None => ctx.author().default_avatar_url(),
+            },
+        );
 
         let embed = embed(
-            suggestion_id.fetch_add(1, Ordering::Relaxed), 
+            suggestion_id.fetch_add(1, Ordering::Relaxed),
             user_name,
             user_avatar_url,
             message,
@@ -88,8 +96,7 @@ pub(crate) async fn suggest(
         {
             Ok(value) => value,
             Err(why) => {
-                error!("Couldn't send message in #suggestions");
-                return Err(why.into());
+                return Err(format!("Couldn't send message in #suggestions: {why:?}").into());
             }
         };
 
