@@ -13,19 +13,30 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
+use poise::serenity_prelude::Context;
 use serenity::all::GuildId;
 use tracing::error;
 
-use crate::serenity::Context;
+use crate::Data;
 
-pub(super) async fn handle(guild_ids: &Vec<GuildId>, ctx: &Context) {
-    for guild_id in guild_ids {
-        let _guild = match guild_id.to_guild_cached(&ctx.cache) {
-            Some(guild) => guild,
+pub(super) async fn handle(guild_ids: &Vec<GuildId>, ctx: &Context, data: &Data) {
+    let database = &data.pool;
+
+    let guild = {
+        let first_guild_id = guild_ids.first().unwrap();
+        match first_guild_id.to_guild_cached(&ctx) {
+            Some(guild) => guild.clone(),
             None => {
-                error!("Couldn't find guild in cache");
-                continue;
-            },
-        };
-    }
+                error!("Couldn't get first guild from cache");
+                return;
+            }
+        }
+    };
+    let guild_channels = match guild.channels(&ctx).await {
+        Ok(guild_channel) => guild_channel,
+        Err(why) => {
+            error!("Couldn't get guild channels: {why:?}");
+            return;
+        }
+    };
 }
