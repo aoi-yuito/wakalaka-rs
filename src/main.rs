@@ -18,7 +18,6 @@ mod database;
 mod framework;
 
 use std::sync::atomic::AtomicUsize;
-use std::sync::Arc;
 
 use poise::Framework;
 
@@ -54,38 +53,16 @@ pub async fn main() {
             return;
         }
     };
-    let intents = initialise_intents();
+    let intents = framework::initialise_intents();
     let framework = framework::initialise_framework(data).await;
 
     let mut client = initialise_client(token, intents, framework).await;
-
-    // let manager = client.shard_manager.clone();
-    // tokio::spawn(monitor_shards(manager, 300));
-
     info!("Starting client...");
     if let Err(why) = client.start_autosharded().await {
         error!("Couldn't start client: {why:?}");
         return;
     }
 }
-
-// async fn monitor_shards(manager: Arc<ShardManager>, seconds: u64) {
-//     if seconds < 30 || seconds > 300 {
-//         error!("Interval must be between 30 and 300 seconds");
-//         return;
-//     }
-
-//     loop {
-//         tokio::time::sleep(Duration::from_secs(seconds)).await;
-
-//         let runners = manager.runners.lock().await;
-//         for (id, runner) in runners.iter() {
-//             let stage = runner.stage;
-//             let latency = runner.latency;
-//             debug!("Shard {id} is {stage} with latency of {latency:.2?}");
-//         }
-//     }
-// }
 
 async fn initialise_client(
     token: String,
@@ -109,22 +86,6 @@ async fn initialise_client(
     info!("Initialised client in {elapsed_time:.2?}");
 
     client
-}
-
-fn initialise_intents() -> GatewayIntents {
-    let start_time = Instant::now();
-
-    let intents = GatewayIntents::non_privileged()
-        | GatewayIntents::GUILDS
-        | GatewayIntents::GUILD_MEMBERS
-        | GatewayIntents::GUILD_MODERATION
-        | GatewayIntents::GUILD_MESSAGES
-        | GatewayIntents::MESSAGE_CONTENT;
-
-    let elapsed_time = start_time.elapsed();
-    info!("Initialised intents in {elapsed_time:.2?}");
-
-    intents
 }
 
 fn initialise_subscriber() {
