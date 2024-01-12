@@ -13,64 +13,52 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-use std::ops::ControlFlow;
-
+use poise::serenity_prelude::Context;
 use serenity::all::Guild;
-use sqlx::{Pool, Sqlite};
-use tracing::{error, info};
+use sqlx::SqlitePool;
+use tracing::error;
 
-use crate::{serenity::Context, Data};
+use crate::Data;
 
 pub(crate) async fn handle(guild: &Guild, is_new: bool, ctx: &Context, data: &Data) {
-    // if !is_new {
-    //     return;
-    // }
-
-    let database = &data.database;
-
-    if let ControlFlow::Break(_) = insert_into_guilds(ctx, guild, database).await {
+    if !is_new {
         return;
+    }
+
+    let pool = &data.pool;
+
+    let (guild_id, guild_owner_id, guild_preferred_locale) = (
+        i64::from(guild.id),
+        i64::from(guild.owner_id),
+        guild.preferred_locale.clone(),
+    );
+    let guild_owner_locale = match guild.owner_id.to_user(&ctx.http).await {
+        Ok(user) => user.locale,
+        Err(why) => {
+            error!("Failed to get guild owner's locale: {why:?}");
+            return;
+        }
+    };
+
+    insert_users(guild_owner_id, guild_owner_locale, pool).await;
+    insert_guilds(guild_id, guild_owner_id, guild_preferred_locale, pool).await;
+}
+
+async fn insert_guilds(id: i64, owner_id: i64, preferred_locale: String, pool: &SqlitePool) {
+    let guild_query = sqlx::query(
+        "INSERT INTO guilds (id, owner_id, preferred_locale) VALUES (?, ?, ?) ON CONFLICT (id) DO NOTHING",
+    ).bind(id).bind(owner_id).bind(preferred_locale);
+    if let Err(why) = guild_query.execute(pool).await {
+        error!("Couldn't add guild to database: {why:?}");
     }
 }
 
-async fn insert_into_guilds(
-    ctx: &Context,
-    guild: &Guild,
-    database: &Pool<Sqlite>,
-) -> ControlFlow<()> {
-    let (guild_id, guild_owner_id, guild_unavailable) = {
-        let guild = {
-            match ctx.cache.guild(guild.id) {
-                Some(guild) => guild,
-                None => {
-                    error!("Couldn't get guild from cache");
-                    return ControlFlow::Break(());
-                }
-            }
-        };
-
-        let guild_id = i64::from(guild.id);
-        let guild_owner_id = i64::from(guild.owner_id);
-        let guild_unavailable = guild.unavailable;
-        (guild_id, guild_owner_id, guild_unavailable)
-    };
-    let query = sqlx::query!(
-        "INSERT INTO Guilds (id, ownerId, isUnavailable) VALUES (?, ?, ?)",
-        guild_id,
-        guild_owner_id,
-        guild_unavailable,
-    )
-    .execute(database)
-    .await;
-
-    match query {
-        Ok(_) => {
-            info!("Inserted guild(s) into database");
-        }
-        Err(why) => {
-            error!("Couldn't insert guild(s) into database");
-            panic!("{why:?}");
-        }
+async fn insert_users(id: i64, locale: Option<String>, pool: &SqlitePool) {
+    let user_query =
+        sqlx::query("INSERT INTO users (id, locale) VALUES (?, ?) ON CONFLICT (id) DO NOTHING")
+            .bind(id)
+            .bind(locale);
+    if let Err(why) = user_query.execute(pool).await {
+        error!("Couldn't add user to database: {why:?}");
     }
-    ControlFlow::Continue(())
 }
