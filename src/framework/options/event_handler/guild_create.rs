@@ -14,9 +14,10 @@
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
 use poise::serenity_prelude::Context;
-use serenity::all::Guild;
+use serenity::all::{Guild, GuildChannel};
 use sqlx::SqlitePool;
-use tracing::error;
+use tokio::time::Instant;
+use tracing::{error, info};
 
 use crate::Data;
 
@@ -27,38 +28,96 @@ pub(crate) async fn handle(guild: &Guild, is_new: bool, ctx: &Context, data: &Da
 
     let pool = &data.pool;
 
-    let (guild_id, guild_owner_id, guild_preferred_locale) = (
+    let (guild_id, guild_owner_id, guild_owner_locale, guild_preferred_locale) = (
         i64::from(guild.id),
         i64::from(guild.owner_id),
+        match guild.owner_id.to_user(&ctx.http).await {
+            Ok(user) => user.locale,
+            Err(why) => {
+                error!("Couldn't get guild owner's locale: {why:?}");
+                return;
+            }
+        },
         guild.preferred_locale.clone(),
     );
-    let guild_owner_locale = match guild.owner_id.to_user(&ctx.http).await {
-        Ok(user) => user.locale,
+    let channels = match guild.channels(&ctx.http).await {
+        Ok(channels) => channels,
         Err(why) => {
-            error!("Failed to get guild owner's locale: {why:?}");
+            error!("Couldn't get guild channels: {why:?}");
+            return;
+        }
+    };
+    let guild_channels = channels
+        .into_iter()
+        .map(|(_, channel)| channel)
+        .collect::<Vec<GuildChannel>>();
+
+    insert_users(guild_owner_id, guild_owner_locale, pool).await;
+    insert_guilds(guild_id, guild_owner_id, guild_preferred_locale, pool).await;
+    insert_channels(guild_id, guild_channels, pool).await;
+}
+
+async fn insert_channels(guild_id: i64, channels: Vec<GuildChannel>, pool: &SqlitePool) {
+    let start_time = Instant::now();
+
+    let transaction = match pool.begin().await {
+        Ok(transaction) => transaction,
+        Err(why) => {
+            error!("Couldn't begin transaction: {why:?}");
             return;
         }
     };
 
-    insert_users(guild_owner_id, guild_owner_locale, pool).await;
-    insert_guilds(guild_id, guild_owner_id, guild_preferred_locale, pool).await;
+    for channel in channels {
+        let channel_id = i64::from(channel.id);
+        let channel_kind = channel.kind.clone();
+        let channel_type = channel_kind.name();
+        let rate_limit_per_user = channel.rate_limit_per_user.unwrap_or(0);
+
+        let channel_query = sqlx::query(
+            "INSERT INTO channels (id, type, guild_id, rate_limit_per_user) VALUES (?, ?, ?, ?) ON CONFLICT (id) DO NOTHING",
+        )
+        .bind(channel_id)
+        .bind(channel_type)
+        .bind(guild_id)
+        .bind(rate_limit_per_user);
+
+        if let Err(why) = channel_query.execute(pool).await {
+            error!("Couldn't insert channel(s) to database: {why:?}");
+        }
+    }
+
+    transaction.commit().await.unwrap();
+
+    let elapsed_time = start_time.elapsed();
+    info!("Inserted channel(s) to database in {elapsed_time:?}");
 }
 
 async fn insert_guilds(id: i64, owner_id: i64, preferred_locale: String, pool: &SqlitePool) {
+    let start_time = Instant::now();
+
     let guild_query = sqlx::query(
         "INSERT INTO guilds (id, owner_id, preferred_locale) VALUES (?, ?, ?) ON CONFLICT (id) DO NOTHING",
     ).bind(id).bind(owner_id).bind(preferred_locale);
     if let Err(why) = guild_query.execute(pool).await {
-        error!("Couldn't add guild to database: {why:?}");
+        error!("Couldn't insert guild to database: {why:?}");
+    } else {
+        let elapsed_time = start_time.elapsed();
+        info!("Inserted guild(s) to database in {elapsed_time:?}");
     }
 }
 
 async fn insert_users(id: i64, locale: Option<String>, pool: &SqlitePool) {
+    let start_time = Instant::now();
+
     let user_query =
         sqlx::query("INSERT INTO users (id, locale) VALUES (?, ?) ON CONFLICT (id) DO NOTHING")
             .bind(id)
             .bind(locale);
     if let Err(why) = user_query.execute(pool).await {
-        error!("Couldn't add user to database: {why:?}");
+        error!("Couldn't insert user to database: {why:?}");
+    } else {
+        let elapsed_time = start_time.elapsed();
+        info!("Inserted user(s) to database in {elapsed_time:?}");
     }
 }
