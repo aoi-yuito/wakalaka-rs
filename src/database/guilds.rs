@@ -13,7 +13,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-use serenity::all::GuildChannel;
+use serenity::all::{GuildChannel, Member};
 use sqlx::SqlitePool;
 use tokio::time::Instant;
 use tracing::{error, info};
@@ -48,10 +48,13 @@ pub(crate) async fn update_channels(guild_id: i64, channels: Vec<GuildChannel>, 
         }
     }
 
-    transaction.commit().await.unwrap();
-
-    let elapsed_time = start_time.elapsed();
-    info!("Updated channel(s) in database in {elapsed_time:?}");
+    if let Err(why) = transaction.commit().await {
+        error!("Couldn't commit transaction: {why:?}");
+        return;
+    } else {
+        let elapsed_time = start_time.elapsed();
+        info!("Updated channel(s) in database in {elapsed_time:.2?}");
+    }
 }
 
 pub(crate) async fn update_guilds(
@@ -71,21 +74,40 @@ pub(crate) async fn update_guilds(
         error!("Couldn't update guild in database: {why:?}");
     } else {
         let elapsed_time = start_time.elapsed();
-        info!("Updated guild(s) in database in {elapsed_time:?}");
+        info!("Updated guild(s) in database in {elapsed_time:.2?}");
     }
 }
 
-pub(crate) async fn update_users(id: i64, locale: Option<String>, pool: &SqlitePool) {
+pub(crate) async fn update_users(users: Vec<Member>, pool: &SqlitePool) {
     let start_time = Instant::now();
 
-    let user_query = sqlx::query("UPDATE users SET locale = ? WHERE id = ?")
-        .bind(locale)
-        .bind(id);
-    if let Err(why) = user_query.execute(pool).await {
-        error!("Couldn't update user in database: {why:?}");
+    let transaction = match pool.begin().await {
+        Ok(transaction) => transaction,
+        Err(why) => {
+            error!("Couldn't begin transaction: {why:?}");
+            return;
+        }
+    };
+
+    for user in users {
+        if user.user.bot {
+            continue;
+        }
+
+        let user_id = i64::from(user.user.id);
+
+        let user_query = sqlx::query("UPDATE users SET id = ? WHERE id = ?").bind(user_id);
+        if let Err(why) = user_query.execute(pool).await {
+            error!("Couldn't update user(s) in database: {why:?}");
+        }
+    }
+
+    if let Err(why) = transaction.commit().await {
+        error!("Couldn't commit transaction: {why:?}");
+        return;
     } else {
         let elapsed_time = start_time.elapsed();
-        info!("Updated user(s) in database in {elapsed_time:?}");
+        info!("Updated user(s) in database in {elapsed_time:.2?}");
     }
 }
 
@@ -119,10 +141,13 @@ pub(crate) async fn insert_channels(guild_id: i64, channels: Vec<GuildChannel>, 
         }
     }
 
-    transaction.commit().await.unwrap();
-
-    let elapsed_time = start_time.elapsed();
-    info!("Inserted channel(s) to database in {elapsed_time:?}");
+    if let Err(why) = transaction.commit().await {
+        error!("Couldn't commit transaction: {why:?}");
+        return;
+    } else {
+        let elapsed_time = start_time.elapsed();
+        info!("Inserted channel(s) to database in {elapsed_time:.2?}");
+    }
 }
 
 pub(crate) async fn insert_guilds(
@@ -140,21 +165,41 @@ pub(crate) async fn insert_guilds(
         error!("Couldn't insert guild to database: {why:?}");
     } else {
         let elapsed_time = start_time.elapsed();
-        info!("Inserted guild(s) to database in {elapsed_time:?}");
+        info!("Inserted guild(s) to database in {elapsed_time:.2?}");
     }
 }
 
-pub(crate) async fn insert_users(id: i64, locale: Option<String>, pool: &SqlitePool) {
+pub(crate) async fn insert_users(users: Vec<Member>, pool: &SqlitePool) {
     let start_time = Instant::now();
 
-    let user_query =
-        sqlx::query("INSERT INTO users (id, locale) VALUES (?, ?) ON CONFLICT (id) DO NOTHING")
-            .bind(id)
-            .bind(locale);
-    if let Err(why) = user_query.execute(pool).await {
-        error!("Couldn't insert user to database: {why:?}");
+    let transaction = match pool.begin().await {
+        Ok(transaction) => transaction,
+        Err(why) => {
+            error!("Couldn't begin transaction: {why:?}");
+            return;
+        }
+    };
+
+    for user in users {
+        if user.user.bot {
+            continue;
+        }
+
+        let user_id = i64::from(user.user.id);
+
+        let user_query =
+            sqlx::query("INSERT INTO users (id) VALUES (?) ON CONFLICT (id) DO NOTHING")
+                .bind(user_id);
+        if let Err(why) = user_query.execute(pool).await {
+            error!("Couldn't insert user(s) to database: {why:?}");
+        }
+    }
+
+    if let Err(why) = transaction.commit().await {
+        error!("Couldn't commit transaction: {why:?}");
+        return;
     } else {
         let elapsed_time = start_time.elapsed();
-        info!("Inserted user(s) to database in {elapsed_time:?}");
+        info!("Inserted user(s) to database in {elapsed_time:.2?}");
     }
 }
