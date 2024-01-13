@@ -14,8 +14,8 @@
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.\
 
 mod core;
-mod info;
 mod fun;
+mod info;
 mod misc;
 mod moderator;
 
