@@ -15,7 +15,11 @@
 
 use ::serenity::builder::CreateEmbed;
 use poise::CreateReply;
-use serenity::{builder::{CreateEmbedAuthor, CreateEmbedFooter}, all::colours::branding, model::Colour};
+use serenity::{
+    all::colours::branding,
+    builder::{CreateEmbedAuthor, CreateEmbedFooter},
+    model::Colour,
+};
 
 use crate::{Context, Error};
 
@@ -30,22 +34,18 @@ const GITHUB_URL: &str = "https://github.com/Kawaxte";
 /// Fetches basic information about yours truly.
 #[poise::command(slash_command)]
 pub(crate) async fn info(ctx: Context<'_>) -> Result<(), Error> {
-    let current_user = match ctx.http().get_current_user().await {
+    let bot = match ctx.http().get_current_user().await {
         Ok(value) => value,
         Err(why) => {
             return Err(format!("Couldn't get information of current user: {why:?}").into());
         }
     };
-    let current_user_avatar_url = match current_user.avatar_url() {
+    let bot_avatar_url = match bot.avatar_url() {
         Some(avatar_url) => avatar_url,
-        None => current_user.default_avatar_url(),
-    };
-    let current_user_accent_colour = match current_user.accent_colour {
-        Some(colour) => colour,
-        None => branding::BLURPLE,
+        None => bot.default_avatar_url(),
     };
 
-    let embed = embed(&current_user_avatar_url, current_user_accent_colour);
+    let embed = embed(&bot_avatar_url, branding::BLURPLE);
     let reply = CreateReply {
         content: None,
         embeds: vec![embed],
