@@ -35,31 +35,21 @@ pub(crate) async fn handle(
             return;
         }
     };
-    let (guild_id, guild_owner_id, guild_owner_locale, guild_preferred_locale) = (
-        i64::from(guild.id),
-        i64::from(guild.owner_id),
-        match guild.owner_id.to_user(&ctx.http).await {
-            Ok(user) => user.locale,
-            Err(why) => {
-                error!("Couldn't get old guild owner's locale: {why:?}");
-                return;
-            }
-        },
-        guild.preferred_locale.clone(),
-    );
 
-    let (new_guild_id, new_guild_owner_id, new_guild_owner_locale, new_guild_preferred_locale) = (
+    let (new_guild_id, new_guild_owner_id, new_guild_preferred_locale) = (
         i64::from(new_guild.id),
         i64::from(new_guild.owner_id),
-        match new_guild.owner_id.to_user(&ctx.http).await {
-            Ok(user) => user.locale,
-            Err(why) => {
-                error!("Couldn't get new guild owner's locale: {why:?}");
-                return;
-            }
-        },
         new_guild.preferred_locale.clone(),
     );
+
+    let guild_users = match guild.members(&ctx.http, None, None).await {
+        Ok(users) => users,
+        Err(why) => {
+            error!("Couldn't get old guild members: {why:?}");
+            return;
+        }
+    };
+
     let new_channels = match new_guild.channels(&ctx.http).await {
         Ok(channels) => channels,
         Err(why) => {
@@ -72,18 +62,7 @@ pub(crate) async fn handle(
         .map(|(_, channel)| channel)
         .collect::<Vec<GuildChannel>>();
 
-    check_mismatch(
-        guild_id,
-        new_guild_id,
-        guild_owner_id,
-        new_guild_owner_id,
-        guild_owner_locale,
-        new_guild_owner_locale.clone(),
-        guild_preferred_locale,
-        new_guild_preferred_locale.clone(),
-    );
-
-    guilds::update_users(new_guild_owner_id, new_guild_owner_locale, database).await;
+    guilds::update_users(guild_users, database).await;
     guilds::update_guilds(
         new_guild_id,
         new_guild_owner_id,
@@ -92,28 +71,4 @@ pub(crate) async fn handle(
     )
     .await;
     guilds::update_channels(new_guild_id, new_guild_channels, database).await;
-}
-
-fn check_mismatch(
-    id: i64,
-    new_id: i64,
-    owner_id: i64,
-    new_owner_id: i64,
-    locale: Option<String>,
-    new_locale: Option<String>,
-    preferred_locale: String,
-    new_preferred_locale: String,
-) {
-    if id != new_id {
-        warn!("Mismatched guild ID(s)");
-    }
-    if owner_id != new_owner_id {
-        warn!("Mismatched guild owner ID(s)");
-    }
-    if locale != new_locale {
-        warn!("Mismatched guild owner locale(s)");
-    }
-    if preferred_locale != new_preferred_locale {
-        warn!("Mismatched guild preferred locale(s)");
-    }
 }
