@@ -44,7 +44,7 @@ pub(crate) async fn initialise() -> SqlitePool {
     }
 
     let elapsed_time = start_time.elapsed();
-    debug!("Initialised database in {elapsed_time:?}");
+    debug!("Initialised database in {elapsed_time:.2?}");
 
     pool
 }
@@ -55,7 +55,7 @@ async fn migrate(pool: &SqlitePool) -> Result<(), sqlx::Error> {
     match sqlx::migrate!("./migrations").run(pool).await {
         Ok(_) => {
             let elapsed_time = start_time.elapsed();
-            info!("Migrated database in {elapsed_time:?}");
+            info!("Migrated database in {elapsed_time:.2?}");
             Ok(())
         }
         Err(why) => {
@@ -75,7 +75,7 @@ async fn connect() -> Result<SqlitePool, sqlx::Error> {
     {
         Ok(pool) => {
             let elapsed_time = start_time.elapsed();
-            info!("Connected to database in {elapsed_time:?}");
+            info!("Connected to database in {elapsed_time:.2?}");
             Ok(pool)
         }
         Err(why) => {
