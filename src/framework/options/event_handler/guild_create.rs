@@ -22,18 +22,20 @@ use crate::{database::guilds, Data};
 pub(crate) async fn handle(guild: &Guild, is_new: bool, ctx: &Context, data: &Data) {
     let pool = &data.pool;
 
-    let (guild_id, guild_owner_id, guild_owner_locale, guild_preferred_locale) = (
+    let (guild_id, guild_owner_id, guild_preferred_locale) = (
         i64::from(guild.id),
         i64::from(guild.owner_id),
-        match guild.owner_id.to_user(&ctx.http).await {
-            Ok(user) => user.locale,
-            Err(why) => {
-                error!("Couldn't get guild owner's locale: {why:?}");
-                return;
-            }
-        },
         guild.preferred_locale.clone(),
     );
+
+    let users = match guild.members(&ctx.http, None, None).await {
+        Ok(users) => users,
+        Err(why) => {
+            error!("Couldn't get guild members: {why:?}");
+            return;
+        }
+    };
+
     let channels = match guild.channels(&ctx.http).await {
         Ok(channels) => channels,
         Err(why) => {
@@ -47,11 +49,11 @@ pub(crate) async fn handle(guild: &Guild, is_new: bool, ctx: &Context, data: &Da
         .collect::<Vec<GuildChannel>>();
 
     if is_new {
-        guilds::insert_users(guild_owner_id, guild_owner_locale, pool).await;
+        guilds::insert_users(users, pool).await;
         guilds::insert_guilds(guild_id, guild_owner_id, guild_preferred_locale, pool).await;
         guilds::insert_channels(guild_id, guild_channels, pool).await;
     } else {
-        guilds::update_users(guild_owner_id, guild_owner_locale, pool).await;
+        guilds::update_users(users, pool).await;
         guilds::update_guilds(guild_id, guild_owner_id, guild_preferred_locale, pool).await;
         guilds::update_channels(guild_id, guild_channels, pool).await;
     }
