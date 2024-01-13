@@ -17,13 +17,9 @@ use poise::serenity_prelude::Context;
 use serenity::all::{Guild, GuildChannel};
 use tracing::error;
 
-use crate::{Data, database::guilds};
+use crate::{database::guilds, Data};
 
 pub(crate) async fn handle(guild: &Guild, is_new: bool, ctx: &Context, data: &Data) {
-    if !is_new {
-        return;
-    }
-
     let pool = &data.pool;
 
     let (guild_id, guild_owner_id, guild_owner_locale, guild_preferred_locale) = (
@@ -50,7 +46,13 @@ pub(crate) async fn handle(guild: &Guild, is_new: bool, ctx: &Context, data: &Da
         .map(|(_, channel)| channel)
         .collect::<Vec<GuildChannel>>();
 
-    guilds::insert_users(guild_owner_id, guild_owner_locale, pool).await;
-    guilds::insert_guilds(guild_id, guild_owner_id, guild_preferred_locale, pool).await;
-    guilds::insert_channels(guild_id, guild_channels, pool).await;
+    if is_new {
+        guilds::insert_users(guild_owner_id, guild_owner_locale, pool).await;
+        guilds::insert_guilds(guild_id, guild_owner_id, guild_preferred_locale, pool).await;
+        guilds::insert_channels(guild_id, guild_channels, pool).await;
+    } else {
+        guilds::update_users(guild_owner_id, guild_owner_locale, pool).await;
+        guilds::update_guilds(guild_id, guild_owner_id, guild_preferred_locale, pool).await;
+        guilds::update_channels(guild_id, guild_channels, pool).await;
+    }
 }
