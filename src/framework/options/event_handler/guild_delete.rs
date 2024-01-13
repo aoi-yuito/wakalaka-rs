@@ -13,14 +13,20 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-use serenity::all::{Guild, UnavailableGuild};
+use serenity::all::Guild;
 
 use crate::Data;
 
-pub(crate) async fn handle(
-    unavailable_guild: &UnavailableGuild,
-    guild: &Option<Guild>,
-    data: &Data,
-) {
-    let database = &data.pool;
+pub(crate) async fn handle(_: &Option<Guild>, _: &Data) {
+    // let pool = &data.pool;
+
+    // let guild = match guild {
+    //     Some(guild) => guild,
+    //     None => {
+    //         error!("Couldn't get guild from unavailable guild");
+    //         return;
+    //     }
+    // };
+    // let (guild_id, guild_owner_id) = 
+    //     (i64::from(guild.id), i64::from(guild.owner_id));
 }
