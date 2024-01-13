@@ -58,7 +58,7 @@ pub async fn main() {
 
     let mut client = initialise_client(token, intents, framework).await;
     info!("Starting client...");
-    if let Err(why) = client.start_autosharded().await {
+    if let Err(why) = client.start().await {
         error!("Couldn't start client: {why:?}");
         return;
     }
@@ -112,11 +112,10 @@ fn initialise_subscriber() {
         .with_env_filter(filter)
         .compact()
         .finish();
-
     match subscriber::set_global_default(subscriber) {
         Ok(_) => (),
         Err(_) => {
-            error!("Couldn't set custom global subscriber, setting default global...");
+            error!("Couldn't set custom subscriber, setting default...");
 
             let default_subscriber = Subscriber::default();
             let _ = subscriber::set_global_default(default_subscriber);
