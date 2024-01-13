@@ -26,8 +26,8 @@ mod ready;
 use poise::serenity_prelude::FullEvent;
 use poise::FrameworkContext;
 
-use poise::serenity_prelude::Context;
 use crate::{Data, Error};
+use poise::serenity_prelude::Context;
 
 pub(crate) async fn handle(
     ctx: &Context,
@@ -51,8 +51,11 @@ pub(crate) async fn handle(
         FullEvent::GuildCreate { guild, is_new } => {
             guild_create::handle(guild, is_new.is_some(), ctx, data).await;
         }
-        FullEvent::GuildDelete { incomplete, full } => {
-            guild_delete::handle(incomplete, full, data).await;
+        FullEvent::GuildDelete {
+            incomplete: _,
+            full,
+        } => {
+            guild_delete::handle(full, data).await;
         }
         FullEvent::GuildUpdate {
             old_data_if_available,
