@@ -14,7 +14,7 @@
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
 use poise::CreateReply;
-use serenity::builder::{EditMessage, GetMessages};
+use serenity::builder::GetMessages;
 use tracing::{error, info};
 
 use crate::{Context, Error};
