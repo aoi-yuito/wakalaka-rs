@@ -20,15 +20,15 @@ mod channel_update;
 mod guild_create;
 mod guild_delete;
 mod guild_update;
+mod interaction_create;
 mod message;
 mod message_delete;
 mod ready;
 
-use poise::serenity_prelude::FullEvent;
+use poise::serenity_prelude::{Context, FullEvent};
 use poise::FrameworkContext;
 
 use crate::{Data, Error};
-use poise::serenity_prelude::Context;
 
 pub(crate) async fn handle(
     ctx: &Context,
@@ -72,7 +72,11 @@ pub(crate) async fn handle(
             deleted_message_id,
             guild_id,
         } => {
-            message_delete::handle_delete(channel_id, deleted_message_id, guild_id, ctx, data).await;
+            message_delete::handle_delete(channel_id, deleted_message_id, guild_id, ctx, data)
+                .await;
+        }
+        FullEvent::InteractionCreate { interaction, .. } => {
+            interaction_create::handle_create(interaction, ctx, data).await;
         }
         _ => {}
     }
