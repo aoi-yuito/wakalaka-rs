@@ -17,19 +17,16 @@ mod commands;
 mod database;
 mod framework;
 
-use std::sync::atomic::AtomicUsize;
-
 use poise::Framework;
 
 use ::serenity::all::GatewayIntents;
 use sqlx::SqlitePool;
 use tokio::time::Instant;
-use tracing::{error, info, level_filters::LevelFilter, subscriber};
+use tracing::{error, info, level_filters::LevelFilter, subscriber, warn};
 use tracing_subscriber::{fmt::Subscriber, EnvFilter};
 
 pub struct Data {
     pub pool: SqlitePool,
-    pub suggestion_id: AtomicUsize,
 }
 
 type Error = Box<dyn std::error::Error + Send + Sync>;
@@ -43,7 +40,6 @@ pub async fn main() {
 
     let data = Data {
         pool: pool.clone(),
-        suggestion_id: AtomicUsize::new(1),
     };
 
     let token = match dotenvy::var("TOKEN") {
@@ -94,7 +90,7 @@ fn initialise_subscriber() {
     let rust_log = match dotenvy::var("RUST_LOG") {
         Ok(level) => level,
         Err(_) => {
-            error!("Couldn't get log level from environment, setting default...");
+            warn!("Couldn't get log level from environment, setting default...");
             "info".to_string()
         }
     };
@@ -115,7 +111,7 @@ fn initialise_subscriber() {
     match subscriber::set_global_default(subscriber) {
         Ok(_) => (),
         Err(_) => {
-            error!("Couldn't set custom subscriber, setting default...");
+            warn!("Couldn't set custom subscriber, setting default...");
 
             let default_subscriber = Subscriber::default();
             let _ = subscriber::set_global_default(default_subscriber);
