@@ -65,12 +65,17 @@ fn embed(
     latency: Option<Duration>,
 ) -> CreateEmbed {
     if latency.is_some() {
+        let latency = match latency {
+            Some(value) => value.as_millis(),
+            None => 0,
+        };
+
         CreateEmbed::default()
             .title("Pong!")
             .author(embed_author(icon_url))
             .field(
                 "Shards",
-                format!("{shard_id} ({stage}, {latency:.2?})"),
+                format!("{shard_id} ({stage}, {latency:.2?}ms)"),
                 true,
             )
             .field("Response", format!("{elapsed_time:.2?}"), true)
