@@ -17,6 +17,6 @@ use serenity::all::GuildChannel;
 
 use crate::Data;
 
-pub(crate) async fn handle_create(channel: &GuildChannel, data: &Data) {
-    let pool = &data.pool;
+pub(crate) async fn handle_create(_channel: &GuildChannel, data: &Data) {
+    let _pool = &data.pool;
 }

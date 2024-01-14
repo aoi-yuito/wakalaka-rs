@@ -18,6 +18,6 @@ use serenity::all::GuildId;
 
 use crate::Data;
 
-pub(super) async fn cache_handle(guild_ids: &Vec<GuildId>, ctx: &Context, data: &Data) {
-    let pool = &data.pool;
+pub(super) async fn cache_handle(_guild_ids: &Vec<GuildId>, _ctx: &Context, data: &Data) {
+    let _pool = &data.pool;
 }

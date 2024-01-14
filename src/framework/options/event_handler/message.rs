@@ -18,5 +18,6 @@ use serenity::all::Message;
 
 use crate::Data;
 
-pub(crate) async fn handle(msg: &Message, ctx: &Context, data: &Data) {
+pub(crate) async fn handle(_msg: &Message, _ctx: &Context, data: &Data) {
+    let _pool = &data.pool;
 }
