@@ -39,20 +39,20 @@ pub(crate) async fn purge(ctx: Context<'_>,
     let channel_id = ctx.channel_id();
     let channel_name = channel_id.name(&ctx.http()).await?;
 
-    let mut deleted_messages_count = 0;
+    let mut number_of_deleted_messages = 0;
 
     let messages = GetMessages::default().limit(count);
     let channel_messages = channel_id.messages(&http, messages).await?;
     for channel_message in channel_messages {
         channel_message.delete(&http).await?;
 
-        deleted_messages_count += 1;
+        number_of_deleted_messages += 1;
     }
 
-    info!("@{user_name} deleted {deleted_messages_count} message(s) from #{channel_name}");
+    info!("@{user_name} deleted {number_of_deleted_messages} message(s) from #{channel_name}");
 
     let reply = CreateReply {
-        content: Some(format!("Deleted {deleted_messages_count} message(s).")),
+        content: Some(format!("Deleted {number_of_deleted_messages} message(s).")),
         ephemeral: Some(true),
         ..Default::default()
     };

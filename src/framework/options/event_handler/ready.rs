@@ -22,8 +22,8 @@ pub(super) fn handle(_: &Ready, ctx: &Context) {
 }
 
 fn set_activity(ctx: &Context) {
-    let guild_count = ctx.cache.guilds().len();
+    let number_of_guilds = ctx.cache.guilds().len();
 
-    let activity = format!("Blue As You Are in {} guild(s)", guild_count);
+    let activity = format!("Blue As You Are in {} guild(s)", number_of_guilds);
     ctx.set_activity(Some(ActivityData::listening(&activity)));
 }
