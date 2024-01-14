@@ -17,10 +17,10 @@ use serenity::all::GuildChannel;
 
 use crate::Data;
 
-pub(crate) async fn handle(
+pub(crate) async fn handle_update(
     old_channel: &Option<GuildChannel>,
     new_channel: &GuildChannel,
     data: &Data,
 ) {
-    let database = &data.pool;
+    let pool = &data.pool;
 }

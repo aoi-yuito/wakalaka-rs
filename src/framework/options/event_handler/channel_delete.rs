@@ -17,6 +17,6 @@ use serenity::all::GuildChannel;
 
 use crate::Data;
 
-pub(crate) async fn handle(channel: &GuildChannel, data: &Data) {
-    let database = &data.pool;
+pub(crate) async fn handle_delete(channel: &GuildChannel, data: &Data) {
+    let pool = &data.pool;
 }
