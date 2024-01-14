@@ -20,9 +20,9 @@
 [![gh_release](https://img.shields.io/github/v/release/Kawaxte/wakalaka-rs?sort=date&logo=github&label=latest&style=for-the-badge)](https://github.com/Kawaxte/wakalaka-rs/releases/latest)
 [![gh_release_pre](https://img.shields.io/github/v/release/Kawaxte/wakalaka-rs?include_prereleases&sort=date&logo=github&label=pre-release&style=for-the-badge)](https://github.com/Kawaxte/wakalaka-rs/releases)
 
-Wakalaka is planned to be a completely free Discord bot. It's being designed to (hopefully) be straightforward and efficient. It will be written in Rust and aims to have more features than any other Discord bot written in Rust.
+A work-in-progress, self-hostable Discord bot written purely in Rust, utilising the [serenity](https://crates.io/crates/serenity) framework, with [poise](https://crates.io/crates/poise) for command parsing and [sqlx](https://crates.io/crates/sqlx) for database access.
 
-While under development (nightly), there won't be any version(s) available. But, as soon as a version that everyone can use is ready, it will be shared under the [GNU Lesser General Public Licence v3.0](https://www.gnu.org/licenses/lgpl-3.0.html).
+It takes inspiration from [Red](https://github.com/Cog-Creators/Red-DiscordBot), and has the end goal of being 'yours truly', as I like to call it. It'll be a bot you can personalise to your own needs.
 
 ---
 
