@@ -21,6 +21,7 @@ mod guild_create;
 mod guild_delete;
 mod guild_update;
 mod message;
+mod message_delete;
 mod ready;
 
 use poise::serenity_prelude::FullEvent;
@@ -37,37 +38,41 @@ pub(crate) async fn handle(
 ) -> Result<(), Error> {
     match event {
         FullEvent::CacheReady { guilds, .. } => {
-            cache_ready::handle(guilds, ctx, data).await;
+            cache_ready::cache_handle(guilds, ctx, data).await;
         }
         FullEvent::ChannelCreate { channel, .. } => {
-            channel_create::handle(channel, data).await;
+            channel_create::handle_create(channel, data).await;
         }
         FullEvent::ChannelDelete { channel, .. } => {
-            channel_delete::handle(channel, data).await;
+            channel_delete::handle_delete(channel, data).await;
         }
         FullEvent::ChannelUpdate { old, new, .. } => {
-            channel_update::handle(old, new, data).await;
+            channel_update::handle_update(old, new, data).await;
         }
         FullEvent::GuildCreate { guild, is_new } => {
-            guild_create::handle(guild, is_new.is_some(), ctx, data).await;
+            guild_create::handle_create(guild, is_new.is_some(), ctx, data).await;
         }
-        FullEvent::GuildDelete {
-            incomplete: _,
-            full,
-        } => {
-            guild_delete::handle(full, data).await;
+        FullEvent::GuildDelete { incomplete, full } => {
+            guild_delete::handle_delete(incomplete, full, ctx, data).await;
         }
         FullEvent::GuildUpdate {
             old_data_if_available,
             new_data,
         } => {
-            guild_update::handle(old_data_if_available, new_data, ctx, data).await;
+            guild_update::handle_update(old_data_if_available, new_data, ctx, data).await;
         }
         FullEvent::Ready { data_about_bot, .. } => {
             ready::handle(data_about_bot, ctx);
         }
         FullEvent::Message { new_message, .. } => {
-            message::handle(new_message, ctx).await;
+            message::handle(new_message, ctx, data).await;
+        }
+        FullEvent::MessageDelete {
+            channel_id,
+            deleted_message_id,
+            guild_id,
+        } => {
+            message_delete::handle_delete(channel_id, deleted_message_id, guild_id, ctx, data).await;
         }
         _ => {}
     }
