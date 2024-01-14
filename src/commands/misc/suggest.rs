@@ -13,16 +13,13 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-use chrono::Utc;
-use poise::CreateReply;
+use chrono::{NaiveDateTime, TimeZone, Utc};
 use serenity::{
     all::{
         colours::branding, ButtonStyle, PermissionOverwrite, PermissionOverwriteType, Permissions,
         ReactionType,
     },
-    builder::{
-        CreateActionRow, CreateButton, CreateEmbed, CreateEmbedAuthor, CreateMessage, EditMessage,
-    },
+    builder::{CreateActionRow, CreateButton, CreateEmbed, CreateEmbedAuthor, CreateMessage},
     model::Timestamp,
 };
 use tracing::{error, warn};
@@ -104,8 +101,6 @@ pub(crate) async fn suggest(
         };
         let created_at = Utc::now().naive_utc();
 
-        let embed = embed(user_name, user_avatar_url, &suggestion);
-
         let accept_button = CreateButton::new("accept_button")
             .style(ButtonStyle::Success)
             .emoji(ReactionType::from('👍'))
@@ -115,12 +110,14 @@ pub(crate) async fn suggest(
             .emoji(ReactionType::from('👎'))
             .label("Reject");
 
+        let embed = embed(user_name, user_avatar_url, &suggestion, created_at);
         let components = CreateActionRow::Buttons(vec![accept_button, reject_button]);
 
         let suggest_message = CreateMessage::default()
             .embed(embed.clone())
             .components(vec![components]);
-        let mut message = match suggest_channel_id
+
+        let message = match suggest_channel_id
             .send_message(&ctx.http(), suggest_message)
             .await
         {
@@ -131,8 +128,6 @@ pub(crate) async fn suggest(
             }
         };
         let message_id = message.id;
-
-        let _ = ctx.reply("Your suggestion has been sent!").await;
 
         suggestions::insert_suggest(
             i64::from(message_id),
@@ -145,97 +140,30 @@ pub(crate) async fn suggest(
             pool,
         )
         .await;
-
-        let manager = ctx.framework().shard_manager.clone();
-
-        let shard_ids = manager.shards_instantiated().await;
-        let shard_id = shard_ids[0];
-
-        let runners = manager.runners.lock().await;
-        let runner_info = match runners.get(&shard_id) {
-            Some(value) => value,
-            None => {
-                warn!("Couldn't get shard runner");
-                return Ok(());
-            }
-        };
-
-        let messenger = runner_info.runner_tx.clone();
-        let interaction = match message.await_component_interactions(messenger).next().await {
-            Some(value) => value,
-            None => {
-                warn!("Couldn't get interaction");
-                return Ok(());
-            }
-        };
-        if interaction.user.id != owner_id {
-            let reply = CreateReply {
-                content: Some("Sorry, but you can't accept or reject suggestions.".to_string()),
-                ephemeral: Some(true),
-                ..Default::default()
-            };
-            let _ = ctx.send(reply).await;
-
-            return Ok(());
-        }
-
-        let button_id = interaction.data.custom_id;
-
-        let decision = match button_id.as_str() {
-            "accept_button" => (true, false),
-            "reject_button" => (false, true),
-            other => {
-                error!("Couldn't get ID for button: {other:?}");
-                return Ok(());
-            }
-        };
-        if decision.0 {
-            let accepted_at = Utc::now().naive_utc();
-
-            suggestions::update_suggest(
-                i64::from(message_id),
-                i64::from(guild_id),
-                i64::from(user_id),
-                i64::from(owner_id),
-                created_at,
-                Some(accepted_at),
-                None,
-                pool,
-            )
-            .await;
-        } else {
-            let rejected_at = Utc::now().naive_utc();
-
-            suggestions::update_suggest(
-                i64::from(message_id),
-                i64::from(guild_id),
-                i64::from(user_id),
-                i64::from(owner_id),
-                created_at,
-                None,
-                Some(rejected_at),
-                pool,
-            )
-            .await;
-        }
-
-        let edit_message = EditMessage::default().embed(embed).components(vec![]);
-        message.edit(&ctx.http(), edit_message).await?;
     } else {
         let message_ =
             format!("Sorry, but I couldn't find appropriate channel to send your suggestion to.");
         let _ = ctx.reply(message_).await;
     }
 
+    let _ = ctx.reply("Your suggestion has been sent!").await;
+
     Ok(())
 }
 
-fn embed(name: &String, avatar_url: String, description: &String) -> CreateEmbed {
+fn embed(
+    name: &String,
+    avatar_url: String,
+    description: &String,
+    created_at: NaiveDateTime,
+) -> CreateEmbed {
+    let now = Timestamp::from(Utc.from_utc_datetime(&created_at));
+
     CreateEmbed::default()
         .author(embed_author(name, avatar_url))
         .description(description)
         .color(branding::BLURPLE)
-        .timestamp(Timestamp::from(Utc::now()))
+        .timestamp(Timestamp::from(now))
 }
 
 fn embed_author(user_name: &String, user_avatar_url: String) -> CreateEmbedAuthor {
