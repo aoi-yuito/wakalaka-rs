@@ -13,20 +13,48 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-use serenity::all::Guild;
+use poise::serenity_prelude::Context;
+use serenity::all::{Guild, UnavailableGuild};
+use tracing::{error, warn};
 
-use crate::Data;
+use crate::{database::members, Data};
 
-pub(crate) async fn handle(_: &Option<Guild>, _: &Data) {
-    // let pool = &data.pool;
+pub(crate) async fn handle_delete(
+    unavailable_guild: &UnavailableGuild,
+    guild: &Option<Guild>,
+    ctx: &Context,
+    data: &Data,
+) {
+    let pool = &data.pool;
 
-    // let guild = match guild {
-    //     Some(guild) => guild,
-    //     None => {
-    //         error!("Couldn't get guild from unavailable guild");
-    //         return;
-    //     }
-    // };
-    // let (guild_id, guild_owner_id) = 
-    //     (i64::from(guild.id), i64::from(guild.owner_id));
+    let unavailable_guild_id = unavailable_guild.id;
+    let guild_id = match guild {
+        Some(guild) => guild.id,
+        None => {
+            warn!("Couldn't get guild ID");
+            return;
+        }
+    };
+
+    let unavailable_members = match unavailable_guild_id.members(&ctx.http, None, None).await {
+        Ok(users) => users,
+        Err(why) => {
+            error!("Couldn't get unavailable guild members: {why:?}");
+            return;
+        }
+    };
+    let members = match guild_id.members(&ctx.http, None, None).await {
+        Ok(users) => users,
+        Err(why) => {
+            error!("Couldn't get guild members: {why:?}");
+            return;
+        }
+    };
+
+    let guild_members = unavailable_members
+        .into_iter()
+        .chain(members.into_iter())
+        .collect::<Vec<_>>();
+
+    members::delete_members(guild_members, pool).await;
 }

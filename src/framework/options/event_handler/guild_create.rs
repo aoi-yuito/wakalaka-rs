@@ -14,21 +14,21 @@
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
 use poise::serenity_prelude::Context;
-use serenity::all::{Guild, GuildChannel};
+use serenity::all::Guild;
 use tracing::error;
 
-use crate::{database::guilds, Data};
+use crate::{database::members, Data};
 
-pub(crate) async fn handle(guild: &Guild, is_new: bool, ctx: &Context, data: &Data) {
+pub(crate) async fn handle_create(guild: &Guild, is_new: bool, ctx: &Context, data: &Data) {
+    if !is_new {
+        return;
+    }
+
     let pool = &data.pool;
 
-    let (guild_id, guild_owner_id, guild_preferred_locale) = (
-        i64::from(guild.id),
-        i64::from(guild.owner_id),
-        guild.preferred_locale.clone(),
-    );
+    let guild_id = guild.id;
 
-    let users = match guild.members(&ctx.http, None, None).await {
+    let guild_members = match guild_id.members(&ctx.http, None, None).await {
         Ok(users) => users,
         Err(why) => {
             error!("Couldn't get guild members: {why:?}");
@@ -36,25 +36,5 @@ pub(crate) async fn handle(guild: &Guild, is_new: bool, ctx: &Context, data: &Da
         }
     };
 
-    let channels = match guild.channels(&ctx.http).await {
-        Ok(channels) => channels,
-        Err(why) => {
-            error!("Couldn't get guild channels: {why:?}");
-            return;
-        }
-    };
-    let guild_channels = channels
-        .into_iter()
-        .map(|(_, channel)| channel)
-        .collect::<Vec<GuildChannel>>();
-
-    if is_new {
-        guilds::insert_users(users, pool).await;
-        guilds::insert_guilds(guild_id, guild_owner_id, guild_preferred_locale, pool).await;
-        guilds::insert_channels(guild_id, guild_channels, pool).await;
-    } else {
-        guilds::update_users(users, pool).await;
-        guilds::update_guilds(guild_id, guild_owner_id, guild_preferred_locale, pool).await;
-        guilds::update_channels(guild_id, guild_channels, pool).await;
-    }
+    members::insert_members(guild_members, pool).await;
 }

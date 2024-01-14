@@ -13,62 +13,48 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-use serenity::all::{Guild, GuildChannel, PartialGuild};
-
 use poise::serenity_prelude::Context;
+use serenity::all::{Guild, PartialGuild};
 use tracing::{error, warn};
 
-use crate::{database::guilds, Data};
+use crate::{database::members, Data};
 
-pub(crate) async fn handle(
-    guild: &Option<Guild>,
+pub(crate) async fn handle_update(
+    old_guild: &Option<Guild>,
     new_guild: &PartialGuild,
     ctx: &Context,
     data: &Data,
 ) {
-    let database = &data.pool;
+    let pool = &data.pool;
 
-    let guild = match guild {
-        Some(guild) => guild,
+    let old_guild_id = match old_guild {
+        Some(guild) => guild.id,
         None => {
-            error!("Couldn't get old guild");
+            warn!("Couldn't get old guild ID");
             return;
         }
     };
+    let new_guild_id = new_guild.id;
 
-    let (new_guild_id, new_guild_owner_id, new_guild_preferred_locale) = (
-        i64::from(new_guild.id),
-        i64::from(new_guild.owner_id),
-        new_guild.preferred_locale.clone(),
-    );
-
-    let guild_users = match guild.members(&ctx.http, None, None).await {
+    let old_members = match old_guild_id.members(&ctx.http, None, None).await {
         Ok(users) => users,
         Err(why) => {
             error!("Couldn't get old guild members: {why:?}");
             return;
         }
     };
-
-    let new_channels = match new_guild.channels(&ctx.http).await {
-        Ok(channels) => channels,
+    let new_members = match new_guild_id.members(&ctx.http, None, None).await {
+        Ok(users) => users,
         Err(why) => {
-            error!("Couldn't get new guild channels: {why:?}");
+            error!("Couldn't get new guild members: {why:?}");
             return;
         }
     };
-    let new_guild_channels = new_channels
-        .into_iter()
-        .map(|(_, channel)| channel)
-        .collect::<Vec<GuildChannel>>();
 
-    guilds::update_users(guild_users, database).await;
-    guilds::update_guilds(
-        new_guild_id,
-        new_guild_owner_id,
-        new_guild_preferred_locale,
-        database,
-    )
-    .await;
-    guilds::update_channels(new_guild_id, new_guild_channels, database).await;
+    let guild_members = old_members
+        .into_iter()
+        .chain(new_members.into_iter())
+        .collect::<Vec<_>>();
+
+    members::update_members(guild_members, pool).await;
 }
