@@ -30,13 +30,13 @@ use crate::{database::suggestions, Context, Error};
 #[poise::command(slash_command)]
 pub(crate) async fn suggest(
     ctx: Context<'_>,
-    #[description = "Brief overview of your suggestion."] suggestion: String,
+    #[description = "Brief overview of your suggestion."] message: String,
 ) -> Result<(), Error> {
     let pool = &ctx.data().pool;
 
-    let number_of_suggestions = suggestion.chars().count();
-    if number_of_suggestions < 10 || number_of_suggestions > 120 {
-        let message_ = format!("Suggestion must be between 10 and 120 characters.");
+    let number_of_suggestions = message.chars().count();
+    if number_of_suggestions < 32 || number_of_suggestions > 1024 {
+        let message_ = format!("Suggestion must be between 32 and 1024 characters.");
         let _ = ctx.reply(message_).await;
 
         return Ok(());
@@ -110,7 +110,7 @@ pub(crate) async fn suggest(
             .emoji(ReactionType::from('👎'))
             .label("Reject");
 
-        let embed = embed(user_name, user_avatar_url, &suggestion, created_at);
+        let embed = embed(user_name, user_avatar_url, &message, created_at);
         let components = CreateActionRow::Buttons(vec![accept_button, reject_button]);
 
         let suggest_message = CreateMessage::default()
