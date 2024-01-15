@@ -33,7 +33,7 @@ pub(crate) async fn purge(
         return Ok(());
     }
 
-    let http = ctx.serenity_context().http.clone();
+    let http = ctx.serenity_context().http.clone(); // Why?
     let channel_id = ctx.channel_id();
     let user_name = ctx.author().name.clone();
 
@@ -61,6 +61,9 @@ pub(crate) async fn purge(
                 Ok(_) => {}
                 Err(why) => {
                     error!("Couldn't delete message: {why:?}");
+
+                    // Not quite sure if returning here is a smart idea, but fuck it, unlikely anybody ever makes it here.
+                    return number_of_deleted_messages;
                 }
             }
 
