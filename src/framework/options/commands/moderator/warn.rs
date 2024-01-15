@@ -13,10 +13,10 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-use chrono::{NaiveDateTime, TimeZone, Utc};
+use chrono::{Duration, NaiveDateTime, TimeZone, Utc};
 use poise::CreateReply;
 use serenity::{
-    all::{colours::branding, Member, User},
+    all::{colours::branding, Member, User, UserId},
     builder::{CreateEmbed, CreateEmbedAuthor, CreateEmbedFooter, CreateMessage},
     model::Timestamp,
 };
@@ -47,24 +47,21 @@ pub(crate) async fn warn(
 
     let infraction_type = InfractionType::Warn.as_str();
 
-    let user_id_raw = member.user.id;
-    let user_id = i64::from(user_id_raw);
+    let user_id = member.user.id;
     let user_name = &member.user.name;
 
     let moderator = ctx.author();
-    let moderator_id_raw = moderator.id;
-    let moderator_id = i64::from(moderator_id_raw);
+    let moderator_id = moderator.id;
     let moderator_name = &moderator.name;
 
-    let guild_id_raw = match ctx.guild_id() {
+    let guild_id = match ctx.guild_id() {
         Some(guild_id) => guild_id,
         None => {
             warn!("Couldn't get guild ID");
             return Ok(());
         }
     };
-    let guild_id = i64::from(guild_id_raw);
-    let guild_name = match guild_id_raw.name(&ctx.cache()) {
+    let guild_name = match guild_id.name(&ctx.cache()) {
         Some(guild_name) => guild_name,
         None => {
             warn!("Couldn't get guild name");
@@ -73,6 +70,16 @@ pub(crate) async fn warn(
     };
 
     let created_at = Utc::now().naive_utc();
+    let expires_at = match Utc
+        .from_utc_datetime(&created_at)
+        .checked_add_signed(Duration::weeks(3))
+    {
+        Some(expires_at) => expires_at.naive_utc(),
+        None => {
+            warn!("Couldn't get expiration date");
+            return Ok(());
+        }
+    };
 
     let mut infractions = match members::infractions(user_id, guild_id, pool).await {
         Some(infractions) => infractions,
@@ -81,6 +88,8 @@ pub(crate) async fn warn(
             return Ok(());
         }
     };
+
+    // Why should you ever have more than 3 warnings?
     if infractions >= 3 {
         let message = format!("Sorry, but <@{user_id}> already has maximum number of infractions. Please take further action(s) manually.");
         let _ = ctx.reply(message).await;
@@ -106,7 +115,7 @@ pub(crate) async fn warn(
             moderator_id,
             &reason,
             Some(created_at),
-            None,
+            Some(expires_at),
             true,
             pool,
         )
@@ -133,10 +142,10 @@ pub(crate) async fn warn(
 
 fn embed(
     user: &Member,
-    user_id: i64,
+    user_id: UserId,
     user_name: &String,
     moderator: &User,
-    moderator_id: i64,
+    moderator_id: UserId,
     moderator_name: &String,
     reason: String,
     created_at: NaiveDateTime,
