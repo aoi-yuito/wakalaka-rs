@@ -15,6 +15,7 @@
 
 pub(super) mod purge;
 pub(super) mod warn;
+pub(super) mod delwarn;
 
 enum InfractionType {
     Warn,
