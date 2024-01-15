@@ -23,8 +23,9 @@ pub(crate) async fn restart(ctx: Context<'_>) -> Result<(), Error> {
     let message = "Restarting yours truly...";
     let _ = ctx.reply(message).await;
 
-    let shard_manager = ctx.framework().shard_manager.clone();
-    let shard_ids = shard_manager
+    let manager = ctx.framework().shard_manager.clone();
+
+    let shard_ids = manager
         .runners
         .lock()
         .await
@@ -33,7 +34,7 @@ pub(crate) async fn restart(ctx: Context<'_>) -> Result<(), Error> {
         .collect::<Vec<_>>();
     for shard_id in shard_ids {
         info!("Restarting shard {}", shard_id);
-        shard_manager.restart(shard_id).await;
+        manager.restart(shard_id).await;
     }
 
     Ok(())
