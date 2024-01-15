@@ -13,13 +13,23 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-pub(crate) mod info;
-pub(crate) mod ping;
+pub(super) mod purge;
+pub(super) mod warn;
 
-const VERSION: &str = env!("CARGO_PKG_VERSION");
-const NAME: &str = env!("CARGO_PKG_NAME");
-const AUTHORS: &str = env!("CARGO_PKG_AUTHORS");
-const DESCRIPTION: &str = env!("CARGO_PKG_DESCRIPTION");
-const RUST_VERSION: &str = env!("CARGO_PKG_RUST_VERSION");
+enum InfractionType {
+    Warn,
+    Mute,
+    Kick,
+    Ban,
+}
 
-const GITHUB_URL: &str = "https://github.com/Kawaxte";
+impl InfractionType {
+    fn as_str(&self) -> &str {
+        match self {
+            Self::Warn => "warning",
+            Self::Mute => "mute",
+            Self::Kick => "kick",
+            Self::Ban => "ban",
+        }
+    }
+}

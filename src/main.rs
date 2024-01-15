@@ -13,13 +13,11 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-mod commands;
 mod database;
 mod framework;
 
-use poise::Framework;
-
 use ::serenity::all::GatewayIntents;
+use poise::Framework;
 use sqlx::SqlitePool;
 use tokio::time::Instant;
 use tracing::{error, info, level_filters::LevelFilter, subscriber, warn};
@@ -38,9 +36,7 @@ pub async fn main() {
 
     let pool = database::initialise().await;
 
-    let data = Data {
-        pool: pool.clone(),
-    };
+    let data = Data { pool: pool.clone() };
 
     let token = match dotenvy::var("TOKEN") {
         Ok(token) => token,
