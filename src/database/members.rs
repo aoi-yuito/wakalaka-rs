@@ -13,17 +13,21 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-use serenity::all::Member;
+use serenity::all::{GuildId, Member, UserId};
 use sqlx::{Row, SqlitePool};
 use tokio::time::Instant;
 use tracing::{error, info};
 
-pub(crate) async fn infractions(user_id: i64, guild_id: i64, pool: &SqlitePool) -> Option<i32> {
+pub(crate) async fn infractions(
+    user_id: UserId,
+    guild_id: GuildId,
+    pool: &SqlitePool,
+) -> Option<i32> {
     let start_time = Instant::now();
 
     let member_query = sqlx::query("SELECT infractions FROM members WHERE id = ? AND guild_id = ?")
-        .bind(user_id)
-        .bind(guild_id);
+        .bind(i64::from(user_id))
+        .bind(i64::from(guild_id));
     let member_row = match member_query.fetch_one(pool).await {
         Ok(member_row) => member_row,
         Err(why) => {
@@ -47,8 +51,8 @@ pub(crate) async fn infractions(user_id: i64, guild_id: i64, pool: &SqlitePool) 
 }
 
 pub(crate) async fn update_member(
-    user_id: i64,
-    guild_id: i64,
+    user_id: UserId,
+    guild_id: GuildId,
     infractions: i32,
     deaf: bool,
     mute: bool,
@@ -72,8 +76,8 @@ pub(crate) async fn update_member(
     .bind(deaf)
     .bind(mute)
     .bind(banned)
-    .bind(user_id)
-    .bind(guild_id);
+    .bind(i64::from(user_id))
+    .bind(i64::from(guild_id));
     if let Err(why) = member_query.execute(pool).await {
         error!("Couldn't update member in database: {why:?}");
         return;
