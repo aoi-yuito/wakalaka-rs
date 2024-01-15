@@ -14,15 +14,14 @@
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
 use chrono::{NaiveDateTime, Utc};
-use serenity::all::UserId;
 use sqlx::SqlitePool;
 use tokio::time::Instant;
 use tracing::{error, info};
 
 pub(crate) async fn update_infraction(
-    user_id: UserId,
-    moderator_id: UserId,
-    reason: String,
+    user_id: i64,
+    moderator_id: i64,
+    reason: &String,
     created_at: Option<NaiveDateTime>,
     expires_at: Option<NaiveDateTime>,
     active: bool,
@@ -30,8 +29,6 @@ pub(crate) async fn update_infraction(
 ) {
     let start_time = Instant::now();
 
-    let user_id = i64::from(user_id);
-    let moderator_id = i64::from(moderator_id);
     let created_at = created_at.unwrap_or_else(|| Utc::now().naive_utc());
     let expires_at = expires_at.unwrap_or_else(|| Utc::now().naive_utc());
 
@@ -49,9 +46,10 @@ pub(crate) async fn update_infraction(
 }
 
 pub(crate) async fn insert_infractions(
-    user_id: UserId,
-    moderator_id: UserId,
-    reason: String,
+    user_id: i64,
+    infraction_type: &'static str,
+    moderator_id: i64,
+    reason: &String,
     created_at: Option<NaiveDateTime>,
     expires_at: Option<NaiveDateTime>,
     active: bool,
@@ -59,14 +57,12 @@ pub(crate) async fn insert_infractions(
 ) {
     let start_time = Instant::now();
 
-    let user_id = i64::from(user_id);
-    let moderator_id = i64::from(moderator_id);
-    let created_at = created_at.unwrap_or_else(|| Utc::now().naive_utc());
-    let expires_at = expires_at.unwrap_or_else(|| Utc::now().naive_utc());
+    let created_at = created_at.unwrap_or(Utc::now().naive_utc());
+    let expires_at = expires_at.unwrap_or(Utc::now().naive_utc());
 
     let infract_query = sqlx::query(
-        "INSERT INTO infractions (user_id, moderator_id, reason, created_at, expires_at, active) VALUES (?, ?, ?, ?, ?, ?)",
-    ).bind(user_id).bind(moderator_id).bind(reason).bind(created_at).bind(expires_at).bind(active);
+        "INSERT INTO infractions (user_id, type, moderator_id, reason, created_at, expires_at, active) VALUES (?, ?, ?, ?, ?, ?, ?)",
+    ).bind(user_id).bind(infraction_type).bind(moderator_id).bind(reason).bind(created_at).bind(expires_at).bind(active);
 
     if let Err(why) = infract_query.execute(pool).await {
         error!("Couldn't insert infraction into database: {why:?}");
