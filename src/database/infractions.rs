@@ -19,7 +19,7 @@ use sqlx::SqlitePool;
 use tokio::time::Instant;
 use tracing::{error, info};
 
-pub(crate) async fn update_infraction(
+pub(crate) async fn update_infractions(
     user_id: UserId,
     moderator_id: UserId,
     reason: &String,
@@ -49,6 +49,22 @@ pub(crate) async fn update_infraction(
     } else {
         let elapsed_time = start_time.elapsed();
         info!("Updated infraction in database in {elapsed_time:.2?}");
+    }
+}
+
+pub(crate) async fn delete_infractions(id: i32, infraction_type: &'static str, pool: &SqlitePool) {
+    let start_time = Instant::now();
+
+    let infract_query = sqlx::query("DELETE FROM infractions WHERE id = ? AND type = ?")
+        .bind(id)
+        .bind(infraction_type);
+
+    if let Err(why) = infract_query.execute(pool).await {
+        error!("Couldn't delete infraction from database: {why:?}");
+        return;
+    } else {
+        let elapsed_time = start_time.elapsed();
+        info!("Deleted infraction from database in {elapsed_time:.2?}");
     }
 }
 
