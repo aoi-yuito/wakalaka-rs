@@ -51,16 +51,17 @@ fn embed(
     latency: Option<Duration>,
 ) -> CreateEmbed {
     if latency.is_some() {
+        // If this doesn't get the "Some(value)" formatting fuck out of here, shit the bed with a default, fresh out from under my foreskin.
         let latency = match latency {
-            Some(value) => value.as_millis(),
-            None => 0,
+            Some(value) => value,
+            None => Duration::default(),
         };
 
         CreateEmbed::default()
             .title("Pong!")
             .field(
                 "Shards",
-                format!("{shard_id} ({stage}, {latency:.2?}ms)"),
+                format!("{shard_id} ({stage}, {latency:.2?})"),
                 true,
             )
             .field("Response", format!("{elapsed_time:.2?}"), true)
