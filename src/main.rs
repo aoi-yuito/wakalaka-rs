@@ -49,6 +49,7 @@ pub async fn main() {
     let framework = framework::initialise_framework(data).await;
 
     let mut client = initialise_client(token, intents, framework).await;
+
     info!("Starting client...");
     if let Err(why) = client.start().await {
         error!("Couldn't start client: {why:?}");
