@@ -21,6 +21,7 @@ use crate::{database::members, Data};
 
 pub(crate) async fn handle_create(guild: &Guild, is_new: bool, ctx: &Context, data: &Data) {
     if !is_new {
+        // The fuck does this boolean... When does ever invoke this...?
         return;
     }
 
