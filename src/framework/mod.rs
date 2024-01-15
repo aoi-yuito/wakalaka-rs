@@ -18,10 +18,11 @@ use serenity::all::GatewayIntents;
 use tokio::time::Instant;
 use tracing::info;
 
-use crate::{Data, Error, commands};
+use crate::{Data, Error};
+use crate::framework::options::commands;
 
-pub(crate) mod options;
-pub(crate) mod setup;
+pub(super) mod options;
+pub(super) mod setup;
 
 pub(crate) async fn initialise_framework(data: Data) -> Framework<Data, Error> {
     let start_time = Instant::now();
