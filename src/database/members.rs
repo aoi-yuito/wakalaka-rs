@@ -14,9 +14,79 @@
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
 use serenity::all::Member;
-use sqlx::SqlitePool;
+use sqlx::{Row, SqlitePool};
 use tokio::time::Instant;
 use tracing::{error, info};
+
+pub(crate) async fn infractions(user_id: i64, guild_id: i64, pool: &SqlitePool) -> Option<i32> {
+    let start_time = Instant::now();
+
+    let member_query = sqlx::query("SELECT infractions FROM members WHERE id = ? AND guild_id = ?")
+        .bind(user_id)
+        .bind(guild_id);
+    let member_row = match member_query.fetch_one(pool).await {
+        Ok(member_row) => member_row,
+        Err(why) => {
+            error!("Couldn't get member from database: {why:?}");
+            return None;
+        }
+    };
+
+    let infractions = match member_row.try_get("infractions") {
+        Ok(infractions) => infractions,
+        Err(why) => {
+            error!("Couldn't get infractions from database: {why:?}");
+            return None;
+        }
+    };
+
+    let elapsed_time = start_time.elapsed();
+    info!("Retrieved member infractions from database in {elapsed_time:.2?}");
+
+    Some(infractions)
+}
+
+pub(crate) async fn update_member(
+    user_id: i64,
+    guild_id: i64,
+    infractions: i32,
+    deaf: bool,
+    mute: bool,
+    banned: bool,
+    pool: &SqlitePool,
+) {
+    let start_time = Instant::now();
+
+    let transaction = match pool.begin().await {
+        Ok(transaction) => transaction,
+        Err(why) => {
+            error!("Couldn't begin transaction: {why:?}");
+            return;
+        }
+    };
+
+    let member_query = sqlx::query(
+        "UPDATE members SET infractions = ?, deaf = ?, mute = ?, banned = ? WHERE id = ? AND guild_id = ?",
+    )
+    .bind(infractions)
+    .bind(deaf)
+    .bind(mute)
+    .bind(banned)
+    .bind(user_id)
+    .bind(guild_id);
+    if let Err(why) = member_query.execute(pool).await {
+        error!("Couldn't update member in database: {why:?}");
+        return;
+    }
+
+    if let Err(why) = transaction.commit().await {
+        error!("Couldn't commit transaction: {why:?}");
+        return;
+    }
+
+    let elapsed_time = start_time.elapsed();
+    info!("Updated member in database in {elapsed_time:.2?}");
+}
 
 pub(crate) async fn update_members(members: Vec<Member>, pool: &SqlitePool) {
     let start_time = Instant::now();
