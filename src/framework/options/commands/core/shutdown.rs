@@ -19,7 +19,13 @@ use tracing::info;
 use crate::{Context, Error};
 
 /// Puts yours truly to sleep.
-#[poise::command(slash_command, owners_only)]
+#[poise::command(
+    prefix_command,
+    slash_command,
+    category = "Core",
+    owners_only,
+    guild_only
+)]
 pub(crate) async fn shutdown(
     ctx: Context<'_>,
     #[description = "Seconds before yours truly falls asleep."] delay: u64,

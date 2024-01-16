@@ -25,7 +25,7 @@ use crate::{Context, Error};
 use super::{AUTHORS, DESCRIPTION, GITHUB_URL, NAME, RUST_VERSION, VERSION};
 
 /// Fetches basic information about yours truly.
-#[poise::command(slash_command)]
+#[poise::command(prefix_command, slash_command, category = "Information")]
 pub(crate) async fn info(ctx: Context<'_>) -> Result<(), Error> {
     let bot = match ctx.http().get_current_user().await {
         Ok(value) => value,

@@ -16,7 +16,7 @@
 use chrono::{Duration, NaiveDateTime, TimeZone, Utc};
 use poise::CreateReply;
 use serenity::{
-    all::{colours::branding, Member, User, UserId},
+    all::{colours::branding, User, UserId},
     builder::{CreateEmbed, CreateEmbedAuthor, CreateEmbedFooter, CreateMessage},
     model::Timestamp,
 };
@@ -29,7 +29,13 @@ use crate::{
 };
 
 /// Warns user for their misbehaviour.
-#[poise::command(slash_command, required_permissions = "MODERATE_MEMBERS")]
+#[poise::command(
+    prefix_command,
+    slash_command,
+    category = "Moderator",
+    required_permissions = "MODERATE_MEMBERS",
+    guild_only
+)]
 pub(crate) async fn warn(
     ctx: Context<'_>,
     #[description = "User to give warning to."] user: User,

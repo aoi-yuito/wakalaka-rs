@@ -24,7 +24,7 @@ use tokio::time::{Duration, Instant};
 use crate::{Context, Error};
 
 /// Checks if yours truly is alive and well.
-#[poise::command(slash_command)]
+#[poise::command(prefix_command, slash_command, category = "Information")]
 pub(crate) async fn ping(ctx: Context<'_>) -> Result<(), Error> {
     let start_time = Instant::now();
 

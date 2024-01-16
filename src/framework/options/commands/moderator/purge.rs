@@ -20,7 +20,13 @@ use tracing::{error, info};
 use crate::{Context, Error};
 
 /// Deletes message(s) from provided channel.
-#[poise::command(slash_command, required_permissions = "MANAGE_MESSAGES")]
+#[poise::command(
+    prefix_command,
+    slash_command,
+    category = "Moderator",
+    required_permissions = "MANAGE_MESSAGES",
+    guild_only
+)]
 pub(crate) async fn purge(
     ctx: Context<'_>,
     #[description = "Amount of messages to delete."] count: u8,

@@ -13,7 +13,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-use chrono::{DateTime, NaiveDateTime, Utc};
+use chrono::{DateTime, Utc};
 use poise::CreateReply;
 use serenity::{
     all::{colours::branding, User, UserId},
@@ -28,7 +28,13 @@ use crate::{
 };
 
 /// Gets a list of warnings for given user.
-#[poise::command(slash_command, required_permissions = "MODERATE_MEMBERS")]
+#[poise::command(
+    prefix_command,
+    slash_command,
+    category = "Moderator",
+    required_permissions = "MODERATE_MEMBERS",
+    guild_only
+)]
 pub(crate) async fn warnings(
     ctx: Context<'_>,
     #[description = "User to get warnings for."] user: User,

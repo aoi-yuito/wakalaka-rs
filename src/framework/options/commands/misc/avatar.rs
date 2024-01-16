@@ -19,7 +19,13 @@ use serenity::{all::User, builder::CreateEmbed};
 use crate::{Context, Error};
 
 /// Fetches image of users' avatar.
-#[poise::command(slash_command, context_menu_command = "User Avatar")]
+#[poise::command(
+    prefix_command,
+    slash_command,
+    context_menu_command = "User Avatar",
+    category = "Miscellaneous",
+    guild_only
+)]
 pub(crate) async fn avatar(
     ctx: Context<'_>,
     #[description = "Mention of user to fetch avatar of."] user: User,

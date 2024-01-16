@@ -18,7 +18,7 @@ use serenity::all::{Mentionable, User};
 use crate::{Context, Error};
 
 /// Hugs one of your fellow users.
-#[poise::command(slash_command)]
+#[poise::command(prefix_command, slash_command, category = "Fun", guild_only)]
 pub(crate) async fn hug(
     ctx: Context<'_>,
     #[description = "Mention of user to firmly hug."] user: User,

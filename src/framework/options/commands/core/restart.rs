@@ -18,7 +18,13 @@ use tracing::info;
 use crate::{Context, Error};
 
 /// Restarts yours truly.
-#[poise::command(slash_command, owners_only)]
+#[poise::command(
+    prefix_command,
+    slash_command,
+    category = "Core",
+    owners_only,
+    guild_only
+)]
 pub(crate) async fn restart(ctx: Context<'_>) -> Result<(), Error> {
     let message = "Restarting yours truly...";
     let _ = ctx.reply(message).await;

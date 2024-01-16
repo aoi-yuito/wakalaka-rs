@@ -27,7 +27,7 @@ use tracing::{error, warn};
 use crate::{database::suggestions, Context, Error};
 
 /// Suggest things for yours truly, or for community.
-#[poise::command(slash_command)]
+#[poise::command(prefix_command, slash_command, category = "Miscellaneous", guild_only)]
 pub(crate) async fn suggest(
     ctx: Context<'_>,
     #[description = "Brief overview of your suggestion."] message: String,
@@ -82,7 +82,9 @@ pub(crate) async fn suggest(
 
         let (user_name, user_avatar_url) = (
             &ctx.author().name,
-            ctx.author().avatar_url().unwrap_or(ctx.author().default_avatar_url()),
+            ctx.author()
+                .avatar_url()
+                .unwrap_or(ctx.author().default_avatar_url()),
         );
 
         let user_id = ctx.author().id;

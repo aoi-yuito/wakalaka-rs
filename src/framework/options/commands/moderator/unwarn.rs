@@ -18,7 +18,13 @@ use crate::{
 };
 
 /// Removes warning from user.
-#[poise::command(slash_command, required_permissions = "MODERATE_MEMBERS")]
+#[poise::command(
+    prefix_command,
+    slash_command,
+    category = "Moderator",
+    required_permissions = "MODERATE_MEMBERS",
+    guild_only
+)]
 pub(crate) async fn unwarn(
     ctx: Context<'_>,
     #[description = "Identifier (case) of warning to delete."] id: i32,
