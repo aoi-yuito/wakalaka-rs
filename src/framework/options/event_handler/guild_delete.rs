@@ -17,7 +17,7 @@ use poise::serenity_prelude::Context;
 use serenity::all::{Guild, UnavailableGuild};
 use tracing::{error, warn};
 
-use crate::{database::members, Data};
+use crate::{database::users, Data};
 
 pub(crate) async fn handle_delete(
     unavailable_guild: &UnavailableGuild,
@@ -56,5 +56,5 @@ pub(crate) async fn handle_delete(
         .chain(members.into_iter())
         .collect::<Vec<_>>();
 
-    members::delete_members(guild_members, pool).await;
+    users::delete_users(guild_members, pool).await;
 }

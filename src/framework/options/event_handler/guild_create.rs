@@ -17,7 +17,7 @@ use poise::serenity_prelude::Context;
 use serenity::all::Guild;
 use tracing::error;
 
-use crate::{database::members, Data};
+use crate::{database::users, Data};
 
 pub(crate) async fn handle_create(guild: &Guild, is_new: bool, ctx: &Context, data: &Data) {
     if !is_new {
@@ -37,5 +37,5 @@ pub(crate) async fn handle_create(guild: &Guild, is_new: bool, ctx: &Context, da
         }
     };
 
-    members::insert_members(guild_members, pool).await;
+    users::insert_users(guild_members, pool).await;
 }

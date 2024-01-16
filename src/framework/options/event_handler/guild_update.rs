@@ -17,7 +17,7 @@ use poise::serenity_prelude::Context;
 use serenity::all::{Guild, PartialGuild};
 use tracing::{error, warn};
 
-use crate::{database::members, Data};
+use crate::{database::users, Data};
 
 pub(crate) async fn handle_update(
     old_guild: &Option<Guild>,
@@ -56,5 +56,5 @@ pub(crate) async fn handle_update(
         .chain(new_members.into_iter())
         .collect::<Vec<_>>();
 
-    members::update_members(guild_members, pool).await;
+    users::update_users(guild_members, pool).await;
 }
