@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS infractions (
     created_at TIMESTAMP,
     expires_at TIMESTAMP,
     active BOOLEAN NOT NULL DEFAULT FALSE,
-    FOREIGN KEY (moderator_id) REFERENCES members(id) ON DELETE CASCADE,
-    FOREIGN KEY (user_id) REFERENCES members(id) ON DELETE CASCADE
+    FOREIGN KEY (moderator_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 PRAGMA foreign_keys = ON;
