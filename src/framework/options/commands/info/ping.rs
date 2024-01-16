@@ -52,10 +52,7 @@ fn embed(
 ) -> CreateEmbed {
     if latency.is_some() {
         // If this doesn't get the "Some(value)" formatting fuck out of here, shit the bed with a default, fresh out from under my foreskin.
-        let latency = match latency {
-            Some(value) => value,
-            None => Duration::default(),
-        };
+        let latency = latency.unwrap_or_default();
 
         CreateEmbed::default()
             .title("Pong!")
