@@ -15,9 +15,55 @@
 
 use chrono::{NaiveDateTime, Utc};
 use serenity::all::UserId;
-use sqlx::SqlitePool;
+use sqlx::{Row, SqlitePool};
 use tokio::time::Instant;
 use tracing::{error, info};
+
+pub(crate) async fn warnings(
+    user_id: UserId,
+    infraction_type: &'static str,
+    pool: &SqlitePool,
+) -> Result<Vec<(i32, String, i64, String, NaiveDateTime, NaiveDateTime, bool)>, sqlx::Error> {
+    let start_time = Instant::now();
+
+    let infract_query = sqlx::query(
+        "SELECT id, type, moderator_id, reason, created_at, expires_at, active FROM infractions WHERE user_id = ? AND type = ?",
+    )
+    .bind(i64::from(user_id))
+    .bind(infraction_type);
+
+    let mut infracts = Vec::new();
+
+    let rows = infract_query.fetch_all(pool).await?;
+    for row in rows {
+        if row.is_empty() {
+            return Ok(infracts);
+        }
+
+        let id = row.get::<i32, _>(0);
+        let infraction_type = row.get::<String, _>(1);
+        let moderator_id = row.get::<i64, _>(2);
+        let reason = row.get::<String, _>(3);
+        let created_at = row.get::<NaiveDateTime, _>(4);
+        let expires_at = row.get::<NaiveDateTime, _>(5);
+        let active = row.get::<bool, _>(6);
+
+        infracts.push((
+            id,
+            infraction_type,
+            moderator_id,
+            reason,
+            created_at,
+            expires_at,
+            active,
+        ));
+    }
+
+    let elapsed_time = start_time.elapsed();
+    info!("Fetched warnings from database in {elapsed_time:.2?}");
+
+    Ok(infracts)
+}
 
 pub(crate) async fn update_infractions(
     user_id: UserId,
