@@ -14,13 +14,14 @@
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
 pub(super) mod purge;
+pub(super) mod unwarn;
 pub(super) mod warn;
-pub(super) mod delwarn;
+pub(super) mod warnings;
 
 enum InfractionType {
     Warn,
+    Deaf,
     Mute,
-    Kick,
     Ban,
 }
 
@@ -28,8 +29,8 @@ impl InfractionType {
     fn as_str(&self) -> &str {
         match self {
             Self::Warn => "warning",
+            Self::Deaf => "deafen",
             Self::Mute => "mute",
-            Self::Kick => "kick",
             Self::Ban => "ban",
         }
     }
