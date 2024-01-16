@@ -23,7 +23,7 @@ use serenity::{
 use tracing::{info, warn};
 
 use crate::{
-    database::{infractions, members},
+    database::{infractions, users},
     framework::options::commands::moderator::InfractionType,
     Context, Error,
 };
@@ -32,9 +32,17 @@ use crate::{
 #[poise::command(slash_command, required_permissions = "MODERATE_MEMBERS")]
 pub(crate) async fn warn(
     ctx: Context<'_>,
-    #[description = "User to give warning to."] member: Member,
+    #[description = "User to give warning to."] user: User,
     #[description = "Quick overview of your decision."] reason: String,
 ) -> Result<(), Error> {
+    // Why would you ever try this to begin with?
+    if user.bot || user.system {
+        let message = format!("Sorry, but bot(s) and system user(s) can't be warned.");
+        let _ = ctx.reply(message).await;
+
+        return Ok(());
+    }
+
     let pool = &ctx.data().pool;
 
     let number_of_reason = reason.chars().count();
@@ -47,8 +55,8 @@ pub(crate) async fn warn(
 
     let infraction_type = InfractionType::Warn.as_str();
 
-    let user_id = member.user.id;
-    let user_name = &member.user.name;
+    let user_id = user.id;
+    let user_name = &user.name;
 
     let moderator = ctx.author();
     let moderator_id = moderator.id;
@@ -81,7 +89,7 @@ pub(crate) async fn warn(
         }
     };
 
-    let mut infractions = match members::infractions(user_id, guild_id, pool).await {
+    let mut infractions = match users::infractions(user_id, guild_id, pool).await {
         Some(infractions) => infractions,
         None => {
             warn!("Couldn't get infractions for @{user_name}");
@@ -100,11 +108,11 @@ pub(crate) async fn warn(
             let content =
                 format!("You've been warned by <@{moderator_id}> in {guild_name}: {reason}");
             let message = CreateMessage::default().content(content);
-            let _ = member.user.direct_message(&ctx, message).await;
+            let _ = user.direct_message(&ctx, message).await;
 
             infractions += 1;
 
-            members::update_member(user_id, guild_id, infractions, false, false, false, pool).await;
+            users::update_user(user_id, guild_id, infractions, false, false, false, pool).await;
 
             break;
         }
@@ -123,7 +131,7 @@ pub(crate) async fn warn(
         info!("@{user_name} warned by @{moderator_name}: {reason}");
 
         let embed = embed(
-            &member,
+            &user,
             user_id,
             user_name,
             moderator,
@@ -141,7 +149,7 @@ pub(crate) async fn warn(
 }
 
 fn embed(
-    user: &Member,
+    user: &User,
     user_id: UserId,
     user_name: &String,
     moderator: &User,
@@ -163,17 +171,14 @@ fn embed(
         .colour(branding::YELLOW)
 }
 
-fn embed_footer(user: &User, name: &String) -> CreateEmbedFooter {
+fn embed_footer(user: &User, user_name: &String) -> CreateEmbedFooter {
     let moderator_icon_url = user.avatar_url().unwrap_or(user.default_avatar_url());
 
-    CreateEmbedFooter::new(name).icon_url(moderator_icon_url)
+    CreateEmbedFooter::new(user_name).icon_url(moderator_icon_url)
 }
 
-fn embed_author(member: &Member, name: &String) -> CreateEmbedAuthor {
-    let user_icon_url = member
-        .user
-        .avatar_url()
-        .unwrap_or(member.user.default_avatar_url());
+fn embed_author(user: &User, user_name: &String) -> CreateEmbedAuthor {
+    let user_icon_url = user.avatar_url().unwrap_or(user.default_avatar_url());
 
-    CreateEmbedAuthor::new(name).icon_url(user_icon_url)
+    CreateEmbedAuthor::new(user_name).icon_url(user_icon_url)
 }
