@@ -88,7 +88,7 @@ fn initialise_subscriber() {
         Ok(level) => level,
         Err(_) => {
             warn!("Couldn't get log level from environment, setting default...");
-            "info".to_string()
+            format!("info")
         }
     };
 
