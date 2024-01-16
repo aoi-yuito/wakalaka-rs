@@ -25,10 +25,7 @@ pub(crate) async fn avatar(
     #[description = "Mention of user to fetch avatar of."] user: User,
 ) -> Result<(), Error> {
     let user_name = &user.name;
-    let user_avatar_url = match user.avatar_url() {
-        Some(value) => value,
-        None => user.default_avatar_url(),
-    };
+    let user_avatar_url = user.avatar_url().unwrap_or(user.default_avatar_url());
 
     let embed = embed(user_name, user_avatar_url);
     let reply = CreateReply {

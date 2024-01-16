@@ -33,10 +33,7 @@ pub(crate) async fn info(ctx: Context<'_>) -> Result<(), Error> {
             return Err(format!("Couldn't get information of current user: {why:?}").into());
         }
     };
-    let bot_avatar_url = match bot.avatar_url() {
-        Some(avatar_url) => avatar_url,
-        None => bot.default_avatar_url(),
-    };
+    let bot_avatar_url = bot.avatar_url().unwrap_or(bot.default_avatar_url());
 
     let embed = embed(&bot_avatar_url);
 

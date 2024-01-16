@@ -82,10 +82,7 @@ pub(crate) async fn suggest(
 
         let (user_name, user_avatar_url) = (
             &ctx.author().name,
-            match ctx.author().avatar_url() {
-                Some(url) => url,
-                None => ctx.author().default_avatar_url(),
-            },
+            ctx.author().avatar_url().unwrap_or(ctx.author().default_avatar_url()),
         );
 
         let user_id = ctx.author().id;
@@ -166,6 +163,6 @@ fn embed(
         .timestamp(Timestamp::from(now))
 }
 
-fn embed_author(user_name: &String, user_avatar_url: String) -> CreateEmbedAuthor {
-    CreateEmbedAuthor::new(user_name).icon_url(user_avatar_url)
+fn embed_author(name: &String, avatar_url: String) -> CreateEmbedAuthor {
+    CreateEmbedAuthor::new(name).icon_url(avatar_url)
 }
