@@ -23,8 +23,10 @@ use serenity::{
 use tracing::{info, warn};
 
 use crate::{
-    database::{infractions, users},
-    framework::options::commands::moderator::InfractionType,
+    database::{
+        infractions::{self, InfractionType},
+        users,
+    },
     Context, Error,
 };
 
@@ -123,10 +125,11 @@ pub(crate) async fn warn(
             break;
         }
 
-        infractions::insert_infractions(
+        infractions::insert_infraction(
             user_id,
             infraction_type,
             moderator_id,
+            guild_id,
             &reason,
             Some(created_at),
             Some(expires_at),
