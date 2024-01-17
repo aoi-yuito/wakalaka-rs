@@ -105,15 +105,12 @@ fn initialise_subscriber() {
         .with_env_filter(filter)
         .compact()
         .finish();
-    match subscriber::set_global_default(subscriber) {
-        Ok(_) => (),
-        Err(_) => {
-            warn!("Couldn't set custom subscriber, setting default...");
+    if let Err(_) = subscriber::set_global_default(subscriber) {
+        warn!("Couldn't set custom subscriber, setting default...");
 
-            let default_subscriber = Subscriber::default();
-            let _ = subscriber::set_global_default(default_subscriber);
-        }
-    };
+        let default_subscriber = Subscriber::default();
+        let _ = subscriber::set_global_default(default_subscriber);
+    }
 
     let elapsed_time = start_time.elapsed();
     info!("Initialised logger in {elapsed_time:.2?}");
