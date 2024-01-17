@@ -13,9 +13,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-use crate::{
-    database::infractions, framework::options::commands::moderator::InfractionType, Context, Error,
-};
+use crate::{database::infractions::{self, InfractionType}, Context, Error};
 
 /// Removes warning from user.
 #[poise::command(
@@ -40,7 +38,7 @@ pub(crate) async fn unwarn(
 
     let infraction_type = InfractionType::Warn.as_str();
 
-    infractions::delete_infractions(id, infraction_type, pool).await;
+    infractions::delete_infraction(id, infraction_type, pool).await;
 
     let message = format!("I've deleted warning with case ID `{}`.", id);
     let _ = ctx.reply(message).await;
