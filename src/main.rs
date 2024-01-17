@@ -15,6 +15,7 @@
 
 mod database;
 mod framework;
+mod utility;
 
 use ::serenity::all::GatewayIntents;
 use poise::Framework;
