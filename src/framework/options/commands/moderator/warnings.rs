@@ -16,14 +16,16 @@
 use chrono::{DateTime, Utc};
 use poise::CreateReply;
 use serenity::{
-    all::{colours::branding, User, UserId},
-    builder::{CreateEmbed, CreateEmbedAuthor},
+    all::{colours::branding, ButtonStyle, ReactionType, User, UserId},
+    builder::{CreateActionRow, CreateButton, CreateEmbed, CreateEmbedAuthor, CreateEmbedFooter},
 };
 use tracing::{error, warn};
 
 use crate::{
-    database::{infractions, users},
-    framework::options::commands::moderator::InfractionType,
+    database::{
+        infractions::{self, InfractionType},
+        users,
+    },
     Context, Error,
 };
 
@@ -50,7 +52,6 @@ pub(crate) async fn warnings(
     let pool = &ctx.data().pool;
 
     let user_id = user.id;
-
     let guild_id = match ctx.guild_id() {
         Some(guild_id) => guild_id,
         None => {
@@ -75,46 +76,65 @@ pub(crate) async fn warnings(
 
     let infraction_type = InfractionType::Warn.as_str();
 
-    let warnings = match infractions::warnings(user_id, infraction_type, pool).await {
+    let warnings = match infractions::warnings(user_id, guild_id, infraction_type, pool).await {
         Ok(warnings) => warnings,
         Err(why) => {
             error!("Couldn't get warnings from database: {why:?}");
             return Ok(());
         }
     };
-    for warning in warnings {
-        let case_id = warning.0;
+    let warning = match warnings.first() {
+        Some(warning) => warning,
+        None => {
+            warn!("Couldn't get first warning from database");
+            return Ok(());
+        }
+    };
 
-        let user_id = UserId::from(u64::from(user_id));
-        let user = match user_id.to_user(&ctx).await {
-            Ok(user) => user,
-            Err(why) => {
-                error!("Couldn't get user from database: {why:?}");
-                return Ok(());
-            }
-        };
-        let user_name = &user.name;
-        let moderator_id = UserId::from(warning.2 as u64);
-        let reason = &warning.3;
-        let created_at = DateTime::<Utc>::from_naive_utc_and_offset(warning.4, Utc)
-            .format("%b %d, %Y %H:%M:%S")
-            .to_string();
-        let expires_at = DateTime::<Utc>::from_naive_utc_and_offset(warning.5, Utc)
-            .format("%b %d, %Y %H:%M:%S")
-            .to_string();
-        let active = &warning.6;
+    let case_id = warning.0;
+    let user = match user_id.to_user(&ctx).await {
+        Ok(user) => user,
+        Err(why) => {
+            error!("Couldn't get user from database: {why:?}");
+            return Ok(());
+        }
+    };
+    let user_name = &user.name;
+    let moderator_id = UserId::from(warning.2 as u64);
+    let reason = &warning.3;
+    let created_at = DateTime::<Utc>::from_naive_utc_and_offset(warning.4, Utc)
+        .format("%b %d, %Y %H:%M:%S")
+        .to_string();
+    let active = &warning.6;
 
-        let embed = embed(
-            &case_id,
-            &user,
-            user_name,
-            &moderator_id,
-            &created_at,
-            &expires_at,
-            reason,
-            active,
-        );
+    let previous_case = CreateButton::new("previous_case")
+        .style(ButtonStyle::Primary)
+        .emoji(ReactionType::from('👈'))
+        .label("Previous Case")
+        .disabled(true);
+    let next_case = CreateButton::new("next_case")
+        .style(ButtonStyle::Primary)
+        .emoji(ReactionType::from('👉'))
+        .label("Next Case");
 
+    let embed = embed(
+        &case_id,
+        &user,
+        &user_id,
+        user_name,
+        &moderator_id,
+        &created_at,
+        reason,
+        active,
+    );
+    let components = CreateActionRow::Buttons(vec![previous_case, next_case]);
+
+    if infractions > 1 {
+        let reply = CreateReply::default()
+            .embed(embed)
+            .components(vec![components]);
+        let _ = ctx.send(reply).await;
+    } else {
         let reply = CreateReply::default().embed(embed);
         let _ = ctx.send(reply).await;
     }
@@ -122,25 +142,33 @@ pub(crate) async fn warnings(
     Ok(())
 }
 
-fn embed(
+pub(crate) fn embed(
     case_id: &i32,
     user: &User,
+    user_id: &UserId,
     user_name: &String,
     moderator_id: &UserId,
     created_at: &String,
-    expires_at: &String,
     reason: &String,
     active: &bool,
 ) -> CreateEmbed {
+    let active_status = match active {
+        true => format!("✅"),
+        false => format!("❌"),
+    };
+
     CreateEmbed::default()
         .author(embed_author(user, user_name))
-        .field("Case:", format!("`{case_id}`"), true)
+        .title(format!("Case #{case_id}"))
+        .field("User:", format!("<@{user_id}>"), true)
         .field("Moderator:", format!("<@{moderator_id}>"), true)
         .field("Reason:", reason, false)
-        .field("Created at:", created_at, true)
-        .field("Expires at:", expires_at, true)
-        .field("Active:", format!("{active}"), false)
+        .footer(embed_footer(&active_status, created_at))
         .colour(branding::YELLOW)
+}
+
+fn embed_footer(status: &String, created_at: &String) -> CreateEmbedFooter {
+    CreateEmbedFooter::new(format!("{status} {created_at}"))
 }
 
 fn embed_author(user: &User, user_name: &String) -> CreateEmbedAuthor {
