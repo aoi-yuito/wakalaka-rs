@@ -14,26 +14,26 @@
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
 use poise::CreateReply;
-use serenity::{all::User, builder::CreateEmbed};
+use serenity::all::User;
 
-use crate::{Context, Error};
+use crate::{utility::embeds, Context, Error};
 
-/// Gets an image of users' avatar.
+/// Gets the avatar of a user.
 #[poise::command(
     prefix_command,
     slash_command,
-    context_menu_command = "User Avatar",
-    category = "Miscellaneous",
+    context_menu_command = "Get Avatar",
+    category = "Misc",
     guild_only
 )]
 pub(crate) async fn avatar(
     ctx: Context<'_>,
-    #[description = "Mention of user to get avatar of."] user: User,
+    #[description = "User to get the avatar of."] user: User,
 ) -> Result<(), Error> {
     let user_name = &user.name;
     let user_avatar_url = user.avatar_url().unwrap_or(user.default_avatar_url());
 
-    let embed = embed(user_name, user_avatar_url);
+    let embed = embeds::avatar_embed(user_name, user_avatar_url);
     let reply = CreateReply {
         content: None,
         embeds: vec![embed],
@@ -42,10 +42,4 @@ pub(crate) async fn avatar(
     let _ = ctx.send(reply).await;
 
     Ok(())
-}
-
-fn embed(name: &String, url: String) -> CreateEmbed {
-    CreateEmbed::default()
-        .title(format!("{name}'s avatar"))
-        .image(url)
 }

@@ -13,57 +13,36 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-use ::serenity::builder::CreateEmbed;
 use poise::CreateReply;
-use serenity::{
-    all::colours::branding,
-    builder::{CreateEmbedAuthor, CreateEmbedFooter},
-};
 
-use crate::{Context, Error};
+use crate::{utility::embeds, Context, Error};
 
 use super::{AUTHORS, DESCRIPTION, GITHUB_URL, NAME, RUST_VERSION, VERSION};
 
-/// Gets basic information about yours truly.
-#[poise::command(prefix_command, slash_command, category = "Information")]
+/// Gets basic information of yours truly.
+#[poise::command(prefix_command, slash_command, category = "Info")]
 pub(crate) async fn info(ctx: Context<'_>) -> Result<(), Error> {
     let bot = match ctx.http().get_current_user().await {
         Ok(value) => value,
         Err(why) => {
-            return Err(format!("Couldn't get information of current user: {why:?}").into());
+            return Err(format!("Couldn't get bot information: {why:?}").into());
         }
     };
     let bot_avatar_url = bot.avatar_url().unwrap_or(bot.default_avatar_url());
 
-    let embed = embed(&bot_avatar_url);
+    let constants = [
+        NAME,         // 0
+        VERSION,      // 1
+        AUTHORS,      // 2
+        DESCRIPTION,  // 3
+        GITHUB_URL,   // 4
+        RUST_VERSION, // 5
+    ];
+
+    let embed = embeds::info_embed(&bot_avatar_url, constants);
 
     let reply = CreateReply::default().embed(embed);
     let _ = ctx.send(reply).await;
 
     Ok(())
-}
-
-fn embed(icon_url: &String) -> CreateEmbed {
-    CreateEmbed::default()
-        .author(embed_author(icon_url))
-        .title(format!("{} v{}", NAME, VERSION))
-        .description(DESCRIPTION)
-        .url(format!("{GITHUB_URL}/{NAME}"))
-        .footer(embed_footer())
-        .colour(branding::BLURPLE)
-}
-
-fn embed_footer() -> CreateEmbedFooter {
-    let footer_text = format!("Powered by Rust {}", RUST_VERSION);
-
-    CreateEmbedFooter::new(footer_text)
-}
-
-fn embed_author(icon_url: &String) -> CreateEmbedAuthor {
-    let author = match AUTHORS.split(',').next() {
-        Some(value) => value,
-        None => "No author found",
-    };
-
-    CreateEmbedAuthor::new(author).icon_url(icon_url)
 }

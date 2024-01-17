@@ -13,21 +13,21 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-use chrono::{NaiveDateTime, TimeZone, Utc};
+use chrono::Utc;
 use serenity::{
-    all::{
-        colours::branding, ButtonStyle, PermissionOverwrite, PermissionOverwriteType, Permissions,
-        ReactionType,
-    },
-    builder::{CreateActionRow, CreateButton, CreateEmbed, CreateEmbedAuthor, CreateMessage},
-    model::Timestamp,
+    all::{PermissionOverwrite, PermissionOverwriteType, Permissions},
+    builder::{CreateActionRow, CreateMessage},
 };
 use tracing::{error, warn};
 
-use crate::{database::suggestions, Context, Error};
+use crate::{
+    database::suggestions,
+    utility::{buttons, embeds},
+    Context, Error,
+};
 
-/// Suggest things for yours truly, or for community.
-#[poise::command(prefix_command, slash_command, category = "Miscellaneous", guild_only)]
+/// Suggest fresh ideas to yours truly, or for the community.
+#[poise::command(prefix_command, slash_command, category = "Misc", guild_only)]
 pub(crate) async fn suggest(
     ctx: Context<'_>,
     #[description = "Brief overview of your suggestion."] message: String,
@@ -49,11 +49,19 @@ pub(crate) async fn suggest(
             return Ok(());
         }
     };
+    let guild_name = match guild_id.name(&ctx.cache()) {
+        Some(value) => value,
+        None => {
+            warn!("Couldn't get guild name");
+            return Ok(());
+        }
+    };
 
     let guild_channels = match ctx.http().get_channels(guild_id).await {
         Ok(value) => value,
         Err(why) => {
-            return Err(format!("Couldn't get channels in guild: {why:?}").into());
+            error!("Couldn't get channels in {guild_name}: {why:?}");
+            return Ok(());
         }
     };
 
@@ -61,8 +69,7 @@ pub(crate) async fn suggest(
         .iter()
         .find(|channel| channel.name == "suggestions");
     if let Some(channel) = suggest_channel {
-        let suggest_channel_id = channel.id;
-
+        let channel_id = channel.id;
         let bot_id = ctx.cache().current_user().id;
 
         let permissions = PermissionOverwrite {
@@ -70,13 +77,9 @@ pub(crate) async fn suggest(
             deny: Permissions::empty(),
             kind: PermissionOverwriteType::Member(bot_id),
         };
-        if let Err(why) = suggest_channel_id
-            .create_permission(&ctx.http(), permissions)
-            .await
-        {
-            return Err(
-                format!("Couldn't create permission overwrite for #suggestions: {why:?}").into(),
-            );
+        if let Err(why) = channel_id.create_permission(&ctx.http(), permissions).await {
+            error!("Couldn't create permission overwrite for #suggestions: {why:?}");
+            return Ok(());
         }
 
         let (user_name, user_avatar_url) = (
@@ -99,26 +102,19 @@ pub(crate) async fn suggest(
         };
         let created_at = Utc::now().naive_utc();
 
-        let accept_suggest = CreateButton::new("accept_suggest")
-            .style(ButtonStyle::Success)
-            .emoji(ReactionType::from('👍'))
-            .label("Accept");
-        let reject_suggest = CreateButton::new("reject_suggest")
-            .style(ButtonStyle::Danger)
-            .emoji(ReactionType::from('👎'))
-            .label("Reject");
+        let (accept_suggest, reject_suggest) = (
+            buttons::accept_suggest_button(),
+            buttons::reject_suggest_button(),
+        );
 
-        let embed = embed(user_name, user_avatar_url, &message, created_at);
+        let embed = embeds::suggest_embed(user_name, user_avatar_url, &message, created_at);
         let components = CreateActionRow::Buttons(vec![accept_suggest, reject_suggest]);
 
         let suggest_message = CreateMessage::default()
             .embed(embed.clone())
             .components(vec![components]);
 
-        let message = match suggest_channel_id
-            .send_message(&ctx.http(), suggest_message)
-            .await
-        {
+        let message = match channel_id.send_message(&ctx.http(), suggest_message).await {
             Ok(value) => value,
             Err(why) => {
                 error!("Couldn't send message: {why:?}");
@@ -147,23 +143,4 @@ pub(crate) async fn suggest(
     let _ = ctx.reply("Your suggestion has been sent!").await;
 
     Ok(())
-}
-
-fn embed(
-    name: &String,
-    avatar_url: String,
-    description: &String,
-    created_at: NaiveDateTime,
-) -> CreateEmbed {
-    let now = Timestamp::from(Utc.from_utc_datetime(&created_at));
-
-    CreateEmbed::default()
-        .author(embed_author(name, avatar_url))
-        .description(description)
-        .color(branding::BLURPLE)
-        .timestamp(Timestamp::from(now))
-}
-
-fn embed_author(name: &String, avatar_url: String) -> CreateEmbedAuthor {
-    CreateEmbedAuthor::new(name).icon_url(avatar_url)
 }
