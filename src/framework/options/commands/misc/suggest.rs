@@ -70,7 +70,6 @@ pub(crate) async fn suggest(
             deny: Permissions::empty(),
             kind: PermissionOverwriteType::Member(bot_id),
         };
-
         if let Err(why) = suggest_channel_id
             .create_permission(&ctx.http(), permissions)
             .await
@@ -100,17 +99,17 @@ pub(crate) async fn suggest(
         };
         let created_at = Utc::now().naive_utc();
 
-        let accept_button = CreateButton::new("accept_button")
+        let accept_suggest = CreateButton::new("accept_suggest")
             .style(ButtonStyle::Success)
             .emoji(ReactionType::from('👍'))
             .label("Accept");
-        let reject_button = CreateButton::new("reject_button")
+        let reject_suggest = CreateButton::new("reject_suggest")
             .style(ButtonStyle::Danger)
             .emoji(ReactionType::from('👎'))
             .label("Reject");
 
         let embed = embed(user_name, user_avatar_url, &message, created_at);
-        let components = CreateActionRow::Buttons(vec![accept_button, reject_button]);
+        let components = CreateActionRow::Buttons(vec![accept_suggest, reject_suggest]);
 
         let suggest_message = CreateMessage::default()
             .embed(embed.clone())
