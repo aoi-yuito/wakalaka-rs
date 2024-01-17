@@ -3,6 +3,7 @@ CREATE TABLE IF NOT EXISTS infractions (
     type VARCHAR,
     user_id BIGINT NOT NULL,
     moderator_id BIGINT NOT NULL,
+    guild_id BIGINT NOT NULL,
     reason VARCHAR(120) NOT NULL,
     created_at TIMESTAMP,
     expires_at TIMESTAMP,
