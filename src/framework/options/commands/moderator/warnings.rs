@@ -16,8 +16,8 @@
 use chrono::{DateTime, Utc};
 use poise::CreateReply;
 use serenity::{
-    all::{colours::branding, ButtonStyle, ReactionType, User, UserId},
-    builder::{CreateActionRow, CreateButton, CreateEmbed, CreateEmbedAuthor, CreateEmbedFooter},
+    all::{User, UserId},
+    builder::CreateActionRow,
 };
 use tracing::{error, warn};
 
@@ -26,6 +26,7 @@ use crate::{
         infractions::{self, InfractionType},
         users,
     },
+    utility::{buttons, embeds},
     Context, Error,
 };
 
@@ -107,17 +108,12 @@ pub(crate) async fn warnings(
         .to_string();
     let active = &warning.6;
 
-    let previous_case = CreateButton::new("previous_case")
-        .style(ButtonStyle::Primary)
-        .emoji(ReactionType::from('👈'))
-        .label("Previous Case")
-        .disabled(true);
-    let next_case = CreateButton::new("next_case")
-        .style(ButtonStyle::Primary)
-        .emoji(ReactionType::from('👉'))
-        .label("Next Case");
+    let (previous_warning, next_warning) = (
+        buttons::previous_warning_button(true),
+        buttons::next_warning_button(false),
+    );
 
-    let embed = embed(
+    let embed = embeds::warnings_embed(
         &case_id,
         &user,
         &user_id,
@@ -127,7 +123,7 @@ pub(crate) async fn warnings(
         reason,
         active,
     );
-    let components = CreateActionRow::Buttons(vec![previous_case, next_case]);
+    let components = CreateActionRow::Buttons(vec![previous_warning, next_warning]);
 
     if infractions > 1 {
         let reply = CreateReply::default()
@@ -140,39 +136,4 @@ pub(crate) async fn warnings(
     }
 
     Ok(())
-}
-
-pub(crate) fn embed(
-    case_id: &i32,
-    user: &User,
-    user_id: &UserId,
-    user_name: &String,
-    moderator_id: &UserId,
-    created_at: &String,
-    reason: &String,
-    active: &bool,
-) -> CreateEmbed {
-    let active_status = match active {
-        true => format!("✅"),
-        false => format!("❌"),
-    };
-
-    CreateEmbed::default()
-        .author(embed_author(user, user_name))
-        .title(format!("Case #{case_id}"))
-        .field("User:", format!("<@{user_id}>"), true)
-        .field("Moderator:", format!("<@{moderator_id}>"), true)
-        .field("Reason:", reason, false)
-        .footer(embed_footer(&active_status, created_at))
-        .colour(branding::YELLOW)
-}
-
-fn embed_footer(status: &String, created_at: &String) -> CreateEmbedFooter {
-    CreateEmbedFooter::new(format!("{status} {created_at}"))
-}
-
-fn embed_author(user: &User, user_name: &String) -> CreateEmbedAuthor {
-    let user_icon_url = user.avatar_url().unwrap_or(user.default_avatar_url());
-
-    CreateEmbedAuthor::new(user_name).icon_url(user_icon_url)
 }

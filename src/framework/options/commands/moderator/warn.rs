@@ -13,13 +13,9 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-use chrono::{Duration, NaiveDateTime, TimeZone, Utc};
+use chrono::{Duration, TimeZone, Utc};
 use poise::CreateReply;
-use serenity::{
-    all::{colours::branding, User, UserId},
-    builder::{CreateEmbed, CreateEmbedAuthor, CreateEmbedFooter, CreateMessage},
-    model::Timestamp,
-};
+use serenity::{all::User, builder::CreateMessage};
 use tracing::{info, warn};
 
 use crate::{
@@ -27,6 +23,7 @@ use crate::{
         infractions::{self, InfractionType},
         users,
     },
+    utility::embeds,
     Context, Error,
 };
 
@@ -139,7 +136,7 @@ pub(crate) async fn warn(
         .await;
         info!("@{user_name} warned by @{moderator_name}: {reason}");
 
-        let embed = embed(
+        let embed = embeds::warn_embed(
             &user,
             user_id,
             user_name,
@@ -155,39 +152,4 @@ pub(crate) async fn warn(
     }
 
     Ok(())
-}
-
-fn embed(
-    user: &User,
-    user_id: UserId,
-    user_name: &String,
-    moderator: &User,
-    moderator_id: UserId,
-    moderator_name: &String,
-    reason: String,
-    created_at: NaiveDateTime,
-) -> CreateEmbed {
-    let now = Timestamp::from(Utc.from_utc_datetime(&created_at));
-
-    CreateEmbed::default()
-        .author(embed_author(user, user_name))
-        .title("⚠️ You've been warned! ⚠️")
-        .field("User:", format!("<@{user_id}>"), true)
-        .field("Moderator:", format!("<@{moderator_id}>"), true)
-        .field("Reason:", reason, false)
-        .footer(embed_footer(moderator, moderator_name))
-        .timestamp(now)
-        .colour(branding::YELLOW)
-}
-
-fn embed_footer(user: &User, user_name: &String) -> CreateEmbedFooter {
-    let moderator_icon_url = user.avatar_url().unwrap_or(user.default_avatar_url());
-
-    CreateEmbedFooter::new(user_name).icon_url(moderator_icon_url)
-}
-
-fn embed_author(user: &User, user_name: &String) -> CreateEmbedAuthor {
-    let user_icon_url = user.avatar_url().unwrap_or(user.default_avatar_url());
-
-    CreateEmbedAuthor::new(user_name).icon_url(user_icon_url)
 }
