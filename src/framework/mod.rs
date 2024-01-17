@@ -13,7 +13,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-use poise::{Framework, FrameworkOptions, Prefix, PrefixFrameworkOptions};
+use poise::{Framework, FrameworkOptions, PrefixFrameworkOptions};
 use serenity::all::GatewayIntents;
 use tokio::time::Instant;
 use tracing::info;
@@ -33,7 +33,6 @@ pub(crate) async fn initialise_framework(data: Data) -> Framework<Data, Error> {
             commands: commands::guild_commands().await,
             prefix_options: PrefixFrameworkOptions {
                 prefix: Some(format!("?")),
-                additional_prefixes: vec![Prefix::Literal("::")], // Inspired by RuneScape's command prefix.
                 ..Default::default()
             },
             post_command: |ctx| Box::pin(options::post_command::handle(ctx)),
