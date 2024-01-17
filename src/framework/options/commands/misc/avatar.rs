@@ -18,7 +18,7 @@ use serenity::{all::User, builder::CreateEmbed};
 
 use crate::{Context, Error};
 
-/// Fetches image of users' avatar.
+/// Gets an image of users' avatar.
 #[poise::command(
     prefix_command,
     slash_command,
@@ -28,7 +28,7 @@ use crate::{Context, Error};
 )]
 pub(crate) async fn avatar(
     ctx: Context<'_>,
-    #[description = "Mention of user to fetch avatar of."] user: User,
+    #[description = "Mention of user to get avatar of."] user: User,
 ) -> Result<(), Error> {
     let user_name = &user.name;
     let user_avatar_url = user.avatar_url().unwrap_or(user.default_avatar_url());
