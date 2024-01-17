@@ -34,7 +34,8 @@ pub(crate) async fn handle_create(interaction: &Interaction, ctx: &Context, data
             let message = &component.message;
             let message_id = message.id;
 
-            handle_suggestion_message(component, message_id, created_at, pool, ctx).await;
+            handle_suggestion_message(component, message_id, created_at, ctx, pool).await;
+            // handle_warnings_message(component, message_id, ctx, pool).await; // I don't know how to implement this shuffling bullshit.
         }
         _ => {}
     }
@@ -44,8 +45,8 @@ async fn handle_suggestion_message(
     component: &ComponentInteraction,
     message_id: MessageId,
     created_at: NaiveDateTime,
-    pool: &SqlitePool,
     ctx: &Context,
+    pool: &SqlitePool,
 ) {
     let custom_id = &component.data.custom_id;
     let guild_id = match component.guild_id {
@@ -76,7 +77,7 @@ async fn handle_suggestion_message(
         return;
     }
 
-    if custom_id == "accept_button" {
+    if custom_id == "accept_suggest" {
         let accepted_at = Utc::now().naive_utc();
 
         suggestions::update_suggest(
@@ -90,7 +91,7 @@ async fn handle_suggestion_message(
             pool,
         )
         .await;
-    } else if custom_id == "reject_button" {
+    } else if custom_id == "reject_suggest" {
         let rejected_at = Utc::now().naive_utc();
 
         suggestions::update_suggest(
