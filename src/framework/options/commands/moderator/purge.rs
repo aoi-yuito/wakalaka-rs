@@ -19,7 +19,7 @@ use tracing::{error, info};
 
 use crate::{Context, Error};
 
-/// Deletes message(s) from provided channel.
+/// Deletes message(s) from channel.
 #[poise::command(
     prefix_command,
     slash_command,
