@@ -88,27 +88,17 @@ async fn handle_warnings_message(
     let number_of_warnings = warnings.len();
 
     let warning_index = match custom_id.as_str() {
-        "next_warning" => {
-            if (current_warning_index + 1) < number_of_warnings {
-                current_warning_index + 1
-            } else {
-                current_warning_index
-            }
-        }
-        "previous_warning" => {
-            if current_warning_index > 0 {
-                current_warning_index - 1
-            } else {
-                current_warning_index
-            }
-        }
+        "next_warning" => std::cmp::min(current_warning_index + 1, number_of_warnings - 1),
+        "previous_warning" => std::cmp::max(current_warning_index.saturating_sub(1), 0),
         _ => current_warning_index,
     };
+
+    let first_case_id = warnings.first().map(|warning| warning.0);
+    let last_case_id = warnings.last().map(|warning| warning.0);
 
     let warning = &warnings[warning_index];
 
     let case_id = warning.0;
-    let case_ids = warnings.iter().map(|warning| warning.0).collect::<Vec<_>>();
     let user = match user_id.to_user(&ctx).await {
         Ok(user) => user,
         Err(why) => {
@@ -140,20 +130,16 @@ async fn handle_warnings_message(
         active,
     );
 
-    if custom_id == "next_warning" {
-        if case_id == case_ids[number_of_warnings - 1] {
-            next_warning = buttons::next_warning_button(true);
-        }
-    } else if custom_id == "previous_warning" {
-        if case_id == case_ids[0] {
-            previous_warning = buttons::previous_warning_button(true);
-        }
+    if custom_id == "next_warning" && Some(case_id) == last_case_id {
+        next_warning = buttons::next_warning_button(true);
+    } else if custom_id == "previous_warning" && Some(case_id) == first_case_id {
+        previous_warning = buttons::previous_warning_button(true);
     }
 
     let components = CreateActionRow::Buttons(vec![previous_warning, next_warning]);
 
     let edit_message = EditMessage::default()
-        .content(format!("{warning_index}")) // For some tittyfuckin' retarded reason, removing this line causes the shuffling to not work after the second shuffle. What the fuck?
+        .content(format!("{warning_index}")) // For some tittyfuckin' retarded reason, removing this line or not sending an index as content will break shuffling after the first NEXT. What the fuck?
         .embeds(vec![embed])
         .components(vec![components]);
     let _ = message.edit(&ctx.http, edit_message).await;
