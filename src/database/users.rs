@@ -45,7 +45,7 @@ pub(crate) async fn infractions(
     };
 
     let elapsed_time = start_time.elapsed();
-    info!("Fetched user infractions from database in {elapsed_time:.2?}");
+    info!("Got user infractions from database in {elapsed_time:.2?}");
 
     Some(infractions)
 }
