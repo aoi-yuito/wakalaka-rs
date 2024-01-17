@@ -14,22 +14,42 @@
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
 use chrono::{NaiveDateTime, Utc};
-use serenity::all::UserId;
+use serenity::all::{GuildId, UserId};
 use sqlx::{Row, SqlitePool};
 use tokio::time::Instant;
 use tracing::{error, info};
 
+pub(crate) enum InfractionType {
+    Warn,
+    Deaf,
+    Mute,
+    Ban,
+}
+
+impl InfractionType {
+    pub(crate) fn as_str(&self) -> &str {
+        match self {
+            Self::Warn => "warning",
+            Self::Deaf => "deafen",
+            Self::Mute => "mute",
+            Self::Ban => "ban",
+        }
+    }
+}
+
 pub(crate) async fn warnings(
     user_id: UserId,
+    guild_id: GuildId,
     infraction_type: &'static str,
     pool: &SqlitePool,
 ) -> Result<Vec<(i32, String, i64, String, NaiveDateTime, NaiveDateTime, bool)>, sqlx::Error> {
     let start_time = Instant::now();
 
     let infract_query = sqlx::query(
-        "SELECT id, type, moderator_id, reason, created_at, expires_at, active FROM infractions WHERE user_id = ? AND type = ?",
+        "SELECT id, type, moderator_id, reason, created_at, expires_at, active FROM infractions WHERE user_id = ? AND guild_id = ? AND type = ?",
     )
     .bind(i64::from(user_id))
+    .bind(i64::from(guild_id))
     .bind(infraction_type);
 
     let mut infracts = Vec::new();
@@ -60,14 +80,15 @@ pub(crate) async fn warnings(
     }
 
     let elapsed_time = start_time.elapsed();
-    info!("Fetched warnings from database in {elapsed_time:.2?}");
+    info!("Got warnings from database in {elapsed_time:.2?}");
 
     Ok(infracts)
 }
 
-pub(crate) async fn update_infractions(
+pub(crate) async fn update_infraction(
     user_id: UserId,
     moderator_id: UserId,
+    guild_id: GuildId,
     reason: &String,
     created_at: Option<NaiveDateTime>,
     expires_at: Option<NaiveDateTime>,
@@ -80,9 +101,10 @@ pub(crate) async fn update_infractions(
     let expires_at = expires_at.unwrap_or_else(|| Utc::now().naive_utc());
 
     let infract_query = sqlx::query(
-        "UPDATE infractions SET moderator_id = ?, reason = ?, created_at = ?, expires_at = ?, active = ? WHERE user_id = ?",
+        "UPDATE infractions SET moderator_id = ?, guild_id = ?, reason = ?, created_at = ?, expires_at = ?, active = ? WHERE user_id = ?",
     )
     .bind(i64::from(moderator_id))
+    .bind(i64::from(guild_id))
     .bind(reason)
     .bind(created_at)
     .bind(expires_at)
@@ -98,7 +120,7 @@ pub(crate) async fn update_infractions(
     }
 }
 
-pub(crate) async fn delete_infractions(id: i32, infraction_type: &'static str, pool: &SqlitePool) {
+pub(crate) async fn delete_infraction(id: i32, infraction_type: &'static str, pool: &SqlitePool) {
     let start_time = Instant::now();
 
     let infract_query = sqlx::query("DELETE FROM infractions WHERE id = ? AND type = ?")
@@ -114,10 +136,11 @@ pub(crate) async fn delete_infractions(id: i32, infraction_type: &'static str, p
     }
 }
 
-pub(crate) async fn insert_infractions(
+pub(crate) async fn insert_infraction(
     user_id: UserId,
     infraction_type: &'static str,
     moderator_id: UserId,
+    guild_id: GuildId,
     reason: &String,
     created_at: Option<NaiveDateTime>,
     expires_at: Option<NaiveDateTime>,
@@ -130,11 +153,12 @@ pub(crate) async fn insert_infractions(
     let expires_at = expires_at.unwrap_or(Utc::now().naive_utc());
 
     let infract_query = sqlx::query(
-        "INSERT INTO infractions (user_id, type, moderator_id, reason, created_at, expires_at, active) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        "INSERT INTO infractions (user_id, type, moderator_id, guild_id, reason, created_at, expires_at, active) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
     )
     .bind(i64::from(user_id))
     .bind(infraction_type)
     .bind(i64::from(moderator_id))
+    .bind(i64::from(guild_id))
     .bind(reason)
     .bind(created_at)
     .bind(expires_at)
