@@ -14,15 +14,10 @@
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
 mod cache_ready;
-mod channel_create;
-mod channel_delete;
-mod channel_update;
-mod guild_create;
-mod guild_delete;
-mod guild_update;
-mod interaction_create;
+mod channel;
+mod guild;
+mod interaction;
 mod message;
-mod message_delete;
 mod ready;
 
 use poise::serenity_prelude::{Context, FullEvent};
@@ -41,25 +36,25 @@ pub(crate) async fn handle(
             cache_ready::cache_handle(guilds, ctx, data).await;
         }
         FullEvent::ChannelCreate { channel, .. } => {
-            channel_create::handle_create(channel, data).await;
+            channel::channel_create::handle_create(channel, data).await;
         }
         FullEvent::ChannelDelete { channel, .. } => {
-            channel_delete::handle_delete(channel, data).await;
+            channel::channel_delete::handle_delete(channel, data).await;
         }
         FullEvent::ChannelUpdate { old, new, .. } => {
-            channel_update::handle_update(old, new, data).await;
+            channel::channel_update::handle_update(old, new, data).await;
         }
         FullEvent::GuildCreate { guild, is_new } => {
-            guild_create::handle_create(guild, is_new.is_some(), ctx, data).await;
+            guild::guild_create::handle_create(guild, is_new.is_some(), ctx, data).await;
         }
         FullEvent::GuildDelete { incomplete, full } => {
-            guild_delete::handle_delete(incomplete, full, ctx, data).await;
+            guild::guild_delete::handle_delete(incomplete, full, ctx, data).await;
         }
         FullEvent::GuildUpdate {
             old_data_if_available,
             new_data,
         } => {
-            guild_update::handle_update(old_data_if_available, new_data, ctx, data).await;
+            guild::guild_update::handle_update(old_data_if_available, new_data, ctx, data).await;
         }
         FullEvent::Ready { data_about_bot, .. } => {
             ready::handle(data_about_bot, ctx);
@@ -72,11 +67,17 @@ pub(crate) async fn handle(
             deleted_message_id,
             guild_id,
         } => {
-            message_delete::handle_delete(channel_id, deleted_message_id, guild_id, ctx, data)
-                .await;
+            message::message_delete::handle_delete(
+                channel_id,
+                deleted_message_id,
+                guild_id,
+                ctx,
+                data,
+            )
+            .await;
         }
         FullEvent::InteractionCreate { interaction, .. } => {
-            interaction_create::handle_create(interaction, ctx, data).await;
+            interaction::interaction_create::handle_create(interaction, ctx, data).await;
         }
         _ => {}
     }
