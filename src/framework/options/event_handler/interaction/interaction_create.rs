@@ -13,25 +13,16 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-use chrono::{DateTime, NaiveDateTime, Utc};
+use chrono::{NaiveDateTime, Utc};
 use poise::serenity_prelude::Context;
 use serenity::{
-    all::{ComponentInteraction, Interaction, MessageId, UserId},
-    builder::{
-        CreateActionRow, CreateInteractionResponse, CreateInteractionResponseMessage, EditMessage,
-    },
+    all::{ComponentInteraction, Interaction, MessageId},
+    builder::EditMessage,
 };
 use sqlx::SqlitePool;
 use tracing::{error, warn};
 
-use crate::{
-    database::{
-        infractions::{self, InfractionType},
-        suggestions,
-    },
-    utility::{buttons, embeds},
-    Data,
-};
+use crate::{database::suggestions, utility::messages, Data};
 
 pub(crate) async fn handle_create(interaction: &Interaction, ctx: &Context, data: &Data) {
     let pool = &data.pool;
@@ -40,119 +31,28 @@ pub(crate) async fn handle_create(interaction: &Interaction, ctx: &Context, data
 
     match interaction {
         Interaction::Component(component) => {
+            let custom_id = &component.data.custom_id;
+
             let message = &component.message;
             let message_id = message.id;
 
-            handle_suggestion_message(component, message_id, created_at, ctx, pool).await;
-            handle_warnings_message(component, message_id, ctx, pool).await;
+            if custom_id == "accept_suggest" || custom_id == "reject_suggest" {
+                handle_suggestion_message(component, custom_id, message_id, created_at, ctx, pool)
+                    .await;
+            }
         }
         _ => {}
     }
 }
 
-async fn handle_warnings_message(
-    component: &ComponentInteraction,
-    message_id: MessageId,
-    ctx: &Context,
-    pool: &SqlitePool,
-) {
-    let custom_id = &component.data.custom_id;
-    let user_id = component.user.id;
-    let guild_id = match component.guild_id {
-        Some(value) => value,
-        None => {
-            warn!("Couldn't get guild ID");
-            return;
-        }
-    };
-
-    let infraction_type = InfractionType::Warn.as_str();
-
-    let mut message = match component.channel_id.message(&ctx.http, message_id).await {
-        Ok(message) => message,
-        Err(why) => {
-            error!("Couldn't get message: {why:?}");
-            return;
-        }
-    };
-
-    let warnings = match infractions::warnings(user_id, guild_id, infraction_type, pool).await {
-        Ok(warnings) => warnings,
-        Err(why) => {
-            error!("Couldn't get warnings from database: {why:?}");
-            return;
-        }
-    };
-
-    let current_warning_index = message.content.parse::<usize>().unwrap_or(0);
-    let number_of_warnings = warnings.len();
-
-    let warning_index = match custom_id.as_str() {
-        "next_warning" => std::cmp::min(current_warning_index + 1, number_of_warnings - 1),
-        "previous_warning" => std::cmp::max(current_warning_index.saturating_sub(1), 0),
-        _ => current_warning_index,
-    };
-
-    let first_case_id = warnings.first().map(|warning| warning.0);
-    let last_case_id = warnings.last().map(|warning| warning.0);
-
-    let warning = &warnings[warning_index];
-
-    let case_id = warning.0;
-    let user = match user_id.to_user(&ctx).await {
-        Ok(user) => user,
-        Err(why) => {
-            error!("Couldn't get user from database: {why:?}");
-            return;
-        }
-    };
-    let user_name = &user.name;
-    let moderator_id = UserId::from(warning.2 as u64);
-    let reason = &warning.3;
-    let created_at = DateTime::<Utc>::from_naive_utc_and_offset(warning.4, Utc)
-        .format("%b %d, %Y %H:%M:%S")
-        .to_string();
-    let active = &warning.6;
-
-    let (mut previous_warning, mut next_warning) = (
-        buttons::previous_warning_button(false),
-        buttons::next_warning_button(false),
-    );
-
-    let embed = embeds::warnings_embed(
-        &case_id,
-        &user,
-        &user_id,
-        user_name,
-        &moderator_id,
-        &created_at,
-        reason,
-        active,
-    );
-
-    if custom_id == "next_warning" && Some(case_id) == last_case_id {
-        next_warning = buttons::next_warning_button(true);
-    } else if custom_id == "previous_warning" && Some(case_id) == first_case_id {
-        previous_warning = buttons::previous_warning_button(true);
-    }
-
-    let components = CreateActionRow::Buttons(vec![previous_warning, next_warning]);
-
-    let edit_message = EditMessage::default()
-        .content(format!("{warning_index}")) // For some tittyfuckin' retarded reason, removing this line or not sending an index as content will break shuffling after the first NEXT. What the fuck?
-        .embeds(vec![embed])
-        .components(vec![components]);
-    let _ = message.edit(&ctx.http, edit_message).await;
-}
-
 async fn handle_suggestion_message(
     component: &ComponentInteraction,
+    custom_id: &String,
     message_id: MessageId,
     created_at: NaiveDateTime,
     ctx: &Context,
     pool: &SqlitePool,
 ) {
-    let custom_id = &component.data.custom_id;
     let guild_id = match component.guild_id {
         Some(value) => value,
         None => {
@@ -171,15 +71,20 @@ async fn handle_suggestion_message(
     let channel_id = component.channel_id;
 
     if user_id != owner_id {
-        let interaction_response_message = CreateInteractionResponseMessage::new()
-            .content("Sorry, but you can't accept or reject suggestions.")
-            .ephemeral(true);
-        let interaction_response = CreateInteractionResponse::Message(interaction_response_message);
-        let _ = component
-            .create_response(&ctx.http, interaction_response)
-            .await;
+        let response =
+            messages::error_response("Only moderators can accept or reject suggestions").await;
+        let _ = component.create_response(&ctx.http, response).await;
+
         return;
     }
+
+    let mut message = match channel_id.message(&ctx.http, message_id).await {
+        Ok(message) => message,
+        Err(why) => {
+            error!("Couldn't get message: {why:?}");
+            return;
+        }
+    };
 
     if custom_id == "accept_suggest" {
         let accepted_at = Utc::now().naive_utc();
@@ -212,12 +117,8 @@ async fn handle_suggestion_message(
     }
 
     let edit_message = EditMessage::default().components(Vec::new());
-    let mut message = match channel_id.message(&ctx.http, message_id).await {
-        Ok(message) => message,
-        Err(why) => {
-            error!("Couldn't get message: {why:?}");
-            return;
-        }
-    };
-    let _ = message.edit(&ctx.http, edit_message).await;
+    if let Err(why) = message.edit(&ctx.http, edit_message).await {
+        error!("Couldn't edit message: {why:?}");
+        return;
+    }
 }
