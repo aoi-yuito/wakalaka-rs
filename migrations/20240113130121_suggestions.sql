@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS suggestions (
     created_at TIMESTAMP NOT NULL,
     accepted_at TIMESTAMP,
     rejected_at TIMESTAMP,
-    FOREIGN KEY (moderator_id) REFERENCES members(id) ON DELETE CASCADE,
-    FOREIGN KEY (user_id) REFERENCES members(id) ON DELETE CASCADE
+    FOREIGN KEY (moderator_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 PRAGMA foreign_keys = ON;
