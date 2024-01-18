@@ -14,18 +14,20 @@
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
 use poise::CreateReply;
+use tracing::error;
 
 use crate::{utility::embeds, Context, Error};
 
 use super::{AUTHORS, DESCRIPTION, GITHUB_URL, NAME, RUST_VERSION, VERSION};
 
-/// Gets basic information of yours truly.
-#[poise::command(prefix_command, slash_command, category = "Info")]
+/// Get basic information about yours truly.
+#[poise::command(prefix_command, slash_command, category = "Info", ephemeral)]
 pub(crate) async fn info(ctx: Context<'_>) -> Result<(), Error> {
     let bot = match ctx.http().get_current_user().await {
         Ok(value) => value,
         Err(why) => {
-            return Err(format!("Couldn't get bot information: {why:?}").into());
+            error!("Couldn't get current user: {why:?}");
+            return Ok(());
         }
     };
     let bot_avatar_url = bot.avatar_url().unwrap_or(bot.default_avatar_url());
@@ -39,10 +41,12 @@ pub(crate) async fn info(ctx: Context<'_>) -> Result<(), Error> {
         RUST_VERSION, // 5
     ];
 
-    let embed = embeds::info_embed(&bot_avatar_url, constants);
+    let info_embed = embeds::info_embed(&bot_avatar_url, constants);
 
-    let reply = CreateReply::default().embed(embed);
-    let _ = ctx.send(reply).await;
+    let reply = CreateReply::default().embed(info_embed).ephemeral(true);
+    if let Err(why) = ctx.send(reply).await {
+        error!("Couldn't send reply: {why:?}");
+    }
 
     Ok(())
 }

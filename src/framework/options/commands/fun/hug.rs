@@ -17,17 +17,19 @@ use serenity::all::{Mentionable, User};
 
 use crate::{Context, Error};
 
-/// Hugs one of your fellow users.
+/// Hug one of your fellow members.
 #[poise::command(prefix_command, slash_command, category = "Fun", guild_only)]
 pub(crate) async fn hug(
     ctx: Context<'_>,
-    #[description = "Mention of user to firmly hug."] user: User,
+    #[description = "The user to comfort."] user: User,
 ) -> Result<(), Error> {
     let user_mention = ctx.author().mention();
     let other_mention = user.mention();
 
-    let message = format!("{user_mention} :people_hugging: {other_mention}");
-    let _ = ctx.reply(message).await;
+    let message = format!("{user_mention} 🫂 {other_mention}");
+    if let Err(why) = ctx.say(message).await {
+        tracing::error!("Couldn't send reply: {why:?}");
+    }
 
     Ok(())
 }
