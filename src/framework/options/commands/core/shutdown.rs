@@ -14,11 +14,11 @@
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
 use tokio::time::Duration;
-use tracing::info;
+use tracing::{error, info};
 
-use crate::{Context, Error};
+use crate::{utility::messages, Context, Error};
 
-/// Puts yours truly to sleep.
+/// Put yours truly to sleep.
 #[poise::command(
     prefix_command,
     slash_command,
@@ -28,17 +28,21 @@ use crate::{Context, Error};
 )]
 pub(crate) async fn shutdown(
     ctx: Context<'_>,
-    #[description = "Seconds before yours truly falls asleep."] delay: u64,
+    #[description = "Waiting time before sleep. (1-5s)"] duration: u64,
 ) -> Result<(), Error> {
-    if delay < 1 || delay > 5 {
-        let message = "Delay must be between 1 and 5 seconds.";
-        let _ = ctx.reply(message).await?;
+    if duration < 1 || duration > 5 {
+        let reply = messages::warn_reply("Duration must be between 1 and 5 seconds.");
+        if let Err(why) = ctx.send(reply).await {
+            error!("Couldn't send reply: {why:?}");
+        }
 
         return Ok(());
     }
 
-    let message = format!("Shutting down in {delay} second(s)...");
-    let _ = ctx.reply(message).await;
+    let reply = messages::info_reply(format!("Shutting down in {duration}s..."));
+    if let Err(why) = ctx.send(reply).await {
+        error!("Couldn't send reply: {why:?}");
+    }
 
     let manager = ctx.framework().shard_manager.clone();
 
@@ -53,7 +57,7 @@ pub(crate) async fn shutdown(
         info!("Shutting down shard {}", shard_id);
         manager.shutdown_finished(shard_id);
 
-        tokio::time::sleep(Duration::from_secs(delay)).await;
+        tokio::time::sleep(Duration::from_secs(duration)).await;
 
         std::process::exit(0);
     }
