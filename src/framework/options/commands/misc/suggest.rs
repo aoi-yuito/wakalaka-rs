@@ -22,22 +22,24 @@ use tracing::{error, warn};
 
 use crate::{
     database::suggestions,
-    utility::{buttons, embeds},
+    utility::{buttons, embeds, messages},
     Context, Error,
 };
 
-/// Suggest fresh ideas to yours truly, or for the community.
+/// Send a suggestion of your choice for review.
 #[poise::command(prefix_command, slash_command, category = "Misc", guild_only)]
 pub(crate) async fn suggest(
     ctx: Context<'_>,
-    #[description = "Brief overview of your suggestion."] message: String,
+    #[description = "The suggestion to send. (32-1024)"] message: String,
 ) -> Result<(), Error> {
     let pool = &ctx.data().pool;
 
     let number_of_message = message.chars().count();
     if number_of_message < 32 || number_of_message > 1024 {
-        let message = format!("Suggestion must be between 32 and 1024 characters.");
-        let _ = ctx.reply(message).await;
+        let reply = messages::warn_reply("Suggestion must be between 32 and 1024 characters.");
+        if let Err(why) = ctx.send(reply).await {
+            error!("Couldn't send reply: {why:?}");
+        }
 
         return Ok(());
     }
@@ -70,15 +72,19 @@ pub(crate) async fn suggest(
         .find(|channel| channel.name == "suggestions");
     if let Some(channel) = suggest_channel {
         let channel_id = channel.id;
-        let bot_id = ctx.cache().current_user().id;
+        let channel_name = &channel.name;
 
-        let permissions = PermissionOverwrite {
+        let bot_id = ctx.cache().current_user().id;
+        let bot_permissions = PermissionOverwrite {
             allow: Permissions::SEND_MESSAGES,
             deny: Permissions::empty(),
             kind: PermissionOverwriteType::Member(bot_id),
         };
-        if let Err(why) = channel_id.create_permission(&ctx.http(), permissions).await {
-            error!("Couldn't create permission overwrite for #suggestions: {why:?}");
+        if let Err(why) = channel_id
+            .create_permission(&ctx.http(), bot_permissions)
+            .await
+        {
+            error!("Couldn't create permission overwrite for #{channel_name}: {why:?}");
             return Ok(());
         }
 
@@ -135,12 +141,16 @@ pub(crate) async fn suggest(
         )
         .await;
     } else {
-        let message =
-            format!("Sorry, but I couldn't find appropriate channel to send your suggestion to.");
-        let _ = ctx.reply(message).await;
+        let reply = messages::error_reply("Couldn't find `#suggestions` channel.");
+        if let Err(why) = ctx.send(reply).await {
+            error!("Couldn't send reply: {why:?}");
+        }
     }
 
-    let _ = ctx.reply("Your suggestion has been sent!").await;
+    let reply = messages::success_reply(format!("Suggestion has been sent in for review."));
+    if let Err(why) = ctx.send(reply).await {
+        error!("Couldn't send reply: {why:?}");
+    }
 
     Ok(())
 }
