@@ -13,12 +13,8 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-use chrono::{DateTime, Utc};
 use poise::CreateReply;
-use serenity::{
-    all::{User, UserId},
-    builder::CreateActionRow,
-};
+use serenity::all::User;
 use tracing::{error, warn};
 
 use crate::{
@@ -26,26 +22,28 @@ use crate::{
         infractions::{self, InfractionType},
         users,
     },
-    utility::{buttons, embeds},
+    utility::{embeds, messages},
     Context, Error,
 };
 
-/// Gets a list of warnings for given user.
+/// Get a list of warnings for a user.
 #[poise::command(
     prefix_command,
     slash_command,
     category = "Moderator",
     required_permissions = "MODERATE_MEMBERS",
-    guild_only
+    guild_only,
+    ephemeral
 )]
 pub(crate) async fn warnings(
     ctx: Context<'_>,
-    #[description = "User to get warnings for."] user: User,
+    #[description = "The user to get warnings for."] user: User,
 ) -> Result<(), Error> {
-    // Again, why would you ever try this to begin with?
     if user.bot || user.system {
-        let message = format!("Sorry, but bot(s) and system user(s) can't have warnings.");
-        let _ = ctx.reply(message).await;
+        let reply = messages::error_reply("Can't get warnings for a bot or system user.");
+        if let Err(why) = ctx.send(reply).await {
+            error!("Couldn't send reply: {why:?}");
+        }
 
         return Ok(());
     }
@@ -53,6 +51,15 @@ pub(crate) async fn warnings(
     let pool = &ctx.data().pool;
 
     let user_id = user.id;
+    let user = match user_id.to_user(&ctx).await {
+        Ok(user) => user,
+        Err(why) => {
+            error!("Couldn't get user from database: {why:?}");
+            return Ok(());
+        }
+    };
+    let user_name = &user.name;
+
     let guild_id = match ctx.guild_id() {
         Some(guild_id) => guild_id,
         None => {
@@ -64,16 +71,10 @@ pub(crate) async fn warnings(
     let infractions = match users::infractions(user_id, guild_id, pool).await {
         Some(infractions) => infractions,
         None => {
-            warn!("Couldn't get infractions");
+            warn!("Couldn't get user infractions");
             return Ok(());
         }
     };
-    if infractions == 0 {
-        let message = format!("Sorry, but <@{user_id}> doesn't have any warnings.");
-        let _ = ctx.reply(message).await;
-
-        return Ok(());
-    }
 
     let infraction_type = InfractionType::Warn.as_str();
 
@@ -84,55 +85,37 @@ pub(crate) async fn warnings(
             return Ok(());
         }
     };
-    let warning = match warnings.first() {
-        Some(warning) => warning,
-        None => {
-            warn!("Couldn't get first warning from database");
-            return Ok(());
+
+    let number_of_warnings = warnings.len();
+
+    // There's a failsafe for if the user doesn't have any entries in the database but has a fucking infraction anyway. Fucking how you ever cause the latter to happen is beyond me...
+    if infractions < 1 || number_of_warnings < 1 {
+        let reply = messages::warn_reply(format!("<@{user_id}> doesn't have any warnings."));
+        if let Err(why) = ctx.send(reply).await {
+            error!("Couldn't send reply: {why:?}");
         }
-    };
 
-    let case_id = warning.0;
-    let user = match user_id.to_user(&ctx).await {
-        Ok(user) => user,
-        Err(why) => {
-            error!("Couldn't get user from database: {why:?}");
-            return Ok(());
-        }
-    };
-    let user_name = &user.name;
-    let moderator_id = UserId::from(warning.2 as u64);
-    let reason = &warning.3;
-    let created_at = DateTime::<Utc>::from_naive_utc_and_offset(warning.4, Utc)
-        .format("%b %d, %Y %H:%M:%S")
-        .to_string();
-    let active = &warning.6;
+        return Ok(());
+    }
 
-    let (previous_warning, next_warning) = (
-        buttons::previous_warning_button(true),
-        buttons::next_warning_button(false),
-    );
+    let case_ids = warnings
+        .iter()
+        .map(|warning| warning.0)
+        .collect::<Vec<i32>>();
+    let moderator_ids = warnings
+        .iter()
+        .map(|warning| warning.2)
+        .collect::<Vec<i64>>();
+    let reasons = warnings
+        .iter()
+        .map(|warning| warning.3.clone())
+        .collect::<Vec<String>>();
 
-    let embed = embeds::warnings_embed(
-        &case_id,
-        &user,
-        &user_id,
-        user_name,
-        &moderator_id,
-        &created_at,
-        reason,
-        active,
-    );
-    let components = CreateActionRow::Buttons(vec![previous_warning, next_warning]);
+    let embed = embeds::warnings_embed(case_ids, &user, &user_name, moderator_ids, reasons);
 
-    if infractions > 1 {
-        let reply = CreateReply::default()
-            .embed(embed)
-            .components(vec![components]);
-        let _ = ctx.send(reply).await;
-    } else {
-        let reply = CreateReply::default().embed(embed);
-        let _ = ctx.send(reply).await;
+    let reply = CreateReply::default().embed(embed).ephemeral(true);
+    if let Err(why) = ctx.send(reply).await {
+        error!("Couldn't send reply: {why:?}");
     }
 
     Ok(())
