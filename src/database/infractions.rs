@@ -42,11 +42,11 @@ pub(crate) async fn warnings(
     guild_id: GuildId,
     infraction_type: &'static str,
     pool: &SqlitePool,
-) -> Result<Vec<(i32, String, i64, String, NaiveDateTime, NaiveDateTime, bool)>, sqlx::Error> {
+) -> Result<Vec<(i32, String, i64, String, NaiveDateTime)>, sqlx::Error> {
     let start_time = Instant::now();
 
     let infract_query = sqlx::query(
-        "SELECT id, type, moderator_id, reason, created_at, expires_at, active FROM infractions WHERE user_id = ? AND guild_id = ? AND type = ?",
+        "SELECT id, type, moderator_id, reason, created_at FROM infractions WHERE user_id = ? AND guild_id = ? AND type = ?",
     )
     .bind(i64::from(user_id))
     .bind(i64::from(guild_id))
@@ -65,18 +65,8 @@ pub(crate) async fn warnings(
         let moderator_id = row.get::<i64, _>(2);
         let reason = row.get::<String, _>(3);
         let created_at = row.get::<NaiveDateTime, _>(4);
-        let expires_at = row.get::<NaiveDateTime, _>(5);
-        let active = row.get::<bool, _>(6);
 
-        infracts.push((
-            id,
-            infraction_type,
-            moderator_id,
-            reason,
-            created_at,
-            expires_at,
-            active,
-        ));
+        infracts.push((id, infraction_type, moderator_id, reason, created_at));
     }
 
     let elapsed_time = start_time.elapsed();
@@ -91,26 +81,20 @@ pub(crate) async fn update_infraction(
     guild_id: GuildId,
     reason: &String,
     created_at: Option<NaiveDateTime>,
-    expires_at: Option<NaiveDateTime>,
-    active: bool,
     pool: &SqlitePool,
 ) {
     let start_time = Instant::now();
 
     let created_at = created_at.unwrap_or_else(|| Utc::now().naive_utc());
-    let expires_at = expires_at.unwrap_or_else(|| Utc::now().naive_utc());
 
     let infract_query = sqlx::query(
-        "UPDATE infractions SET moderator_id = ?, guild_id = ?, reason = ?, created_at = ?, expires_at = ?, active = ? WHERE user_id = ?",
+        "UPDATE infractions SET moderator_id = ?, guild_id = ?, reason = ?, created_at = ? WHERE user_id = ?",
     )
     .bind(i64::from(moderator_id))
     .bind(i64::from(guild_id))
     .bind(reason)
     .bind(created_at)
-    .bind(expires_at)
-    .bind(active)
     .bind(i64::from(user_id));
-
     if let Err(why) = infract_query.execute(pool).await {
         error!("Couldn't update infraction in database: {why:?}");
         return;
@@ -126,7 +110,6 @@ pub(crate) async fn delete_infraction(id: i32, infraction_type: &'static str, po
     let infract_query = sqlx::query("DELETE FROM infractions WHERE id = ? AND type = ?")
         .bind(id)
         .bind(infraction_type);
-
     if let Err(why) = infract_query.execute(pool).await {
         error!("Couldn't delete infraction from database: {why:?}");
         return;
@@ -143,27 +126,21 @@ pub(crate) async fn insert_infraction(
     guild_id: GuildId,
     reason: &String,
     created_at: Option<NaiveDateTime>,
-    expires_at: Option<NaiveDateTime>,
-    active: bool,
     pool: &SqlitePool,
 ) {
     let start_time = Instant::now();
 
     let created_at = created_at.unwrap_or(Utc::now().naive_utc());
-    let expires_at = expires_at.unwrap_or(Utc::now().naive_utc());
 
     let infract_query = sqlx::query(
-        "INSERT INTO infractions (user_id, type, moderator_id, guild_id, reason, created_at, expires_at, active) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+        "INSERT INTO infractions (user_id, type, moderator_id, guild_id, reason, created_at) VALUES (?, ?, ?, ?, ?, ?)",
     )
     .bind(i64::from(user_id))
     .bind(infraction_type)
     .bind(i64::from(moderator_id))
     .bind(i64::from(guild_id))
     .bind(reason)
-    .bind(created_at)
-    .bind(expires_at)
-    .bind(active);
-
+    .bind(created_at);
     if let Err(why) = infract_query.execute(pool).await {
         error!("Couldn't insert infraction into database: {why:?}");
         return;
