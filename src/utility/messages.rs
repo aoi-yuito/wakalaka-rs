@@ -39,7 +39,7 @@ pub(crate) async fn warn_response(message: impl Into<String>) -> CreateInteracti
 }
 
 pub(crate) async fn success_response(message: impl Into<String>) -> CreateInteractionResponse {
-    let success_embed = embeds::success_message_embed(&message.into());
+    let success_embed = embeds::ok_message_embed(&message.into());
 
     let response_message = CreateInteractionResponseMessage::new()
         .embed(success_embed)
@@ -48,7 +48,7 @@ pub(crate) async fn success_response(message: impl Into<String>) -> CreateIntera
 }
 
 pub(crate) async fn info_response(message: impl Into<String>) -> CreateInteractionResponse {
-    let info_embed = embeds::info_message_embed(&message.into());
+    let info_embed = embeds::message_embed(&message.into());
 
     let response_message = CreateInteractionResponseMessage::new()
         .embed(info_embed)
@@ -69,13 +69,13 @@ pub(crate) fn warn_message(message: impl Into<String>) -> CreateMessage {
 }
 
 pub(crate) fn success_message(message: impl Into<String>) -> CreateMessage {
-    let success_embed = embeds::success_message_embed(&message.into());
+    let success_embed = embeds::ok_message_embed(&message.into());
 
     CreateMessage::default().embed(success_embed)
 }
 
 pub(crate) fn info_message(message: impl Into<String>) -> CreateMessage {
-    let info_embed = embeds::info_message_embed(&message.into());
+    let info_embed = embeds::message_embed(&message.into());
 
     CreateMessage::default().embed(info_embed)
 }
@@ -93,13 +93,13 @@ pub(crate) fn warn_reply(message: impl Into<String>) -> CreateReply {
 }
 
 pub(crate) fn success_reply(message: impl Into<String>) -> CreateReply {
-    let success_embed = embeds::success_message_embed(&message.into());
+    let success_embed = embeds::ok_message_embed(&message.into());
 
     CreateReply::default().embed(success_embed).ephemeral(true)
 }
 
 pub(crate) fn info_reply(message: impl Into<String>) -> CreateReply {
-    let info_embed = embeds::info_message_embed(&message.into());
+    let info_embed = embeds::message_embed(&message.into());
 
     CreateReply::default().embed(info_embed).ephemeral(true)
 }
