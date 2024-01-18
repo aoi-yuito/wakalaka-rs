@@ -142,13 +142,13 @@ pub(crate) fn warning_message_embed(message: &String) -> CreateEmbed {
         .colour(branding::YELLOW)
 }
 
-pub(crate) fn success_message_embed(message: &String) -> CreateEmbed {
+pub(crate) fn ok_message_embed(message: &String) -> CreateEmbed {
     CreateEmbed::default()
         .description(format!("✅ {message}"))
         .colour(branding::GREEN)
 }
 
-pub(crate) fn info_message_embed(message: &String) -> CreateEmbed {
+pub(crate) fn message_embed(message: &String) -> CreateEmbed {
     CreateEmbed::default()
         .description(format!("{message}"))
         .colour(branding::BLURPLE)
