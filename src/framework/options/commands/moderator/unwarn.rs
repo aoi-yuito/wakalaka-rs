@@ -13,25 +13,47 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-use crate::{database::infractions::{self, InfractionType}, Context, Error};
+use serenity::all::User;
+use tracing::error;
 
-/// Removes warning from user.
+use crate::{
+    database::infractions::{self, InfractionType},
+    utility::messages,
+    Context, Error,
+};
+
+/// Remove a warning from a specific user.
 #[poise::command(
     prefix_command,
     slash_command,
     category = "Moderator",
     required_permissions = "MODERATE_MEMBERS",
-    guild_only
+    guild_only,
+    ephemeral
 )]
 pub(crate) async fn unwarn(
     ctx: Context<'_>,
-    #[description = "Identifier (case) of warning to delete."] id: i32,
+    #[description = "The user to unwarn."] user: User,
+    #[description = "ID of the warning to delete."] id: i32,
 ) -> Result<(), Error> {
+    if user.bot || user.system {
+        let reply = messages::error_reply("Can't remove warnings from bots or system users");
+        if let Err(why) = ctx.send(reply).await {
+            error!("Couldn't send reply: {why:?}");
+        }
+
+        return Ok(());
+    }
+
     let pool = &ctx.data().pool;
 
+    let user_id = user.id;
+
     if id < 1 {
-        let message = format!("Sorry, but you can't delete warnings with case ID less than 1.");
-        let _ = ctx.reply(message).await;
+        let reply = messages::warn_reply("Case ID must be greater than 0");
+        if let Err(why) = ctx.send(reply).await {
+            error!("Couldn't send reply: {why:?}");
+        }
 
         return Ok(());
     }
@@ -40,8 +62,10 @@ pub(crate) async fn unwarn(
 
     infractions::delete_infraction(id, infraction_type, pool).await;
 
-    let message = format!("I've deleted warning with case ID `{}`.", id);
-    let _ = ctx.reply(message).await;
+    let reply = messages::success_reply(format!("Removed warning {id} from <@{user_id}>"));
+    if let Err(why) = ctx.send(reply).await {
+        error!("Couldn't send reply: {why:?}");
+    }
 
     Ok(())
 }
