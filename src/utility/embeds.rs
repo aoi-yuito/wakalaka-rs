@@ -20,6 +20,7 @@ use serenity::{
     gateway::ConnectionStage,
     model::Timestamp,
 };
+use std::fmt::Write;
 use tokio::time::Duration;
 
 pub(crate) fn warnings_embed(
@@ -40,23 +41,23 @@ pub(crate) fn warnings_embed(
 
     let embed_author = CreateEmbedAuthor::new(user_name).icon_url(user_icon_url);
 
-    let mut case_field = Vec::new();
-    let mut moderator_field = Vec::new();
-    let mut reason_field = Vec::new();
+    let mut case_field = String::new();
+    let mut moderator_field = String::new();
+    let mut reason_field = String::new();
     for ((case_id, moderator_id), reason) in case_ids
         .iter()
         .zip(moderator_ids.iter())
         .zip(reasons.iter())
     {
-        case_field.push(format!("{case_id}"));
-        moderator_field.push(format!("<@{moderator_id}>"));
-        reason_field.push(format!("{reason}"));
+        writeln!(case_field, "{case_id}").unwrap();
+        writeln!(moderator_field, "<@{moderator_id}>").unwrap();
+        writeln!(reason_field, "{reason}").unwrap();
     }
 
     let mut embed_fields = Vec::new();
-    embed_fields.push(("Case", case_field.join("\n"), true));
-    embed_fields.push(("Moderator", moderator_field.join("\n"), true));
-    embed_fields.push(("Reason", reason_field.join("\n"), true));
+    embed_fields.push(("Case", case_field, true));
+    embed_fields.push(("Moderator", moderator_field, true));
+    embed_fields.push(("Reason", reason_field, true));
 
     CreateEmbed::default()
         .author(embed_author)
