@@ -20,9 +20,9 @@
 [![gh_release](https://img.shields.io/github/v/release/Kawaxte/wakalaka-rs?sort=date&logo=github&label=latest&style=for-the-badge)](https://github.com/Kawaxte/wakalaka-rs/releases/latest)
 [![gh_release_pre](https://img.shields.io/github/v/release/Kawaxte/wakalaka-rs?include_prereleases&sort=date&logo=github&label=pre-release&style=for-the-badge)](https://github.com/Kawaxte/wakalaka-rs/releases)
 
-A work-in-progress, self-hostable Discord bot written purely in Rust, utilising the [serenity](https://crates.io/crates/serenity) framework, with [poise](https://crates.io/crates/poise) for command parsing and [sqlx](https://crates.io/crates/sqlx) for database access.
+A work-in-progress, self-hostable Discord bot written purely in Rust, inspired by [Red](https://github.com/Cog-Creators/Red-DiscordBot) and [Dyno](https://dyno.gg).
 
-It takes inspiration from [Red](https://github.com/Cog-Creators/Red-DiscordBot), and has the end goal of being 'yours truly', as I like to call it. It'll be a bot you can personalise to your own needs.
+While in early alpha development stage, Wakalaka won't get any releases (including pre-releases) until most of the generic features are implemented. However, you can still build the project from source and run it yourself in the meantime.
 
 ---
 
