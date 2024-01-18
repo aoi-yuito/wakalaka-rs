@@ -13,11 +13,11 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-use tracing::info;
+use tracing::{error, info};
 
-use crate::{Context, Error};
+use crate::{utility::messages, Context, Error};
 
-/// Restarts yours truly.
+/// Restart yours truly to her former glory.
 #[poise::command(
     prefix_command,
     slash_command,
@@ -26,8 +26,10 @@ use crate::{Context, Error};
     guild_only
 )]
 pub(crate) async fn restart(ctx: Context<'_>) -> Result<(), Error> {
-    let message = "Restarting yours truly...";
-    let _ = ctx.reply(message).await;
+    let reply = messages::info_reply("Restarting yours truly...");
+    if let Err(why) = ctx.send(reply).await {
+        error!("Couldn't send reply: {why:?}");
+    }
 
     let manager = ctx.framework().shard_manager.clone();
 
