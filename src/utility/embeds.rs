@@ -15,76 +15,45 @@
 
 use chrono::{NaiveDateTime, TimeZone, Utc};
 use serenity::{
-    all::{colours::branding, User, UserId},
+    all::{colours::branding, ShardId, User},
     builder::{CreateEmbed, CreateEmbedAuthor, CreateEmbedFooter},
+    gateway::ConnectionStage,
     model::Timestamp,
 };
+use tokio::time::Duration;
 
 pub(crate) fn warnings_embed(
-    case_id: &i32,
+    case_ids: Vec<i32>,
     user: &User,
-    user_id: &UserId,
     user_name: &String,
-    moderator_id: &UserId,
-    created_at: &String,
-    reason: &String,
-    active: &bool,
+    moderator_ids: Vec<i64>,
+    reasons: Vec<String>,
 ) -> CreateEmbed {
+    //  |(PFP) {user_name}             |
+    //  | Case | Moderator | Reason    |
+    //  |------|-----------|-----------|
+    //  | 1    | <@{id}>   | {reason1} |
+    //  | 2    | <@{id}>   | {reason2} |
+    //  | 3    | <@{id}>   | {reason3} |
+
     let user_icon_url = user.avatar_url().unwrap_or(user.default_avatar_url());
 
-    let active_status = match active {
-        true => format!("✅"),
-        false => format!("❌"),
-    };
+    let embed_author = CreateEmbedAuthor::new(user_name).icon_url(user_icon_url);
+    let mut embed_fields = Vec::new();
 
-    let (embed_author, embed_footer) = (
-        CreateEmbedAuthor::new(user_name).icon_url(user_icon_url),
-        CreateEmbedFooter::new(format!("{active_status} {created_at}")),
-    );
-
-    CreateEmbed::default()
-        .author(embed_author)
-        .title(format!("Case #{case_id}"))
-        .field("User:", format!("<@{user_id}>"), true)
-        .field("Moderator:", format!("<@{moderator_id}>"), true)
-        .field("Reason:", reason, false)
-        .footer(embed_footer)
-        .colour(branding::YELLOW)
-}
-
-pub(crate) fn warn_embed(
-    user: &User,
-    user_id: UserId,
-    user_name: &String,
-    moderator: &User,
-    moderator_id: UserId,
-    moderator_name: &String,
-    reason: String,
-    created_at: NaiveDateTime,
-) -> CreateEmbed {
-    let (user_icon_url, moderator_icon_url) = (
-        user.avatar_url().unwrap_or(user.default_avatar_url()),
-        moderator
-            .avatar_url()
-            .unwrap_or(moderator.default_avatar_url()),
-    );
-
-    let (embed_author, embed_footer) = (
-        CreateEmbedAuthor::new(user_name).icon_url(user_icon_url),
-        CreateEmbedFooter::new(moderator_name).icon_url(moderator_icon_url),
-    );
-
-    let now = Timestamp::from(Utc.from_utc_datetime(&created_at));
+    for ((case_id, moderator_id), reason) in case_ids
+        .iter()
+        .zip(moderator_ids.iter())
+        .zip(reasons.iter())
+    {
+        embed_fields.push((format!("Case:"), format!("{case_id}"), true));
+        embed_fields.push((format!("Moderator:"), format!("<@{moderator_id}>"), true));
+        embed_fields.push((format!("Reason:"), format!("{reason}"), true));
+    }
 
     CreateEmbed::default()
         .author(embed_author)
-        .title("⚠️ You've been warned! ⚠️")
-        .field("User:", format!("<@{user_id}>"), true)
-        .field("Moderator:", format!("<@{moderator_id}>"), true)
-        .field("Reason:", reason, false)
-        .footer(embed_footer)
-        .timestamp(now)
-        .colour(branding::YELLOW)
+        .fields(embed_fields)
 }
 
 pub(crate) fn suggest_embed(
@@ -100,7 +69,6 @@ pub(crate) fn suggest_embed(
     CreateEmbed::default()
         .author(embed_author)
         .description(description)
-        .color(branding::BLURPLE)
         .timestamp(Timestamp::from(now))
 }
 
@@ -108,6 +76,32 @@ pub(crate) fn avatar_embed(name: &String, url: String) -> CreateEmbed {
     let embed_author = CreateEmbedAuthor::new(name).icon_url(url.clone());
 
     CreateEmbed::default().author(embed_author).image(url)
+}
+
+pub(crate) fn ping_embed(
+    elapsed_time: Duration,
+    shard_id: &ShardId,
+    stage: ConnectionStage,
+    latency: Option<Duration>,
+) -> CreateEmbed {
+    if latency.is_some() {
+        // If this doesn't get the "Some(value)" formatting fuck out of here, shit the bed with a default, fresh out from under my foreskin.
+        let latency = latency.unwrap_or_default();
+
+        CreateEmbed::default()
+            .title("Pong!")
+            .field(
+                "Shards",
+                format!("{shard_id} ({stage}, {latency:.2?})"),
+                true,
+            )
+            .field("Response", format!("{elapsed_time:.2?}"), true)
+    } else {
+        CreateEmbed::default()
+            .title("Pong!")
+            .field("Shards", format!("{shard_id} ({stage})"), true)
+            .field("Response", format!("{elapsed_time:.2?}"), true)
+    }
 }
 
 pub(crate) fn info_embed(icon_url: &String, constants: [&str; 6]) -> CreateEmbed {
@@ -126,5 +120,28 @@ pub(crate) fn info_embed(icon_url: &String, constants: [&str; 6]) -> CreateEmbed
         .description(constants[3])
         .url(format!("{}/{}", constants[4], constants[0]))
         .footer(embed_footer)
+}
+
+pub(crate) fn error_message_embed(message: &String) -> CreateEmbed {
+    CreateEmbed::default()
+        .description(format!("❌ {message}"))
+        .colour(branding::RED)
+}
+
+pub(crate) fn warning_message_embed(message: &String) -> CreateEmbed {
+    CreateEmbed::default()
+        .description(format!("⚠️ {message}"))
+        .colour(branding::YELLOW)
+}
+
+pub(crate) fn success_message_embed(message: &String) -> CreateEmbed {
+    CreateEmbed::default()
+        .description(format!("✅ {message}"))
+        .colour(branding::GREEN)
+}
+
+pub(crate) fn info_message_embed(message: &String) -> CreateEmbed {
+    CreateEmbed::default()
+        .description(format!("{message}"))
         .colour(branding::BLURPLE)
 }
