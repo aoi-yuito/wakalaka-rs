@@ -14,17 +14,18 @@
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
 use poise::CreateReply;
-use serenity::{
-    all::{colours::branding, ShardId},
-    builder::CreateEmbed,
-    gateway::ConnectionStage,
-};
-use tokio::time::{Duration, Instant};
+use tokio::time::Instant;
 
-use crate::{Context, Error};
+use crate::{utility::embeds, Context, Error};
 
-/// Checks if yours truly is alive and well.
-#[poise::command(prefix_command, slash_command, category = "Info")]
+/// Check if yours truly is alive and well.
+#[poise::command(
+    prefix_command,
+    slash_command,
+    category = "Info",
+    guild_only,
+    ephemeral
+)]
 pub(crate) async fn ping(ctx: Context<'_>) -> Result<(), Error> {
     let start_time = Instant::now();
 
@@ -36,38 +37,12 @@ pub(crate) async fn ping(ctx: Context<'_>) -> Result<(), Error> {
 
         let elapsed_time = start_time.elapsed();
 
-        let embed = embed(elapsed_time, id, stage, latency);
+        let embed = embeds::ping_embed(elapsed_time, id, stage, latency);
 
-        let reply = CreateReply::default().embed(embed);
-        let _ = ctx.send(reply).await;
+        let reply = CreateReply::default().embed(embed).ephemeral(true);
+        if let Err(why) = ctx.send(reply).await {
+            tracing::error!("Couldn't send reply: {why:?}");
+        }
     }
     Ok(())
-}
-
-fn embed(
-    elapsed_time: Duration,
-    shard_id: &ShardId,
-    stage: ConnectionStage,
-    latency: Option<Duration>,
-) -> CreateEmbed {
-    if latency.is_some() {
-        // If this doesn't get the "Some(value)" formatting fuck out of here, shit the bed with a default, fresh out from under my foreskin.
-        let latency = latency.unwrap_or_default();
-
-        CreateEmbed::default()
-            .title("Pong!")
-            .field(
-                "Shards",
-                format!("{shard_id} ({stage}, {latency:.2?})"),
-                true,
-            )
-            .field("Response", format!("{elapsed_time:.2?}"), true)
-            .colour(branding::BLURPLE)
-    } else {
-        CreateEmbed::default()
-            .title("Pong!")
-            .field("Shards", format!("{shard_id} ({stage})"), true)
-            .field("Response", format!("{elapsed_time:.2?}"), true)
-            .colour(branding::BLURPLE)
-    }
 }
