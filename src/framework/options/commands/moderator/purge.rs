@@ -22,7 +22,7 @@ use crate::{utility::messages, Context, Error};
 #[poise::command(
     prefix_command,
     slash_command,
-    subcommands("after", "around", "before"),
+    subcommands("after", "any", "around", "before"),
     category = "Moderator",
     required_permissions = "MANAGE_MESSAGES",
     guild_only,
@@ -76,6 +76,79 @@ pub(crate) async fn after(
 
         let messages_after = GetMessages::default().after(message_id).limit(count);
         let messages = match channel_id.messages(&http, messages_after).await {
+            Ok(messages) => messages,
+            Err(why) => {
+                error!("Couldn't get messages: {why:?}");
+                return number_of_deleted_messages;
+            }
+        };
+        for message in messages {
+            if let Err(why) = message.delete(&http).await {
+                error!("Couldn't delete message: {why:?}");
+                continue;
+            }
+
+            number_of_deleted_messages += 1;
+        }
+
+        info!("@{user_name} deleted {number_of_deleted_messages} message(s) in #{channel_name}");
+
+        number_of_deleted_messages
+    });
+
+    let reply_before = messages::info_reply("Deleting message(s)...");
+    let reply = ctx.send(reply_before).await?;
+
+    let number_of_deleted_messages = handle.await.unwrap_or(0);
+
+    let reply_after =
+        messages::success_reply(format!("Deleted {number_of_deleted_messages} message(s).",));
+    reply.edit(ctx, reply_after).await?;
+
+    Ok(())
+}
+
+// Delete a given amount of messages.
+#[poise::command(
+    prefix_command,
+    slash_command,
+    category = "Moderator",
+    required_permissions = "MANAGE_MESSAGES",
+    guild_only,
+    ephemeral
+)]
+pub(crate) async fn any(
+    ctx: Context<'_>,
+    #[description = "The amount to delete. (1-100)"] count: Option<u8>,
+) -> Result<(), Error> {
+    let count = count.unwrap_or(1);
+    if count < 1 || count > 100 {
+        let reply = messages::warn_reply("Amount must be between 1 and 100 message(s).");
+        if let Err(why) = ctx.send(reply).await {
+            error!("Couldn't send reply: {why:?}");
+        }
+
+        return Ok(());
+    }
+
+    let http = ctx.serenity_context().http.clone(); // Why?
+    let channel_id = ctx.channel_id();
+    let user_name = ctx.author().name.clone();
+
+    let handle = tokio::spawn(async move {
+        let mut number_of_deleted_messages = 0;
+
+        let channel_name = match channel_id.name(&http).await {
+            Ok(channel_name) => channel_name,
+            Err(why) => {
+                error!("Couldn't get channel name: {why:?}");
+                return number_of_deleted_messages;
+            }
+        };
+
+        let messages_any = GetMessages::default().limit(count);
+
+        let messages = match channel_id.messages(&http, messages_any).await {
             Ok(messages) => messages,
             Err(why) => {
                 error!("Couldn't get messages: {why:?}");
