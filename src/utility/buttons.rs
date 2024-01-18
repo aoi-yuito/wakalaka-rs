@@ -18,22 +18,6 @@ use serenity::{
     builder::CreateButton,
 };
 
-pub(crate) fn previous_warning_button(disabled: bool) -> CreateButton {
-    CreateButton::new("previous_warning")
-        .style(ButtonStyle::Primary)
-        .emoji(ReactionType::from('👈'))
-        .label("Previous")
-        .disabled(disabled)
-}
-
-pub(crate) fn next_warning_button(disabled: bool) -> CreateButton {
-    CreateButton::new("next_warning")
-        .style(ButtonStyle::Primary)
-        .emoji(ReactionType::from('👉'))
-        .label("Next")
-        .disabled(disabled)
-}
-
 pub(crate) fn accept_suggest_button() -> CreateButton {
     CreateButton::new("accept_suggest")
         .style(ButtonStyle::Success)
