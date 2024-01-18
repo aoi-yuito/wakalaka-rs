@@ -15,10 +15,11 @@
 
 use poise::CreateReply;
 use serenity::all::User;
+use tracing::error;
 
 use crate::{utility::embeds, Context, Error};
 
-/// Gets the avatar of a user.
+/// Get the avatar of a user.
 #[poise::command(
     prefix_command,
     slash_command,
@@ -28,18 +29,17 @@ use crate::{utility::embeds, Context, Error};
 )]
 pub(crate) async fn avatar(
     ctx: Context<'_>,
-    #[description = "User to get the avatar of."] user: User,
+    #[description = "The user to get the avatar of."] user: User,
 ) -> Result<(), Error> {
     let user_name = &user.name;
     let user_avatar_url = user.avatar_url().unwrap_or(user.default_avatar_url());
 
     let embed = embeds::avatar_embed(user_name, user_avatar_url);
-    let reply = CreateReply {
-        content: None,
-        embeds: vec![embed],
-        ..Default::default()
-    };
-    let _ = ctx.send(reply).await;
+
+    let reply = CreateReply::default().embed(embed);
+    if let Err(why) = ctx.send(reply).await {
+        error!("Couldn't send reply: {why:?}");
+    }
 
     Ok(())
 }
