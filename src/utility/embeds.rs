@@ -32,24 +32,31 @@ pub(crate) fn warnings_embed(
     //  |(PFP) {user_name}             |
     //  | Case | Moderator | Reason    |
     //  |------|-----------|-----------|
-    //  | 1    | <@{id}>   | {reason1} |
-    //  | 2    | <@{id}>   | {reason2} |
-    //  | 3    | <@{id}>   | {reason3} |
+    //  | 1    | <@{id1}>  | {reason1} |
+    //  | 2    | <@{id2}>  | {reason2} |
+    //  | 3    | <@{id3}>  | {reason3} |
 
     let user_icon_url = user.avatar_url().unwrap_or(user.default_avatar_url());
 
     let embed_author = CreateEmbedAuthor::new(user_name).icon_url(user_icon_url);
-    let mut embed_fields = Vec::new();
 
+    let mut case_field = Vec::new();
+    let mut moderator_field = Vec::new();
+    let mut reason_field = Vec::new();
     for ((case_id, moderator_id), reason) in case_ids
         .iter()
         .zip(moderator_ids.iter())
         .zip(reasons.iter())
     {
-        embed_fields.push((format!("Case:"), format!("{case_id}"), true));
-        embed_fields.push((format!("Moderator:"), format!("<@{moderator_id}>"), true));
-        embed_fields.push((format!("Reason:"), format!("{reason}"), true));
+        case_field.push(format!("{case_id}"));
+        moderator_field.push(format!("<@{moderator_id}>"));
+        reason_field.push(format!("{reason}"));
     }
+
+    let mut embed_fields = Vec::new();
+    embed_fields.push(("Case", case_field.join("\n"), true));
+    embed_fields.push(("Moderator", moderator_field.join("\n"), true));
+    embed_fields.push(("Reason", reason_field.join("\n"), true));
 
     CreateEmbed::default()
         .author(embed_author)
