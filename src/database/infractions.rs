@@ -75,35 +75,6 @@ pub(crate) async fn warnings(
     Ok(infracts)
 }
 
-pub(crate) async fn update_infraction(
-    user_id: UserId,
-    moderator_id: UserId,
-    guild_id: GuildId,
-    reason: &String,
-    created_at: Option<NaiveDateTime>,
-    pool: &SqlitePool,
-) {
-    let start_time = Instant::now();
-
-    let created_at = created_at.unwrap_or_else(|| Utc::now().naive_utc());
-
-    let infract_query = sqlx::query(
-        "UPDATE infractions SET moderator_id = ?, guild_id = ?, reason = ?, created_at = ? WHERE user_id = ?",
-    )
-    .bind(i64::from(moderator_id))
-    .bind(i64::from(guild_id))
-    .bind(reason)
-    .bind(created_at)
-    .bind(i64::from(user_id));
-    if let Err(why) = infract_query.execute(pool).await {
-        error!("Couldn't update infraction in database: {why:?}");
-        return;
-    } else {
-        let elapsed_time = start_time.elapsed();
-        info!("Updated infraction in database in {elapsed_time:.2?}");
-    }
-}
-
 pub(crate) async fn delete_infraction(id: i32, infraction_type: &'static str, pool: &SqlitePool) {
     let start_time = Instant::now();
 
