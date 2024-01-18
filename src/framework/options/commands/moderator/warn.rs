@@ -13,9 +13,8 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-use chrono::{Duration, TimeZone, Utc};
-use poise::CreateReply;
-use serenity::{all::User, builder::CreateMessage};
+use chrono::Utc;
+use serenity::all::User;
 use tracing::{info, warn};
 
 use crate::{
@@ -23,27 +22,29 @@ use crate::{
         infractions::{self, InfractionType},
         users,
     },
-    utility::embeds,
+    utility::messages,
     Context, Error,
 };
 
-/// Warns user for their misbehaviour.
+/// Warn user for their misbehavior.
 #[poise::command(
     prefix_command,
     slash_command,
     category = "Moderator",
     required_permissions = "MODERATE_MEMBERS",
-    guild_only
+    guild_only,
+    ephemeral
 )]
 pub(crate) async fn warn(
     ctx: Context<'_>,
-    #[description = "User to give warning to."] user: User,
-    #[description = "Quick overview of your decision."] reason: String,
+    #[description = "The user to warn."] user: User,
+    #[description = "The reason for warning."] reason: String,
 ) -> Result<(), Error> {
-    // Why would you ever try this to begin with?
     if user.bot || user.system {
-        let message = format!("Sorry, but bot(s) and system user(s) can't be warned.");
-        let _ = ctx.reply(message).await;
+        let reply = messages::error_reply("Can't warn bots or system users.");
+        if let Err(why) = ctx.send(reply).await {
+            warn!("Couldn't send reply: {why:?}");
+        }
 
         return Ok(());
     }
@@ -52,8 +53,10 @@ pub(crate) async fn warn(
 
     let number_of_reason = reason.chars().count();
     if number_of_reason < 6 || number_of_reason > 80 {
-        let message = format!("Reason must be between 8 and 80 characters.");
-        let _ = ctx.reply(message).await;
+        let reply = messages::warn_reply("Reason must be between 8 and 80 characters.");
+        if let Err(why) = ctx.send(reply).await {
+            warn!("Couldn't send reply: {why:?}");
+        }
 
         return Ok(());
     }
@@ -83,16 +86,6 @@ pub(crate) async fn warn(
     };
 
     let created_at = Utc::now().naive_utc();
-    let expires_at = match Utc
-        .from_utc_datetime(&created_at)
-        .checked_add_signed(Duration::weeks(3))
-    {
-        Some(expires_at) => expires_at.naive_utc(),
-        None => {
-            warn!("Couldn't get expiration date");
-            return Ok(());
-        }
-    };
 
     let mut infractions = match users::infractions(user_id, guild_id, pool).await {
         Some(infractions) => infractions,
@@ -104,16 +97,22 @@ pub(crate) async fn warn(
 
     // Why should you ever have more than 3 warnings?
     if infractions >= 3 {
-        let message = format!("Sorry, but <@{user_id}> already has maximum number of infractions. Please take further action(s) manually.");
-        let _ = ctx.reply(message).await;
+        let reply = messages::warn_reply(format!(
+            "<@{user_id}> has reached a maximum number of warnings. Take further action manually.",
+        ));
+        if let Err(why) = ctx.send(reply).await {
+            warn!("Couldn't send reply: {why:?}");
+        }
 
         return Ok(());
     } else {
         while infractions < 3 {
-            let content =
-                format!("You've been warned by <@{moderator_id}> in {guild_name}: {reason}");
-            let message = CreateMessage::default().content(content);
-            let _ = user.direct_message(&ctx, message).await;
+            let message = messages::info_message(format!(
+                "You've been warned by <@{moderator_id}> in {guild_name} for {reason}.",
+            ));
+            if let Err(why) = user.direct_message(&ctx, message).await {
+                warn!("Couldn't send reply: {why:?}");
+            }
 
             infractions += 1;
 
@@ -129,26 +128,16 @@ pub(crate) async fn warn(
             guild_id,
             &reason,
             Some(created_at),
-            Some(expires_at),
-            true,
             pool,
         )
         .await;
+
         info!("@{user_name} warned by @{moderator_name}: {reason}");
 
-        let embed = embeds::warn_embed(
-            &user,
-            user_id,
-            user_name,
-            moderator,
-            moderator_id,
-            moderator_name,
-            reason,
-            created_at,
-        );
-
-        let message = CreateReply::default().embed(embed);
-        let _ = ctx.send(message).await;
+        let reply = messages::success_reply(format!("<@{user_id}> has been warned.",));
+        if let Err(why) = ctx.send(reply).await {
+            warn!("Couldn't send reply: {why:?}");
+        }
     }
 
     Ok(())
