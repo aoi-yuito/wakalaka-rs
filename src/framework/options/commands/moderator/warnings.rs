@@ -68,7 +68,7 @@ pub(crate) async fn warnings(
         }
     };
 
-    let infractions = match users::infractions(user_id, guild_id, pool).await {
+    let user_infractions = match users::infractions(user_id, guild_id, pool).await {
         Some(infractions) => infractions,
         None => {
             warn!("Couldn't get user infractions");
@@ -78,7 +78,7 @@ pub(crate) async fn warnings(
 
     let infraction_type = InfractionType::Warn.as_str();
 
-    let warnings = match infractions::warnings(user_id, guild_id, infraction_type, pool).await {
+    let warnings = match infractions::infractions(user_id, guild_id, infraction_type, pool).await {
         Ok(warnings) => warnings,
         Err(why) => {
             error!("Couldn't get warnings from database: {why:?}");
@@ -89,7 +89,7 @@ pub(crate) async fn warnings(
     let number_of_warnings = warnings.len();
 
     // There's a failsafe for if the user doesn't have any entries in the database but has a fucking infraction anyway. Fucking how you ever cause the latter to happen is beyond me...
-    if infractions < 1 || number_of_warnings < 1 {
+    if user_infractions < 1 || number_of_warnings < 1 {
         let reply = messages::warn_reply(format!("<@{user_id}> doesn't have any warnings."));
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
