@@ -84,11 +84,7 @@ pub(crate) async fn undeafen(
 
     let number_of_deafens = deafens.len();
     if number_of_deafens < 1 {
-        let reply = messages::warn_reply(format!(
-            "<@{user_id}> is not deafened in {guild_name}.",
-            user_id = user_id,
-            guild_name = guild_name
-        ));
+        let reply = messages::warn_reply(format!("<@{user_id}> hasn't been deafened before."));
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
         }
@@ -160,6 +156,9 @@ pub(crate) async fn undeafen(
         }
 
         user_infractions -= 1;
+        if user_infractions < 0 {
+            user_infractions = 0;
+        }
 
         users::update_user(
             user_id,
