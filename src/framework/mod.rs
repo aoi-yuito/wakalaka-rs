@@ -57,6 +57,7 @@ pub(crate) fn initialise_intents() -> GatewayIntents {
         | GatewayIntents::GUILD_MEMBERS
         | GatewayIntents::GUILD_MODERATION
         | GatewayIntents::GUILD_MESSAGES
+        | GatewayIntents::DIRECT_MESSAGES
         | GatewayIntents::MESSAGE_CONTENT;
 
     let elapsed_time = start_time.elapsed();
