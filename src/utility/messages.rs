@@ -38,20 +38,20 @@ pub(crate) async fn warn_response(message: impl Into<String>) -> CreateInteracti
     CreateInteractionResponse::Message(response_message)
 }
 
-pub(crate) async fn success_response(message: impl Into<String>) -> CreateInteractionResponse {
-    let success_embed = embeds::ok_message_embed(&message.into());
+pub(crate) async fn ok_response(message: impl Into<String>) -> CreateInteractionResponse {
+    let ok_embed = embeds::ok_message_embed(&message.into());
 
     let response_message = CreateInteractionResponseMessage::new()
-        .embed(success_embed)
+        .embed(ok_embed)
         .ephemeral(true);
     CreateInteractionResponse::Message(response_message)
 }
 
-pub(crate) async fn info_response(message: impl Into<String>) -> CreateInteractionResponse {
-    let info_embed = embeds::message_embed(&message.into());
+pub(crate) async fn response(message: impl Into<String>) -> CreateInteractionResponse {
+    let embed = embeds::message_embed(&message.into());
 
     let response_message = CreateInteractionResponseMessage::new()
-        .embed(info_embed)
+        .embed(embed)
         .ephemeral(true);
     CreateInteractionResponse::Message(response_message)
 }
@@ -68,16 +68,16 @@ pub(crate) fn warn_message(message: impl Into<String>) -> CreateMessage {
     CreateMessage::default().embed(warn_embed)
 }
 
-pub(crate) fn success_message(message: impl Into<String>) -> CreateMessage {
-    let success_embed = embeds::ok_message_embed(&message.into());
+pub(crate) fn ok_message(message: impl Into<String>) -> CreateMessage {
+    let ok_embed = embeds::ok_message_embed(&message.into());
 
-    CreateMessage::default().embed(success_embed)
+    CreateMessage::default().embed(ok_embed)
 }
 
-pub(crate) fn info_message(message: impl Into<String>) -> CreateMessage {
-    let info_embed = embeds::message_embed(&message.into());
+pub(crate) fn message(message: impl Into<String>) -> CreateMessage {
+    let embed = embeds::message_embed(&message.into());
 
-    CreateMessage::default().embed(info_embed)
+    CreateMessage::default().embed(embed)
 }
 
 pub(crate) fn error_reply(message: impl Into<String>) -> CreateReply {
@@ -92,14 +92,14 @@ pub(crate) fn warn_reply(message: impl Into<String>) -> CreateReply {
     CreateReply::default().embed(warn_embed).ephemeral(true)
 }
 
-pub(crate) fn success_reply(message: impl Into<String>) -> CreateReply {
-    let success_embed = embeds::ok_message_embed(&message.into());
+pub(crate) fn ok_reply(message: impl Into<String>) -> CreateReply {
+    let ok_embed = embeds::ok_message_embed(&message.into());
 
-    CreateReply::default().embed(success_embed).ephemeral(true)
+    CreateReply::default().embed(ok_embed).ephemeral(true)
 }
 
-pub(crate) fn info_reply(message: impl Into<String>) -> CreateReply {
-    let info_embed = embeds::message_embed(&message.into());
+pub(crate) fn reply(message: impl Into<String>) -> CreateReply {
+    let embed = embeds::message_embed(&message.into());
 
-    CreateReply::default().embed(info_embed).ephemeral(true)
+    CreateReply::default().embed(embed).ephemeral(true)
 }
