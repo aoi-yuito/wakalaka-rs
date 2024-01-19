@@ -27,29 +27,33 @@ pub(crate) async fn handle_update(
 ) {
     let pool = &data.pool;
 
-    let old_guild_id = match old_guild {
-        Some(guild) => guild.id,
-        None => {
-            warn!("Couldn't get old guild ID");
-            return;
-        }
-    };
-    let new_guild_id = new_guild.id;
+    let (old_guild_id, new_guild_id) = (
+        match old_guild {
+            Some(guild) => guild.id,
+            None => {
+                warn!("Couldn't get old guild ID");
+                return;
+            }
+        },
+        new_guild.id,
+    );
 
-    let old_members = match old_guild_id.members(&ctx.http, None, None).await {
-        Ok(users) => users,
-        Err(why) => {
-            error!("Couldn't get old guild members: {why:?}");
-            return;
-        }
-    };
-    let new_members = match new_guild_id.members(&ctx.http, None, None).await {
-        Ok(users) => users,
-        Err(why) => {
-            error!("Couldn't get new guild members: {why:?}");
-            return;
-        }
-    };
+    let (old_members, new_members) = (
+        match old_guild_id.members(&ctx.http, None, None).await {
+            Ok(users) => users,
+            Err(why) => {
+                error!("Couldn't get old guild members: {why:?}");
+                return;
+            }
+        },
+        match new_guild_id.members(&ctx.http, None, None).await {
+            Ok(users) => users,
+            Err(why) => {
+                error!("Couldn't get new guild members: {why:?}");
+                return;
+            }
+        },
+    );
 
     let guild_members = old_members
         .into_iter()
