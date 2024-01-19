@@ -41,7 +41,7 @@ pub(crate) async fn unwarn(
     #[description = "The reason for unwarning. (6-80)"] reason: Option<String>,
 ) -> Result<(), Error> {
     if user.bot || user.system {
-        let reply = messages::error_reply("Can't remove warnings from bots or system users");
+        let reply = messages::error_reply("Cannot remove warnings from bots or system users");
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
         }
@@ -76,78 +76,83 @@ pub(crate) async fn unwarn(
 
     let warn_type = InfractionType::Warn.as_str();
 
-    let warnings = match infractions::infractions(user_id, guild_id, warn_type, pool).await {
-        Ok(warnings) => warnings,
+    let infractions = match infractions::infractions(user_id, guild_id, warn_type, pool).await {
+        Ok(infractions) => infractions,
         Err(why) => {
-            error!("Couldn't get warnings: {why:?}");
+            error!("Couldn't get infractions from database: {why:?}");
             return Ok(());
         }
     };
 
-    let number_of_warnings = warnings.len();
-    if number_of_warnings < 1 {
-        let reply = messages::warn_reply(format!("<@{user_id}> hasn't been warned before."));
+    let number_of_infractions = infractions.len();
+    if number_of_infractions < 1 {
+        let reply = messages::warn_reply(format!("<@{user_id}> hasn't been punished before."));
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
         }
 
         return Ok(());
-    } else {
-        for warning in warnings {
-            let case_id = warning.0;
-            if case_id != id {
-                continue;
-            }
+    }
 
-            let mut user_infractions = match users::infractions(user_id, guild_id, pool).await {
-                Some(infractions) => infractions,
-                None => {
-                    warn!("Couldn't get infractions for @{user_name}");
-                    return Ok(());
-                }
-            };
-
-            user_infractions -= 1;
-            if user_infractions < 0 {
-                user_infractions = 0;
-            }
-
-            users::update_user(
-                user_id,
-                guild_id,
-                user_infractions,
-                false,
-                false,
-                false,
-                pool,
-            )
-            .await;
-
-            infractions::delete_infraction(id, warn_type, pool).await;
-
-            if let Some(reason) = reason.clone() {
-                let number_of_reason = reason.chars().count();
-                if number_of_reason < 6 || number_of_reason > 80 {
-                    let reply = messages::warn_reply("Reason must be between 8 and 80 characters.");
-                    if let Err(why) = ctx.send(reply).await {
-                        error!("Couldn't send reply: {why:?}");
-                    }
-
-                    return Ok(());
-                }
-
-                info!("@{user_name} unwarned by @{moderator_name}: {reason}");
-            } else {
-                info!("@{user_name} unwarned by @{moderator_name}");
-            }
-
-            let reply = messages::ok_reply(format!("Removed warning from <@{user_id}>."));
+    for infraction in infractions {
+        let case_id = infraction.0;
+        if case_id != id {
+            let reply = messages::error_reply(format!("Couldn't find warning for <@{user_id}>."));
             if let Err(why) = ctx.send(reply).await {
                 error!("Couldn't send reply: {why:?}");
             }
 
             break;
         }
+
+        let mut user_infractions = match users::infractions(user_id, guild_id, pool).await {
+            Some(infractions) => infractions,
+            None => {
+                warn!("Couldn't get infractions for @{user_name}");
+                return Ok(());
+            }
+        };
+
+        user_infractions -= 1;
+        if user_infractions < 0 {
+            user_infractions = 0;
+        }
+
+        users::update_user(
+            user_id,
+            guild_id,
+            user_infractions,
+            false,
+            false,
+            false,
+            pool,
+        )
+        .await;
+
+        infractions::delete_infraction(id, warn_type, pool).await;
+
+        if let Some(reason) = reason.clone() {
+            let number_of_reason = reason.chars().count();
+            if number_of_reason < 6 || number_of_reason > 80 {
+                let reply = messages::warn_reply("Reason must be between 8 and 80 characters.");
+                if let Err(why) = ctx.send(reply).await {
+                    error!("Couldn't send reply: {why:?}");
+                }
+
+                return Ok(());
+            }
+
+            info!("@{user_name} unwarned by @{moderator_name}: {reason}");
+        } else {
+            info!("@{user_name} unwarned by @{moderator_name}");
+        }
+
+        let reply = messages::ok_reply(format!("Removed warning from <@{user_id}>."));
+        if let Err(why) = ctx.send(reply).await {
+            error!("Couldn't send reply: {why:?}");
+        }
+
+        break;
     }
 
     Ok(())

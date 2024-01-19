@@ -26,7 +26,7 @@ use crate::{
     Context, Error,
 };
 
-// Disallow a user from speaking/hearing in voice channels.
+/// Disallow a user from interaction in voice channels.
 #[poise::command(
     prefix_command,
     slash_command,
@@ -41,9 +41,9 @@ pub(crate) async fn deafen(
     #[description = "The reason for deafening. (6-80)"] reason: String,
 ) -> Result<(), Error> {
     if user.bot || user.system {
-        let reply = messages::error_reply("Can't deafen bots or system users.");
+        let reply = messages::error_reply("Cannot deafen bots or system users.");
         if let Err(why) = ctx.send(reply).await {
-            warn!("Couldn't send reply: {why:?}");
+            error!("Couldn't send reply: {why:?}");
         }
 
         return Ok(());
@@ -55,13 +55,11 @@ pub(crate) async fn deafen(
     if number_of_reason < 6 || number_of_reason > 80 {
         let reply = messages::warn_reply("Reason must be between 8 and 80 characters.");
         if let Err(why) = ctx.send(reply).await {
-            warn!("Couldn't send reply: {why:?}");
+            error!("Couldn't send reply: {why:?}");
         }
 
         return Ok(());
     }
-
-    let deaf_type = InfractionType::Deaf.as_str();
 
     let user_id = user.id;
     let user_name = &user.name;
@@ -87,6 +85,8 @@ pub(crate) async fn deafen(
 
     let created_at = Utc::now().naive_utc();
 
+    let deaf_type = InfractionType::Deaf.as_str();
+
     let mut user_infractions = match users::infractions(user_id, guild_id, pool).await {
         Some(infractions) => infractions,
         None => {
@@ -98,7 +98,7 @@ pub(crate) async fn deafen(
     let mut member = match guild_id.member(&ctx, user_id).await {
         Ok(member) => member,
         Err(why) => {
-            warn!("Couldn't get member: {why:?}");
+            error!("Couldn't get member: {why:?}");
             return Ok(());
         }
     };
@@ -109,7 +109,7 @@ pub(crate) async fn deafen(
 
         let reply = messages::error_reply("Couldn't deafen member.");
         if let Err(why) = ctx.send(reply).await {
-            warn!("Couldn't send reply: {why:?}");
+            error!("Couldn't send reply: {why:?}");
         }
 
         return Ok(());
@@ -119,7 +119,7 @@ pub(crate) async fn deafen(
         "You've been deafened by <@{moderator_id}> in {guild_name} for {reason}.",
     ));
     if let Err(why) = user.direct_message(&ctx, message).await {
-        warn!("Couldn't send reply: {why:?}");
+        error!("Couldn't send reply: {why:?}");
     }
 
     user_infractions += 1;
@@ -146,11 +146,11 @@ pub(crate) async fn deafen(
     )
     .await;
 
-    info!("{moderator_name} deafened @{user_name} in {guild_name} for {reason}.");
+    info!("@{moderator_name} deafened @{user_name} in {guild_name} for {reason}.");
 
     let reply = messages::ok_reply(format!("<@{user_id}> has been deafened.",));
     if let Err(why) = ctx.send(reply).await {
-        warn!("Couldn't send reply: {why:?}");
+        error!("Couldn't send reply: {why:?}");
     }
 
     Ok(())
