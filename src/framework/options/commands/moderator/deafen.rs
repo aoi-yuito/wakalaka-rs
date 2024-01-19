@@ -146,7 +146,7 @@ pub(crate) async fn deafen(
     )
     .await;
 
-    info!("@{moderator_name} deafened @{user_name} in {guild_name} for {reason}.");
+    info!("@{moderator_name} deafened @{user_name} in {guild_name}: {reason}");
 
     let reply = messages::ok_reply(format!("<@{user_id}> has been deafened.",));
     if let Err(why) = ctx.send(reply).await {
