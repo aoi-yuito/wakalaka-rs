@@ -81,7 +81,7 @@ pub(crate) async fn kick(
         }
     };
 
-    match member.kick(&ctx).await {
+    match member.kick_with_reason(&ctx, &reason).await {
         Ok(_) => {
             if !user.bot {
                 let message = messages::message(format!(
