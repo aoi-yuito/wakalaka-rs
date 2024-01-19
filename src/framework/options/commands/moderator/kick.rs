@@ -83,11 +83,13 @@ pub(crate) async fn kick(
 
     match member.kick(&ctx).await {
         Ok(_) => {
-            let message = messages::message(format!(
-                "You've been kicked from {guild_name} by <@{moderator_id}> for {reason}.",
-            ));
-            if let Err(why) = user.direct_message(&ctx, message).await {
-                error!("Couldn't send reply: {why:?}");
+            if !user.bot {
+                let message = messages::message(format!(
+                    "You've been kicked from {guild_name} by <@{moderator_id}> for {reason}.",
+                ));
+                if let Err(why) = user.direct_message(&ctx, message).await {
+                    error!("Couldn't send reply: {why:?}");
+                }
             }
         }
         Err(why) => {
