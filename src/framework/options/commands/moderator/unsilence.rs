@@ -54,20 +54,12 @@ pub(crate) async fn unsilence(
     let user_name = &user.name;
 
     let moderator = ctx.author();
-    let moderator_id = moderator.id;
     let moderator_name = &moderator.name;
 
     let guild_id = match ctx.guild_id() {
         Some(guild_id) => guild_id,
         None => {
             warn!("Couldn't get guild ID");
-            return Ok(());
-        }
-    };
-    let guild_name = match guild_id.name(&ctx.cache()) {
-        Some(guild_name) => guild_name,
-        None => {
-            warn!("Couldn't get guild name");
             return Ok(());
         }
     };

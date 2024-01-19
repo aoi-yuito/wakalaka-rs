@@ -54,7 +54,6 @@ pub(crate) async fn undeafen(
     let user_name = &user.name;
 
     let moderator = ctx.author();
-    let moderator_id = moderator.id;
     let moderator_name = &moderator.name;
 
     let guild_id = match ctx.guild_id() {
