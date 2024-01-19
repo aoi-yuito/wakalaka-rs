@@ -56,6 +56,7 @@ pub(crate) async fn update_user(
     infractions: i32,
     deaf: bool,
     mute: bool,
+    timeout: bool,
     banned: bool,
     pool: &SqlitePool,
 ) {
@@ -70,11 +71,12 @@ pub(crate) async fn update_user(
     };
 
     let member_query = sqlx::query(
-        "UPDATE users SET infractions = ?, deaf = ?, mute = ?, banned = ? WHERE id = ? AND guild_id = ?",
+        "UPDATE users SET infractions = ?, deaf = ?, mute = ?, timeout = ?,banned = ? WHERE id = ? AND guild_id = ?",
     )
     .bind(infractions)
     .bind(deaf)
     .bind(mute)
+    .bind(timeout)
     .bind(banned)
     .bind(i64::from(user_id))
     .bind(i64::from(guild_id));

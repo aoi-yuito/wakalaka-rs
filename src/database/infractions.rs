@@ -22,8 +22,8 @@ use tracing::{error, info};
 pub(crate) enum InfractionType {
     Warn,
     Deaf,
-    Silent,
     Mute,
+    Timeout,
     Ban,
 }
 
@@ -32,8 +32,8 @@ impl InfractionType {
         match self {
             Self::Warn => "warning",
             Self::Deaf => "deafen",
-            Self::Silent => "silence",
             Self::Mute => "mute",
+            Self::Timeout => "timeout",
             Self::Ban => "ban",
         }
     }
