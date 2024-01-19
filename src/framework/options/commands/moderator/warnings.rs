@@ -40,7 +40,7 @@ pub(crate) async fn warnings(
     #[description = "The user to get warnings for."] user: User,
 ) -> Result<(), Error> {
     if user.bot || user.system {
-        let reply = messages::error_reply("Can't get warnings for a bot or system user.");
+        let reply = messages::error_reply("Cannot get warnings for a bot or system user.");
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
         }
@@ -68,6 +68,8 @@ pub(crate) async fn warnings(
         }
     };
 
+    let warn_type = InfractionType::Warn.as_str();
+
     let user_infractions = match users::infractions(user_id, guild_id, pool).await {
         Some(infractions) => infractions,
         None => {
@@ -76,9 +78,7 @@ pub(crate) async fn warnings(
         }
     };
 
-    let infraction_type = InfractionType::Warn.as_str();
-
-    let warnings = match infractions::infractions(user_id, guild_id, infraction_type, pool).await {
+    let warnings = match infractions::infractions(user_id, guild_id, warn_type, pool).await {
         Ok(warnings) => warnings,
         Err(why) => {
             error!("Couldn't get warnings from database: {why:?}");
