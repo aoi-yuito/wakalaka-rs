@@ -39,7 +39,7 @@ pub(crate) async fn shutdown(
         return Ok(());
     }
 
-    let reply = messages::info_reply(format!("Shutting down in {duration}s..."));
+    let reply = messages::reply(format!("Shutting down in {duration}s..."));
     if let Err(why) = ctx.send(reply).await {
         error!("Couldn't send reply: {why:?}");
     }

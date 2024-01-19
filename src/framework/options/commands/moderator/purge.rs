@@ -96,13 +96,13 @@ pub(crate) async fn after(
         number_of_deleted_messages
     });
 
-    let reply_before = messages::info_reply("Deleting message(s)...");
+    let reply_before = messages::reply("Deleting message(s)...");
     let reply = ctx.send(reply_before).await?;
 
     let number_of_deleted_messages = handle.await.unwrap_or(0);
 
     let reply_after =
-        messages::success_reply(format!("Deleted {number_of_deleted_messages} message(s).",));
+        messages::ok_reply(format!("Deleted {number_of_deleted_messages} message(s).",));
     reply.edit(ctx, reply_after).await?;
 
     Ok(())
@@ -169,13 +169,13 @@ pub(crate) async fn any(
         number_of_deleted_messages
     });
 
-    let reply_before = messages::info_reply("Deleting message(s)...");
+    let reply_before = messages::reply("Deleting message(s)...");
     let reply = ctx.send(reply_before).await?;
 
     let number_of_deleted_messages = handle.await.unwrap_or(0);
 
     let reply_after =
-        messages::success_reply(format!("Deleted {number_of_deleted_messages} message(s).",));
+        messages::ok_reply(format!("Deleted {number_of_deleted_messages} message(s).",));
     reply.edit(ctx, reply_after).await?;
 
     Ok(())
@@ -244,13 +244,13 @@ pub(crate) async fn around(
         number_of_deleted_messages
     });
 
-    let reply_before = messages::info_reply("Deleting message(s)...");
+    let reply_before = messages::reply("Deleting message(s)...");
     let reply = ctx.send(reply_before).await?;
 
     let number_of_deleted_messages = handle.await.unwrap_or(0);
 
     let reply_after =
-        messages::success_reply(format!("Deleted {number_of_deleted_messages} message(s).",));
+        messages::ok_reply(format!("Deleted {number_of_deleted_messages} message(s).",));
     reply.edit(ctx, reply_after).await?;
 
     Ok(())
@@ -319,13 +319,13 @@ pub(crate) async fn before(
         number_of_deleted_messages
     });
 
-    let reply_before = messages::info_reply("Deleting message(s)...");
+    let reply_before = messages::reply("Deleting message(s)...");
     let reply = ctx.send(reply_before).await?;
 
     let number_of_deleted_messages = handle.await.unwrap_or(0);
 
     let reply_after =
-        messages::success_reply(format!("Deleted {number_of_deleted_messages} message(s).",));
+        messages::ok_reply(format!("Deleted {number_of_deleted_messages} message(s).",));
     reply.edit(ctx, reply_after).await?;
 
     Ok(())

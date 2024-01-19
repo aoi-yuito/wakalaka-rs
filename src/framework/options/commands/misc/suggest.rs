@@ -147,7 +147,7 @@ pub(crate) async fn suggest(
         }
     }
 
-    let reply = messages::success_reply(format!("Suggestion has been sent in for review."));
+    let reply = messages::ok_reply(format!("Suggestion has been sent in for review."));
     if let Err(why) = ctx.send(reply).await {
         error!("Couldn't send reply: {why:?}");
     }

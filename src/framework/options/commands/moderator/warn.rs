@@ -26,7 +26,7 @@ use crate::{
     Context, Error,
 };
 
-/// Warn user for their misbehavior.
+/// Warn a user for their misbehavior.
 #[poise::command(
     prefix_command,
     slash_command,
@@ -38,7 +38,7 @@ use crate::{
 pub(crate) async fn warn(
     ctx: Context<'_>,
     #[description = "The user to warn."] user: User,
-    #[description = "The reason for warning."] reason: String,
+    #[description = "The reason for warning. (6-80)"] reason: String,
 ) -> Result<(), Error> {
     if user.bot || user.system {
         let reply = messages::error_reply("Can't warn bots or system users.");
@@ -61,7 +61,7 @@ pub(crate) async fn warn(
         return Ok(());
     }
 
-    let infraction_type = InfractionType::Warn.as_str();
+    let warn_type = InfractionType::Warn.as_str();
 
     let user_id = user.id;
     let user_name = &user.name;
@@ -87,7 +87,7 @@ pub(crate) async fn warn(
 
     let created_at = Utc::now().naive_utc();
 
-    let mut infractions = match users::infractions(user_id, guild_id, pool).await {
+    let mut user_infractions = match users::infractions(user_id, guild_id, pool).await {
         Some(infractions) => infractions,
         None => {
             warn!("Couldn't get infractions for @{user_name}");
@@ -95,8 +95,19 @@ pub(crate) async fn warn(
         }
     };
 
-    // Why should you ever have more than 3 warnings?
-    if infractions >= 3 {
+    let warnings = match infractions::infractions(user_id, guild_id, warn_type, pool).await {
+        Ok(warnings) => warnings,
+        Err(why) => {
+            warn!("Couldn't get warnings for @{user_name}: {why:?}");
+            return Ok(());
+        }
+    };
+
+    let number_of_warn_types = warnings
+        .iter()
+        .filter(|warning| warning.1 == warn_type)
+        .count();
+    if number_of_warn_types >= 3 {
         let reply = messages::warn_reply(format!(
             "<@{user_id}> has reached a maximum number of warnings. Take further action manually.",
         ));
@@ -106,24 +117,29 @@ pub(crate) async fn warn(
 
         return Ok(());
     } else {
-        while infractions < 3 {
-            let message = messages::info_message(format!(
-                "You've been warned by <@{moderator_id}> in {guild_name} for {reason}.",
-            ));
-            if let Err(why) = user.direct_message(&ctx, message).await {
-                warn!("Couldn't send reply: {why:?}");
-            }
-
-            infractions += 1;
-
-            users::update_user(user_id, guild_id, infractions, false, false, false, pool).await;
-
-            break;
+        let message = messages::message(format!(
+            "You've been warned by <@{moderator_id}> in {guild_name} for {reason}.",
+        ));
+        if let Err(why) = user.direct_message(&ctx, message).await {
+            warn!("Couldn't send reply: {why:?}");
         }
+
+        user_infractions += 1;
+
+        users::update_user(
+            user_id,
+            guild_id,
+            user_infractions,
+            false,
+            false,
+            false,
+            pool,
+        )
+        .await;
 
         infractions::insert_infraction(
             user_id,
-            infraction_type,
+            warn_type,
             moderator_id,
             guild_id,
             &reason,
@@ -134,7 +150,7 @@ pub(crate) async fn warn(
 
         info!("@{user_name} warned by @{moderator_name}: {reason}");
 
-        let reply = messages::success_reply(format!("<@{user_id}> has been warned.",));
+        let reply = messages::ok_reply(format!("<@{user_id}> has been warned.",));
         if let Err(why) = ctx.send(reply).await {
             warn!("Couldn't send reply: {why:?}");
         }
