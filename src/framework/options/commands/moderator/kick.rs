@@ -13,10 +13,13 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-use serenity::all::UserId;
-use tracing::{error, info, warn};
+use serenity::all::User;
+use tracing::{error, info};
 
-use crate::{utility::messages, Context, Error};
+use crate::{
+    utility::{self, messages},
+    Context, Error,
+};
 
 /// Kick a user outside.
 #[poise::command(
@@ -29,18 +32,9 @@ use crate::{utility::messages, Context, Error};
 )]
 pub(crate) async fn kick(
     ctx: Context<'_>,
-    #[description = "The user to kick."]
-    #[rename = "user"]
-    user_id: UserId,
+    #[description = "The user to kick."] user: User,
     #[description = "The reason for kicking. (6-80)"] reason: String,
 ) -> Result<(), Error> {
-    let user = match user_id.to_user(&ctx).await {
-        Ok(user) => user,
-        Err(why) => {
-            error!("Couldn't get user: {why:?}");
-            return Ok(());
-        }
-    };
     if user.system {
         let reply = messages::error_reply("Cannot kick system users.");
         if let Err(why) = ctx.send(reply).await {
@@ -60,26 +54,12 @@ pub(crate) async fn kick(
         return Ok(());
     }
 
-    let user_name = &user.name;
+    let (user_id, user_name) = (user.id, &user.name);
 
     let moderator = ctx.author();
-    let moderator_id = moderator.id;
-    let moderator_name = &moderator.name;
+    let (moderator_id, moderator_name) = (moderator.id, &moderator.name);
 
-    let guild_id = match ctx.guild_id() {
-        Some(guild_id) => guild_id,
-        None => {
-            warn!("Couldn't get guild ID");
-            return Ok(());
-        }
-    };
-    let guild_name = match guild_id.name(&ctx.cache()) {
-        Some(guild_name) => guild_name,
-        None => {
-            warn!("Couldn't get guild name");
-            return Ok(());
-        }
-    };
+    let (guild_id, guild_name) = (utility::guild_id(ctx), utility::guild_name(ctx));
 
     let member = match guild_id.member(&ctx, user_id).await {
         Ok(member) => member,

@@ -18,11 +18,11 @@ use serenity::{
     all::{PermissionOverwrite, PermissionOverwriteType, Permissions},
     builder::{CreateActionRow, CreateMessage},
 };
-use tracing::{error, warn};
+use tracing::error;
 
 use crate::{
     database::suggestions,
-    utility::{buttons, embeds, messages},
+    utility::{self, buttons, embeds, messages},
     Context, Error,
 };
 
@@ -44,20 +44,7 @@ pub(crate) async fn suggest(
         return Ok(());
     }
 
-    let guild_id = match ctx.guild_id() {
-        Some(value) => value,
-        None => {
-            warn!("Couldn't get guild ID");
-            return Ok(());
-        }
-    };
-    let guild_name = match guild_id.name(&ctx.cache()) {
-        Some(value) => value,
-        None => {
-            warn!("Couldn't get guild name");
-            return Ok(());
-        }
-    };
+    let (guild_id, guild_name) = (utility::guild_id(ctx), utility::guild_name(ctx));
 
     let guild_channels = match ctx.http().get_channels(guild_id).await {
         Ok(value) => value,
@@ -71,8 +58,7 @@ pub(crate) async fn suggest(
         .iter()
         .find(|channel| channel.name == "suggestions");
     if let Some(channel) = suggest_channel {
-        let channel_id = channel.id;
-        let channel_name = &channel.name;
+        let (channel_id, channel_name) = (channel.id, &channel.name);
 
         let bot_id = ctx.cache().current_user().id;
         let bot_permissions = PermissionOverwrite {
@@ -95,17 +81,8 @@ pub(crate) async fn suggest(
                 .unwrap_or(ctx.author().default_avatar_url()),
         );
 
-        let user_id = ctx.author().id;
-        let owner_id = {
-            let guild = match ctx.guild() {
-                Some(value) => value,
-                None => {
-                    warn!("Couldn't get guild");
-                    return Ok(());
-                }
-            };
-            guild.owner_id
-        };
+        let (user_id, owner_id) = (ctx.author().id, utility::owner_id(ctx));
+
         let created_at = Utc::now().naive_utc();
 
         let (accept_suggest, reject_suggest) = (

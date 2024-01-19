@@ -22,7 +22,7 @@ use crate::{
         infractions::{self, InfractionType},
         users,
     },
-    utility::messages,
+    utility::{self, messages},
     Context, Error,
 };
 
@@ -42,13 +42,9 @@ pub(crate) async fn warn(
     user_id: UserId,
     #[description = "The reason for warning. (6-80)"] reason: String,
 ) -> Result<(), Error> {
-    let user = match user_id.to_user(&ctx).await {
-        Ok(user) => user,
-        Err(why) => {
-            error!("Couldn't get user: {why:?}");
-            return Ok(());
-        }
-    };
+    let pool = &ctx.data().pool;
+    
+    let user = utility::user(user_id, ctx).await;
     if user.bot || user.system {
         let reply = messages::error_reply("Cannot warn bots or system users.");
         if let Err(why) = ctx.send(reply).await {
@@ -57,8 +53,6 @@ pub(crate) async fn warn(
 
         return Ok(());
     }
-
-    let pool = &ctx.data().pool;
 
     let number_of_reason = reason.chars().count();
     if number_of_reason < 6 || number_of_reason > 80 {
@@ -76,20 +70,7 @@ pub(crate) async fn warn(
     let moderator_id = moderator.id;
     let moderator_name = &moderator.name;
 
-    let guild_id = match ctx.guild_id() {
-        Some(guild_id) => guild_id,
-        None => {
-            warn!("Couldn't get guild ID");
-            return Ok(());
-        }
-    };
-    let guild_name = match guild_id.name(&ctx.cache()) {
-        Some(guild_name) => guild_name,
-        None => {
-            warn!("Couldn't get guild name");
-            return Ok(());
-        }
-    };
+    let (guild_id, guild_name) = (utility::guild_id(ctx), utility::guild_name(ctx));
 
     let created_at = Utc::now().naive_utc();
 

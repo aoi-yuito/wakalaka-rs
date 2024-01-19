@@ -21,7 +21,7 @@ use crate::{
         infractions::{self, InfractionType},
         users,
     },
-    utility::messages,
+    utility::{self, messages},
     Context, Error,
 };
 
@@ -39,16 +39,14 @@ pub(crate) async fn unwarn(
     #[description = "The user to unwarn."]
     #[rename = "user"]
     user_id: UserId,
-    #[description = "ID of the warning to delete."] id: i32,
+    #[description = "ID of the warning to delete."]
+    #[rename = "id"]
+    case_id: i32,
     #[description = "The reason for unwarning, if any. (6-80)"] reason: Option<String>,
 ) -> Result<(), Error> {
-    let user = match user_id.to_user(&ctx).await {
-        Ok(user) => user,
-        Err(why) => {
-            error!("Couldn't get user: {why:?}");
-            return Ok(());
-        }
-    };
+    let pool = &ctx.data().pool;
+
+    let user = utility::user(user_id, ctx).await;
     if user.bot || user.system {
         let reply = messages::error_reply("Cannot remove warnings from bots or system users");
         if let Err(why) = ctx.send(reply).await {
@@ -58,7 +56,7 @@ pub(crate) async fn unwarn(
         return Ok(());
     }
 
-    if id < 1 {
+    if case_id < 1 {
         let reply = messages::warn_reply("Case ID must be greater than 0");
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
@@ -67,20 +65,12 @@ pub(crate) async fn unwarn(
         return Ok(());
     }
 
-    let pool = &ctx.data().pool;
-
     let user_name = &user.name;
 
     let moderator = ctx.author();
     let moderator_name = &moderator.name;
 
-    let guild_id = match ctx.guild_id() {
-        Some(guild_id) => guild_id,
-        None => {
-            warn!("Couldn't get guild ID");
-            return Ok(());
-        }
-    };
+    let guild_id = utility::guild_id(ctx);
 
     let warn_type = InfractionType::Warn.as_str();
 
@@ -104,7 +94,7 @@ pub(crate) async fn unwarn(
 
     for infraction in infractions {
         let case_id = infraction.0;
-        if case_id != id {
+        if case_id != case_id {
             let reply = messages::error_reply(format!("Couldn't find warning for <@{user_id}>."));
             if let Err(why) = ctx.send(reply).await {
                 error!("Couldn't send reply: {why:?}");
@@ -137,7 +127,7 @@ pub(crate) async fn unwarn(
         )
         .await;
 
-        infractions::delete_infraction(id, warn_type, pool).await;
+        infractions::delete_infraction(case_id, warn_type, pool).await;
 
         if let Some(reason) = reason.clone() {
             let number_of_reason = reason.chars().count();

@@ -22,7 +22,7 @@ use crate::{
         infractions::{self, InfractionType},
         users,
     },
-    utility::{embeds, messages},
+    utility::{self, embeds, messages},
     Context, Error,
 };
 
@@ -41,13 +41,9 @@ pub(crate) async fn warnings(
     #[rename = "user"]
     user_id: UserId,
 ) -> Result<(), Error> {
-    let user = match user_id.to_user(&ctx).await {
-        Ok(user) => user,
-        Err(why) => {
-            error!("Couldn't get user: {why:?}");
-            return Ok(());
-        }
-    };
+    let pool = &ctx.data().pool;
+
+    let user = utility::user(user_id, ctx).await;
     if user.bot || user.system {
         let reply = messages::error_reply("Cannot get warnings for a bot or system user.");
         if let Err(why) = ctx.send(reply).await {
@@ -57,17 +53,9 @@ pub(crate) async fn warnings(
         return Ok(());
     }
 
-    let pool = &ctx.data().pool;
-
     let user_name = &user.name;
 
-    let guild_id = match ctx.guild_id() {
-        Some(guild_id) => guild_id,
-        None => {
-            warn!("Couldn't get guild ID");
-            return Ok(());
-        }
-    };
+    let guild_id = utility::guild_id(ctx);
 
     let warn_type = InfractionType::Warn.as_str();
 
