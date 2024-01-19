@@ -15,7 +15,7 @@
 
 use chrono::Utc;
 use serenity::all::User;
-use tracing::{info, warn};
+use tracing::{error, info, warn};
 
 use crate::{
     database::{
@@ -41,9 +41,9 @@ pub(crate) async fn warn(
     #[description = "The reason for warning. (6-80)"] reason: String,
 ) -> Result<(), Error> {
     if user.bot || user.system {
-        let reply = messages::error_reply("Can't warn bots or system users.");
+        let reply = messages::error_reply("Cannot warn bots or system users.");
         if let Err(why) = ctx.send(reply).await {
-            warn!("Couldn't send reply: {why:?}");
+            error!("Couldn't send reply: {why:?}");
         }
 
         return Ok(());
@@ -55,13 +55,11 @@ pub(crate) async fn warn(
     if number_of_reason < 6 || number_of_reason > 80 {
         let reply = messages::warn_reply("Reason must be between 8 and 80 characters.");
         if let Err(why) = ctx.send(reply).await {
-            warn!("Couldn't send reply: {why:?}");
+            error!("Couldn't send reply: {why:?}");
         }
 
         return Ok(());
     }
-
-    let warn_type = InfractionType::Warn.as_str();
 
     let user_id = user.id;
     let user_name = &user.name;
@@ -87,6 +85,8 @@ pub(crate) async fn warn(
 
     let created_at = Utc::now().naive_utc();
 
+    let warn_type = InfractionType::Warn.as_str();
+
     let mut user_infractions = match users::infractions(user_id, guild_id, pool).await {
         Some(infractions) => infractions,
         None => {
@@ -98,7 +98,7 @@ pub(crate) async fn warn(
     let warnings = match infractions::infractions(user_id, guild_id, warn_type, pool).await {
         Ok(warnings) => warnings,
         Err(why) => {
-            warn!("Couldn't get warnings for @{user_name}: {why:?}");
+            error!("Couldn't get warnings for @{user_name}: {why:?}");
             return Ok(());
         }
     };
@@ -112,7 +112,7 @@ pub(crate) async fn warn(
             "<@{user_id}> has reached a maximum number of warnings. Take further action manually.",
         ));
         if let Err(why) = ctx.send(reply).await {
-            warn!("Couldn't send reply: {why:?}");
+            error!("Couldn't send reply: {why:?}");
         }
 
         return Ok(());
@@ -121,7 +121,7 @@ pub(crate) async fn warn(
             "You've been warned by <@{moderator_id}> in {guild_name} for {reason}.",
         ));
         if let Err(why) = user.direct_message(&ctx, message).await {
-            warn!("Couldn't send reply: {why:?}");
+            error!("Couldn't send reply: {why:?}");
         }
 
         user_infractions += 1;
@@ -152,7 +152,7 @@ pub(crate) async fn warn(
 
         let reply = messages::ok_reply(format!("<@{user_id}> has been warned.",));
         if let Err(why) = ctx.send(reply).await {
-            warn!("Couldn't send reply: {why:?}");
+            error!("Couldn't send reply: {why:?}");
         }
     }
 
