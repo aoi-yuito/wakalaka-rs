@@ -19,7 +19,6 @@ use tracing::{error, warn};
 
 use crate::{database::suggestions, Data};
 
-//handle_delete(channel_id, deleted_message_id, guild_id, ctx, data)
 pub(crate) async fn handle_delete(
     channel_id: &ChannelId,
     message_id: &MessageId,
@@ -45,14 +44,16 @@ pub(crate) async fn handle_delete(
         }
     };
     if channel_name == "suggestions" {
-        let message_id = i64::from(*message_id);
-        let guild_id = match guild_id {
-            Some(value) => i64::from(*value),
-            None => {
-                warn!("Couldn't get guild ID");
-                return;
-            }
-        };
+        let (message_id, guild_id) = (
+            i64::from(*message_id),
+            match guild_id {
+                Some(value) => i64::from(*value),
+                None => {
+                    warn!("Couldn't get guild ID");
+                    return;
+                }
+            },
+        );
 
         suggestions::delete_suggest(message_id, guild_id, pool).await;
         return;
