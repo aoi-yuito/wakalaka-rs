@@ -27,29 +27,33 @@ pub(crate) async fn handle_delete(
 ) {
     let pool = &data.pool;
 
-    let unavailable_guild_id = unavailable_guild.id;
-    let guild_id = match guild {
-        Some(guild) => guild.id,
-        None => {
-            warn!("Couldn't get guild ID");
-            return;
-        }
-    };
+    let (unavailable_guild_id, guild_id) = (
+        unavailable_guild.id,
+        match guild {
+            Some(guild) => guild.id,
+            None => {
+                warn!("Couldn't get guild ID");
+                return;
+            }
+        },
+    );
 
-    let unavailable_members = match unavailable_guild_id.members(&ctx.http, None, None).await {
-        Ok(users) => users,
-        Err(why) => {
-            error!("Couldn't get unavailable guild members: {why:?}");
-            return;
-        }
-    };
-    let members = match guild_id.members(&ctx.http, None, None).await {
-        Ok(users) => users,
-        Err(why) => {
-            error!("Couldn't get guild members: {why:?}");
-            return;
-        }
-    };
+    let (unavailable_members, members) = (
+        match unavailable_guild_id.members(&ctx.http, None, None).await {
+            Ok(users) => users,
+            Err(why) => {
+                error!("Couldn't get unavailable guild members: {why:?}");
+                return;
+            }
+        },
+        match guild_id.members(&ctx.http, None, None).await {
+            Ok(users) => users,
+            Err(why) => {
+                error!("Couldn't get guild members: {why:?}");
+                return;
+            }
+        },
+    );
 
     let guild_members = unavailable_members
         .into_iter()
