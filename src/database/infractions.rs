@@ -37,7 +37,7 @@ impl InfractionType {
     }
 }
 
-pub(crate) async fn warnings(
+pub(crate) async fn infractions(
     user_id: UserId,
     guild_id: GuildId,
     infraction_type: &'static str,
@@ -70,7 +70,7 @@ pub(crate) async fn warnings(
     }
 
     let elapsed_time = start_time.elapsed();
-    info!("Got warnings from database in {elapsed_time:.2?}");
+    info!("Got infractions from database in {elapsed_time:.2?}");
 
     Ok(infracts)
 }
