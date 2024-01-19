@@ -15,6 +15,12 @@
  along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 -->
 
+<div align="center">
+    <img src="res/waka_lichtstern.png" alt="Waka Lichtstern, drawn by kedoi#4581" width="400" height="400">
+    <br>
+    <p><small>Waka Lichtstern, drawn by <code>kedoi#4581</code></small></p>
+</div>
+
 # Wakalaka
 
 [![gh_release](https://img.shields.io/github/v/release/Kawaxte/wakalaka-rs?sort=date&logo=github&label=latest&style=for-the-badge)](https://github.com/Kawaxte/wakalaka-rs/releases/latest)
