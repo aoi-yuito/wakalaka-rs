@@ -60,19 +60,21 @@ async fn handle_suggestion_message(
             return;
         }
     };
-    let user_id = component.user.id;
-    let owner_id = match guild_id.to_guild_cached(&ctx.cache) {
-        Some(value) => value.owner_id,
-        None => {
-            warn!("Couldn't get guild owner ID");
-            return;
-        }
-    };
-    let channel_id = component.channel_id;
+    let (owner_id, user_id, channel_id) = (
+        match guild_id.to_guild_cached(&ctx.cache) {
+            Some(value) => value.owner_id,
+            None => {
+                warn!("Couldn't get guild owner ID");
+                return;
+            }
+        },
+        component.user.id,
+        component.channel_id,
+    );
 
     if user_id != owner_id {
         let response =
-            messages::error_response("Only moderators can accept or reject suggestions").await;
+            messages::error_response("Only moderators can accept or reject suggestions.").await;
         let _ = component.create_response(&ctx.http, response).await;
 
         return;
@@ -86,23 +88,21 @@ async fn handle_suggestion_message(
         }
     };
 
-    if custom_id == "accept_suggest" {
-        let accepted_at = Utc::now().naive_utc();
+    let now = Utc::now().naive_utc();
 
+    if custom_id == "accept_suggest" {
         suggestions::update_suggest(
             i64::from(message_id),
             i64::from(guild_id),
             i64::from(user_id),
             i64::from(owner_id),
             created_at,
-            Some(accepted_at),
+            Some(now),
             None,
             pool,
         )
         .await;
     } else if custom_id == "reject_suggest" {
-        let rejected_at = Utc::now().naive_utc();
-
         suggestions::update_suggest(
             i64::from(message_id),
             i64::from(guild_id),
@@ -110,7 +110,7 @@ async fn handle_suggestion_message(
             i64::from(owner_id),
             created_at,
             None,
-            Some(rejected_at),
+            Some(now),
             pool,
         )
         .await;
