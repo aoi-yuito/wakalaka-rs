@@ -29,7 +29,7 @@ use crate::{utility::embeds, Context, Error};
 )]
 pub(crate) async fn avatar(
     ctx: Context<'_>,
-    #[description = "The user to get the avatar of."] user: User,
+    #[description = "The user to get the avatar of."] user: User, // Using `UserId` does not comply with context menu, so...
 ) -> Result<(), Error> {
     let user_name = &user.name;
     let user_avatar_url = user.avatar_url().unwrap_or(user.default_avatar_url());
