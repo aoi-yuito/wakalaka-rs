@@ -35,18 +35,18 @@ use crate::{
     guild_only,
     ephemeral
 )]
-pub(crate) async fn silence(
+pub(crate) async fn mute(
     ctx: Context<'_>,
-    #[description = "The user to silence."]
+    #[description = "The user to mute."]
     #[rename = "user"]
     user_id: UserId,
-    #[description = "The reason for silencing. (6-80)"] reason: String,
+    #[description = "The reason for muting. (6-80)"] reason: String,
 ) -> Result<(), Error> {
     let pool = &ctx.data().pool;
 
     let user = utility::user(user_id, ctx).await;
     if user.bot || user.system {
-        let reply = messages::error_reply("Cannot silence bots or system users.");
+        let reply = messages::error_reply("Cannot mute bots or system users.");
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
         }
@@ -74,7 +74,7 @@ pub(crate) async fn silence(
 
     let created_at = Utc::now().naive_utc();
 
-    let silent_type = InfractionType::Silent.as_str();
+    let mute_type = InfractionType::Mute.as_str();
 
     let mut user_infractions = match users::infractions(user_id, guild_id, pool).await {
         Some(infractions) => infractions,
@@ -94,16 +94,16 @@ pub(crate) async fn silence(
     let edit_member = EditMember::default().mute(true);
 
     let message = messages::message(format!(
-        "You've been silenced by <@{moderator_id}> in {guild_name} for {reason}.",
+        "You've been muted by <@{moderator_id}> in {guild_name} for {reason}.",
     ));
     if let Err(why) = user.direct_message(&ctx, message).await {
         error!("Couldn't send reply: {why:?}");
     }
 
     if let Err(why) = member.edit(&ctx, edit_member).await {
-        error!("Couldn't silence member: {why:?}");
+        error!("Couldn't mute member: {why:?}");
 
-        let reply = messages::error_reply("Couldn't silence member.");
+        let reply = messages::error_reply("Couldn't mute member.");
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
         }
@@ -120,13 +120,14 @@ pub(crate) async fn silence(
         false,
         true,
         false,
+        false,
         pool,
     )
     .await;
 
     infractions::insert_infraction(
         user_id,
-        silent_type,
+        mute_type,
         moderator_id,
         guild_id,
         &reason,
@@ -135,9 +136,9 @@ pub(crate) async fn silence(
     )
     .await;
 
-    info!("@{moderator_name} silenced @{user_name} in {guild_name}: {reason}");
+    info!("@{moderator_name} muted @{user_name} in {guild_name}: {reason}");
 
-    let reply = messages::ok_reply(format!("<@{user_id}> has been silenced.",));
+    let reply = messages::ok_reply(format!("<@{user_id}> has been muted.",));
     if let Err(why) = ctx.send(reply).await {
         error!("Couldn't send reply: {why:?}");
     }

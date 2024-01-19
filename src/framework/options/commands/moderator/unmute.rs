@@ -34,18 +34,18 @@ use crate::{
     guild_only,
     ephemeral
 )]
-pub(crate) async fn unsilence(
+pub(crate) async fn unmute(
     ctx: Context<'_>,
-    #[description = "The user to unsilence."]
+    #[description = "The user to unmute."]
     #[rename = "user"]
     user_id: UserId,
-    #[description = "The reason for unsilencing, if any. (6-80)"] reason: Option<String>,
+    #[description = "The reason for unmute, if any. (6-80)"] reason: Option<String>,
 ) -> Result<(), Error> {
     let pool = &ctx.data().pool;
-    
+
     let user = utility::user(user_id, ctx).await;
     if user.bot || user.system {
-        let reply = messages::error_reply("Cannot unsilence bots or system users.");
+        let reply = messages::error_reply("Cannot unmute bots or system users.");
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
         }
@@ -60,9 +60,9 @@ pub(crate) async fn unsilence(
 
     let guild_id = utility::guild_id(ctx);
 
-    let silent_type = InfractionType::Silent.as_str();
+    let mute_type = InfractionType::Mute.as_str();
 
-    let infractions = match infractions::infractions(user_id, guild_id, silent_type, pool).await {
+    let infractions = match infractions::infractions(user_id, guild_id, mute_type, pool).await {
         Ok(infractions) => infractions,
         Err(why) => {
             error!("Couldn't get infractions from database: {why:?}");
@@ -101,9 +101,9 @@ pub(crate) async fn unsilence(
         let edit_member = EditMember::default().mute(false);
 
         if let Err(why) = member.edit(&ctx, edit_member).await {
-            error!("Couldn't unsilence member: {why:?}");
+            error!("Couldn't unmute member: {why:?}");
 
-            let reply = messages::error_reply("Couldn't unsilence member.");
+            let reply = messages::error_reply("Couldn't unmute member.");
             if let Err(why) = ctx.send(reply).await {
                 error!("Couldn't send reply: {why:?}");
             }
@@ -123,11 +123,12 @@ pub(crate) async fn unsilence(
             false,
             false,
             false,
+            false,
             pool,
         )
         .await;
 
-        infractions::delete_infraction(case_id, silent_type, pool).await;
+        infractions::delete_infraction(case_id, mute_type, pool).await;
 
         if let Some(reason) = reason.clone() {
             let number_of_reason = reason.chars().count();
@@ -140,12 +141,12 @@ pub(crate) async fn unsilence(
                 return Ok(());
             }
 
-            info!("@{user_name} unsilenced by @{moderator_name}: {reason}");
+            info!("@{user_name} unmuted by @{moderator_name}: {reason}");
         } else {
-            info!("@{user_name} unsilenced by @{moderator_name}");
+            info!("@{user_name} unmuted by @{moderator_name}");
         }
 
-        let reply = messages::ok_reply(format!("<@{user_id}> has been unsilenced."));
+        let reply = messages::ok_reply(format!("<@{user_id}> has been unmuted."));
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
         }
