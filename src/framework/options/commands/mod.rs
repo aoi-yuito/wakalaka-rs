@@ -37,6 +37,7 @@ pub(crate) async fn guild_commands() -> Vec<Command<Data, Error>> {
         misc::avatar::avatar(),
         misc::suggest::suggest(),
         moderator::deafen::deafen(),
+        moderator::kick::kick(),
         moderator::purge::purge(),
         moderator::silence::silence(),
         moderator::undeafen::undeafen(),

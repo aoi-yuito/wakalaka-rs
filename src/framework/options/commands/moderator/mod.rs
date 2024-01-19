@@ -14,6 +14,7 @@
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
 pub(super) mod deafen;
+pub(super) mod kick;
 pub(super) mod purge;
 pub(super) mod silence;
 pub(super) mod undeafen;
