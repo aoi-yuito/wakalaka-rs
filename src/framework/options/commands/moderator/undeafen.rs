@@ -25,7 +25,7 @@ use crate::{
     Context, Error,
 };
 
-// Allow a user to speak/hear in voice channels.
+/// Allow a user to interact in voice channels.
 #[poise::command(
     prefix_command,
     slash_command,
@@ -40,17 +40,15 @@ pub(crate) async fn undeafen(
     #[description = "The reason for undeafening. (6-80)"] reason: Option<String>,
 ) -> Result<(), Error> {
     if user.bot || user.system {
-        let reply = messages::error_reply("Can't undeafen bots or system users.");
+        let reply = messages::error_reply("Cannot undeafen bots or system users.");
         if let Err(why) = ctx.send(reply).await {
-            warn!("Couldn't send reply: {why:?}");
+            error!("Couldn't send reply: {why:?}");
         }
 
         return Ok(());
     }
 
     let pool = &ctx.data().pool;
-
-    let deaf_type = InfractionType::Deaf.as_str();
 
     let user_id = user.id;
     let user_name = &user.name;
@@ -66,25 +64,20 @@ pub(crate) async fn undeafen(
             return Ok(());
         }
     };
-    let guild_name = match guild_id.name(&ctx.cache()) {
-        Some(guild_name) => guild_name,
-        None => {
-            warn!("Couldn't get guild name");
-            return Ok(());
-        }
-    };
 
-    let deafens = match infractions::infractions(user_id, guild_id, deaf_type, pool).await {
-        Ok(deafens) => deafens,
+    let deaf_type = InfractionType::Deaf.as_str();
+
+    let infractions = match infractions::infractions(user_id, guild_id, deaf_type, pool).await {
+        Ok(infractions) => infractions,
         Err(why) => {
-            error!("Couldn't get deafens: {why:?}");
+            error!("Couldn't get infractions from database: {why:?}");
             return Ok(());
         }
     };
 
-    let number_of_deafens = deafens.len();
-    if number_of_deafens < 1 {
-        let reply = messages::warn_reply(format!("<@{user_id}> hasn't been deafened before."));
+    let number_of_infractions = infractions.len();
+    if number_of_infractions < 1 {
+        let reply = messages::warn_reply(format!("<@{user_id}> hasn't been punished before."));
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
         }
@@ -92,10 +85,8 @@ pub(crate) async fn undeafen(
         return Ok(());
     }
 
-    for deafen in deafens {
-        let case_id = deafen.0;
-
-        let deaf_type = InfractionType::Deaf.as_str();
+    for infraction in infractions {
+        let case_id = infraction.0;
 
         let mut user_infractions = match users::infractions(user_id, guild_id, pool).await {
             Some(infractions) => infractions,
@@ -108,7 +99,7 @@ pub(crate) async fn undeafen(
         let mut member = match guild_id.member(&ctx, user_id).await {
             Ok(member) => member,
             Err(why) => {
-                warn!("Couldn't get member: {why:?}");
+                error!("Couldn't get member: {why:?}");
                 return Ok(());
             }
         };
@@ -119,40 +110,10 @@ pub(crate) async fn undeafen(
 
             let reply = messages::error_reply("Couldn't undeafen member.");
             if let Err(why) = ctx.send(reply).await {
-                warn!("Couldn't send reply: {why:?}");
+                error!("Couldn't send reply: {why:?}");
             }
 
             return Ok(());
-        }
-
-        if let Some(reason) = reason.clone() {
-            let number_of_reason = reason.chars().count();
-            if number_of_reason < 6 || number_of_reason > 80 {
-                let reply = messages::warn_reply("Reason must be between 8 and 80 characters.");
-                if let Err(why) = ctx.send(reply).await {
-                    error!("Couldn't send reply: {why:?}");
-                }
-
-                return Ok(());
-            }
-
-            info!("@{user_name} undeafened by @{moderator_name}: {reason}");
-
-            let message = messages::message(format!(
-                "You've been undeafened by <@{moderator_id}> in {guild_name} for {reason}.",
-            ));
-            if let Err(why) = user.direct_message(&ctx, message).await {
-                warn!("Couldn't send reply: {why:?}");
-            }
-        } else {
-            info!("@{user_name} undeafened by @{moderator_name}");
-
-            let message = messages::message(format!(
-                "You've been undeafened by <@{moderator_id}> in {guild_name}.",
-            ));
-            if let Err(why) = user.direct_message(&ctx, message).await {
-                warn!("Couldn't send reply: {why:?}");
-            }
         }
 
         user_infractions -= 1;
@@ -172,6 +133,22 @@ pub(crate) async fn undeafen(
         .await;
 
         infractions::delete_infraction(case_id, deaf_type, pool).await;
+
+        if let Some(reason) = reason.clone() {
+            let number_of_reason = reason.chars().count();
+            if number_of_reason < 6 || number_of_reason > 80 {
+                let reply = messages::warn_reply("Reason must be between 8 and 80 characters.");
+                if let Err(why) = ctx.send(reply).await {
+                    error!("Couldn't send reply: {why:?}");
+                }
+
+                return Ok(());
+            }
+
+            info!("@{user_name} undeafened by @{moderator_name}: {reason}");
+        } else {
+            info!("@{user_name} undeafened by @{moderator_name}")
+        }
 
         let reply = messages::ok_reply(format!("<@{user_id}> has been undeafened."));
         if let Err(why) = ctx.send(reply).await {
