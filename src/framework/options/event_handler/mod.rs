@@ -56,6 +56,9 @@ pub(crate) async fn handle(
         } => {
             guild::guild_update::handle_update(old_data_if_available, new_data, ctx, data).await;
         }
+        FullEvent::GuildMemberAddition { new_member, .. } => {
+            guild::guild_member_addition::handle_member_addition(new_member, ctx, data).await;
+        }
         FullEvent::Ready { data_about_bot, .. } => {
             ready::handle(data_about_bot, ctx);
         }
