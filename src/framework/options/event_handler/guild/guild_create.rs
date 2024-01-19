@@ -20,11 +20,6 @@ use tracing::error;
 use crate::{database::users, Data};
 
 pub(crate) async fn handle_create(guild: &Guild, is_new: bool, ctx: &Context, data: &Data) {
-    if !is_new {
-        // The fuck does this boolean... When does ever invoke this...?
-        return;
-    }
-
     let pool = &data.pool;
 
     let guild_id = guild.id;
@@ -37,5 +32,9 @@ pub(crate) async fn handle_create(guild: &Guild, is_new: bool, ctx: &Context, da
         }
     };
 
-    users::insert_users(guild_members, pool).await;
+    if !is_new {
+        users::update_users(guild_members, pool).await;
+    } else {
+        users::insert_users(guild_members, pool).await;
+    }
 }
