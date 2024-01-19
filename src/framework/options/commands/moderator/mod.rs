@@ -15,7 +15,9 @@
 
 pub(super) mod deafen;
 pub(super) mod purge;
+pub(super) mod silence;
 pub(super) mod undeafen;
+pub(super) mod unsilence;
 pub(super) mod unwarn;
 pub(super) mod warn;
 pub(super) mod warnings;
