@@ -13,7 +13,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-use serenity::all::{Mentionable, User};
+use serenity::all::{Mentionable, UserId};
 
 use crate::{Context, Error};
 
@@ -21,8 +21,18 @@ use crate::{Context, Error};
 #[poise::command(prefix_command, slash_command, category = "Fun", guild_only)]
 pub(crate) async fn hug(
     ctx: Context<'_>,
-    #[description = "The user to comfort."] user: User,
+    #[description = "The user to comfort."]
+    #[rename = "user"]
+    user_id: UserId,
 ) -> Result<(), Error> {
+    let user = match user_id.to_user(&ctx).await {
+        Ok(user) => user,
+        Err(why) => {
+            tracing::error!("Couldn't get user: {why:?}");
+            return Ok(());
+        }
+    };
+
     let user_mention = ctx.author().mention();
     let other_mention = user.mention();
 

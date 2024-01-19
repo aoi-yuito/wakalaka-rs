@@ -14,7 +14,7 @@
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
 use chrono::Utc;
-use serenity::{all::User, builder::EditMember};
+use serenity::{all::UserId, builder::EditMember};
 use tracing::{error, info, warn};
 
 use crate::{
@@ -37,9 +37,18 @@ use crate::{
 )]
 pub(crate) async fn silence(
     ctx: Context<'_>,
-    #[description = "The user to silence."] user: User,
+    #[description = "The user to silence."]
+    #[rename = "user"]
+    user_id: UserId,
     #[description = "The reason for silencing. (6-80)"] reason: String,
 ) -> Result<(), Error> {
+    let user = match user_id.to_user(&ctx).await {
+        Ok(user) => user,
+        Err(why) => {
+            error!("Couldn't get user: {why:?}");
+            return Ok(());
+        }
+    };
     if user.bot || user.system {
         let reply = messages::error_reply("Cannot silence bots or system users.");
         if let Err(why) = ctx.send(reply).await {
@@ -61,7 +70,6 @@ pub(crate) async fn silence(
         return Ok(());
     }
 
-    let user_id = user.id;
     let user_name = &user.name;
 
     let moderator = ctx.author();
@@ -104,6 +112,13 @@ pub(crate) async fn silence(
     };
     let edit_member = EditMember::default().mute(true);
 
+    let message = messages::message(format!(
+        "You've been silenced by <@{moderator_id}> in {guild_name} for {reason}.",
+    ));
+    if let Err(why) = user.direct_message(&ctx, message).await {
+        error!("Couldn't send reply: {why:?}");
+    }
+
     if let Err(why) = member.edit(&ctx, edit_member).await {
         error!("Couldn't silence member: {why:?}");
 
@@ -113,13 +128,6 @@ pub(crate) async fn silence(
         }
 
         return Ok(());
-    }
-
-    let message = messages::message(format!(
-        "You've been silenced by <@{moderator_id}> in {guild_name} for {reason}.",
-    ));
-    if let Err(why) = user.direct_message(&ctx, message).await {
-        error!("Couldn't send reply: {why:?}");
     }
 
     user_infractions += 1;

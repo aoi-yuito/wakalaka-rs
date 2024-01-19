@@ -14,7 +14,7 @@
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
 use poise::CreateReply;
-use serenity::all::User;
+use serenity::all::UserId;
 use tracing::{error, warn};
 
 use crate::{
@@ -37,8 +37,17 @@ use crate::{
 )]
 pub(crate) async fn warnings(
     ctx: Context<'_>,
-    #[description = "The user to get warnings for."] user: User,
+    #[description = "The user to get warnings for."]
+    #[rename = "user"]
+    user_id: UserId,
 ) -> Result<(), Error> {
+    let user = match user_id.to_user(&ctx).await {
+        Ok(user) => user,
+        Err(why) => {
+            error!("Couldn't get user: {why:?}");
+            return Ok(());
+        }
+    };
     if user.bot || user.system {
         let reply = messages::error_reply("Cannot get warnings for a bot or system user.");
         if let Err(why) = ctx.send(reply).await {
@@ -50,14 +59,6 @@ pub(crate) async fn warnings(
 
     let pool = &ctx.data().pool;
 
-    let user_id = user.id;
-    let user = match user_id.to_user(&ctx).await {
-        Ok(user) => user,
-        Err(why) => {
-            error!("Couldn't get user from database: {why:?}");
-            return Ok(());
-        }
-    };
     let user_name = &user.name;
 
     let guild_id = match ctx.guild_id() {

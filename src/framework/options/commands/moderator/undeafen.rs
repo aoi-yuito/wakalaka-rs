@@ -13,7 +13,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-use serenity::{all::User, builder::EditMember};
+use serenity::{all::UserId, builder::EditMember};
 use tracing::{error, info, warn};
 
 use crate::{
@@ -36,9 +36,18 @@ use crate::{
 )]
 pub(crate) async fn undeafen(
     ctx: Context<'_>,
-    #[description = "The user to undeafen."] user: User,
-    #[description = "The reason for undeafening. (6-80)"] reason: Option<String>,
+    #[description = "The user to undeafen."]
+    #[rename = "user"]
+    user_id: UserId,
+    #[description = "The reason for undeafening, if any. (6-80)"] reason: Option<String>,
 ) -> Result<(), Error> {
+    let user = match user_id.to_user(&ctx).await {
+        Ok(user) => user,
+        Err(why) => {
+            error!("Couldn't get user: {why:?}");
+            return Ok(());
+        }
+    };
     if user.bot || user.system {
         let reply = messages::error_reply("Cannot undeafen bots or system users.");
         if let Err(why) = ctx.send(reply).await {
@@ -50,7 +59,6 @@ pub(crate) async fn undeafen(
 
     let pool = &ctx.data().pool;
 
-    let user_id = user.id;
     let user_name = &user.name;
 
     let moderator = ctx.author();

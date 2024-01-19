@@ -13,7 +13,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-use serenity::all::User;
+use serenity::all::UserId;
 use tracing::{error, info, warn};
 
 use crate::{
@@ -36,10 +36,19 @@ use crate::{
 )]
 pub(crate) async fn unwarn(
     ctx: Context<'_>,
-    #[description = "The user to unwarn."] user: User,
+    #[description = "The user to unwarn."]
+    #[rename = "user"]
+    user_id: UserId,
     #[description = "ID of the warning to delete."] id: i32,
-    #[description = "The reason for unwarning. (6-80)"] reason: Option<String>,
+    #[description = "The reason for unwarning, if any. (6-80)"] reason: Option<String>,
 ) -> Result<(), Error> {
+    let user = match user_id.to_user(&ctx).await {
+        Ok(user) => user,
+        Err(why) => {
+            error!("Couldn't get user: {why:?}");
+            return Ok(());
+        }
+    };
     if user.bot || user.system {
         let reply = messages::error_reply("Cannot remove warnings from bots or system users");
         if let Err(why) = ctx.send(reply).await {
@@ -60,7 +69,6 @@ pub(crate) async fn unwarn(
 
     let pool = &ctx.data().pool;
 
-    let user_id = user.id;
     let user_name = &user.name;
 
     let moderator = ctx.author();

@@ -13,7 +13,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-use serenity::all::User;
+use serenity::all::UserId;
 use tracing::{error, info, warn};
 
 use crate::{utility::messages, Context, Error};
@@ -29,9 +29,18 @@ use crate::{utility::messages, Context, Error};
 )]
 pub(crate) async fn kick(
     ctx: Context<'_>,
-    #[description = "The user to kick."] user: User,
+    #[description = "The user to kick."]
+    #[rename = "user"]
+    user_id: UserId,
     #[description = "The reason for kicking. (6-80)"] reason: String,
 ) -> Result<(), Error> {
+    let user = match user_id.to_user(&ctx).await {
+        Ok(user) => user,
+        Err(why) => {
+            error!("Couldn't get user: {why:?}");
+            return Ok(());
+        }
+    };
     if user.system {
         let reply = messages::error_reply("Cannot kick system users.");
         if let Err(why) = ctx.send(reply).await {
@@ -51,7 +60,6 @@ pub(crate) async fn kick(
         return Ok(());
     }
 
-    let user_id = user.id;
     let user_name = &user.name;
 
     let moderator = ctx.author();
@@ -81,34 +89,29 @@ pub(crate) async fn kick(
         }
     };
 
-    match member.kick_with_reason(&ctx, &reason).await {
-        Ok(_) => {
-            if !user.bot {
-                let message = messages::message(format!(
-                    "You've been kicked from {guild_name} by <@{moderator_id}> for {reason}.",
-                ));
-                if let Err(why) = user.direct_message(&ctx, message).await {
-                    error!("Couldn't send reply: {why:?}");
-                }
-            }
-        }
-        Err(why) => {
-            error!("Couldn't kick member: {why:?}");
-
-            let reply = messages::error_reply("Couldn't kick member.");
-            if let Err(why) = ctx.send(reply).await {
-                error!("Couldn't send reply: {why:?}");
-            }
-
-            return Ok(());
-        }
+    let message = messages::message(format!(
+        "You've been kicked from {guild_name} by <@{moderator_id}> for {reason}.",
+    ));
+    if let Err(why) = user.direct_message(&ctx, message).await {
+        error!("Couldn't send reply: {why:?}");
     }
 
-    info!("@{moderator_name} kicked @{user_name} from {guild_name}: {reason}");
+    if let Err(why) = member.kick_with_reason(&ctx, &reason).await {
+        error!("Couldn't kick member: {why:?}");
 
-    let reply = messages::ok_reply(format!("<@{user_id}> has been kicked.",));
-    if let Err(why) = ctx.send(reply).await {
-        error!("Couldn't send reply: {why:?}");
+        let reply = messages::error_reply("Couldn't kick member.");
+        if let Err(why) = ctx.send(reply).await {
+            error!("Couldn't send reply: {why:?}");
+        }
+
+        return Ok(());
+    } else {
+        info!("@{moderator_name} kicked @{user_name} from {guild_name}: {reason}");
+
+        let reply = messages::ok_reply(format!("<@{user_id}> has been kicked.",));
+        if let Err(why) = ctx.send(reply).await {
+            error!("Couldn't send reply: {why:?}");
+        }
     }
 
     Ok(())
