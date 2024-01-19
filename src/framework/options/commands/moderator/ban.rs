@@ -108,6 +108,7 @@ pub(crate) async fn ban(
             user_infractions,
             false,
             false,
+            false,
             true,
             pool,
         )

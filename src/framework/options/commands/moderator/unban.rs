@@ -99,6 +99,7 @@ pub(crate) async fn unban(
             false,
             false,
             false,
+            false,
             pool,
         )
         .await;

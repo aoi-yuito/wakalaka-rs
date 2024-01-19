@@ -119,6 +119,7 @@ pub(crate) async fn deafen(
         true,
         false,
         false,
+        false,
         pool,
     )
     .await;

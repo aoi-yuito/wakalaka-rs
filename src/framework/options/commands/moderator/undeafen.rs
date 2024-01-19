@@ -123,6 +123,7 @@ pub(crate) async fn undeafen(
             false,
             false,
             false,
+            false,
             pool,
         )
         .await;
