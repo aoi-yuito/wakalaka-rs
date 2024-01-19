@@ -13,7 +13,9 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
+pub(super) mod deafen;
 pub(super) mod purge;
+pub(super) mod undeafen;
 pub(super) mod unwarn;
 pub(super) mod warn;
 pub(super) mod warnings;
