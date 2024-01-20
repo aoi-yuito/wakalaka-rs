@@ -13,10 +13,12 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-use poise::CreateReply;
 use tokio::time::Instant;
 
-use crate::{utility::embeds, Context, Error};
+use crate::{
+    utility::{embeds, messages},
+    Context, Error,
+};
 
 /// Check if yours truly is alive and well.
 #[poise::command(
@@ -37,9 +39,9 @@ pub(crate) async fn ping(ctx: Context<'_>) -> Result<(), Error> {
 
         let elapsed_time = start_time.elapsed();
 
-        let embed = embeds::ping_embed(elapsed_time, id, stage, latency);
+        let ping_embed = embeds::ping_embed(elapsed_time, id, stage, latency);
 
-        let reply = CreateReply::default().embed(embed).ephemeral(true);
+        let reply = messages::reply_embed(ping_embed, true);
         if let Err(why) = ctx.send(reply).await {
             tracing::error!("Couldn't send reply: {why:?}");
         }

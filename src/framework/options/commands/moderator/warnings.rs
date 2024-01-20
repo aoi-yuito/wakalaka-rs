@@ -13,7 +13,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-use poise::CreateReply;
 use serenity::all::UserId;
 use tracing::{error, warn};
 
@@ -100,9 +99,9 @@ pub(crate) async fn warnings(
         .map(|warning| warning.3.clone())
         .collect::<Vec<String>>();
 
-    let embed = embeds::warnings_embed(case_ids, &user, &user_name, moderator_ids, reasons);
+    let warns_embed = embeds::warnings_embed(case_ids, &user, &user_name, moderator_ids, reasons);
 
-    let reply = CreateReply::default().embed(embed).ephemeral(true);
+    let reply = messages::reply_embed(warns_embed, true);
     if let Err(why) = ctx.send(reply).await {
         error!("Couldn't send reply: {why:?}");
     }

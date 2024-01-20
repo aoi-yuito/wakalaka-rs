@@ -13,11 +13,13 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-use poise::CreateReply;
 use serenity::all::User;
 use tracing::error;
 
-use crate::{utility::embeds, Context, Error};
+use crate::{
+    utility::{embeds, messages},
+    Context, Error,
+};
 
 /// Get the avatar of a user.
 #[poise::command(
@@ -36,7 +38,7 @@ pub(crate) async fn avatar(
 
     let embed = embeds::avatar_embed(user_name, user_avatar_url);
 
-    let reply = CreateReply::default().embed(embed);
+    let reply = messages::reply_embed(embed, false);
     if let Err(why) = ctx.send(reply).await {
         error!("Couldn't send reply: {why:?}");
     }

@@ -15,7 +15,7 @@
 
 use poise::CreateReply;
 use serenity::builder::{
-    CreateInteractionResponse, CreateInteractionResponseMessage, CreateMessage,
+    CreateEmbed, CreateInteractionResponse, CreateInteractionResponseMessage, CreateMessage,
 };
 
 use super::embeds;
@@ -112,6 +112,10 @@ pub(crate) fn ok_reply(message: impl Into<String>, ephemeral: bool) -> CreateRep
     let ok_embed = embeds::ok_message_embed(&message.into());
 
     CreateReply::default().embed(ok_embed).ephemeral(ephemeral)
+}
+
+pub(crate) fn reply_embed(embed: CreateEmbed, ephemeral: bool) -> CreateReply {
+    CreateReply::default().embed(embed).ephemeral(ephemeral)
 }
 
 pub(crate) fn reply(message: impl Into<String>, ephemeral: bool) -> CreateReply {

@@ -13,10 +13,12 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-use poise::CreateReply;
 use tracing::error;
 
-use crate::{utility::embeds, Context, Error};
+use crate::{
+    utility::{embeds, messages},
+    Context, Error,
+};
 
 use super::{AUTHORS, DESCRIPTION, GITHUB_URL, NAME, RUST_VERSION, VERSION};
 
@@ -43,7 +45,7 @@ pub(crate) async fn info(ctx: Context<'_>) -> Result<(), Error> {
 
     let info_embed = embeds::info_embed(&bot_avatar_url, constants);
 
-    let reply = CreateReply::default().embed(info_embed).ephemeral(true);
+    let reply = messages::reply_embed(info_embed, false);
     if let Err(why) = ctx.send(reply).await {
         error!("Couldn't send reply: {why:?}");
     }
