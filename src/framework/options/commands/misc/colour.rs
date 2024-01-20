@@ -25,11 +25,40 @@ use crate::{
 #[poise::command(
     prefix_command,
     slash_command,
-    subcommands("hex", "rgb"),
+    subcommands("hex", "rgb", "random"),
     category = "Misc",
-    guild_only
+    guild_only,
+    subcommand_required
 )]
 pub(crate) async fn colour(_: Context<'_>) -> Result<(), Error> {
+    Ok(())
+}
+
+/// Get random colour information.
+#[poise::command(prefix_command, slash_command, category = "Misc", guild_only)]
+pub(crate) async fn random(ctx: Context<'_>) -> Result<(), Error> {
+    let client = reqwest::Client::new();
+
+    let res = client
+        .get("https://www.thecolorapi.com/random?format=json")
+        .send()
+        .await?;
+    let res_text = res.text().await?;
+    let res_json: serde_json::Value = serde_json::from_str(&res_text)?;
+
+    let hex = res_json["hex"]["clean"].to_string();
+
+    let colour = hex_to_u32(&hex);
+    let hex_colour = format!("{:06X}", colour);
+    let colour_url = format!("https://singlecolorimage.com/get/{hex_colour}/400x400");
+
+    let embed = embeds::colour_embed(colour, &colour_url, &res_json);
+
+    let reply = messages::reply_embed(embed, false);
+    if let Err(why) = ctx.send(reply).await {
+        error!("Couldn't send reply: {why:?}");
+    }
+
     Ok(())
 }
 
@@ -61,7 +90,6 @@ pub(crate) async fn rgb(
 
     let colour = rgb_to_u32(&code);
     let hex_colour = format!("{:06X}", colour);
-
     let colour_url = format!("https://singlecolorimage.com/get/{hex_colour}/400x400");
 
     let embed = embeds::colour_embed(colour, &colour_url, &res_json);
@@ -107,7 +135,6 @@ pub(crate) async fn hex(
     let res_json: serde_json::Value = serde_json::from_str(&res_text)?;
 
     let colour = hex_to_u32(&code);
-
     let colour_url = format!("https://singlecolorimage.com/get/{code}/400x400");
 
     let embed = embeds::colour_embed(colour, &colour_url, &res_json);
@@ -132,10 +159,12 @@ fn rgb_to_u32(code: &String) -> u32 {
 }
 
 fn hex_to_u32(code: &String) -> u32 {
-    match u32::from_str_radix(&code, 16) {
+    let hex_code: String = code.chars().filter(|c| c.is_digit(16)).collect();
+
+    match u32::from_str_radix(&hex_code, 16) {
         Ok(colour) => colour,
-        Err(_) => {
-            error!("Couldn't parse hex code: {code}");
+        Err(why) => {
+            error!("Couldn't parse {code}: {why:?}");
             return 0;
         }
     }
