@@ -45,7 +45,7 @@ pub(crate) async fn info(ctx: Context<'_>) -> Result<(), Error> {
 
     let info_embed = embeds::info_embed(&bot_avatar_url, constants);
 
-    let reply = messages::reply_embed(info_embed, false);
+    let reply = messages::reply_embed(info_embed, true);
     if let Err(why) = ctx.send(reply).await {
         error!("Couldn't send reply: {why:?}");
     }
