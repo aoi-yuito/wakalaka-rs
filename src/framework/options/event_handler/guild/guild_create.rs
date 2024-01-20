@@ -13,28 +13,20 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-use poise::serenity_prelude::Context;
 use serenity::all::Guild;
-use tracing::error;
 
-use crate::{database::users, Data};
+use crate::{database::users, serenity::Context, utility, Data};
 
 pub(crate) async fn handle_create(guild: &Guild, is_new: bool, ctx: &Context, data: &Data) {
     let pool = &data.pool;
 
     let guild_id = guild.id;
 
-    let guild_members = match guild_id.members(&ctx.http, None, None).await {
-        Ok(users) => users,
-        Err(why) => {
-            error!("Couldn't get guild members: {why:?}");
-            return;
-        }
-    };
+    let members = utility::guilds::members_raw(&ctx, guild_id).await;
 
     if !is_new {
-        users::update_users(guild_members, pool).await;
+        users::update_users(members, pool).await;
     } else {
-        users::insert_users(guild_members, pool).await;
+        users::insert_users(members, pool).await;
     }
 }
