@@ -13,9 +13,9 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-pub(crate) mod users;
 pub(crate) mod infractions;
 pub(crate) mod suggestions;
+pub(crate) mod users;
 
 use lazy_static::lazy_static;
 use sqlx::{sqlite::SqlitePoolOptions, SqlitePool};
