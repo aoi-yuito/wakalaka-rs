@@ -27,11 +27,11 @@ pub(crate) async fn delete_suggest(message_id: i64, guild_id: i64, pool: &Sqlite
             .bind(guild_id);
 
     if let Err(why) = suggest_query.execute(pool).await {
-        error!("Couldn't delete suggestion in database: {why:?}");
+        error!("Couldn't delete suggestion from database: {why:?}");
         return;
     } else {
         let elapsed_time = start_time.elapsed();
-        info!("Deleted suggestion in database in {elapsed_time:.2?}");
+        info!("Deleted suggestion from database in {elapsed_time:.2?}");
     }
 }
 
@@ -52,11 +52,11 @@ pub(crate) async fn update_suggest(
     ).bind(user_id).bind(moderator_id).bind(created_at).bind(accepted_at).bind(rejected_at).bind(message_id).bind(guild_id);
 
     if let Err(why) = suggest_query.execute(pool).await {
-        error!("Couldn't update suggestion in database: {why:?}");
+        error!("Couldn't update suggestion within database: {why:?}");
         return;
     } else {
         let elapsed_time = start_time.elapsed();
-        info!("Updated suggestion in database in {elapsed_time:.2?}");
+        info!("Updated suggestion within database in {elapsed_time:.2?}");
     }
 }
 
@@ -77,10 +77,10 @@ pub(crate) async fn insert_suggest(
     ).bind(message_id).bind(guild_id).bind(user_id).bind(moderator_id).bind(created_at).bind(accepted_at).bind(rejected_at);
 
     if let Err(why) = suggest_query.execute(pool).await {
-        error!("Couldn't insert suggestion in database: {why:?}");
+        error!("Couldn't insert suggestion into database: {why:?}");
         return;
     } else {
         let elapsed_time = start_time.elapsed();
-        info!("Inserted suggestion in database in {elapsed_time:.2?}");
+        info!("Inserted suggestion into database in {elapsed_time:.2?}");
     }
 }

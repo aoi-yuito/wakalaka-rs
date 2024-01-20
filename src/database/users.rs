@@ -81,7 +81,7 @@ pub(crate) async fn update_user(
     .bind(i64::from(user_id))
     .bind(i64::from(guild_id));
     if let Err(why) = member_query.execute(pool).await {
-        error!("Couldn't update user in database: {why:?}");
+        error!("Couldn't update user within database: {why:?}");
         return;
     }
 
@@ -91,7 +91,7 @@ pub(crate) async fn update_user(
     }
 
     let elapsed_time = start_time.elapsed();
-    info!("Updated user in database in {elapsed_time:.2?}");
+    info!("Updated user within database in {elapsed_time:.2?}");
 }
 
 pub(crate) async fn update_users(members: Vec<Member>, pool: &SqlitePool) {
@@ -117,7 +117,7 @@ pub(crate) async fn update_users(members: Vec<Member>, pool: &SqlitePool) {
             .bind(user_guild_id)
             .bind(user_id);
         if let Err(why) = member_query.execute(pool).await {
-            error!("Couldn't update user(s) in database: {why:?}");
+            error!("Couldn't update user(s) within database: {why:?}");
             break;
         }
     }
@@ -128,7 +128,7 @@ pub(crate) async fn update_users(members: Vec<Member>, pool: &SqlitePool) {
     }
 
     let elapsed_time = start_time.elapsed();
-    info!("Updated user(s) in database in {elapsed_time:.2?}");
+    info!("Updated user(s) within database in {elapsed_time:.2?}");
 }
 
 pub(crate) async fn delete_users(members: Vec<Member>, pool: &SqlitePool) {
@@ -189,7 +189,7 @@ pub(crate) async fn insert_users(members: Vec<Member>, pool: &SqlitePool) {
                 .bind(user_id)
                 .bind(user_guild_id);
         if let Err(why) = member_query.execute(pool).await {
-            error!("Couldn't insert user(s) to database: {why:?}");
+            error!("Couldn't insert user(s) into database: {why:?}");
             break;
         }
     }
@@ -200,5 +200,5 @@ pub(crate) async fn insert_users(members: Vec<Member>, pool: &SqlitePool) {
     }
 
     let elapsed_time = start_time.elapsed();
-    info!("Inserted user(s) to database in {elapsed_time:.2?}");
+    info!("Inserted user(s) into database in {elapsed_time:.2?}");
 }
