@@ -80,6 +80,37 @@ pub(crate) fn suggest_embed(
         .timestamp(Timestamp::from(now))
 }
 
+pub(crate) fn colour_embed(colour: u32, url: &String, json: &serde_json::Value) -> CreateEmbed {
+    let name = json["name"]["value"].as_str().unwrap();
+    let hex = format!("{:06X}", colour);
+    let rgb = json["rgb"]["value"].as_str().unwrap();
+    let hsl = json["hsl"]["value"].as_str().unwrap();
+
+    let rgb_stripped = rgb
+        .strip_prefix("rgb(")
+        .unwrap()
+        .strip_suffix(")")
+        .unwrap()
+        .to_string();
+    let hsl_stripped = hsl
+        .strip_prefix("hsl(")
+        .unwrap()
+        .strip_suffix(")")
+        .unwrap()
+        .to_string();
+
+    let mut embed_fields = Vec::new();
+    embed_fields.push(("Hexadecimal", hex, true));
+    embed_fields.push(("RGB", rgb_stripped, true));
+    embed_fields.push(("HSL", hsl_stripped, true));
+
+    CreateEmbed::default()
+        .title(name)
+        .fields(embed_fields)
+        .image(url)
+        .colour(colour)
+}
+
 pub(crate) fn avatar_embed(name: &String, url: String) -> CreateEmbed {
     let embed_author = CreateEmbedAuthor::new(name).icon_url(url.clone());
 
