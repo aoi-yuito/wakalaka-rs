@@ -16,6 +16,7 @@
 mod core;
 mod fun;
 mod info;
+mod manager;
 mod misc;
 mod moderator;
 
@@ -29,11 +30,13 @@ use crate::{Data, Error};
 
 pub(crate) async fn guild_commands() -> Vec<Command<Data, Error>> {
     vec![
-        info::info::info(),
-        info::ping::ping(),
         core::restart::restart(),
         core::shutdown::shutdown(),
         fun::hug::hug(),
+        info::info::info(),
+        info::ping::ping(),
+        manager::delnick::delnick(),
+        manager::setnick::setnick(),
         misc::avatar::avatar(),
         misc::colour::colour(),
         misc::roll::roll(),
