@@ -36,7 +36,7 @@ pub(crate) async fn suggest(
 
     let number_of_message = message.chars().count();
     if number_of_message < 32 || number_of_message > 1024 {
-        let reply = messages::warn_reply("Suggestion must be between 32 and 1024 characters.");
+        let reply = messages::warn_reply("Suggestion must be between 32 and 1024 characters.", true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
         }
@@ -118,13 +118,13 @@ pub(crate) async fn suggest(
         )
         .await;
     } else {
-        let reply = messages::error_reply("Couldn't find `#suggestions` channel.");
+        let reply = messages::error_reply("Couldn't find `#suggestions` channel.", true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
         }
     }
 
-    let reply = messages::ok_reply(format!("Suggestion has been sent in for review."));
+    let reply = messages::ok_reply(format!("Suggestion has been sent in for review."), true);
     if let Err(why) = ctx.send(reply).await {
         error!("Couldn't send reply: {why:?}");
     }

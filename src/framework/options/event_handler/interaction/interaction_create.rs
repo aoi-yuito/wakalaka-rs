@@ -74,7 +74,7 @@ async fn handle_suggestion_message(
 
     if user_id != owner_id {
         let response =
-            messages::error_response("Only moderators can accept or reject suggestions.").await;
+            messages::error_response("Only moderators can accept or reject suggestions.", true).await;
         let _ = component.create_response(&ctx.http, response).await;
 
         return;

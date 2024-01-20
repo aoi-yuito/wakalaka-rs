@@ -57,7 +57,7 @@ pub(crate) async fn unban(
 
     let number_of_infractions = infractions.len();
     if number_of_infractions < 1 {
-        let reply = messages::warn_reply(format!("<@{user_id}> hasn't been punished before."));
+        let reply = messages::warn_reply(format!("<@{user_id}> hasn't been punished before."), true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
         }
@@ -103,7 +103,7 @@ pub(crate) async fn unban(
         if let Some(reason) = reason.clone() {
             let number_of_reason = reason.chars().count();
             if number_of_reason < 6 || number_of_reason > 80 {
-                let reply = messages::warn_reply("Reason must be between 8 and 80 characters.");
+                let reply = messages::warn_reply("Reason must be between 8 and 80 characters.", true);
                 if let Err(why) = ctx.send(reply).await {
                     error!("Couldn't send reply: {why:?}");
                 }
@@ -116,7 +116,7 @@ pub(crate) async fn unban(
             info!("@{user_name} unbanned from {guild_name} by @{moderator_name}")
         }
 
-        let reply = messages::ok_reply(format!("<@{user_id}> has been unbanned."));
+        let reply = messages::ok_reply(format!("<@{user_id}> has been unbanned."), true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
         }

@@ -49,7 +49,7 @@ pub(crate) async fn after(
 ) -> Result<(), Error> {
     let count = count.unwrap_or(1);
     if count < 1 || count > 100 {
-        let reply = messages::warn_reply("Amount must be between 1 and 100 message(s).");
+        let reply = messages::warn_reply("Amount must be between 1 and 100 message(s).", true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
         }
@@ -96,13 +96,13 @@ pub(crate) async fn after(
         number_of_deleted_messages
     });
 
-    let reply_before = messages::reply("Deleting message(s)...");
+    let reply_before = messages::reply("Deleting message(s)...", true);
     let reply = ctx.send(reply_before).await?;
 
     let number_of_deleted_messages = handle.await.unwrap_or(0);
 
     let reply_after =
-        messages::ok_reply(format!("Deleted {number_of_deleted_messages} message(s).",));
+        messages::ok_reply(format!("Deleted {number_of_deleted_messages} message(s)."), true);
     reply.edit(ctx, reply_after).await?;
 
     Ok(())
@@ -123,7 +123,7 @@ pub(crate) async fn any(
 ) -> Result<(), Error> {
     let count = count.unwrap_or(1);
     if count < 1 || count > 100 {
-        let reply = messages::warn_reply("Amount must be between 1 and 100 message(s).");
+        let reply = messages::warn_reply("Amount must be between 1 and 100 message(s).", true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
         }
@@ -169,13 +169,13 @@ pub(crate) async fn any(
         number_of_deleted_messages
     });
 
-    let reply_before = messages::reply("Deleting message(s)...");
+    let reply_before = messages::reply("Deleting message(s)...", true);
     let reply = ctx.send(reply_before).await?;
 
     let number_of_deleted_messages = handle.await.unwrap_or(0);
 
     let reply_after =
-        messages::ok_reply(format!("Deleted {number_of_deleted_messages} message(s).",));
+        messages::ok_reply(format!("Deleted {number_of_deleted_messages} message(s)."), true);
     reply.edit(ctx, reply_after).await?;
 
     Ok(())
@@ -197,7 +197,7 @@ pub(crate) async fn around(
 ) -> Result<(), Error> {
     let count = count.unwrap_or(1);
     if count < 1 || count > 100 {
-        let reply = messages::warn_reply("Amount must be between 1 and 100 message(s).");
+        let reply = messages::warn_reply("Amount must be between 1 and 100 message(s).", true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
         }
@@ -244,13 +244,13 @@ pub(crate) async fn around(
         number_of_deleted_messages
     });
 
-    let reply_before = messages::reply("Deleting message(s)...");
+    let reply_before = messages::reply("Deleting message(s)...", true);
     let reply = ctx.send(reply_before).await?;
 
     let number_of_deleted_messages = handle.await.unwrap_or(0);
 
     let reply_after =
-        messages::ok_reply(format!("Deleted {number_of_deleted_messages} message(s).",));
+        messages::ok_reply(format!("Deleted {number_of_deleted_messages} message(s)."), true);
     reply.edit(ctx, reply_after).await?;
 
     Ok(())
@@ -272,7 +272,7 @@ pub(crate) async fn before(
 ) -> Result<(), Error> {
     let count = count.unwrap_or(1);
     if count < 1 || count > 100 {
-        let reply = messages::warn_reply("Amount must be between 1 and 100 message(s).");
+        let reply = messages::warn_reply("Amount must be between 1 and 100 message(s).", true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
         }
@@ -319,13 +319,13 @@ pub(crate) async fn before(
         number_of_deleted_messages
     });
 
-    let reply_before = messages::reply("Deleting message(s)...");
+    let reply_before = messages::reply("Deleting message(s)...", true);
     let reply = ctx.send(reply_before).await?;
 
     let number_of_deleted_messages = handle.await.unwrap_or(0);
 
     let reply_after =
-        messages::ok_reply(format!("Deleted {number_of_deleted_messages} message(s).",));
+        messages::ok_reply(format!("Deleted {number_of_deleted_messages} message(s)."), true);
     reply.edit(ctx, reply_after).await?;
 
     Ok(())

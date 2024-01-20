@@ -48,7 +48,7 @@ pub(crate) async fn unwarn(
 
     let user = utility::user(user_id, ctx).await;
     if user.bot || user.system {
-        let reply = messages::error_reply("Cannot remove warnings from bots or system users");
+        let reply = messages::error_reply("Cannot remove warnings from bots or system users", true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
         }
@@ -57,7 +57,7 @@ pub(crate) async fn unwarn(
     }
 
     if case_id < 1 {
-        let reply = messages::warn_reply("Case ID must be greater than 0");
+        let reply = messages::warn_reply("Case ID must be greater than 0", true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
         }
@@ -78,7 +78,7 @@ pub(crate) async fn unwarn(
 
     let number_of_infractions = infractions.len();
     if number_of_infractions < 1 {
-        let reply = messages::warn_reply(format!("<@{user_id}> hasn't been punished before."));
+        let reply = messages::warn_reply(format!("<@{user_id}> hasn't been punished before."), true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
         }
@@ -89,7 +89,7 @@ pub(crate) async fn unwarn(
     for infraction in infractions {
         let case_id = infraction.0;
         if case_id != case_id {
-            let reply = messages::error_reply(format!("Couldn't find warning for <@{user_id}>."));
+            let reply = messages::error_reply(format!("Couldn't find warning for <@{user_id}>."), true);
             if let Err(why) = ctx.send(reply).await {
                 error!("Couldn't send reply: {why:?}");
             }
@@ -127,7 +127,7 @@ pub(crate) async fn unwarn(
         if let Some(reason) = reason.clone() {
             let number_of_reason = reason.chars().count();
             if number_of_reason < 6 || number_of_reason > 80 {
-                let reply = messages::warn_reply("Reason must be between 8 and 80 characters.");
+                let reply = messages::warn_reply("Reason must be between 8 and 80 characters.", true);
                 if let Err(why) = ctx.send(reply).await {
                     error!("Couldn't send reply: {why:?}");
                 }
@@ -140,7 +140,7 @@ pub(crate) async fn unwarn(
             info!("@{user_name} unwarned by @{moderator_name}");
         }
 
-        let reply = messages::ok_reply(format!("Removed warning from <@{user_id}>."));
+        let reply = messages::ok_reply(format!("Removed warning from <@{user_id}>."), true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
         }

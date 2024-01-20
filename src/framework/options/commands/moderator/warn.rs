@@ -43,10 +43,10 @@ pub(crate) async fn warn(
     #[description = "The reason for warning. (6-80)"] reason: String,
 ) -> Result<(), Error> {
     let pool = &ctx.data().pool;
-    
+
     let user = utility::user(user_id, ctx).await;
     if user.bot || user.system {
-        let reply = messages::error_reply("Cannot warn bots or system users.");
+        let reply = messages::error_reply("Cannot warn bots or system users.", true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
         }
@@ -56,7 +56,7 @@ pub(crate) async fn warn(
 
     let number_of_reason = reason.chars().count();
     if number_of_reason < 6 || number_of_reason > 80 {
-        let reply = messages::warn_reply("Reason must be between 8 and 80 characters.");
+        let reply = messages::warn_reply("Reason must be between 8 and 80 characters.", true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
         }
@@ -91,9 +91,12 @@ pub(crate) async fn warn(
         .filter(|warning| warning.1 == warn_type)
         .count();
     if number_of_infractions >= 3 {
-        let reply = messages::warn_reply(format!(
+        let reply = messages::warn_reply(
+            format!(
             "<@{user_id}> has reached a maximum number of warnings. Take further action manually.",
-        ));
+        ),
+            true,
+        );
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
         }
@@ -134,7 +137,7 @@ pub(crate) async fn warn(
 
         info!("@{user_name} warned by @{moderator_name}: {reason}");
 
-        let reply = messages::ok_reply(format!("<@{user_id}> has been warned.",));
+        let reply = messages::ok_reply(format!("<@{user_id}> has been warned."), true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
         }

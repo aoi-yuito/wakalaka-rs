@@ -46,7 +46,7 @@ pub(crate) async fn mute(
 
     let user = utility::user(user_id, ctx).await;
     if user.bot || user.system {
-        let reply = messages::error_reply("Cannot mute bots or system users.");
+        let reply = messages::error_reply("Cannot mute bots or system users.", true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
         }
@@ -56,7 +56,7 @@ pub(crate) async fn mute(
 
     let number_of_reason = reason.chars().count();
     if number_of_reason < 6 || number_of_reason > 80 {
-        let reply = messages::warn_reply("Reason must be between 8 and 80 characters.");
+        let reply = messages::warn_reply("Reason must be between 8 and 80 characters.", true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
         }
@@ -103,7 +103,7 @@ pub(crate) async fn mute(
     if let Err(why) = member.edit(&ctx, edit_member).await {
         error!("Couldn't mute member: {why:?}");
 
-        let reply = messages::error_reply("Couldn't mute member.");
+        let reply = messages::error_reply("Couldn't mute member.", true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
         }
@@ -138,7 +138,7 @@ pub(crate) async fn mute(
 
     info!("@{moderator_name} muted @{user_name} in {guild_name}: {reason}");
 
-    let reply = messages::ok_reply(format!("<@{user_id}> has been muted.",));
+    let reply = messages::ok_reply(format!("<@{user_id}> has been muted."), true);
     if let Err(why) = ctx.send(reply).await {
         error!("Couldn't send reply: {why:?}");
     }

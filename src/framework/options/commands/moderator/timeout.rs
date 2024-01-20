@@ -47,7 +47,7 @@ pub(crate) async fn timeout(
 
     let user = utility::user(user_id, ctx).await;
     if user.bot || user.system {
-        let reply = messages::error_reply("Cannot time out bots and system users.");
+        let reply = messages::error_reply("Cannot time out bots and system users.", true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
         }
@@ -57,7 +57,7 @@ pub(crate) async fn timeout(
 
     let number_of_reason = reason.chars().count();
     if number_of_reason < 6 || number_of_reason > 80 {
-        let reply = messages::warn_reply("Reason must be between 8 and 80 characters.");
+        let reply = messages::warn_reply("Reason must be between 8 and 80 characters.", true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
         }
@@ -67,7 +67,7 @@ pub(crate) async fn timeout(
 
     let duration = duration.unwrap_or(1);
     if duration < 1 || duration > 28 {
-        let reply = messages::warn_reply("Duration must be between 1 and 28 days.");
+        let reply = messages::warn_reply("Duration must be between 1 and 28 days.", true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
         }
@@ -114,7 +114,7 @@ pub(crate) async fn timeout(
     if let Err(why) = member.disable_communication_until_datetime(ctx, time).await {
         error!("Couldn't time out member: {why:?}");
 
-        let reply = messages::error_reply("Couldn't time out member.");
+        let reply = messages::error_reply("Couldn't time out member.", true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
         }
@@ -148,7 +148,7 @@ pub(crate) async fn timeout(
 
         info!("@{moderator_name} timed out @{user_name} from {guild_name}: {reason}");
 
-        let reply = messages::ok_reply(format!("<@{user_id}> has been timed out.",));
+        let reply = messages::ok_reply(format!("<@{user_id}> has been timed out."), true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
         }

@@ -45,7 +45,7 @@ pub(crate) async fn unmute(
 
     let user = utility::user(user_id, ctx).await;
     if user.bot || user.system {
-        let reply = messages::error_reply("Cannot unmute bots or system users.");
+        let reply = messages::error_reply("Cannot unmute bots or system users.", true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
         }
@@ -66,7 +66,7 @@ pub(crate) async fn unmute(
 
     let number_of_infractions = infractions.len();
     if number_of_infractions < 1 {
-        let reply = messages::warn_reply(format!("<@{user_id}> hasn't been punished before."));
+        let reply = messages::warn_reply(format!("<@{user_id}> hasn't been punished before."), true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
         }
@@ -97,7 +97,7 @@ pub(crate) async fn unmute(
         if let Err(why) = member.edit(&ctx, edit_member).await {
             error!("Couldn't unmute member: {why:?}");
 
-            let reply = messages::error_reply("Couldn't unmute member.");
+            let reply = messages::error_reply("Couldn't unmute member.", true);
             if let Err(why) = ctx.send(reply).await {
                 error!("Couldn't send reply: {why:?}");
             }
@@ -127,7 +127,7 @@ pub(crate) async fn unmute(
         if let Some(reason) = reason.clone() {
             let number_of_reason = reason.chars().count();
             if number_of_reason < 6 || number_of_reason > 80 {
-                let reply = messages::warn_reply("Reason must be between 8 and 80 characters.");
+                let reply = messages::warn_reply("Reason must be between 8 and 80 characters.", true);
                 if let Err(why) = ctx.send(reply).await {
                     error!("Couldn't send reply: {why:?}");
                 }
@@ -140,7 +140,7 @@ pub(crate) async fn unmute(
             info!("@{user_name} unmuted by @{moderator_name}");
         }
 
-        let reply = messages::ok_reply(format!("<@{user_id}> has been unmuted."));
+        let reply = messages::ok_reply(format!("<@{user_id}> has been unmuted."), true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
         }

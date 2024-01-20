@@ -26,7 +26,7 @@ use crate::{utility::messages, Context, Error};
     guild_only
 )]
 pub(crate) async fn restart(ctx: Context<'_>) -> Result<(), Error> {
-    let reply = messages::reply("Restarting yours truly...");
+    let reply = messages::reply("Restarting yours truly...", true);
     if let Err(why) = ctx.send(reply).await {
         error!("Couldn't send reply: {why:?}");
     }

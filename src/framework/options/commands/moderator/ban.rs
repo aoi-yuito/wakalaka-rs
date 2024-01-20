@@ -46,7 +46,7 @@ pub(crate) async fn ban(
 
     let user = utility::user(user_id, ctx).await;
     if user.bot || user.system {
-        let reply = messages::error_reply("Cannot ban bots and system users.");
+        let reply = messages::error_reply("Cannot ban bots and system users.", true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
         }
@@ -56,7 +56,7 @@ pub(crate) async fn ban(
 
     let number_of_reason = reason.chars().count();
     if number_of_reason < 6 || number_of_reason > 80 {
-        let reply = messages::warn_reply("Reason must be between 8 and 80 characters.");
+        let reply = messages::warn_reply("Reason must be between 8 and 80 characters.", true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
         }
@@ -93,7 +93,7 @@ pub(crate) async fn ban(
     if let Err(why) = guild_id.ban_with_reason(&ctx, user_id, 0, &reason).await {
         error!("Couldn't ban member: {why:?}");
 
-        let reply = messages::error_reply("Couldn't ban member.");
+        let reply = messages::error_reply("Couldn't ban member.", true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
         }
@@ -127,7 +127,7 @@ pub(crate) async fn ban(
 
         info!("@{moderator_name} banned @{user_name} from {guild_name}: {reason}");
 
-        let reply = messages::ok_reply(format!("<@{user_id}> has been banned.",));
+        let reply = messages::ok_reply(format!("<@{user_id}> has been banned."), true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
         }

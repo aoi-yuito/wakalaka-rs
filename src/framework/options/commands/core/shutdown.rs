@@ -31,7 +31,7 @@ pub(crate) async fn shutdown(
     #[description = "Waiting time before sleep. (1-5s)"] duration: u64,
 ) -> Result<(), Error> {
     if duration < 1 || duration > 5 {
-        let reply = messages::warn_reply("Duration must be between 1 and 5 seconds.");
+        let reply = messages::warn_reply("Duration must be between 1 and 5 seconds.", true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
         }
@@ -39,7 +39,7 @@ pub(crate) async fn shutdown(
         return Ok(());
     }
 
-    let reply = messages::reply(format!("Shutting down in {duration}s..."));
+    let reply = messages::reply(format!("Shutting down in {duration}s..."), true);
     if let Err(why) = ctx.send(reply).await {
         error!("Couldn't send reply: {why:?}");
     }
