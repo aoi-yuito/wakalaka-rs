@@ -14,13 +14,13 @@
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
 use tokio::time::Instant;
+use tracing::error;
 
 use crate::{
     utility::{embeds, messages},
     Context, Error,
 };
 
-/// Check if yours truly is alive and well.
 #[poise::command(
     prefix_command,
     slash_command,
@@ -28,6 +28,7 @@ use crate::{
     guild_only,
     ephemeral
 )]
+/// Check if yours truly is alive and well.
 pub(crate) async fn ping(ctx: Context<'_>) -> Result<(), Error> {
     let start_time = Instant::now();
 
@@ -43,7 +44,8 @@ pub(crate) async fn ping(ctx: Context<'_>) -> Result<(), Error> {
 
         let reply = messages::reply_embed(ping_embed, true);
         if let Err(why) = ctx.send(reply).await {
-            tracing::error!("Couldn't send reply: {why:?}");
+            error!("Couldn't send reply: {why:?}");
+            return Err(Error::from(why));
         }
     }
     Ok(())

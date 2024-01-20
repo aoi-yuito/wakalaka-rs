@@ -25,7 +25,6 @@ use crate::{
     Context, Error,
 };
 
-/// Get a list of warnings for a user.
 #[poise::command(
     prefix_command,
     slash_command,
@@ -34,6 +33,7 @@ use crate::{
     guild_only,
     ephemeral
 )]
+/// Get a list of warnings for a user.
 pub(crate) async fn warnings(
     ctx: Context<'_>,
     #[description = "The user to get warnings for."]
@@ -42,11 +42,12 @@ pub(crate) async fn warnings(
 ) -> Result<(), Error> {
     let pool = &ctx.data().pool;
 
-    let user = utility::user(user_id, ctx).await;
+    let user = utility::users::user(ctx, user_id).await;
     if user.bot || user.system {
         let reply = messages::error_reply("Cannot get warnings for a bot or system user.", true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
+            return Err(Error::from(why));
         }
 
         return Ok(());
@@ -54,7 +55,7 @@ pub(crate) async fn warnings(
 
     let user_name = &user.name;
 
-    let guild_id = utility::guild_id(ctx);
+    let guild_id = utility::guilds::guild_id(ctx).await;
 
     let warn_type = InfractionType::Warn.as_str();
 
@@ -70,7 +71,7 @@ pub(crate) async fn warnings(
         Ok(warnings) => warnings,
         Err(why) => {
             error!("Couldn't get warnings from database: {why:?}");
-            return Ok(());
+            return Err(Error::from(why));
         }
     };
 
@@ -81,6 +82,7 @@ pub(crate) async fn warnings(
         let reply = messages::warn_reply(format!("<@{user_id}> doesn't have any warnings."), true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
+            return Err(Error::from(why));
         }
 
         return Ok(());
@@ -104,6 +106,7 @@ pub(crate) async fn warnings(
     let reply = messages::reply_embed(warns_embed, true);
     if let Err(why) = ctx.send(reply).await {
         error!("Couldn't send reply: {why:?}");
+        return Err(Error::from(why));
     }
 
     Ok(())

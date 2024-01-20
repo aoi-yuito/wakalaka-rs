@@ -26,7 +26,6 @@ use crate::{
     Context, Error,
 };
 
-/// Put a duct tape over a user's mouth.
 #[poise::command(
     prefix_command,
     slash_command,
@@ -35,21 +34,29 @@ use crate::{
     guild_only,
     ephemeral
 )]
+/// Put a user on a time-out for a while.
 pub(crate) async fn timeout(
     ctx: Context<'_>,
     #[description = "The user to timeout."]
     #[rename = "user"]
     user_id: UserId,
-    #[description = "The reason for timing out. (6-80)"] reason: String,
-    #[description = "The duration of the timeout. (1-28d)"] duration: Option<i64>,
+    #[description = "The reason for timing out. (6-80)"]
+    #[min_length = 6]
+    #[max_length = 80]
+    reason: String,
+    #[description = "The duration of the timeout. (1-28d)"]
+    #[min = 1]
+    #[max = 28]
+    duration: Option<i64>,
 ) -> Result<(), Error> {
     let pool = &ctx.data().pool;
 
-    let user = utility::user(user_id, ctx).await;
+    let user = utility::users::user(ctx, user_id).await;
     if user.bot || user.system {
         let reply = messages::error_reply("Cannot time out bots and system users.", true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
+            return Err(Error::from(why));
         }
 
         return Ok(());
@@ -60,6 +67,7 @@ pub(crate) async fn timeout(
         let reply = messages::warn_reply("Reason must be between 8 and 80 characters.", true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
+            return Err(Error::from(why));
         }
 
         return Ok(());
@@ -70,6 +78,7 @@ pub(crate) async fn timeout(
         let reply = messages::warn_reply("Duration must be between 1 and 28 days.", true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
+            return Err(Error::from(why));
         }
 
         return Ok(());
@@ -80,7 +89,10 @@ pub(crate) async fn timeout(
     let moderator = ctx.author();
     let (moderator_id, moderator_name) = (moderator.id, &moderator.name);
 
-    let (guild_id, guild_name) = (utility::guild_id(ctx), utility::guild_name(ctx));
+    let (guild_id, guild_name) = (
+        utility::guilds::guild_id(ctx).await,
+        utility::guilds::guild_name(ctx).await,
+    );
 
     let created_at = Utc::now().naive_utc();
 
@@ -94,32 +106,28 @@ pub(crate) async fn timeout(
         }
     };
 
-    let mut member = match guild_id.member(&ctx, user_id).await {
-        Ok(member) => member,
-        Err(why) => {
-            error!("Couldn't get member: {why:?}");
-            return Ok(());
-        }
-    };
+    let mut member = utility::guilds::member(ctx, guild_id, user_id).await;
 
     let message = messages::message(format!(
         "You've been timed out in {guild_name} by <@{moderator_id}> for {reason}.",
     ));
     if let Err(why) = user.direct_message(&ctx, message).await {
         error!("Couldn't send reply: {why:?}");
+        return Err(Error::from(why));
     }
 
     let time = Timestamp::from(Utc::now() + Duration::days(duration));
 
     if let Err(why) = member.disable_communication_until_datetime(ctx, time).await {
-        error!("Couldn't time out member: {why:?}");
+        error!("Couldn't put @{user_name} on a time-out: {why:?}");
 
-        let reply = messages::error_reply("Couldn't time out member.", true);
+        let reply = messages::error_reply("Couldn't put member on a time-out.", true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
+            return Err(Error::from(why));
         }
 
-        return Ok(());
+        return Err(Error::from(why));
     } else {
         user_infractions += 1;
 
@@ -151,6 +159,7 @@ pub(crate) async fn timeout(
         let reply = messages::ok_reply(format!("<@{user_id}> has been timed out."), true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
+            return Err(Error::from(why));
         }
     }
 

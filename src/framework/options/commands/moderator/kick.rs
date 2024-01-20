@@ -21,7 +21,6 @@ use crate::{
     Context, Error,
 };
 
-/// Kick a user outside.
 #[poise::command(
     prefix_command,
     slash_command,
@@ -30,6 +29,7 @@ use crate::{
     guild_only,
     ephemeral
 )]
+/// Kick a user outside.
 pub(crate) async fn kick(
     ctx: Context<'_>,
     #[description = "The user to kick."] user: User,
@@ -39,6 +39,7 @@ pub(crate) async fn kick(
         let reply = messages::error_reply("Cannot kick system users.", true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
+            return Err(Error::from(why));
         }
 
         return Ok(());
@@ -49,6 +50,7 @@ pub(crate) async fn kick(
         let reply = messages::warn_reply("Reason must be between 8 and 80 characters.", true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
+            return Err(Error::from(why));
         }
 
         return Ok(());
@@ -59,15 +61,12 @@ pub(crate) async fn kick(
     let moderator = ctx.author();
     let (moderator_id, moderator_name) = (moderator.id, &moderator.name);
 
-    let (guild_id, guild_name) = (utility::guild_id(ctx), utility::guild_name(ctx));
+    let (guild_id, guild_name) = (
+        utility::guilds::guild_id(ctx).await,
+        utility::guilds::guild_name(ctx).await,
+    );
 
-    let member = match guild_id.member(&ctx, user_id).await {
-        Ok(member) => member,
-        Err(why) => {
-            error!("Couldn't get member: {why:?}");
-            return Ok(());
-        }
-    };
+    let member = utility::guilds::member(ctx, guild_id, user_id).await;
 
     let message = messages::message(format!(
         "You've been kicked from {guild_name} by <@{moderator_id}> for {reason}.",
@@ -77,20 +76,22 @@ pub(crate) async fn kick(
     }
 
     if let Err(why) = member.kick_with_reason(&ctx, &reason).await {
-        error!("Couldn't kick member: {why:?}");
+        error!("Couldn't kick @{user_name}: {why:?}");
 
         let reply = messages::error_reply("Couldn't kick member.", true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
+            return Err(Error::from(why));
         }
 
-        return Ok(());
+        return Err(Error::from(why));
     } else {
         info!("@{moderator_name} kicked @{user_name} from {guild_name}: {reason}");
 
         let reply = messages::ok_reply(format!("<@{user_id}> has been kicked."), true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
+            return Err(Error::from(why));
         }
     }
 

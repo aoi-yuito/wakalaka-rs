@@ -25,7 +25,6 @@ use crate::{
     Context, Error,
 };
 
-/// Remove the duct tape over a user's mouth.
 #[poise::command(
     prefix_command,
     slash_command,
@@ -34,22 +33,26 @@ use crate::{
     guild_only,
     ephemeral
 )]
+/// Get a user out of a time-out.
 pub(crate) async fn untimeout(
     ctx: Context<'_>,
     #[description = "The user to get out of a time-out from."]
     #[rename = "user"]
     user_id: UserId,
-    #[description = "The reason for getting out of a time-out, if any. (6-80)"] reason: Option<
-        String,
-    >,
+    #[description = "The reason for getting out of a time-out, if any. (6-80)"]
+    #[min_length = 6]
+    #[max_length = 80]
+    reason: Option<String>,
 ) -> Result<(), Error> {
     let pool = &ctx.data().pool;
 
-    let user = utility::user(user_id, ctx).await;
+    let user = utility::users::user(ctx, user_id).await;
     if user.bot || user.system {
-        let reply = messages::error_reply("Cannot get bots and system users out of a time-out.", true);
+        let reply =
+            messages::error_reply("Cannot get bots and system users out of a time-out.", true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
+            return Err(Error::from(why));
         }
 
         return Ok(());
@@ -60,7 +63,7 @@ pub(crate) async fn untimeout(
     let moderator = ctx.author();
     let moderator_name = &moderator.name;
 
-    let guild_id = utility::guild_id(ctx);
+    let guild_id = utility::guilds::guild_id(ctx).await;
 
     let timeout_type = InfractionType::Timeout.as_str();
 
@@ -68,9 +71,11 @@ pub(crate) async fn untimeout(
 
     let number_of_infractions = infractions.len();
     if number_of_infractions < 1 {
-        let reply = messages::warn_reply(format!("<@{user_id}> hasn't been punished before."), true);
+        let reply =
+            messages::warn_reply(format!("<@{user_id}> hasn't been punished before."), true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
+            return Err(Error::from(why));
         }
 
         return Ok(());
@@ -87,19 +92,14 @@ pub(crate) async fn untimeout(
             }
         };
 
-        let mut member = match guild_id.member(&ctx, user_id).await {
-            Ok(member) => member,
-            Err(why) => {
-                error!("Couldn't get member: {why:?}");
-                return Ok(());
-            }
-        };
+        let mut member = utility::guilds::member(ctx, guild_id, user_id).await;
         if let Err(why) = member.enable_communication(ctx).await {
             error!("Couldn't get member out of time-out: {why:?}");
 
             let reply = messages::error_reply("Couldn't get member out of a time-out.", true);
             if let Err(why) = ctx.send(reply).await {
                 error!("Couldn't send reply: {why:?}");
+                return Err(Error::from(why));
             }
 
             return Ok(());
@@ -126,9 +126,11 @@ pub(crate) async fn untimeout(
             if let Some(reason) = reason.clone() {
                 let number_of_reason = reason.chars().count();
                 if number_of_reason < 6 || number_of_reason > 80 {
-                    let reply = messages::warn_reply("Reason must be between 8 and 80 characters.", true);
+                    let reply =
+                        messages::warn_reply("Reason must be between 8 and 80 characters.", true);
                     if let Err(why) = ctx.send(reply).await {
                         error!("Couldn't send reply: {why:?}");
+                        return Err(Error::from(why));
                     }
 
                     return Ok(());
@@ -139,10 +141,13 @@ pub(crate) async fn untimeout(
                 info!("@{user_name} got @{moderator_name} out of time-out")
             }
 
-            let reply =
-                messages::ok_reply(format!("<@{user_id}> has been gotten out of a time-out."), true);
+            let reply = messages::ok_reply(
+                format!("<@{user_id}> has been gotten out of a time-out."),
+                true,
+            );
             if let Err(why) = ctx.send(reply).await {
                 error!("Couldn't send reply: {why:?}");
+                return Err(Error::from(why));
             }
         }
     }

@@ -18,11 +18,13 @@ use tracing::error;
 
 use crate::{utility::messages, Context, Error};
 
-/// Roll a number of point(s).
 #[poise::command(prefix_command, slash_command, category = "Misc", guild_only)]
+/// Roll a number of point(s).
 pub(crate) async fn roll(
     ctx: Context<'_>,
-    #[description = "The number between point(s), if any."] number: Option<u32>,
+    #[description = "The number between point(s), if any."]
+    #[min = 1]
+    number: Option<u32>,
 ) -> Result<(), Error> {
     let mut rng = StdRng::from_entropy();
 
@@ -36,6 +38,7 @@ pub(crate) async fn roll(
     let reply = messages::reply(format!("{user_name} rolled {number} point(s)."), false);
     if let Err(why) = ctx.send(reply).await {
         error!("Couldn't send reply: {why:?}");
+        return Err(Error::from(why));
     }
 
     Ok(())

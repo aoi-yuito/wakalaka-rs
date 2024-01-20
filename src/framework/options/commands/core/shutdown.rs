@@ -18,7 +18,6 @@ use tracing::{error, info};
 
 use crate::{utility::messages, Context, Error};
 
-/// Put yours truly to sleep.
 #[poise::command(
     prefix_command,
     slash_command,
@@ -26,14 +25,19 @@ use crate::{utility::messages, Context, Error};
     owners_only,
     guild_only
 )]
+/// Put yours truly to sleep.
 pub(crate) async fn shutdown(
     ctx: Context<'_>,
-    #[description = "Waiting time before sleep. (1-5s)"] duration: u64,
+    #[description = "Waiting time before sleep. (1-5s)"]
+    #[min = 1]
+    #[max = 5]
+    duration: u64,
 ) -> Result<(), Error> {
     if duration < 1 || duration > 5 {
         let reply = messages::warn_reply("Duration must be between 1 and 5 seconds.", true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
+            return Err(Error::from(why));
         }
 
         return Ok(());
@@ -42,6 +46,7 @@ pub(crate) async fn shutdown(
     let reply = messages::reply(format!("Shutting down in {duration}s..."), true);
     if let Err(why) = ctx.send(reply).await {
         error!("Couldn't send reply: {why:?}");
+        return Err(Error::from(why));
     }
 
     let manager = ctx.framework().shard_manager.clone();

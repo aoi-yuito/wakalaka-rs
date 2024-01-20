@@ -17,7 +17,6 @@ use tracing::{error, info};
 
 use crate::{utility::messages, Context, Error};
 
-/// Restart yours truly to her former glory.
 #[poise::command(
     prefix_command,
     slash_command,
@@ -25,10 +24,12 @@ use crate::{utility::messages, Context, Error};
     owners_only,
     guild_only
 )]
+/// Restart yours truly to her former glory.
 pub(crate) async fn restart(ctx: Context<'_>) -> Result<(), Error> {
     let reply = messages::reply("Restarting yours truly...", true);
     if let Err(why) = ctx.send(reply).await {
         error!("Couldn't send reply: {why:?}");
+        return Err(Error::from(why));
     }
 
     let manager = ctx.framework().shard_manager.clone();

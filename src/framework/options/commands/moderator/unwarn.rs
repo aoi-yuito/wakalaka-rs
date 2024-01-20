@@ -25,7 +25,6 @@ use crate::{
     Context, Error,
 };
 
-/// Remove a specific warning from a user.
 #[poise::command(
     prefix_command,
     slash_command,
@@ -34,6 +33,7 @@ use crate::{
     guild_only,
     ephemeral
 )]
+/// Remove a specific warning from a user.
 pub(crate) async fn unwarn(
     ctx: Context<'_>,
     #[description = "The user to unwarn."]
@@ -41,16 +41,21 @@ pub(crate) async fn unwarn(
     user_id: UserId,
     #[description = "ID of the warning to delete."]
     #[rename = "id"]
+    #[min = 1]
     case_id: i32,
-    #[description = "The reason for unwarning, if any. (6-80)"] reason: Option<String>,
+    #[description = "The reason for unwarning, if any. (6-80)"]
+    #[min_length = 6]
+    #[max_length = 80]
+    reason: Option<String>,
 ) -> Result<(), Error> {
     let pool = &ctx.data().pool;
 
-    let user = utility::user(user_id, ctx).await;
+    let user = utility::users::user(ctx, user_id).await;
     if user.bot || user.system {
         let reply = messages::error_reply("Cannot remove warnings from bots or system users", true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
+            return Err(Error::from(why));
         }
 
         return Ok(());
@@ -60,6 +65,7 @@ pub(crate) async fn unwarn(
         let reply = messages::warn_reply("Case ID must be greater than 0", true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
+            return Err(Error::from(why));
         }
 
         return Ok(());
@@ -70,7 +76,7 @@ pub(crate) async fn unwarn(
     let moderator = ctx.author();
     let moderator_name = &moderator.name;
 
-    let guild_id = utility::guild_id(ctx);
+    let guild_id = utility::guilds::guild_id(ctx).await;
 
     let warn_type = InfractionType::Warn.as_str();
 
@@ -78,9 +84,11 @@ pub(crate) async fn unwarn(
 
     let number_of_infractions = infractions.len();
     if number_of_infractions < 1 {
-        let reply = messages::warn_reply(format!("<@{user_id}> hasn't been punished before."), true);
+        let reply =
+            messages::warn_reply(format!("<@{user_id}> hasn't been punished before."), true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
+            return Err(Error::from(why));
         }
 
         return Ok(());
@@ -89,9 +97,11 @@ pub(crate) async fn unwarn(
     for infraction in infractions {
         let case_id = infraction.0;
         if case_id != case_id {
-            let reply = messages::error_reply(format!("Couldn't find warning for <@{user_id}>."), true);
+            let reply =
+                messages::error_reply(format!("Couldn't find warning for <@{user_id}>."), true);
             if let Err(why) = ctx.send(reply).await {
                 error!("Couldn't send reply: {why:?}");
+                return Err(Error::from(why));
             }
 
             break;
@@ -127,9 +137,11 @@ pub(crate) async fn unwarn(
         if let Some(reason) = reason.clone() {
             let number_of_reason = reason.chars().count();
             if number_of_reason < 6 || number_of_reason > 80 {
-                let reply = messages::warn_reply("Reason must be between 8 and 80 characters.", true);
+                let reply =
+                    messages::warn_reply("Reason must be between 8 and 80 characters.", true);
                 if let Err(why) = ctx.send(reply).await {
                     error!("Couldn't send reply: {why:?}");
+                    return Err(Error::from(why));
                 }
 
                 return Ok(());
@@ -143,6 +155,7 @@ pub(crate) async fn unwarn(
         let reply = messages::ok_reply(format!("Removed warning from <@{user_id}>."), true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
+            return Err(Error::from(why));
         }
 
         break;

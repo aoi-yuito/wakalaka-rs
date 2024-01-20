@@ -21,7 +21,6 @@ use crate::{
     Context, Error,
 };
 
-/// Get colour information.
 #[poise::command(
     prefix_command,
     slash_command,
@@ -30,12 +29,13 @@ use crate::{
     guild_only,
     subcommand_required
 )]
+/// Get information for a colour.
 pub(crate) async fn colour(_: Context<'_>) -> Result<(), Error> {
     Ok(())
 }
 
-/// Get random colour information.
 #[poise::command(prefix_command, slash_command, category = "Misc", guild_only)]
+/// Get information for a random colour.
 pub(crate) async fn random(ctx: Context<'_>) -> Result<(), Error> {
     let client = reqwest::Client::new();
 
@@ -57,23 +57,29 @@ pub(crate) async fn random(ctx: Context<'_>) -> Result<(), Error> {
     let reply = messages::reply_embed(embed, false);
     if let Err(why) = ctx.send(reply).await {
         error!("Couldn't send reply: {why:?}");
+        return Err(Error::from(why));
     }
 
     Ok(())
 }
 
-/// Get colour information from RGB representation.
 #[poise::command(prefix_command, slash_command, category = "Misc", guild_only)]
+/// Get information for a colour from RGB representation.
 pub(crate) async fn rgb(
     ctx: Context<'_>,
-    #[description = "The colour in RGB."] code: String,
+    #[description = "The colour in RGB."]
+    #[min_length = 5]
+    #[max_length = 11]
+    code: String,
 ) -> Result<(), Error> {
     let rgb_re = Regex::new(r"^\d{1,3},\d{1,3},\d{1,3}$").unwrap();
     if !rgb_re.is_match(&code) {
         let reply = messages::error_reply("Colour code must be in RGB.", true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
+            return Err(Error::from(why));
         }
+
         return Ok(());
     }
 
@@ -97,16 +103,20 @@ pub(crate) async fn rgb(
     let reply = messages::reply_embed(embed, false);
     if let Err(why) = ctx.send(reply).await {
         error!("Couldn't send reply: {why:?}");
+        return Err(Error::from(why));
     }
 
     Ok(())
 }
 
-/// Get colour information from hexadecimal representation.
 #[poise::command(prefix_command, slash_command, category = "Misc", guild_only)]
+/// Get information for a colour from hexadecimal representation.
 pub(crate) async fn hex(
     ctx: Context<'_>,
-    #[description = "The colour in hexadecimal."] mut code: String,
+    #[description = "The colour in hexadecimal."]
+    #[min_length = 3]
+    #[max_length = 6]
+    mut code: String,
 ) -> Result<(), Error> {
     code = code
         .trim_start_matches('#')
@@ -119,7 +129,9 @@ pub(crate) async fn hex(
         let reply = messages::error_reply("Colour code must be in hexadecimal.", true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
+            return Err(Error::from(why));
         }
+
         return Ok(());
     }
 
@@ -142,6 +154,7 @@ pub(crate) async fn hex(
     let reply = messages::reply_embed(embed, false);
     if let Err(why) = ctx.send(reply).await {
         error!("Couldn't send reply: {why:?}");
+        return Err(Error::from(why));
     }
 
     Ok(())

@@ -25,7 +25,6 @@ use crate::{
     Context, Error,
 };
 
-/// Allow a user to interact in voice channels.
 #[poise::command(
     prefix_command,
     slash_command,
@@ -34,20 +33,25 @@ use crate::{
     guild_only,
     ephemeral
 )]
+/// Allow a user to interact in voice channels.
 pub(crate) async fn undeafen(
     ctx: Context<'_>,
     #[description = "The user to undeafen."]
     #[rename = "user"]
     user_id: UserId,
-    #[description = "The reason for undeafening, if any. (6-80)"] reason: Option<String>,
+    #[description = "The reason for undeafening, if any. (6-80)"]
+    #[min_length = 6]
+    #[max_length = 80]
+    reason: Option<String>,
 ) -> Result<(), Error> {
     let pool = &ctx.data().pool;
-    
-    let user = utility::user(user_id, ctx).await;
+
+    let user = utility::users::user(ctx, user_id).await;
     if user.bot || user.system {
         let reply = messages::error_reply("Cannot undeafen bots or system users.", true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
+            return Err(Error::from(why));
         }
 
         return Ok(());
@@ -58,7 +62,7 @@ pub(crate) async fn undeafen(
     let moderator = ctx.author();
     let moderator_name = &moderator.name;
 
-    let guild_id = utility::guild_id(ctx);
+    let guild_id = utility::guilds::guild_id(ctx).await;
 
     let deaf_type = InfractionType::Deaf.as_str();
 
@@ -66,9 +70,11 @@ pub(crate) async fn undeafen(
 
     let number_of_infractions = infractions.len();
     if number_of_infractions < 1 {
-        let reply = messages::warn_reply(format!("<@{user_id}> hasn't been punished before."), true);
+        let reply =
+            messages::warn_reply(format!("<@{user_id}> hasn't been punished before."), true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
+            return Err(Error::from(why));
         }
 
         return Ok(());
@@ -85,24 +91,19 @@ pub(crate) async fn undeafen(
             }
         };
 
-        let mut member = match guild_id.member(&ctx, user_id).await {
-            Ok(member) => member,
-            Err(why) => {
-                error!("Couldn't get member: {why:?}");
-                return Ok(());
-            }
-        };
+        let mut member = utility::guilds::member(ctx, guild_id, user_id).await;
         let edit_member = EditMember::default().deafen(false);
 
         if let Err(why) = member.edit(&ctx, edit_member).await {
-            error!("Couldn't undeafen member: {why:?}");
+            error!("Couldn't undeafen @{user_name}: {why:?}");
 
             let reply = messages::error_reply("Couldn't undeafen member.", true);
             if let Err(why) = ctx.send(reply).await {
                 error!("Couldn't send reply: {why:?}");
+                return Err(Error::from(why));
             }
 
-            return Ok(());
+            return Err(Error::from(why));
         }
 
         user_infractions -= 1;
@@ -127,9 +128,11 @@ pub(crate) async fn undeafen(
         if let Some(reason) = reason.clone() {
             let number_of_reason = reason.chars().count();
             if number_of_reason < 6 || number_of_reason > 80 {
-                let reply = messages::warn_reply("Reason must be between 8 and 80 characters.", true);
+                let reply =
+                    messages::warn_reply("Reason must be between 8 and 80 characters.", true);
                 if let Err(why) = ctx.send(reply).await {
                     error!("Couldn't send reply: {why:?}");
+                    return Err(Error::from(why));
                 }
 
                 return Ok(());
@@ -143,6 +146,7 @@ pub(crate) async fn undeafen(
         let reply = messages::ok_reply(format!("<@{user_id}> has been undeafened."), true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
+            return Err(Error::from(why));
         }
     }
 

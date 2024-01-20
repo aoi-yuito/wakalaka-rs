@@ -26,7 +26,6 @@ use crate::{
     Context, Error,
 };
 
-/// Disallow a user from interaction in voice channels.
 #[poise::command(
     prefix_command,
     slash_command,
@@ -35,20 +34,25 @@ use crate::{
     guild_only,
     ephemeral
 )]
+/// Disallow a user from interaction in voice channels.
 pub(crate) async fn deafen(
     ctx: Context<'_>,
     #[description = "The user to deafen."]
     #[rename = "user"]
     user_id: UserId,
-    #[description = "The reason for deafening. (6-80)"] reason: String,
+    #[description = "The reason for deafening. (6-80)"]
+    #[min_length = 6]
+    #[max_length = 80]
+    reason: String,
 ) -> Result<(), Error> {
     let pool = &ctx.data().pool;
-    
-    let user = utility::user(user_id, ctx).await;
+
+    let user = utility::users::user(ctx, user_id).await;
     if user.bot || user.system {
         let reply = messages::error_reply("Cannot deafen bots or system users.", true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
+            return Err(Error::from(why));
         }
 
         return Ok(());
@@ -59,6 +63,7 @@ pub(crate) async fn deafen(
         let reply = messages::warn_reply("Reason must be between 8 and 80 characters.", true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
+            return Err(Error::from(why));
         }
 
         return Ok(());
@@ -69,7 +74,10 @@ pub(crate) async fn deafen(
     let moderator = ctx.author();
     let (moderator_id, moderator_name) = (moderator.id, &moderator.name);
 
-    let (guild_id, guild_name) = (utility::guild_id(ctx), utility::guild_name(ctx));
+    let (guild_id, guild_name) = (
+        utility::guilds::guild_id(ctx).await,
+        utility::guilds::guild_name(ctx).await,
+    );
 
     let created_at = Utc::now().naive_utc();
 
@@ -83,13 +91,7 @@ pub(crate) async fn deafen(
         }
     };
 
-    let mut member = match guild_id.member(&ctx, user_id).await {
-        Ok(member) => member,
-        Err(why) => {
-            error!("Couldn't get member: {why:?}");
-            return Ok(());
-        }
-    };
+    let mut member = utility::guilds::member(ctx, guild_id, user_id).await;
     let edit_member = EditMember::default().deafen(true);
 
     let message = messages::message(format!(
@@ -97,17 +99,19 @@ pub(crate) async fn deafen(
     ));
     if let Err(why) = user.direct_message(&ctx, message).await {
         error!("Couldn't send reply: {why:?}");
+        return Err(Error::from(why));
     }
 
     if let Err(why) = member.edit(&ctx, edit_member).await {
-        error!("Couldn't deafen member: {why:?}");
+        error!("Couldn't deafen @{user_name}: {why:?}");
 
         let reply = messages::error_reply("Couldn't deafen member.", true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
+            return Err(Error::from(why));
         }
 
-        return Ok(());
+        return Err(Error::from(why));
     }
 
     user_infractions += 1;
@@ -140,6 +144,7 @@ pub(crate) async fn deafen(
     let reply = messages::ok_reply(format!("<@{user_id}> has been deafened."), true);
     if let Err(why) = ctx.send(reply).await {
         error!("Couldn't send reply: {why:?}");
+        return Err(Error::from(why));
     }
 
     Ok(())

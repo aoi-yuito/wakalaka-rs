@@ -18,7 +18,6 @@ use tracing::{error, info};
 
 use crate::{utility::messages, Context, Error};
 
-/// Delete a given amount of messages.
 #[poise::command(
     prefix_command,
     slash_command,
@@ -29,11 +28,11 @@ use crate::{utility::messages, Context, Error};
     subcommand_required,
     ephemeral
 )]
+/// Delete a given amount of messages.
 pub(crate) async fn purge(_: Context<'_>) -> Result<(), Error> {
     Ok(())
 }
 
-/// Delete a given amount of messages before a specific message.
 #[poise::command(
     prefix_command,
     slash_command,
@@ -42,16 +41,21 @@ pub(crate) async fn purge(_: Context<'_>) -> Result<(), Error> {
     guild_only,
     ephemeral
 )]
+/// Delete a given amount of messages before a specific message.
 pub(crate) async fn before(
     ctx: Context<'_>,
-    #[description = "ID of the message to delete before."] message: Message,
-    #[description = "The amount of to delete before. (1-100)"] count: Option<u8>,
+    #[description = "The message to delete before."] message: Message,
+    #[description = "The amount of to delete before. (1-100)"]
+    #[min = 1]
+    #[max = 100]
+    count: Option<u8>,
 ) -> Result<(), Error> {
     let count = count.unwrap_or(1);
     if count < 1 || count > 100 {
         let reply = messages::warn_reply("Amount must be between 1 and 100 message(s).", true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
+            return Err(Error::from(why));
         }
 
         return Ok(());
@@ -110,7 +114,6 @@ pub(crate) async fn before(
     Ok(())
 }
 
-/// Delete a given amount of messages around a specific message.
 #[poise::command(
     prefix_command,
     slash_command,
@@ -119,16 +122,21 @@ pub(crate) async fn before(
     guild_only,
     ephemeral
 )]
+/// Delete a given amount of messages around a specific message.
 pub(crate) async fn around(
     ctx: Context<'_>,
-    #[description = "ID of the message to delete around."] message: Message,
-    #[description = "The amount to delete around. (1-100)"] count: Option<u8>,
+    #[description = "The message to delete around."] message: Message,
+    #[description = "The amount to delete around. (1-100)"]
+    #[min = 1]
+    #[max = 100]
+    count: Option<u8>,
 ) -> Result<(), Error> {
     let count = count.unwrap_or(1);
     if count < 1 || count > 100 {
         let reply = messages::warn_reply("Amount must be between 1 and 100 message(s).", true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
+            return Err(Error::from(why));
         }
 
         return Ok(());
@@ -187,7 +195,6 @@ pub(crate) async fn around(
     Ok(())
 }
 
-/// Delete a given amount of messages.
 #[poise::command(
     prefix_command,
     slash_command,
@@ -196,15 +203,20 @@ pub(crate) async fn around(
     guild_only,
     ephemeral
 )]
+/// Delete a given amount of messages.
 pub(crate) async fn any(
     ctx: Context<'_>,
-    #[description = "The amount to delete. (1-100)"] count: Option<u8>,
+    #[description = "The amount to delete. (1-100)"]
+    #[min = 1]
+    #[max = 100]
+    count: Option<u8>,
 ) -> Result<(), Error> {
     let count = count.unwrap_or(1);
     if count < 1 || count > 100 {
         let reply = messages::warn_reply("Amount must be between 1 and 100 message(s).", true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
+            return Err(Error::from(why));
         }
 
         return Ok(());
@@ -262,7 +274,6 @@ pub(crate) async fn any(
     Ok(())
 }
 
-/// Delete a given amount of messages after a specific message.
 #[poise::command(
     prefix_command,
     slash_command,
@@ -271,16 +282,21 @@ pub(crate) async fn any(
     guild_only,
     ephemeral
 )]
+/// Delete a given amount of messages after a specific message.
 pub(crate) async fn after(
     ctx: Context<'_>,
-    #[description = "ID of the message to delete after"] message: Message,
-    #[description = "The amount to delete after. (1-100)"] count: Option<u8>,
+    #[description = "The message to delete after"] message: Message,
+    #[description = "The amount to delete after. (1-100)"]
+    #[min = 1]
+    #[max = 100]
+    count: Option<u8>,
 ) -> Result<(), Error> {
     let count = count.unwrap_or(1);
     if count < 1 || count > 100 {
         let reply = messages::warn_reply("Amount must be between 1 and 100 message(s).", true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
+            return Err(Error::from(why));
         }
 
         return Ok(());

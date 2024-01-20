@@ -21,7 +21,6 @@ use crate::{
     Context, Error,
 };
 
-/// Get the avatar of a user.
 #[poise::command(
     prefix_command,
     slash_command,
@@ -29,6 +28,7 @@ use crate::{
     category = "Misc",
     guild_only
 )]
+/// Get the avatar of a user.
 pub(crate) async fn avatar(
     ctx: Context<'_>,
     #[description = "The user to get the avatar of."] user: User, // Using `UserId` does not comply with context menu, so...
@@ -41,6 +41,7 @@ pub(crate) async fn avatar(
     let reply = messages::reply_embed(embed, false);
     if let Err(why) = ctx.send(reply).await {
         error!("Couldn't send reply: {why:?}");
+        return Err(Error::from(why));
     }
 
     Ok(())

@@ -26,31 +26,39 @@ use crate::{
     Context, Error,
 };
 
-/// Send a suggestion of your choice for review.
 #[poise::command(prefix_command, slash_command, category = "Misc", guild_only)]
+/// Send a suggestion of your choice for review.
 pub(crate) async fn suggest(
     ctx: Context<'_>,
-    #[description = "The suggestion to send. (32-1024)"] message: String,
+    #[description = "The suggestion to send. (32-1024)"]
+    #[min_length = 32]
+    #[max_length = 1024]
+    message: String,
 ) -> Result<(), Error> {
     let pool = &ctx.data().pool;
 
     let number_of_message = message.chars().count();
     if number_of_message < 32 || number_of_message > 1024 {
-        let reply = messages::warn_reply("Suggestion must be between 32 and 1024 characters.", true);
+        let reply =
+            messages::warn_reply("Suggestion must be between 32 and 1024 characters.", true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
+            return Err(Error::from(why));
         }
 
         return Ok(());
     }
 
-    let (guild_id, guild_name) = (utility::guild_id(ctx), utility::guild_name(ctx));
+    let (guild_id, guild_name) = (
+        utility::guilds::guild_id(ctx).await,
+        utility::guilds::guild_name(ctx).await,
+    );
 
     let guild_channels = match ctx.http().get_channels(guild_id).await {
         Ok(value) => value,
         Err(why) => {
             error!("Couldn't get channels in {guild_name}: {why:?}");
-            return Ok(());
+            return Err(Error::from(why));
         }
     };
 
@@ -71,7 +79,7 @@ pub(crate) async fn suggest(
             .await
         {
             error!("Couldn't create permission overwrite for #{channel_name}: {why:?}");
-            return Ok(());
+            return Err(Error::from(why));
         }
 
         let (user_name, user_avatar_url) = (
@@ -81,7 +89,7 @@ pub(crate) async fn suggest(
                 .unwrap_or(ctx.author().default_avatar_url()),
         );
 
-        let (user_id, owner_id) = (ctx.author().id, utility::owner_id(ctx));
+        let (user_id, owner_id) = (ctx.author().id, utility::guilds::owner_id(ctx).await);
 
         let created_at = Utc::now().naive_utc();
 
@@ -101,7 +109,7 @@ pub(crate) async fn suggest(
             Ok(value) => value,
             Err(why) => {
                 error!("Couldn't send message: {why:?}");
-                return Ok(());
+                return Err(Error::from(why));
             }
         };
         let message_id = message.id;
@@ -121,12 +129,14 @@ pub(crate) async fn suggest(
         let reply = messages::error_reply("Couldn't find `#suggestions` channel.", true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
+            return Err(Error::from(why));
         }
     }
 
     let reply = messages::ok_reply(format!("Suggestion has been sent in for review."), true);
     if let Err(why) = ctx.send(reply).await {
         error!("Couldn't send reply: {why:?}");
+        return Err(Error::from(why));
     }
 
     Ok(())

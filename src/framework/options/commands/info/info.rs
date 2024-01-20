@@ -22,14 +22,14 @@ use crate::{
 
 use super::{AUTHORS, DESCRIPTION, GITHUB_URL, NAME, RUST_VERSION, VERSION};
 
-/// Get basic information about yours truly.
 #[poise::command(prefix_command, slash_command, category = "Info", ephemeral)]
+/// Get basic information about yours truly.
 pub(crate) async fn info(ctx: Context<'_>) -> Result<(), Error> {
     let bot = match ctx.http().get_current_user().await {
         Ok(value) => value,
         Err(why) => {
             error!("Couldn't get current user: {why:?}");
-            return Ok(());
+            return Err(Error::from(why));
         }
     };
     let bot_avatar_url = bot.avatar_url().unwrap_or(bot.default_avatar_url());
@@ -48,6 +48,7 @@ pub(crate) async fn info(ctx: Context<'_>) -> Result<(), Error> {
     let reply = messages::reply_embed(info_embed, true);
     if let Err(why) = ctx.send(reply).await {
         error!("Couldn't send reply: {why:?}");
+        return Err(Error::from(why));
     }
 
     Ok(())
