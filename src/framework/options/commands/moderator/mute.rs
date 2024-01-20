@@ -79,7 +79,7 @@ pub(crate) async fn mute(
     let mut user_infractions = match users::infractions(user_id, guild_id, pool).await {
         Some(infractions) => infractions,
         None => {
-            warn!("Couldn't get infractions for @{user_name}");
+            warn!("Couldn't get infractions for @{user_name} in database");
             return Ok(());
         }
     };
