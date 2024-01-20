@@ -14,4 +14,5 @@
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
 pub(super) mod avatar;
+pub(super) mod roll;
 pub(super) mod suggest;
