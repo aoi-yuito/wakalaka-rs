@@ -14,7 +14,6 @@
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
 use chrono::{NaiveDateTime, Utc};
-use poise::serenity_prelude::Context;
 use serenity::{
     all::{ComponentInteraction, Interaction, MessageId},
     builder::EditMessage,
@@ -22,7 +21,7 @@ use serenity::{
 use sqlx::SqlitePool;
 use tracing::{error, warn};
 
-use crate::{database::suggestions, utility::messages, Data};
+use crate::{database::suggestions, serenity::Context, utility::messages, Data};
 
 pub(crate) async fn handle_create(interaction: &Interaction, ctx: &Context, data: &Data) {
     let pool = &data.pool;
@@ -74,7 +73,8 @@ async fn handle_suggestion_message(
 
     if user_id != owner_id {
         let response =
-            messages::error_response("Only moderators can accept or reject suggestions.", true).await;
+            messages::error_response("Only moderators can accept or reject suggestions.", true)
+                .await;
         let _ = component.create_response(&ctx.http, response).await;
 
         return;

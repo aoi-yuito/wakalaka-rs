@@ -20,10 +20,9 @@ mod interaction;
 mod message;
 mod ready;
 
-use poise::serenity_prelude::{Context, FullEvent};
 use poise::FrameworkContext;
 
-use crate::{Data, Error};
+use crate::{serenity::Context, serenity::FullEvent, Data, Error};
 
 pub(crate) async fn handle(
     ctx: &Context,

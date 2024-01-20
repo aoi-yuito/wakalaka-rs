@@ -13,10 +13,9 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-use poise::serenity_prelude::Context;
 use serenity::all::GuildId;
 
-use crate::Data;
+use crate::{serenity::Context, Data};
 
 pub(super) async fn cache_handle(_guild_ids: &Vec<GuildId>, _ctx: &Context, data: &Data) {
     let _pool = &data.pool;

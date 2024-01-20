@@ -13,11 +13,10 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-use poise::serenity_prelude::Context;
 use serenity::all::{Guild, UnavailableGuild};
 use tracing::{error, warn};
 
-use crate::{database::users, Data};
+use crate::{database::users, serenity::Context, Data};
 
 pub(crate) async fn handle_delete(
     unavailable_guild: &UnavailableGuild,

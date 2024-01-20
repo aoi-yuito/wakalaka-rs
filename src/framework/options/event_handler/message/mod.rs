@@ -15,10 +15,9 @@
 
 pub(super) mod message_delete;
 
-use poise::serenity_prelude::Context;
 use serenity::all::Message;
 
-use crate::Data;
+use crate::{serenity::Context, Data};
 
 pub(crate) async fn handle(_msg: &Message, _ctx: &Context, data: &Data) {
     let _pool = &data.pool;

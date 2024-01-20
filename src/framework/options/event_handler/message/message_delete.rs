@@ -13,11 +13,10 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-use poise::serenity_prelude::Context;
 use serenity::all::{ChannelId, GuildId, MessageId};
 use tracing::{error, warn};
 
-use crate::{database::suggestions, Data};
+use crate::{database::suggestions, serenity::Context, Data};
 
 pub(crate) async fn handle_delete(
     channel_id: &ChannelId,

@@ -13,12 +13,10 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-use poise::serenity_prelude::ActivityData;
-
-use poise::serenity_prelude::{Ready, Context};
+use crate::serenity::{ActivityData, Context, Ready};
 
 pub(super) fn handle(_: &Ready, ctx: &Context) {
-    set_activity(ctx);  
+    set_activity(ctx);
 }
 
 fn set_activity(ctx: &Context) {
