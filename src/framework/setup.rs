@@ -13,11 +13,10 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-use poise::serenity_prelude::Context;
 use tracing::{error, info, warn};
 
 use crate::framework::options::commands;
-use crate::{Data, Error};
+use crate::{serenity::Context, Data, Error};
 
 pub(crate) async fn handle(ctx: &Context, data: Data) -> Result<Data, Error> {
     register_guild_commands(ctx).await;
