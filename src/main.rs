@@ -17,6 +17,8 @@ mod database;
 mod framework;
 mod utility;
 
+use poise::serenity_prelude as serenity;
+
 use ::serenity::all::GatewayIntents;
 use poise::Framework;
 use sqlx::SqlitePool;
@@ -49,11 +51,11 @@ pub async fn main() {
     let intents = framework::initialise_intents();
     let framework = framework::initialise_framework(data).await;
 
-    let mut client = initialise_client(token, intents, framework).await;
+    info!("Starting client with automatic sharding...");
 
-    info!("Starting client...");
-    if let Err(why) = client.start().await {
-        error!("Couldn't start client: {why:?}");
+    let mut client = initialise_client(token, intents, framework).await;
+    if let Err(why) = client.start_autosharded().await {
+        error!("Couldn't start client with automatic sharding: {why:?}");
         return;
     }
 }
