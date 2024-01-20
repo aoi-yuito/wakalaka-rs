@@ -79,24 +79,18 @@ pub(crate) async fn warn(
     let mut user_infractions = match users::infractions(user_id, guild_id, pool).await {
         Some(infractions) => infractions,
         None => {
-            warn!("Couldn't get infractions for @{user_name}");
+            warn!("Couldn't get infractions for @{user_name} in database");
             return Ok(());
         }
     };
 
-    let warnings = match infractions::infractions(user_id, guild_id, warn_type, pool).await {
-        Ok(warnings) => warnings,
-        Err(why) => {
-            error!("Couldn't get warnings for @{user_name}: {why:?}");
-            return Ok(());
-        }
-    };
+    let infractions = infractions::infractions(user_id, guild_id, warn_type, pool).await?;
 
-    let number_of_warn_types = warnings
+    let number_of_infractions = infractions
         .iter()
         .filter(|warning| warning.1 == warn_type)
         .count();
-    if number_of_warn_types >= 3 {
+    if number_of_infractions >= 3 {
         let reply = messages::warn_reply(format!(
             "<@{user_id}> has reached a maximum number of warnings. Take further action manually.",
         ));

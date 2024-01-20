@@ -62,13 +62,7 @@ pub(crate) async fn unmute(
 
     let mute_type = InfractionType::Mute.as_str();
 
-    let infractions = match infractions::infractions(user_id, guild_id, mute_type, pool).await {
-        Ok(infractions) => infractions,
-        Err(why) => {
-            error!("Couldn't get infractions from database: {why:?}");
-            return Ok(());
-        }
-    };
+    let infractions = infractions::infractions(user_id, guild_id, mute_type, pool).await?;
 
     let number_of_infractions = infractions.len();
     if number_of_infractions < 1 {
@@ -86,7 +80,7 @@ pub(crate) async fn unmute(
         let mut user_infractions = match users::infractions(user_id, guild_id, pool).await {
             Some(infractions) => infractions,
             None => {
-                warn!("Couldn't get infractions for @{user_name}");
+                warn!("Couldn't get infractions for @{user_name} in database");
                 return Ok(());
             }
         };
