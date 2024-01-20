@@ -51,7 +51,6 @@ async fn register_guild_commands(ctx: &Context) {
         };
         guild.name.clone()
     };
-
     let guild_commands = commands::guild_commands().await;
 
     let number_of_guild_commands = guild_commands.len();
