@@ -46,14 +46,29 @@ pub(crate) async fn toggle(_: Context<'_>) -> Result<(), Error> {
 /// Reduce the rate of messages in a channel.
 pub(crate) async fn slowmode(
     ctx: Context<'_>,
-    #[description = "The channel to toggle slowmode in, if any."]
+    #[description = "The channel to slow down, if any."]
     #[rename = "channel"]
     channel_id: Option<ChannelId>,
-    #[description = "The delay between messages. (0-60s)"]
+    #[description = "The delay between messages. (0-60 seconds)"]
     #[min = 0]
     #[max = 60]
     delay: Option<u16>,
 ) -> Result<(), Error> {
+    if delay.is_some() {
+        if let Some(delay) = delay {
+            if delay > 60 {
+                let reply =
+                    messages::warn_reply(format!("Delay must be between 0 and 60 seconds."), true);
+                if let Err(why) = ctx.send(reply).await {
+                    error!("Couldn't send reply: {why:?}");
+                    return Err(why.into());
+                }
+
+                return Ok(());
+            }
+        }
+    }
+
     let channel_id = utility::channels::channel_id(ctx, channel_id).await;
     let delay = match delay {
         Some(delay) => delay,
