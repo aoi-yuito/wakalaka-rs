@@ -39,7 +39,7 @@ pub(crate) async fn unban(
     #[description = "The user to unban."]
     #[rename = "user"]
     user_id: UserId,
-    #[description = "The reason for unbanning, if any. (6-80)"]
+    #[description = "The reason for unbanning, if any. (6-80 characters)"]
     #[min_length = 6]
     #[max_length = 80]
     reason: Option<String>,

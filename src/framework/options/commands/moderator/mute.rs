@@ -40,7 +40,7 @@ pub(crate) async fn mute(
     #[description = "The user to mute."]
     #[rename = "user"]
     user_id: UserId,
-    #[description = "The reason for muting. (6-80)"]
+    #[description = "The reason for muting. (6-80 characters)"]
     #[min_length = 6]
     #[max_length = 80]
     reason: String,

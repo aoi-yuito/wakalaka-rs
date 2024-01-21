@@ -16,7 +16,10 @@
 use serenity::{all::UserId, builder::EditMember};
 use tracing::{error, info};
 
-use crate::{utility::{self, components::messages}, Context, Error};
+use crate::{
+    utility::{self, components::messages},
+    Context, Error,
+};
 
 #[poise::command(
     prefix_command,
@@ -26,10 +29,10 @@ use crate::{utility::{self, components::messages}, Context, Error};
     guild_only,
     ephemeral
 )]
-/// Remove user's server nickname.
+/// Remove a user's nickname.
 pub(crate) async fn delnick(
     ctx: Context<'_>,
-    #[description = "The user to delete the nickname for."]
+    #[description = "The user to remove nickname from."]
     #[rename = "user"]
     user_id: UserId,
 ) -> Result<(), Error> {
@@ -44,12 +47,10 @@ pub(crate) async fn delnick(
     let edit_member = EditMember::default().nickname(String::new());
 
     if let Err(why) = member.edit(&ctx, edit_member).await {
-        error!("Couldn't empty @{user_name}'s nickname: {why:?}");
+        error!("Couldn't remove @{user_name}'s nickname: {why:?}");
 
-        let reply = messages::error_reply(
-            format!("Couldn't empty <@{user_id}>'s nickname."),
-            true,
-        );
+        let reply =
+            messages::error_reply(format!("Couldn't remove <@{user_id}>'s nickname."), true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
             return Err(why.into());

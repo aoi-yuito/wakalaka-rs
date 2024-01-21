@@ -33,7 +33,7 @@ use crate::{
 pub(crate) async fn kick(
     ctx: Context<'_>,
     #[description = "The user to kick."] user: User,
-    #[description = "The reason for kicking. (6-80)"] reason: String,
+    #[description = "The reason for kicking. (6-80 characters)"] reason: String,
 ) -> Result<(), Error> {
     if user.system {
         let reply = messages::error_reply("Cannot kick system users.", true);

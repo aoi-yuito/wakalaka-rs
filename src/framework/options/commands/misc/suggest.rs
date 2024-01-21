@@ -30,7 +30,7 @@ use crate::{
 /// Send a suggestion of your choice for review.
 pub(crate) async fn suggest(
     ctx: Context<'_>,
-    #[description = "The suggestion to send. (32-1024)"]
+    #[description = "The suggestion to send. (32-1024 characters)"]
     #[min_length = 32]
     #[max_length = 1024]
     message: String,
