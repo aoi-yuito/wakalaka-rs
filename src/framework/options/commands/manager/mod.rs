@@ -17,4 +17,4 @@ pub(super) mod emoji;
 pub(super) mod nick;
 pub(super) mod purge;
 pub(super) mod role;
-pub(super) mod toggle;
+pub(super) mod slowmode;

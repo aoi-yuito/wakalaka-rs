@@ -24,20 +24,6 @@ use crate::{
 #[poise::command(
     prefix_command,
     slash_command,
-    subcommands("slowmode"),
-    category = "Manager",
-    required_permissions = "MANAGE_CHANNELS",
-    guild_only,
-    subcommand_required,
-    ephemeral
-)]
-pub(crate) async fn toggle(_: Context<'_>) -> Result<(), Error> {
-    Ok(())
-}
-
-#[poise::command(
-    prefix_command,
-    slash_command,
     category = "Manager",
     required_permissions = "MANAGE_CHANNELS",
     guild_only,

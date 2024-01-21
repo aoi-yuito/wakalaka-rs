@@ -40,7 +40,7 @@ pub(crate) async fn guild_commands() -> Vec<Command<Data, Error>> {
         manager::nick::nick(),
         manager::purge::purge(),
         manager::role::role(),
-        manager::toggle::toggle(),
+        manager::slowmode::slowmode(),
         misc::colour::colour(),
         misc::avatar::avatar(),
         misc::suggest::suggest(),
