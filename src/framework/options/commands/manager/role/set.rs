@@ -25,78 +25,14 @@ use crate::{
     prefix_command,
     slash_command,
     category = "Manager",
-    subcommands("add", "remove"),
-    required_permissions = "MANAGE_ROLES",
-    guild_only,
-    subcommand_required,
-    ephemeral
-)]
-/// Manage a role.
-pub(crate) async fn role(_: Context<'_>) -> Result<(), Error> {
-    Ok(())
-}
-
-#[poise::command(
-    prefix_command,
-    slash_command,
-    category = "Manager",
-    required_permissions = "MANAGE_ROLES",
-    guild_only,
-    ephemeral
-)]
-/// Take role(s) from a user.
-pub(crate) async fn remove(
-    ctx: Context<'_>,
-    #[description = "The role(s) to remove from user."] roles: Vec<Role>,
-    #[description = "The user to take the role(s) from."]
-    #[rename = "user"]
-    user_id: UserId,
-) -> Result<(), Error> {
-    let role_ids = utility::roles::role_ids(roles).await;
-
-    let user_name = utility::users::name(ctx, user_id).await;
-
-    let guild = utility::guilds::guild(ctx).await;
-    let (guild_id, guild_name) = (guild.id, &guild.name);
-
-    let member = utility::guilds::member(ctx, guild_id, user_id).await;
-
-    if let Err(why) = member.remove_roles(&ctx, &role_ids).await {
-        error!("Couldn't remove role(s) from @{user_name} in {guild_name}: {why:?}");
-
-        let reply =
-            messages::error_reply(format!("Couldn't remove role(s) from <@{user_id}>."), true);
-        if let Err(why) = ctx.send(reply).await {
-            error!("Couldn't send reply: {why:?}");
-            return Err(why.into());
-        }
-
-        return Err(why.into());
-    }
-
-    info!("Removed role(s) from @{user_name} in {guild_name}");
-
-    let reply = messages::ok_reply(format!("Removed role(s) from <@{user_id}>."), true);
-    if let Err(why) = ctx.send(reply).await {
-        error!("Couldn't send reply: {why:?}");
-        return Err(why.into());
-    }
-
-    Ok(())
-}
-
-#[poise::command(
-    prefix_command,
-    slash_command,
-    category = "Manager",
     required_permissions = "MANAGE_ROLES",
     guild_only,
     ephemeral
 )]
 /// Give role(s) to a user.
-pub(crate) async fn add(
+pub(crate) async fn set(
     ctx: Context<'_>,
-    #[description = "The role(s) to add to user."] roles: Vec<Role>,
+    #[description = "The role(s) to give."] roles: Vec<Role>,
     #[description = "The user to give the role(s) for."]
     #[rename = "user"]
     user_id: UserId,

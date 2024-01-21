@@ -13,13 +13,16 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-use serenity::{all::Attachment, builder::CreateAttachment};
 use tracing::{error, info, warn};
 
 use crate::{
-    utility::{self, components::messages},
+    utility::{
+        self,
+        components::{self, messages},
+    },
     Context, Error,
 };
+
 #[poise::command(
     prefix_command,
     slash_command,
@@ -28,14 +31,13 @@ use crate::{
     guild_only,
     ephemeral
 )]
-/// Create a new emoji.
-pub(crate) async fn addemoji(
+/// Delete an existing emoji.
+pub(crate) async fn delete(
     ctx: Context<'_>,
     #[description = "The name of the emoji."]
     #[min_length = 2]
     #[max_length = 32]
     name: String,
-    #[description = "The image to use for the emoji. (128x128)"] image: Attachment,
 ) -> Result<(), Error> {
     let number_of_name = name.chars().count();
     if number_of_name < 2 || number_of_name > 32 {
@@ -51,51 +53,35 @@ pub(crate) async fn addemoji(
         return Ok(());
     }
 
-    let (image_width, image_height) = (
-        match image.width {
-            Some(width) => width,
-            None => {
-                warn!("Couldn't get width of image");
-                return Ok(());
-            }
-        },
-        match image.height {
-            Some(height) => height,
-            None => {
-                warn!("Couldn't get height of image");
-                return Ok(());
-            }
-        },
-    );
-    if image_width != 128 || image_height != 128 {
-        let reply = messages::warn_reply("Image must be `128`x`128` pixels in size.", true);
-        if let Err(why) = ctx.send(reply).await {
-            error!("Couldn't send reply: {why:?}");
-            return Err(why.into());
-        }
-
-        return Ok(());
-    }
-
-    let image_url = &image.url;
-
-    let attachment = match CreateAttachment::url(ctx, &image_url).await {
-        Ok(emoji) => emoji,
-        Err(why) => {
-            error!("Couldn't create emoji: {why:?}");
-            return Err(why.into());
-        }
-    };
-    let encoded_attachment = attachment.to_base64();
-
     let guild = utility::guilds::guild(ctx).await;
     let guild_name = &guild.name;
 
-    if let Err(why) = guild.create_emoji(&ctx, &name, &encoded_attachment).await {
-        error!("Couldn't create {name:?} emoji in {guild_name}: {why:?}");
+    let emoji_id = match components::emojis::emoji_id(ctx, &name).await {
+        Some(emoji_id) => emoji_id,
+        None => {
+            warn!("Couldn't find {name:?} emoji in {guild_name}");
 
-        let reply =
-            messages::error_reply(format!("Couldn't create an emoji called `{name}`."), true);
+            let reply =
+                messages::error_reply(format!("Couldn't find an emoji called `{name}`."), true);
+            if let Err(why) = ctx.send(reply).await {
+                error!("Couldn't send reply: {why:?}");
+                return Err(why.into());
+            }
+
+            return Ok(());
+        }
+    };
+
+    let emoji = components::emojis::emoji(ctx, emoji_id).await.unwrap();
+    let emoji_name = &emoji.name;
+
+    if let Err(why) = guild.delete_emoji(&ctx, emoji_id).await {
+        error!("Couldn't delete {emoji_name:?} emoji from {guild_name}: {why:?}");
+
+        let reply = messages::error_reply(
+            format!("Couldn't delete an emoji called `{emoji_name}`"),
+            true,
+        );
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
             return Err(why.into());
@@ -104,9 +90,9 @@ pub(crate) async fn addemoji(
         return Err(why.into());
     }
 
-    info!("Created {name:?} emoji in {guild_name}");
+    info!("Deleted {emoji_name:?} emoji from {guild_name}");
 
-    let reply = messages::ok_reply(format!("Created an emoji called `{name}`."), true);
+    let reply = messages::ok_reply(format!("Deleted an emoji called `{emoji_name}`."), true);
     if let Err(why) = ctx.send(reply).await {
         error!("Couldn't send reply: {why:?}");
         return Err(why.into());

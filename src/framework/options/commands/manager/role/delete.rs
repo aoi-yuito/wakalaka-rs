@@ -13,7 +13,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-use serenity::{all::UserId, builder::EditMember};
+use serenity::all::Role;
 use tracing::{error, info};
 
 use crate::{
@@ -25,43 +25,38 @@ use crate::{
     prefix_command,
     slash_command,
     category = "Manager",
-    required_permissions = "MANAGE_NICKNAMES",
+    required_permissions = "MANAGE_ROLES",
     guild_only,
     ephemeral
 )]
-/// Remove a user's nickname.
-pub(crate) async fn delnick(
+/// Delete an existing role.
+pub(crate) async fn delete(
     ctx: Context<'_>,
-    #[description = "The user to remove nickname from."]
-    #[rename = "user"]
-    user_id: UserId,
+    #[description = "The role to delete."] mut role: Role,
 ) -> Result<(), Error> {
-    let guild_id = utility::guilds::guild_id(ctx).await;
+    let role_name = role.name.clone();
 
-    let user = utility::users::user(ctx, user_id).await;
-    let user_name = &user.name;
+    let guild = utility::guilds::guild(ctx).await;
+    let guild_name = &guild.name;
 
-    let moderator_name = &ctx.author().name;
+    if let Err(why) = role.delete(ctx).await {
+        error!("Couldn't delete @{role_name} role from {guild_name}: {why:?}");
 
-    let mut member = utility::guilds::member(ctx, guild_id, user_id).await;
-    let edit_member = EditMember::default().nickname(String::new());
-
-    if let Err(why) = member.edit(&ctx, edit_member).await {
-        error!("Couldn't remove @{user_name}'s nickname: {why:?}");
-
-        let reply =
-            messages::error_reply(format!("Couldn't remove <@{user_id}>'s nickname."), true);
+        let reply = messages::error_reply(
+            format!("Couldn't delete a role called `{role_name}`."),
+            true,
+        );
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
             return Err(why.into());
         }
 
-        return Err(why.into());
+        return Ok(());
     }
 
-    info!("@{moderator_name} removed @{user_name}'s nickname");
+    info!("Deleted @{role_name} role from {guild_name}");
 
-    let reply = messages::ok_reply(format!("Removed <@{user_id}>'s nickname."), true);
+    let reply = messages::ok_reply(format!("Deleted a role called `{role_name}`."), true);
     if let Err(why) = ctx.send(reply).await {
         error!("Couldn't send reply: {why:?}");
         return Err(why.into());

@@ -13,7 +13,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-use serenity::builder::EditRole;
+use serenity::{all::Role, builder::EditRole};
 use tracing::{error, info};
 
 use crate::{
@@ -29,13 +29,14 @@ use crate::{
     guild_only,
     ephemeral
 )]
-/// Create a new role.
-pub(crate) async fn addrole(
+/// Customise an existing role.
+pub(crate) async fn edit(
     ctx: Context<'_>,
-    #[description = "The name of the role. (1-100 characters)"]
+    #[description = "The role to customise."] mut role: Role,
+    #[description = "The name for the role, if any. (1-100 characters)"]
     #[min_length = 1]
     #[max_length = 100]
-    name: String,
+    name: Option<String>,
     #[description = "The colour of the role in hexadecimal, if any."]
     #[min = 3]
     #[max = 11]
@@ -43,19 +44,23 @@ pub(crate) async fn addrole(
     #[description = "Whether the role should be pinned above lesser roles."] hoist: Option<bool>,
     #[description = "Whether the role should be mentionable."] mentionable: Option<bool>,
 ) -> Result<(), Error> {
-    let number_of_name = name.chars().count();
-    if number_of_name < 1 || number_of_name > 100 {
-        let reply = messages::warn_reply(
-            format!("Role name must be between 1 and 100 characters."),
-            true,
-        );
-        if let Err(why) = ctx.send(reply).await {
-            error!("Couldn't send reply: {why:?}");
-            return Err(why.into());
-        }
+    if name.is_some() {
+        let number_of_name = name.as_ref().unwrap().chars().count();
+        if number_of_name < 1 || number_of_name > 100 {
+            let reply = messages::warn_reply(
+                format!("Role name must be between 1 and 100 characters."),
+                true,
+            );
+            if let Err(why) = ctx.send(reply).await {
+                error!("Couldn't send reply: {why:?}");
+                return Err(why.into());
+            }
 
-        return Ok(());
+            return Ok(());
+        }
     }
+
+    let role_name = role.name.clone();
 
     let guild = utility::guilds::guild(ctx).await;
     let guild_name = &guild.name;
@@ -64,21 +69,22 @@ pub(crate) async fn addrole(
         let colour = utility::hex_to_u32(&colour);
 
         EditRole::new()
-            .name(&name)
+            .name(&name.unwrap_or(role_name.clone()))
             .colour(colour)
             .hoist(hoist.is_some())
             .mentionable(mentionable.is_some())
     } else {
         EditRole::new()
-            .name(&name)
+            .name(&name.unwrap_or(role_name.clone()))
             .hoist(hoist.is_some())
             .mentionable(mentionable.is_some())
     };
 
-    if let Err(why) = guild.create_role(ctx, role_builder).await {
-        error!("Couldn't create @{name} role in {guild_name}: {why:?}");
+    if let Err(why) = role.edit(ctx, role_builder).await {
+        error!("Couldn't edit @{role_name} role in {guild_name}: {why:?}");
 
-        let reply = messages::error_reply(format!("Couldn't create a role called `{name}`."), true);
+        let reply =
+            messages::error_reply(format!("Couldn't edit a role called `{role_name}`."), true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
             return Err(why.into());
@@ -87,9 +93,9 @@ pub(crate) async fn addrole(
         return Err(why.into());
     }
 
-    info!("Created @{name} role in {guild_name}");
+    info!("Edited @{role_name} role in {guild_name}");
 
-    let reply = messages::ok_reply(format!("Created a role called `{name}`."), true);
+    let reply = messages::ok_reply(format!("Edited a role called `{role_name}`."), true);
     if let Err(why) = ctx.send(reply).await {
         error!("Couldn't send reply: {why:?}");
         return Err(why.into());

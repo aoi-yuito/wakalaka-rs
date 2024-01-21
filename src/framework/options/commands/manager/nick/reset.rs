@@ -29,49 +29,28 @@ use crate::{
     guild_only,
     ephemeral
 )]
-/// Customise a user's nickname.
-pub(crate) async fn editnick(
+/// Remove a user's nickname.
+pub(crate) async fn reset(
     ctx: Context<'_>,
-    #[description = "The user to customise the nickname of."]
+    #[description = "The user to remove nickname from."]
     #[rename = "user"]
     user_id: UserId,
-    #[description = "The new nickname to set. (1-32 characters)"]
-    #[min_length = 1]
-    #[max_length = 32]
-    nickname: String,
 ) -> Result<(), Error> {
-    let number_of_nickname = nickname.chars().count();
-    if number_of_nickname < 1 || number_of_nickname > 32 {
-        let reply = messages::warn_reply(
-            format!("Nickname must be between 1 and 32 characters."),
-            true,
-        );
-        if let Err(why) = ctx.send(reply).await {
-            error!("Couldn't send reply: {why:?}");
-            return Err(why.into());
-        }
-
-        return Ok(());
-    }
-
     let guild_id = utility::guilds::guild_id(ctx).await;
 
     let user = utility::users::user(ctx, user_id).await;
-    let user_id = user.id;
     let user_name = &user.name;
 
     let moderator_name = &ctx.author().name;
 
     let mut member = utility::guilds::member(ctx, guild_id, user_id).await;
-    let member_builder = EditMember::default().nickname(nickname.clone());
+    let edit_member = EditMember::default().nickname(String::new());
 
-    if let Err(why) = member.edit(ctx, member_builder).await {
-        error!("Couldn't edit @{user_name}'s nickname to {nickname:?}: {why:?}");
+    if let Err(why) = member.edit(&ctx, edit_member).await {
+        error!("Couldn't remove @{user_name}'s nickname: {why:?}");
 
-        let reply = messages::error_reply(
-            format!("Couldn't change <@{user_id}>'s nickname to `{nickname}`."),
-            true,
-        );
+        let reply =
+            messages::error_reply(format!("Couldn't remove <@{user_id}>'s nickname."), true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
             return Err(why.into());
@@ -80,12 +59,9 @@ pub(crate) async fn editnick(
         return Err(why.into());
     }
 
-    info!("@{moderator_name} changed @{user_name}'s nickname to {nickname:?}");
+    info!("@{moderator_name} removed @{user_name}'s nickname");
 
-    let reply = messages::ok_reply(
-        format!("Changed <@{user_id}>'s nickname to `{nickname}`."),
-        true,
-    );
+    let reply = messages::ok_reply(format!("Removed <@{user_id}>'s nickname."), true);
     if let Err(why) = ctx.send(reply).await {
         error!("Couldn't send reply: {why:?}");
         return Err(why.into());

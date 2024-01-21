@@ -13,32 +13,37 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-use tracing::{error, info, warn};
+use serenity::{all::UserId, builder::EditMember};
+use tracing::{error, info};
 
 use crate::{
     utility::{self, components::messages},
     Context, Error,
 };
+
 #[poise::command(
     prefix_command,
     slash_command,
     category = "Manager",
-    required_permissions = "CREATE_GUILD_EXPRESSIONS",
+    required_permissions = "MANAGE_NICKNAMES",
     guild_only,
     ephemeral
 )]
-/// Delete an existing emoji.
-pub(crate) async fn delemoji(
+/// Customise a user's nickname.
+pub(crate) async fn edit(
     ctx: Context<'_>,
-    #[description = "The name of the emoji."]
-    #[min_length = 2]
+    #[description = "The user to customise the nickname of."]
+    #[rename = "user"]
+    user_id: UserId,
+    #[description = "The new nickname to set. (1-32 characters)"]
+    #[min_length = 1]
     #[max_length = 32]
-    name: String,
+    nickname: String,
 ) -> Result<(), Error> {
-    let number_of_name = name.chars().count();
-    if number_of_name < 2 || number_of_name > 32 {
+    let number_of_nickname = nickname.chars().count();
+    if number_of_nickname < 1 || number_of_nickname > 32 {
         let reply = messages::warn_reply(
-            format!("Emoji name must be between 2 and 32 characters."),
+            format!("Nickname must be between 1 and 32 characters."),
             true,
         );
         if let Err(why) = ctx.send(reply).await {
@@ -49,35 +54,22 @@ pub(crate) async fn delemoji(
         return Ok(());
     }
 
-    let guild = utility::guilds::guild(ctx).await;
-    let guild_name = &guild.name;
+    let guild_id = utility::guilds::guild_id(ctx).await;
 
-    let emoji_id = match utility::components::emojis::emoji_id(ctx, &name).await {
-        Some(emoji_id) => emoji_id,
-        None => {
-            warn!("Couldn't find {name:?} emoji in {guild_name}");
+    let user = utility::users::user(ctx, user_id).await;
+    let user_id = user.id;
+    let user_name = &user.name;
 
-            let reply =
-                messages::error_reply(format!("Couldn't find an emoji called `{name}`."), true);
-            if let Err(why) = ctx.send(reply).await {
-                error!("Couldn't send reply: {why:?}");
-                return Err(why.into());
-            }
+    let moderator_name = &ctx.author().name;
 
-            return Ok(());
-        }
-    };
+    let mut member = utility::guilds::member(ctx, guild_id, user_id).await;
+    let member_builder = EditMember::default().nickname(nickname.clone());
 
-    let emoji = utility::components::emojis::emoji(ctx, emoji_id)
-        .await
-        .unwrap();
-    let emoji_name = &emoji.name;
-
-    if let Err(why) = guild.delete_emoji(&ctx, emoji_id).await {
-        error!("Couldn't delete {emoji_name:?} emoji from {guild_name}: {why:?}");
+    if let Err(why) = member.edit(ctx, member_builder).await {
+        error!("Couldn't edit @{user_name}'s nickname to {nickname:?}: {why:?}");
 
         let reply = messages::error_reply(
-            format!("Couldn't delete an emoji called `{emoji_name}`"),
+            format!("Couldn't change <@{user_id}>'s nickname to `{nickname}`."),
             true,
         );
         if let Err(why) = ctx.send(reply).await {
@@ -88,9 +80,12 @@ pub(crate) async fn delemoji(
         return Err(why.into());
     }
 
-    info!("Deleted {emoji_name:?} emoji from {guild_name}");
+    info!("@{moderator_name} changed @{user_name}'s nickname to {nickname:?}");
 
-    let reply = messages::ok_reply(format!("Deleted an emoji called `{emoji_name}`."), true);
+    let reply = messages::ok_reply(
+        format!("Changed <@{user_id}>'s nickname to `{nickname}`."),
+        true,
+    );
     if let Err(why) = ctx.send(reply).await {
         error!("Couldn't send reply: {why:?}");
         return Err(why.into());

@@ -13,8 +13,25 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-pub(super) mod emoji;
-pub(super) mod nick;
-pub(super) mod purge;
-pub(super) mod role;
-pub(super) mod toggle;
+mod edit;
+mod reset;
+mod set;
+
+use crate::{
+    framework::commands::manager::nick::{edit::edit, reset::reset, set::set},
+    Context, Error,
+};
+
+#[poise::command(
+    prefix_command,
+    slash_command,
+    subcommands("edit", "reset", "set"),
+    category = "Manager",
+    required_permissions = "MANAGE_NICKNAMES",
+    guild_only,
+    subcommand_required,
+    ephemeral
+)]
+pub(crate) async fn nick(_: Context<'_>) -> Result<(), Error> {
+    Ok(())
+}

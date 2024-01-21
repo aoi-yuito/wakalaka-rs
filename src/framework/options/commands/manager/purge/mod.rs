@@ -13,8 +13,27 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-pub(super) mod emoji;
-pub(super) mod nick;
-pub(super) mod purge;
-pub(super) mod role;
-pub(super) mod toggle;
+mod after;
+mod any;
+mod around;
+mod before;
+
+use crate::{
+    framework::commands::manager::purge::{after::after, any::any, around::around, before::before},
+    Context, Error,
+};
+
+#[poise::command(
+    prefix_command,
+    slash_command,
+    subcommands("after", "any", "around", "before"),
+    category = "Moderator",
+    required_permissions = "MANAGE_MESSAGES",
+    guild_only,
+    subcommand_required,
+    ephemeral
+)]
+/// Delete a given amount of messages.
+pub(crate) async fn purge(_: Context<'_>) -> Result<(), Error> {
+    Ok(())
+}

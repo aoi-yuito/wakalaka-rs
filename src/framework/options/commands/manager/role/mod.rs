@@ -13,8 +13,29 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-pub(super) mod emoji;
-pub(super) mod nick;
-pub(super) mod purge;
-pub(super) mod role;
-pub(super) mod toggle;
+mod add;
+mod delete;
+mod edit;
+mod remove;
+mod set;
+
+use crate::{
+    framework::commands::manager::role::{
+        add::add, delete::delete, edit::edit, remove::remove, set::set,
+    },
+    Context, Error,
+};
+
+#[poise::command(
+    prefix_command,
+    slash_command,
+    subcommands("add", "delete", "edit", "remove", "set"),
+    category = "Manager",
+    required_permissions = "MANAGE_ROLES",
+    guild_only,
+    subcommand_required,
+    ephemeral
+)]
+pub(crate) async fn role(_: Context<'_>) -> Result<(), Error> {
+    Ok(())
+}
