@@ -31,9 +31,26 @@ use crate::{
 /// Create a new emoji.
 pub(crate) async fn addemoji(
     ctx: Context<'_>,
-    #[description = "The name of the emoji."] name: String,
+    #[description = "The name of the emoji."]
+    #[min_length = 2]
+    #[max_length = 32]
+    name: String,
     #[description = "The image to use for the emoji. (128x128)"] image: Attachment,
 ) -> Result<(), Error> {
+    let number_of_name = name.chars().count();
+    if number_of_name < 2 || number_of_name > 32 {
+        let reply = messages::warn_reply(
+            format!("Emoji name must be between 2 and 32 characters."),
+            true,
+        );
+        if let Err(why) = ctx.send(reply).await {
+            error!("Couldn't send reply: {why:?}");
+            return Err(why.into());
+        }
+
+        return Ok(());
+    }
+
     let (image_width, image_height) = (
         match image.width {
             Some(width) => width,

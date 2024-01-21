@@ -30,8 +30,25 @@ use crate::{
 /// Delete an existing emoji.
 pub(crate) async fn delemoji(
     ctx: Context<'_>,
-    #[description = "The name of the emoji."] name: String,
+    #[description = "The name of the emoji."]
+    #[min_length = 2]
+    #[max_length = 32]
+    name: String,
 ) -> Result<(), Error> {
+    let number_of_name = name.chars().count();
+    if number_of_name < 2 || number_of_name > 32 {
+        let reply = messages::warn_reply(
+            format!("Emoji name must be between 2 and 32 characters."),
+            true,
+        );
+        if let Err(why) = ctx.send(reply).await {
+            error!("Couldn't send reply: {why:?}");
+            return Err(why.into());
+        }
+
+        return Ok(());
+    }
+
     let guild = utility::guilds::guild(ctx).await;
     let guild_name = &guild.name;
 

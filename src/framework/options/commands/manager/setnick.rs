@@ -29,14 +29,31 @@ use crate::{
     guild_only,
     ephemeral
 )]
-/// Give user a server nickname.
+/// Set a nickname for a user.
 pub(crate) async fn setnick(
     ctx: Context<'_>,
     #[description = "The user to set the nickname for."]
     #[rename = "user"]
     user_id: UserId,
-    #[description = "The nickname to set."] nickname: String,
+    #[description = "The nickname to set."]
+    #[min_length = 1]
+    #[max_length = 32]
+    nickname: String,
 ) -> Result<(), Error> {
+    let number_of_nickname = nickname.chars().count();
+    if number_of_nickname < 1 || number_of_nickname > 32 {
+        let reply = messages::warn_reply(
+            format!("Nickname must be between 1 and 32 characters."),
+            true,
+        );
+        if let Err(why) = ctx.send(reply).await {
+            error!("Couldn't send reply: {why:?}");
+            return Err(why.into());
+        }
+
+        return Ok(());
+    }
+
     let guild_id = utility::guilds::guild_id(ctx).await;
 
     let user = utility::users::user(ctx, user_id).await;
