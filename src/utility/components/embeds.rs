@@ -111,10 +111,20 @@ pub(crate) fn colour_embed(colour: u32, url: &String, json: &serde_json::Value) 
         .colour(colour)
 }
 
-pub(crate) fn avatar_embed(name: &String, url: String) -> CreateEmbed {
-    let embed_author = CreateEmbedAuthor::new(name).icon_url(url.clone());
+pub(crate) fn avatar_embed(name: &String, avatar_url: String) -> CreateEmbed {
+    let embed_author = CreateEmbedAuthor::new(name).icon_url(avatar_url.clone());
 
-    CreateEmbed::default().author(embed_author).image(url)
+    CreateEmbed::default()
+        .author(embed_author)
+        .image(avatar_url)
+}
+
+pub(crate) fn banner_embed(name: &String, avatar_url: String, banner_url: String) -> CreateEmbed {
+    let embed_author = CreateEmbedAuthor::new(name).icon_url(avatar_url.clone());
+
+    CreateEmbed::default()
+        .author(embed_author)
+        .image(banner_url)
 }
 
 pub(crate) fn ping_embed(

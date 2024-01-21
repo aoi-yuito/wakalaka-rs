@@ -43,6 +43,7 @@ pub(crate) async fn guild_commands() -> Vec<Command<Data, Error>> {
         manager::slowmode::slowmode(),
         misc::colour::colour(),
         misc::avatar::avatar(),
+        misc::banner::banner(),
         misc::suggest::suggest(),
         moderator::deafen::deafen(),
         moderator::ban::ban(),

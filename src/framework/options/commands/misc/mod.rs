@@ -14,5 +14,6 @@
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
 pub(super) mod avatar;
+pub(super) mod banner;
 pub(super) mod colour;
 pub(super) mod suggest;
