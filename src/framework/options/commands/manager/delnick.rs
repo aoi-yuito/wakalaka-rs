@@ -16,7 +16,7 @@
 use serenity::{all::UserId, builder::EditMember};
 use tracing::{error, info};
 
-use crate::{utility, Context, Error};
+use crate::{utility::{self, components::messages}, Context, Error};
 
 #[poise::command(
     prefix_command,
@@ -46,7 +46,7 @@ pub(crate) async fn delnick(
     if let Err(why) = member.edit(&ctx, edit_member).await {
         error!("Couldn't empty @{user_name}'s nickname: {why:?}");
 
-        let reply = utility::components::messages::error_reply(
+        let reply = messages::error_reply(
             format!("Couldn't empty <@{user_id}>'s nickname."),
             true,
         );
@@ -60,7 +60,7 @@ pub(crate) async fn delnick(
 
     info!("@{moderator_name} removed @{user_name}'s nickname");
 
-    let reply = utility::components::messages::ok_reply(format!("Removed <@{user_id}>'s nickname."), true);
+    let reply = messages::ok_reply(format!("Removed <@{user_id}>'s nickname."), true);
     if let Err(why) = ctx.send(reply).await {
         error!("Couldn't send reply: {why:?}");
         return Err(Error::from(why));

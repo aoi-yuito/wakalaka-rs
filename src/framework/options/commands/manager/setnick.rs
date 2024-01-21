@@ -16,7 +16,10 @@
 use serenity::{all::UserId, builder::EditMember};
 use tracing::{error, info};
 
-use crate::{utility, Context, Error};
+use crate::{
+    utility::{self, components::messages},
+    Context, Error,
+};
 
 #[poise::command(
     prefix_command,
@@ -47,8 +50,7 @@ pub(crate) async fn setnick(
     if let Err(why) = member.edit(&ctx, edit_member).await {
         error!("Couldn't set @{user_name}'s nickname to {nickname:?}: {why:?}");
 
-        let reply =
-            utility::components::messages::error_reply(format!("Couldn't set <@{user_id}>'s nickname."), true);
+        let reply = messages::error_reply(format!("Couldn't set <@{user_id}>'s nickname."), true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
             return Err(Error::from(why));
@@ -59,7 +61,7 @@ pub(crate) async fn setnick(
 
     info!("@{moderator_name} changed @{user_name}'s nickname to {nickname:?}");
 
-    let reply = utility::components::messages::ok_reply(
+    let reply = messages::ok_reply(
         format!("Changed <@{user_id}>'s nickname to {nickname}."),
         true,
     );
