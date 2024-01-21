@@ -28,13 +28,15 @@ use crate::{
     category = "Misc",
     guild_only
 )]
-/// Get the avatar of a user.
+/// Get a user's avatar.
 pub(crate) async fn avatar(
     ctx: Context<'_>,
-    #[description = "The user to get the avatar of."] user: User, // Using `UserId` does not comply with context menu, so...
+    #[description = "The user to get the avatar from."] user: User,
 ) -> Result<(), Error> {
-    let user_name = &user.name;
-    let user_avatar_url = user.avatar_url().unwrap_or(user.default_avatar_url());
+    let (user_name, user_avatar_url) = (
+        &user.name,
+        user.avatar_url().unwrap_or(user.default_avatar_url()),
+    );
 
     let embed = embeds::avatar_embed(user_name, user_avatar_url);
 
