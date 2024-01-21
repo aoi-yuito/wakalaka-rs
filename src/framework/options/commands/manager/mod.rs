@@ -18,5 +18,6 @@ pub(super) mod addrole;
 pub(super) mod delemoji;
 pub(super) mod delnick;
 pub(super) mod delrole;
+pub(super) mod role;
 pub(super) mod setnick;
 pub(super) mod toggle;

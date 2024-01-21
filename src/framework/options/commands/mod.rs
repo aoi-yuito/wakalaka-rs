@@ -41,6 +41,7 @@ pub(crate) async fn guild_commands() -> Vec<Command<Data, Error>> {
         manager::delemoji::delemoji(),
         manager::delnick::delnick(),
         manager::delrole::delrole(),
+        manager::role::role(),
         manager::setnick::setnick(),
         manager::toggle::toggle(),
         misc::avatar::avatar(),
