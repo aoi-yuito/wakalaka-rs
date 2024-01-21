@@ -22,7 +22,7 @@ use tracing::error;
 
 use crate::{
     database::suggestions,
-    utility::{self, buttons, embeds, messages},
+    utility::{self, components::buttons, components::embeds, components::messages},
     Context, Error,
 };
 

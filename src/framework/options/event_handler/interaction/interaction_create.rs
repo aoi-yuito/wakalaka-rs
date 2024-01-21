@@ -21,7 +21,7 @@ use serenity::{
 use sqlx::SqlitePool;
 use tracing::{error, warn};
 
-use crate::{database::suggestions, serenity::Context, utility::messages, Data};
+use crate::{database::suggestions, serenity::Context, utility::components::messages, Data};
 
 pub(crate) async fn handle_create(interaction: &Interaction, ctx: &Context, data: &Data) {
     let pool = &data.pool;

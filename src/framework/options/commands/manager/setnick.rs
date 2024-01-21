@@ -48,7 +48,7 @@ pub(crate) async fn setnick(
         error!("Couldn't set @{user_name}'s nickname to {nickname:?}: {why:?}");
 
         let reply =
-            utility::messages::error_reply(format!("Couldn't set <@{user_id}>'s nickname."), true);
+            utility::components::messages::error_reply(format!("Couldn't set <@{user_id}>'s nickname."), true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
             return Err(Error::from(why));
@@ -59,7 +59,7 @@ pub(crate) async fn setnick(
 
     info!("@{moderator_name} changed @{user_name}'s nickname to {nickname:?}");
 
-    let reply = utility::messages::ok_reply(
+    let reply = utility::components::messages::ok_reply(
         format!("Changed <@{user_id}>'s nickname to {nickname}."),
         true,
     );

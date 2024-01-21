@@ -16,7 +16,7 @@
 use serenity::{all::Message, builder::GetMessages};
 use tracing::{error, info};
 
-use crate::{utility::messages, Context, Error};
+use crate::{utility::components::messages, Context, Error};
 
 #[poise::command(
     prefix_command,

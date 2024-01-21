@@ -17,7 +17,7 @@ use tokio::time::Instant;
 use tracing::error;
 
 use crate::{
-    utility::{embeds, messages},
+    utility::components::{embeds, messages},
     Context, Error,
 };
 

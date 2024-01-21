@@ -17,7 +17,7 @@ use serenity::all::User;
 use tracing::{error, info};
 
 use crate::{
-    utility::{self, messages},
+    utility::{self, components::messages},
     Context, Error,
 };
 

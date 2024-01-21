@@ -21,7 +21,7 @@ use crate::{
         infractions::{self, InfractionType},
         users,
     },
-    utility::{self, embeds, messages},
+    utility::{self, components::embeds, components::messages},
     Context, Error,
 };
 

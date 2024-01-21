@@ -16,7 +16,7 @@
 use rand::{rngs::StdRng, Rng, SeedableRng};
 use tracing::error;
 
-use crate::{utility::messages, Context, Error};
+use crate::{utility::components::messages, Context, Error};
 
 #[poise::command(prefix_command, slash_command, category = "Misc", guild_only)]
 /// Roll a number of point(s).
