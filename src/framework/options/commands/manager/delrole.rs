@@ -31,19 +31,16 @@ use crate::{
 /// Delete an existing role.
 pub(crate) async fn delrole(
     ctx: Context<'_>,
-    #[description = "The name of the role to delete."] name: String,
+    #[description = "The name of the role."] name: String,
 ) -> Result<(), Error> {
     let guild = utility::guilds::guild(ctx).await;
     let guild_name = &guild.name;
 
     let mut role = utility::roles::role(ctx, &name).await;
     if let Err(why) = role.delete(ctx).await {
-        error!("Couldn't delete @{name} role: {why:?}");
+        error!("Couldn't delete @{name} role from {guild_name}: {why:?}");
 
-        let reply = messages::error_reply(
-            format!("Couldn't delete a role called `{name}`."),
-            true,
-        );
+        let reply = messages::error_reply(format!("Couldn't delete a role called `{name}`."), true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
             return Err(Error::from(why));

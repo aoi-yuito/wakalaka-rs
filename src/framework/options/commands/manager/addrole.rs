@@ -32,8 +32,8 @@ use crate::{
 /// Create a new role.
 pub(crate) async fn addrole(
     ctx: Context<'_>,
-    #[description = "The name of the role to create."] name: String,
-    #[description = "The colour of the role in hexadecimal format, if any."]
+    #[description = "The name of the role."] name: String,
+    #[description = "The colour of the role in hexadecimal, if any."]
     #[min = 3]
     #[max = 11]
     colour: Option<String>,
@@ -54,7 +54,7 @@ pub(crate) async fn addrole(
     };
 
     if let Err(why) = guild.create_role(ctx, edit_role).await {
-        error!("Couldn't create @{name} role: {why:?}");
+        error!("Couldn't create @{name} role in {guild_name}: {why:?}");
 
         let reply = messages::error_reply(format!("Couldn't create a role called `{name}`."), true);
         if let Err(why) = ctx.send(reply).await {
