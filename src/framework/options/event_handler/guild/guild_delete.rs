@@ -14,7 +14,7 @@
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
 use serenity::all::{Guild, UnavailableGuild};
-use tracing::{error, warn};
+use tracing::warn;
 
 use crate::{database::users, serenity::Context, utility, Data};
 
