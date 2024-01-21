@@ -74,7 +74,7 @@ async fn initialise_client(
         Ok(client) => client,
         Err(why) => {
             error!("Couldn't initialise client: {why:?}");
-            panic!("why:?");
+            panic!("{why:?}");
         }
     };
 
@@ -90,7 +90,7 @@ fn initialise_subscriber() {
     let rust_log = match dotenvy::var("RUST_LOG") {
         Ok(level) => level,
         Err(_) => {
-            warn!("Couldn't get log level from environment, setting default...");
+            error!("Couldn't get log level from environment, setting default...");
             format!("info")
         }
     };
