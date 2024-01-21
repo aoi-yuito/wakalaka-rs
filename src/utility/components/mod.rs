@@ -16,3 +16,4 @@
 pub(crate) mod buttons;
 pub(crate) mod embeds;
 pub(crate) mod messages;
+pub(crate) mod emojis;
