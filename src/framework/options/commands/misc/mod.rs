@@ -15,5 +15,4 @@
 
 pub(super) mod avatar;
 pub(super) mod colour;
-pub(super) mod roll;
 pub(super) mod suggest;
