@@ -17,7 +17,6 @@ pub(super) mod ban;
 pub(super) mod deafen;
 pub(super) mod kick;
 pub(super) mod mute;
-pub(super) mod purge;
 pub(super) mod timeout;
 pub(super) mod unban;
 pub(super) mod undeafen;
