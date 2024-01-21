@@ -13,7 +13,33 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
+use tracing::error;
+
 pub(super) mod channels;
-pub(super) mod guilds;
-pub(super) mod users;
 pub(super) mod components;
+pub(super) mod guilds;
+pub(super) mod roles;
+pub(super) mod users;
+
+pub(crate) fn rgb_to_u32(code: &String) -> u32 {
+    let mut rgb = code.split(',');
+
+    let r = rgb.next().unwrap().parse::<u32>().unwrap();
+    let g = rgb.next().unwrap().parse::<u32>().unwrap();
+    let b = rgb.next().unwrap().parse::<u32>().unwrap();
+
+    let hex = format!("{r:02X}{g:02X}{b:02X}");
+    hex_to_u32(&hex)
+}
+
+pub(crate) fn hex_to_u32(code: &String) -> u32 {
+    let hex_code: String = code.chars().filter(|c| c.is_digit(16)).collect();
+
+    match u32::from_str_radix(&hex_code, 16) {
+        Ok(colour) => colour,
+        Err(why) => {
+            error!("Couldn't parse {code}: {why:?}");
+            return 0;
+        }
+    }
+}

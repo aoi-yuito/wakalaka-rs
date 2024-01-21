@@ -17,7 +17,10 @@ use regex::Regex;
 use tracing::error;
 
 use crate::{
-    utility::components::{embeds, messages},
+    utility::{
+        self,
+        components::{embeds, messages},
+    },
     Context, Error,
 };
 
@@ -48,7 +51,7 @@ pub(crate) async fn random(ctx: Context<'_>) -> Result<(), Error> {
 
     let hex = res_json["hex"]["clean"].to_string();
 
-    let colour = hex_to_u32(&hex);
+    let colour = utility::hex_to_u32(&hex);
     let hex_colour = format!("{:06X}", colour);
     let colour_url = format!("https://singlecolorimage.com/get/{hex_colour}/400x400");
 
@@ -94,7 +97,7 @@ pub(crate) async fn rgb(
     let res_text = res.text().await?;
     let res_json: serde_json::Value = serde_json::from_str(&res_text)?;
 
-    let colour = rgb_to_u32(&code);
+    let colour = utility::rgb_to_u32(&code);
     let hex_colour = format!("{:06X}", colour);
     let colour_url = format!("https://singlecolorimage.com/get/{hex_colour}/400x400");
 
@@ -146,7 +149,7 @@ pub(crate) async fn hex(
     let res_text = res.text().await?;
     let res_json: serde_json::Value = serde_json::from_str(&res_text)?;
 
-    let colour = hex_to_u32(&code);
+    let colour = utility::hex_to_u32(&code);
     let colour_url = format!("https://singlecolorimage.com/get/{code}/400x400");
 
     let embed = embeds::colour_embed(colour, &colour_url, &res_json);
@@ -158,27 +161,4 @@ pub(crate) async fn hex(
     }
 
     Ok(())
-}
-
-fn rgb_to_u32(code: &String) -> u32 {
-    let mut rgb = code.split(',');
-
-    let r = rgb.next().unwrap().parse::<u32>().unwrap();
-    let g = rgb.next().unwrap().parse::<u32>().unwrap();
-    let b = rgb.next().unwrap().parse::<u32>().unwrap();
-
-    let hex = format!("{r:02X}{g:02X}{b:02X}");
-    hex_to_u32(&hex)
-}
-
-fn hex_to_u32(code: &String) -> u32 {
-    let hex_code: String = code.chars().filter(|c| c.is_digit(16)).collect();
-
-    match u32::from_str_radix(&hex_code, 16) {
-        Ok(colour) => colour,
-        Err(why) => {
-            error!("Couldn't parse {code}: {why:?}");
-            return 0;
-        }
-    }
 }
