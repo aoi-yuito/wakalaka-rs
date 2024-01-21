@@ -17,7 +17,7 @@ use serenity::{all::ChannelId, builder::EditChannel};
 use tracing::{error, info};
 
 use crate::{
-    utility::{self, components::messages},
+    utility::{components::messages, models},
     Context, Error,
 };
 
@@ -55,7 +55,7 @@ pub(crate) async fn slowmode(
         }
     }
 
-    let channel_id = utility::channels::channel_id(ctx, channel_id).await;
+    let channel_id = models::channels::channel_id(ctx, channel_id).await;
     let delay = match delay {
         Some(delay) => delay,
         None => 0,
@@ -63,8 +63,8 @@ pub(crate) async fn slowmode(
 
     let user_name = &ctx.author().name;
 
-    let guild = utility::guilds::guild(ctx).await;
-    let (guild_name, guild_channels) = (guild.name, utility::guilds::channels(ctx).await);
+    let guild = models::guilds::guild(ctx).await;
+    let (guild_name, guild_channels) = (guild.name, models::guilds::channels(ctx).await);
     for mut guild_channel in guild_channels {
         let guild_channel_id = guild_channel.id;
         if channel_id != guild_channel_id {

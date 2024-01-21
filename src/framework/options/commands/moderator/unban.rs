@@ -21,7 +21,7 @@ use crate::{
         infractions::{self, InfractionType},
         users,
     },
-    utility::{self, components::messages},
+    utility::{components::messages, models},
     Context, Error,
 };
 
@@ -46,15 +46,15 @@ pub(crate) async fn unban(
 ) -> Result<(), Error> {
     let pool = &ctx.data().pool;
 
-    let user = utility::users::user(ctx, user_id).await;
+    let user = models::users::user(ctx, user_id).await;
     let user_name = &user.name;
 
     let moderator = ctx.author();
     let moderator_name = &moderator.name;
 
     let (guild_id, guild_name) = (
-        utility::guilds::guild_id(ctx).await,
-        utility::guilds::guild_name(ctx).await,
+        models::guilds::guild_id(ctx).await,
+        models::guilds::guild_name(ctx).await,
     );
 
     let ban_type = InfractionType::Ban.as_str();

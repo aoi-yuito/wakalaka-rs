@@ -16,7 +16,7 @@
 use serenity::all::{Emoji, EmojiId};
 use tracing::error;
 
-use crate::{utility, Context};
+use crate::{utility::models, Context};
 
 pub(crate) async fn emoji_id(ctx: Context<'_>, name: &str) -> Option<EmojiId> {
     let emojis = emojis(ctx).await;
@@ -30,7 +30,7 @@ pub(crate) async fn emoji_id(ctx: Context<'_>, name: &str) -> Option<EmojiId> {
 }
 
 pub(crate) async fn emoji(ctx: Context<'_>, id: EmojiId) -> Option<Emoji> {
-    let guild = utility::guilds::guild(ctx).await;
+    let guild = models::guilds::guild(ctx).await;
 
     match guild.emoji(&ctx, id).await {
         Ok(emoji) => Some(emoji),
@@ -42,7 +42,7 @@ pub(crate) async fn emoji(ctx: Context<'_>, id: EmojiId) -> Option<Emoji> {
 }
 
 pub(crate) async fn emojis(ctx: Context<'_>) -> Vec<Emoji> {
-    let guild = utility::guilds::guild(ctx).await;
+    let guild = models::guilds::guild(ctx).await;
 
     match guild.emojis(&ctx).await {
         Ok(emojis) => emojis,

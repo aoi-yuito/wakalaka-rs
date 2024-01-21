@@ -17,8 +17,8 @@ use tracing::{error, info, warn};
 
 use crate::{
     utility::{
-        self,
         components::{self, messages},
+        models,
     },
     Context, Error,
 };
@@ -53,7 +53,7 @@ pub(crate) async fn delete(
         return Ok(());
     }
 
-    let guild = utility::guilds::guild(ctx).await;
+    let guild = models::guilds::guild(ctx).await;
     let guild_name = &guild.name;
 
     let emoji_id = match components::emojis::emoji_id(ctx, &name).await {

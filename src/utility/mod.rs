@@ -15,11 +15,8 @@
 
 use tracing::error;
 
-pub(super) mod channels;
 pub(super) mod components;
-pub(super) mod guilds;
-pub(super) mod roles;
-pub(super) mod users;
+pub(super) mod models;
 
 pub(crate) fn rgb_to_u32(code: &String) -> u32 {
     let mut rgb = code.split(',');

@@ -21,7 +21,7 @@ use crate::{
         infractions::{self, InfractionType},
         users,
     },
-    utility::{self, components::messages},
+    utility::{components::messages, models},
     Context, Error,
 };
 
@@ -46,7 +46,7 @@ pub(crate) async fn unmute(
 ) -> Result<(), Error> {
     let pool = &ctx.data().pool;
 
-    let user = utility::users::user(ctx, user_id).await;
+    let user = models::users::user(ctx, user_id).await;
     if user.bot || user.system {
         let reply = messages::error_reply("Cannot unmute bots or system users.", true);
         if let Err(why) = ctx.send(reply).await {
@@ -62,7 +62,7 @@ pub(crate) async fn unmute(
     let moderator = ctx.author();
     let moderator_name = &moderator.name;
 
-    let guild_id = utility::guilds::guild_id(ctx).await;
+    let guild_id = models::guilds::guild_id(ctx).await;
 
     let mute_type = InfractionType::Mute.as_str();
 
@@ -91,7 +91,7 @@ pub(crate) async fn unmute(
             }
         };
 
-        let mut member = utility::guilds::member(ctx, guild_id, user_id).await;
+        let mut member = models::guilds::member(ctx, guild_id, user_id).await;
         let edit_member = EditMember::default().mute(false);
 
         if let Err(why) = member.edit(&ctx, edit_member).await {

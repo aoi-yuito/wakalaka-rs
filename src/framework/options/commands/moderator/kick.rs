@@ -17,7 +17,7 @@ use serenity::all::User;
 use tracing::{error, info};
 
 use crate::{
-    utility::{self, components::messages},
+    utility::{components::messages, models},
     Context, Error,
 };
 
@@ -62,11 +62,11 @@ pub(crate) async fn kick(
     let (moderator_id, moderator_name) = (moderator.id, &moderator.name);
 
     let (guild_id, guild_name) = (
-        utility::guilds::guild_id(ctx).await,
-        utility::guilds::guild_name(ctx).await,
+        models::guilds::guild_id(ctx).await,
+        models::guilds::guild_name(ctx).await,
     );
 
-    let member = utility::guilds::member(ctx, guild_id, user_id).await;
+    let member = models::guilds::member(ctx, guild_id, user_id).await;
 
     let message = messages::message(format!(
         "You've been kicked from {guild_name} by <@{moderator_id}> for {reason}.",

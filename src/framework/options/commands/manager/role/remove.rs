@@ -17,7 +17,7 @@ use serenity::all::{Role, UserId};
 use tracing::{error, info};
 
 use crate::{
-    utility::{self, components::messages},
+    utility::{components::messages, models},
     Context, Error,
 };
 
@@ -37,14 +37,14 @@ pub(crate) async fn remove(
     #[rename = "user"]
     user_id: UserId,
 ) -> Result<(), Error> {
-    let role_ids = utility::roles::role_ids(roles).await;
+    let role_ids = models::roles::role_ids(roles).await;
 
-    let user_name = utility::users::name(ctx, user_id).await;
+    let user_name = models::users::name(ctx, user_id).await;
 
-    let guild = utility::guilds::guild(ctx).await;
+    let guild = models::guilds::guild(ctx).await;
     let (guild_id, guild_name) = (guild.id, &guild.name);
 
-    let member = utility::guilds::member(ctx, guild_id, user_id).await;
+    let member = models::guilds::member(ctx, guild_id, user_id).await;
 
     if let Err(why) = member.remove_roles(&ctx, &role_ids).await {
         error!("Couldn't remove role(s) from @{user_name} in {guild_name}: {why:?}");

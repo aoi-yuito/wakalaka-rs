@@ -22,7 +22,7 @@ use crate::{
         infractions::{self, InfractionType},
         users,
     },
-    utility::{self, components::messages},
+    utility::{components::messages, models},
     Context, Error,
 };
 
@@ -47,7 +47,7 @@ pub(crate) async fn ban(
 ) -> Result<(), Error> {
     let pool = &ctx.data().pool;
 
-    let user = utility::users::user(ctx, user_id).await;
+    let user = models::users::user(ctx, user_id).await;
     if user.bot || user.system {
         let reply = messages::error_reply("Cannot ban bots and system users.", true);
         if let Err(why) = ctx.send(reply).await {
@@ -75,8 +75,8 @@ pub(crate) async fn ban(
     let (moderator_id, moderator_name) = (moderator.id, &moderator.name);
 
     let (guild_id, guild_name) = (
-        utility::guilds::guild_id(ctx).await,
-        utility::guilds::guild_name(ctx).await,
+        models::guilds::guild_id(ctx).await,
+        models::guilds::guild_name(ctx).await,
     );
 
     let created_at = Utc::now().naive_utc();

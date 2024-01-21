@@ -17,7 +17,7 @@ use serenity::{all::UserId, builder::EditMember};
 use tracing::{error, info};
 
 use crate::{
-    utility::{self, components::messages},
+    utility::{components::messages, models},
     Context, Error,
 };
 
@@ -54,14 +54,14 @@ pub(crate) async fn set(
         return Ok(());
     }
 
-    let guild_id = utility::guilds::guild_id(ctx).await;
+    let guild_id = models::guilds::guild_id(ctx).await;
 
-    let user = utility::users::user(ctx, user_id).await;
+    let user = models::users::user(ctx, user_id).await;
     let user_name = &user.name;
 
     let moderator_name = &ctx.author().name;
 
-    let mut member = utility::guilds::member(ctx, guild_id, user_id).await;
+    let mut member = models::guilds::member(ctx, guild_id, user_id).await;
     let edit_member = EditMember::default().nickname(&nickname);
 
     if let Err(why) = member.edit(&ctx, edit_member).await {

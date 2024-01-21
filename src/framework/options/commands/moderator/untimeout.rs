@@ -21,7 +21,7 @@ use crate::{
         infractions::{self, InfractionType},
         users,
     },
-    utility::{self, components::messages},
+    utility::{components::messages, models},
     Context, Error,
 };
 
@@ -46,7 +46,7 @@ pub(crate) async fn untimeout(
 ) -> Result<(), Error> {
     let pool = &ctx.data().pool;
 
-    let user = utility::users::user(ctx, user_id).await;
+    let user = models::users::user(ctx, user_id).await;
     if user.bot || user.system {
         let reply =
             messages::error_reply("Cannot get bots and system users out of a time-out.", true);
@@ -63,7 +63,7 @@ pub(crate) async fn untimeout(
     let moderator = ctx.author();
     let moderator_name = &moderator.name;
 
-    let guild_id = utility::guilds::guild_id(ctx).await;
+    let guild_id = models::guilds::guild_id(ctx).await;
 
     let timeout_type = InfractionType::Timeout.as_str();
 
@@ -92,7 +92,7 @@ pub(crate) async fn untimeout(
             }
         };
 
-        let mut member = utility::guilds::member(ctx, guild_id, user_id).await;
+        let mut member = models::guilds::member(ctx, guild_id, user_id).await;
         if let Err(why) = member.enable_communication(ctx).await {
             error!("Couldn't get member out of time-out: {why:?}");
 

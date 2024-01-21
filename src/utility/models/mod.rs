@@ -13,20 +13,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-use serenity::all::Guild;
-
-use crate::{database::users, serenity::Context, utility::models, Data};
-
-pub(crate) async fn handle_create(guild: &Guild, is_new: bool, ctx: &Context, data: &Data) {
-    let pool = &data.pool;
-
-    let guild_id = guild.id;
-
-    let members = models::guilds::members_raw(&ctx, guild_id).await;
-
-    if !is_new {
-        users::update_users(members, pool).await;
-    } else {
-        users::insert_users(members, pool).await;
-    }
-}
+pub(crate) mod channels;
+pub(crate) mod guilds;
+pub(crate) mod roles;
+pub(crate) mod users;

@@ -21,7 +21,7 @@ use crate::{
         infractions::{self, InfractionType},
         users,
     },
-    utility::{self, components::embeds, components::messages},
+    utility::{components::embeds, components::messages, models},
     Context, Error,
 };
 
@@ -42,7 +42,7 @@ pub(crate) async fn warnings(
 ) -> Result<(), Error> {
     let pool = &ctx.data().pool;
 
-    let user = utility::users::user(ctx, user_id).await;
+    let user = models::users::user(ctx, user_id).await;
     if user.bot || user.system {
         let reply = messages::error_reply("Cannot get warnings for a bot or system user.", true);
         if let Err(why) = ctx.send(reply).await {
@@ -55,7 +55,7 @@ pub(crate) async fn warnings(
 
     let user_name = &user.name;
 
-    let guild_id = utility::guilds::guild_id(ctx).await;
+    let guild_id = models::guilds::guild_id(ctx).await;
 
     let warn_type = InfractionType::Warn.as_str();
 

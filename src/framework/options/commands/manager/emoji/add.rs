@@ -17,7 +17,7 @@ use serenity::{all::Attachment, builder::CreateAttachment};
 use tracing::{error, info, warn};
 
 use crate::{
-    utility::{self, components::messages},
+    utility::{components::messages, models},
     Context, Error,
 };
 
@@ -89,7 +89,7 @@ pub(crate) async fn add(
     };
     let encoded_attachment = attachment.to_base64();
 
-    let guild = utility::guilds::guild(ctx).await;
+    let guild = models::guilds::guild(ctx).await;
     let guild_name = &guild.name;
 
     if let Err(why) = guild.create_emoji(&ctx, &name, &encoded_attachment).await {

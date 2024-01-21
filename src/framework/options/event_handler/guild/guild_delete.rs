@@ -16,7 +16,7 @@
 use serenity::all::{Guild, UnavailableGuild};
 use tracing::warn;
 
-use crate::{database::users, serenity::Context, utility, Data};
+use crate::{database::users, serenity::Context, utility::models, Data};
 
 pub(crate) async fn handle_delete(
     unavailable_guild: &UnavailableGuild,
@@ -38,8 +38,8 @@ pub(crate) async fn handle_delete(
     );
 
     let (unavailable_members, members) = (
-        utility::guilds::members_raw(ctx, unavailable_guild_id).await,
-        utility::guilds::members_raw(ctx, guild_id).await,
+        models::guilds::members_raw(ctx, unavailable_guild_id).await,
+        models::guilds::members_raw(ctx, guild_id).await,
     );
     let combined_members = unavailable_members
         .into_iter()

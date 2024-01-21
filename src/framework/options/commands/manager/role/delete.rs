@@ -17,7 +17,7 @@ use serenity::all::Role;
 use tracing::{error, info};
 
 use crate::{
-    utility::{self, components::messages},
+    utility::{components::messages, models},
     Context, Error,
 };
 
@@ -36,7 +36,7 @@ pub(crate) async fn delete(
 ) -> Result<(), Error> {
     let role_name = role.name.clone();
 
-    let guild = utility::guilds::guild(ctx).await;
+    let guild = models::guilds::guild(ctx).await;
     let guild_name = &guild.name;
 
     if let Err(why) = role.delete(ctx).await {

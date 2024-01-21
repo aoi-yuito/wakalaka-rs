@@ -17,7 +17,7 @@ use serenity::{all::Role, builder::EditRole};
 use tracing::{error, info};
 
 use crate::{
-    utility::{self, components::messages},
+    utility::{self, components::messages, models},
     Context, Error,
 };
 
@@ -62,7 +62,7 @@ pub(crate) async fn edit(
 
     let role_name = role.name.clone();
 
-    let guild = utility::guilds::guild(ctx).await;
+    let guild = models::guilds::guild(ctx).await;
     let guild_name = &guild.name;
 
     let role_builder = if let Some(colour) = colour {

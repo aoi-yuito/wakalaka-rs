@@ -22,7 +22,7 @@ use tracing::error;
 
 use crate::{
     database::suggestions,
-    utility::{self, components::buttons, components::embeds, components::messages},
+    utility::{components::buttons, components::embeds, components::messages, models},
     Context, Error,
 };
 
@@ -50,8 +50,8 @@ pub(crate) async fn suggest(
     }
 
     let (guild_id, guild_name) = (
-        utility::guilds::guild_id(ctx).await,
-        utility::guilds::guild_name(ctx).await,
+        models::guilds::guild_id(ctx).await,
+        models::guilds::guild_name(ctx).await,
     );
 
     let guild_channels = match ctx.http().get_channels(guild_id).await {
@@ -89,7 +89,7 @@ pub(crate) async fn suggest(
                 .unwrap_or(ctx.author().default_avatar_url()),
         );
 
-        let (user_id, owner_id) = (ctx.author().id, utility::guilds::owner_id(ctx).await);
+        let (user_id, owner_id) = (ctx.author().id, models::guilds::owner_id(ctx).await);
 
         let created_at = Utc::now().naive_utc();
 
