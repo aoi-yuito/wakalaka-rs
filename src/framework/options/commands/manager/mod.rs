@@ -13,6 +13,8 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
+pub(super) mod addrole;
 pub(super) mod delnick;
+pub(super) mod delrole;
 pub(super) mod setnick;
 pub(super) mod toggle;
