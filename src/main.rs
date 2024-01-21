@@ -51,9 +51,9 @@ pub async fn main() {
     let intents = framework::initialise_intents();
     let framework = framework::initialise_framework(data).await;
 
-    info!("Starting client with automatic sharding...");
-
     let mut client = initialise_client(token, intents, framework).await;
+
+    info!("Starting client with automatic sharding...");
     if let Err(why) = client.start_autosharded().await {
         error!("Couldn't start client with automatic sharding: {why:?}");
         return;
