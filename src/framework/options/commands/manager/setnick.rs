@@ -53,10 +53,10 @@ pub(crate) async fn setnick(
         let reply = messages::error_reply(format!("Couldn't set <@{user_id}>'s nickname."), true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
-            return Err(Error::from(why));
+            return Err(why.into());
         }
 
-        return Err(Error::from(why));
+        return Err(why.into());
     }
 
     info!("@{moderator_name} changed @{user_name}'s nickname to {nickname:?}");
@@ -67,7 +67,7 @@ pub(crate) async fn setnick(
     );
     if let Err(why) = ctx.send(reply).await {
         error!("Couldn't send reply: {why:?}");
-        return Err(Error::from(why));
+        return Err(why.into());
     }
 
     Ok(())

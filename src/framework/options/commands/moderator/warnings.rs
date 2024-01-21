@@ -47,7 +47,7 @@ pub(crate) async fn warnings(
         let reply = messages::error_reply("Cannot get warnings for a bot or system user.", true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
-            return Err(Error::from(why));
+            return Err(why.into());
         }
 
         return Ok(());
@@ -71,7 +71,7 @@ pub(crate) async fn warnings(
         Ok(warnings) => warnings,
         Err(why) => {
             error!("Couldn't get warnings from database: {why:?}");
-            return Err(Error::from(why));
+            return Err(why.into());
         }
     };
 
@@ -82,7 +82,7 @@ pub(crate) async fn warnings(
         let reply = messages::warn_reply(format!("<@{user_id}> doesn't have any warnings."), true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
-            return Err(Error::from(why));
+            return Err(why.into());
         }
 
         return Ok(());
@@ -106,7 +106,7 @@ pub(crate) async fn warnings(
     let reply = messages::reply_embed(warns_embed, true);
     if let Err(why) = ctx.send(reply).await {
         error!("Couldn't send reply: {why:?}");
-        return Err(Error::from(why));
+        return Err(why.into());
     }
 
     Ok(())

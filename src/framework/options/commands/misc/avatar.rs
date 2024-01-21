@@ -41,7 +41,7 @@ pub(crate) async fn avatar(
     let reply = messages::reply_embed(embed, false);
     if let Err(why) = ctx.send(reply).await {
         error!("Couldn't send reply: {why:?}");
-        return Err(Error::from(why));
+        return Err(why.into());
     }
 
     Ok(())

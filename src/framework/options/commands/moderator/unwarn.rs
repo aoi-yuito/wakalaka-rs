@@ -55,7 +55,7 @@ pub(crate) async fn unwarn(
         let reply = messages::error_reply("Cannot remove warnings from bots or system users", true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
-            return Err(Error::from(why));
+            return Err(why.into());
         }
 
         return Ok(());
@@ -65,7 +65,7 @@ pub(crate) async fn unwarn(
         let reply = messages::warn_reply("Case ID must be greater than 0", true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
-            return Err(Error::from(why));
+            return Err(why.into());
         }
 
         return Ok(());
@@ -88,7 +88,7 @@ pub(crate) async fn unwarn(
             messages::warn_reply(format!("<@{user_id}> hasn't been punished before."), true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
-            return Err(Error::from(why));
+            return Err(why.into());
         }
 
         return Ok(());
@@ -101,7 +101,7 @@ pub(crate) async fn unwarn(
                 messages::error_reply(format!("Couldn't find warning for <@{user_id}>."), true);
             if let Err(why) = ctx.send(reply).await {
                 error!("Couldn't send reply: {why:?}");
-                return Err(Error::from(why));
+                return Err(why.into());
             }
 
             break;
@@ -141,7 +141,7 @@ pub(crate) async fn unwarn(
                     messages::warn_reply("Reason must be between 8 and 80 characters.", true);
                 if let Err(why) = ctx.send(reply).await {
                     error!("Couldn't send reply: {why:?}");
-                    return Err(Error::from(why));
+                    return Err(why.into());
                 }
 
                 return Ok(());
@@ -155,7 +155,7 @@ pub(crate) async fn unwarn(
         let reply = messages::ok_reply(format!("Removed warning from <@{user_id}>."), true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
-            return Err(Error::from(why));
+            return Err(why.into());
         }
 
         break;

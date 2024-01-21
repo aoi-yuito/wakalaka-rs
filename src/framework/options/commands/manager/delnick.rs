@@ -52,10 +52,10 @@ pub(crate) async fn delnick(
         );
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
-            return Err(Error::from(why));
+            return Err(why.into());
         }
 
-        return Err(Error::from(why));
+        return Err(why.into());
     }
 
     info!("@{moderator_name} removed @{user_name}'s nickname");
@@ -63,7 +63,7 @@ pub(crate) async fn delnick(
     let reply = messages::ok_reply(format!("Removed <@{user_id}>'s nickname."), true);
     if let Err(why) = ctx.send(reply).await {
         error!("Couldn't send reply: {why:?}");
-        return Err(Error::from(why));
+        return Err(why.into());
     }
 
     Ok(())

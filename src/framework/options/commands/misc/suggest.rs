@@ -43,7 +43,7 @@ pub(crate) async fn suggest(
             messages::warn_reply("Suggestion must be between 32 and 1024 characters.", true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
-            return Err(Error::from(why));
+            return Err(why.into());
         }
 
         return Ok(());
@@ -58,7 +58,7 @@ pub(crate) async fn suggest(
         Ok(value) => value,
         Err(why) => {
             error!("Couldn't get channels in {guild_name}: {why:?}");
-            return Err(Error::from(why));
+            return Err(why.into());
         }
     };
 
@@ -79,7 +79,7 @@ pub(crate) async fn suggest(
             .await
         {
             error!("Couldn't create permission overwrite for #{channel_name}: {why:?}");
-            return Err(Error::from(why));
+            return Err(why.into());
         }
 
         let (user_name, user_avatar_url) = (
@@ -109,7 +109,7 @@ pub(crate) async fn suggest(
             Ok(value) => value,
             Err(why) => {
                 error!("Couldn't send message: {why:?}");
-                return Err(Error::from(why));
+                return Err(why.into());
             }
         };
         let message_id = message.id;
@@ -129,14 +129,14 @@ pub(crate) async fn suggest(
         let reply = messages::error_reply("Couldn't find `#suggestions` channel.", true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
-            return Err(Error::from(why));
+            return Err(why.into());
         }
     }
 
     let reply = messages::ok_reply(format!("Suggestion has been sent in for review."), true);
     if let Err(why) = ctx.send(reply).await {
         error!("Couldn't send reply: {why:?}");
-        return Err(Error::from(why));
+        return Err(why.into());
     }
 
     Ok(())

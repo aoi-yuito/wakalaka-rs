@@ -29,7 +29,7 @@ pub(crate) async fn info(ctx: Context<'_>) -> Result<(), Error> {
         Ok(value) => value,
         Err(why) => {
             error!("Couldn't get current user: {why:?}");
-            return Err(Error::from(why));
+            return Err(why.into());
         }
     };
     let bot_avatar_url = bot.avatar_url().unwrap_or(bot.default_avatar_url());
@@ -48,7 +48,7 @@ pub(crate) async fn info(ctx: Context<'_>) -> Result<(), Error> {
     let reply = messages::reply_embed(info_embed, true);
     if let Err(why) = ctx.send(reply).await {
         error!("Couldn't send reply: {why:?}");
-        return Err(Error::from(why));
+        return Err(why.into());
     }
 
     Ok(())

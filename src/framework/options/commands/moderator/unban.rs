@@ -67,7 +67,7 @@ pub(crate) async fn unban(
             messages::warn_reply(format!("<@{user_id}> hasn't been punished before."), true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
-            return Err(Error::from(why));
+            return Err(why.into());
         }
 
         return Ok(());
@@ -90,10 +90,10 @@ pub(crate) async fn unban(
             let reply = messages::error_reply("Couldn't unban member.", true);
             if let Err(why) = ctx.send(reply).await {
                 error!("Couldn't send reply: {why:?}");
-                return Err(Error::from(why));
+                return Err(why.into());
             }
 
-            return Err(Error::from(why));
+            return Err(why.into());
         }
 
         user_infractions -= 1;
@@ -122,7 +122,7 @@ pub(crate) async fn unban(
                     messages::warn_reply("Reason must be between 8 and 80 characters.", true);
                 if let Err(why) = ctx.send(reply).await {
                     error!("Couldn't send reply: {why:?}");
-                    return Err(Error::from(why));
+                    return Err(why.into());
                 }
 
                 return Ok(());
@@ -136,7 +136,7 @@ pub(crate) async fn unban(
         let reply = messages::ok_reply(format!("<@{user_id}> has been unbanned."), true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
-            return Err(Error::from(why));
+            return Err(why.into());
         }
     }
 

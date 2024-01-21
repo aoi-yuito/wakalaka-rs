@@ -60,7 +60,7 @@ pub(crate) async fn random(ctx: Context<'_>) -> Result<(), Error> {
     let reply = messages::reply_embed(embed, false);
     if let Err(why) = ctx.send(reply).await {
         error!("Couldn't send reply: {why:?}");
-        return Err(Error::from(why));
+        return Err(why.into());
     }
 
     Ok(())
@@ -80,7 +80,7 @@ pub(crate) async fn rgb(
         let reply = messages::error_reply("Colour code must be in RGB.", true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
-            return Err(Error::from(why));
+            return Err(why.into());
         }
 
         return Ok(());
@@ -106,7 +106,7 @@ pub(crate) async fn rgb(
     let reply = messages::reply_embed(embed, false);
     if let Err(why) = ctx.send(reply).await {
         error!("Couldn't send reply: {why:?}");
-        return Err(Error::from(why));
+        return Err(why.into());
     }
 
     Ok(())
@@ -132,7 +132,7 @@ pub(crate) async fn hex(
         let reply = messages::error_reply("Colour code must be in hexadecimal.", true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
-            return Err(Error::from(why));
+            return Err(why.into());
         }
 
         return Ok(());
@@ -157,7 +157,7 @@ pub(crate) async fn hex(
     let reply = messages::reply_embed(embed, false);
     if let Err(why) = ctx.send(reply).await {
         error!("Couldn't send reply: {why:?}");
-        return Err(Error::from(why));
+        return Err(why.into());
     }
 
     Ok(())

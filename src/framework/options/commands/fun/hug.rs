@@ -34,7 +34,7 @@ pub(crate) async fn hug(
     let message = format!("{user_mention} 🫂 {other_mention}");
     if let Err(why) = ctx.say(message).await {
         error!("Couldn't send reply: {why:?}");
-        return Err(Error::from(why));
+        return Err(why.into());
     }
 
     Ok(())

@@ -29,7 +29,7 @@ pub(crate) async fn restart(ctx: Context<'_>) -> Result<(), Error> {
     let reply = messages::reply("Restarting yours truly...", true);
     if let Err(why) = ctx.send(reply).await {
         error!("Couldn't send reply: {why:?}");
-        return Err(Error::from(why));
+        return Err(why.into());
     }
 
     let manager = ctx.framework().shard_manager.clone();

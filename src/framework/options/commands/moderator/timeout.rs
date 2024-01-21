@@ -56,7 +56,7 @@ pub(crate) async fn timeout(
         let reply = messages::error_reply("Cannot time out bots and system users.", true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
-            return Err(Error::from(why));
+            return Err(why.into());
         }
 
         return Ok(());
@@ -67,7 +67,7 @@ pub(crate) async fn timeout(
         let reply = messages::warn_reply("Reason must be between 8 and 80 characters.", true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
-            return Err(Error::from(why));
+            return Err(why.into());
         }
 
         return Ok(());
@@ -78,7 +78,7 @@ pub(crate) async fn timeout(
         let reply = messages::warn_reply("Duration must be between 1 and 28 days.", true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
-            return Err(Error::from(why));
+            return Err(why.into());
         }
 
         return Ok(());
@@ -113,7 +113,7 @@ pub(crate) async fn timeout(
     ));
     if let Err(why) = user.direct_message(&ctx, message).await {
         error!("Couldn't send reply: {why:?}");
-        return Err(Error::from(why));
+        return Err(why.into());
     }
 
     let time = Timestamp::from(Utc::now() + Duration::days(duration));
@@ -124,10 +124,10 @@ pub(crate) async fn timeout(
         let reply = messages::error_reply("Couldn't put member on a time-out.", true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
-            return Err(Error::from(why));
+            return Err(why.into());
         }
 
-        return Err(Error::from(why));
+        return Err(why.into());
     } else {
         user_infractions += 1;
 
@@ -159,7 +159,7 @@ pub(crate) async fn timeout(
         let reply = messages::ok_reply(format!("<@{user_id}> has been timed out."), true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
-            return Err(Error::from(why));
+            return Err(why.into());
         }
     }
 

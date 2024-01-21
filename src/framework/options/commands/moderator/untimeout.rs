@@ -52,7 +52,7 @@ pub(crate) async fn untimeout(
             messages::error_reply("Cannot get bots and system users out of a time-out.", true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
-            return Err(Error::from(why));
+            return Err(why.into());
         }
 
         return Ok(());
@@ -75,7 +75,7 @@ pub(crate) async fn untimeout(
             messages::warn_reply(format!("<@{user_id}> hasn't been punished before."), true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
-            return Err(Error::from(why));
+            return Err(why.into());
         }
 
         return Ok(());
@@ -99,7 +99,7 @@ pub(crate) async fn untimeout(
             let reply = messages::error_reply("Couldn't get member out of a time-out.", true);
             if let Err(why) = ctx.send(reply).await {
                 error!("Couldn't send reply: {why:?}");
-                return Err(Error::from(why));
+                return Err(why.into());
             }
 
             return Ok(());
@@ -130,7 +130,7 @@ pub(crate) async fn untimeout(
                         messages::warn_reply("Reason must be between 8 and 80 characters.", true);
                     if let Err(why) = ctx.send(reply).await {
                         error!("Couldn't send reply: {why:?}");
-                        return Err(Error::from(why));
+                        return Err(why.into());
                     }
 
                     return Ok(());
@@ -147,7 +147,7 @@ pub(crate) async fn untimeout(
             );
             if let Err(why) = ctx.send(reply).await {
                 error!("Couldn't send reply: {why:?}");
-                return Err(Error::from(why));
+                return Err(why.into());
             }
         }
     }

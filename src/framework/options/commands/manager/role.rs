@@ -54,7 +54,7 @@ pub(crate) async fn remove(
 ) -> Result<(), Error> {
     let role_ids = utility::roles::role_ids(roles).await;
 
-    let user_name = utility::users::user_name(ctx, user_id).await;
+    let user_name = utility::users::name(ctx, user_id).await;
 
     let guild = utility::guilds::guild(ctx).await;
     let (guild_id, guild_name) = (guild.id, &guild.name);
@@ -103,7 +103,7 @@ pub(crate) async fn add(
 ) -> Result<(), Error> {
     let role_ids = utility::roles::role_ids(roles).await;
 
-    let user_name = utility::users::user_name(ctx, user_id).await;
+    let user_name = utility::users::name(ctx, user_id).await;
 
     let guild = utility::guilds::guild(ctx).await;
     let (guild_id, guild_name) = (guild.id, &guild.name);

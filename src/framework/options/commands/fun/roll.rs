@@ -38,7 +38,7 @@ pub(crate) async fn roll(
     let reply = messages::reply(format!("{user_name} rolled {number} point(s)."), false);
     if let Err(why) = ctx.send(reply).await {
         error!("Couldn't send reply: {why:?}");
-        return Err(Error::from(why));
+        return Err(why.into());
     }
 
     Ok(())

@@ -83,10 +83,10 @@ pub(crate) async fn slowmode(
                 messages::error_reply(format!("Couldn't slow <#{guild_channel_id}> down."), true);
             if let Err(why) = ctx.send(reply).await {
                 error!("Couldn't send reply: {why:?}");
-                return Err(Error::from(why));
+                return Err(why.into());
             }
 
-            return Err(Error::from(why));
+            return Err(why.into());
         } else {
             info!("@{user_name} slowed #{guild_channel_name} down to {delay}s in {guild_name}");
 
@@ -96,7 +96,7 @@ pub(crate) async fn slowmode(
             );
             if let Err(why) = ctx.send(reply).await {
                 error!("Couldn't send reply: {why:?}");
-                return Err(Error::from(why));
+                return Err(why.into());
             }
         }
     }

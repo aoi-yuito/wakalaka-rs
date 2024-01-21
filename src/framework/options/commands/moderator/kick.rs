@@ -39,7 +39,7 @@ pub(crate) async fn kick(
         let reply = messages::error_reply("Cannot kick system users.", true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
-            return Err(Error::from(why));
+            return Err(why.into());
         }
 
         return Ok(());
@@ -50,7 +50,7 @@ pub(crate) async fn kick(
         let reply = messages::warn_reply("Reason must be between 8 and 80 characters.", true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
-            return Err(Error::from(why));
+            return Err(why.into());
         }
 
         return Ok(());
@@ -81,17 +81,17 @@ pub(crate) async fn kick(
         let reply = messages::error_reply("Couldn't kick member.", true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
-            return Err(Error::from(why));
+            return Err(why.into());
         }
 
-        return Err(Error::from(why));
+        return Err(why.into());
     } else {
         info!("@{moderator_name} kicked @{user_name} from {guild_name}: {reason}");
 
         let reply = messages::ok_reply(format!("<@{user_id}> has been kicked."), true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
-            return Err(Error::from(why));
+            return Err(why.into());
         }
     }
 

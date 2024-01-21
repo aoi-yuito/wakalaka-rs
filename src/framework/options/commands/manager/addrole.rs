@@ -59,17 +59,17 @@ pub(crate) async fn addrole(
         let reply = messages::error_reply(format!("Couldn't create a role called `{name}`."), true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
-            return Err(Error::from(why));
+            return Err(why.into());
         }
 
-        return Err(Error::from(why));
+        return Err(why.into());
     } else {
         info!("Created @{name} role in {guild_name}");
 
         let reply = messages::ok_reply(format!("Created a role called `{name}`."), true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
-            return Err(Error::from(why));
+            return Err(why.into());
         }
     }
 

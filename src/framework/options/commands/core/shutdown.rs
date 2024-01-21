@@ -37,7 +37,7 @@ pub(crate) async fn shutdown(
         let reply = messages::warn_reply("Duration must be between 1 and 5 seconds.", true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
-            return Err(Error::from(why));
+            return Err(why.into());
         }
 
         return Ok(());
@@ -46,7 +46,7 @@ pub(crate) async fn shutdown(
     let reply = messages::reply(format!("Shutting down in {duration}s..."), true);
     if let Err(why) = ctx.send(reply).await {
         error!("Couldn't send reply: {why:?}");
-        return Err(Error::from(why));
+        return Err(why.into());
     }
 
     let manager = ctx.framework().shard_manager.clone();

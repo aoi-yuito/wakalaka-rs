@@ -45,7 +45,7 @@ pub(crate) async fn ping(ctx: Context<'_>) -> Result<(), Error> {
         let reply = messages::reply_embed(ping_embed, true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
-            return Err(Error::from(why));
+            return Err(why.into());
         }
     }
     Ok(())

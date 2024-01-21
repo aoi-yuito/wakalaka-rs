@@ -44,7 +44,7 @@ pub(crate) async fn delemoji(
                 messages::error_reply(format!("Couldn't find an emoji called `{name}`."), true);
             if let Err(why) = ctx.send(reply).await {
                 error!("Couldn't send reply: {why:?}");
-                return Err(Error::from(why));
+                return Err(why.into());
             }
 
             return Ok(());
@@ -65,10 +65,10 @@ pub(crate) async fn delemoji(
         );
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
-            return Err(Error::from(why));
+            return Err(why.into());
         }
 
-        return Err(Error::from(why));
+        return Err(why.into());
     }
 
     info!("Deleted {emoji_name:?} emoji from {guild_name}");
@@ -76,7 +76,7 @@ pub(crate) async fn delemoji(
     let reply = messages::ok_reply(format!("Deleted an emoji called `{emoji_name}`."), true);
     if let Err(why) = ctx.send(reply).await {
         error!("Couldn't send reply: {why:?}");
-        return Err(Error::from(why));
+        return Err(why.into());
     }
 
     Ok(())

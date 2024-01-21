@@ -55,7 +55,7 @@ pub(crate) async fn before(
         let reply = messages::warn_reply("Amount must be between 1 and 100 message(s).", true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
-            return Err(Error::from(why));
+            return Err(why.into());
         }
 
         return Ok(());
@@ -136,7 +136,7 @@ pub(crate) async fn around(
         let reply = messages::warn_reply("Amount must be between 1 and 100 message(s).", true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
-            return Err(Error::from(why));
+            return Err(why.into());
         }
 
         return Ok(());
@@ -216,7 +216,7 @@ pub(crate) async fn any(
         let reply = messages::warn_reply("Amount must be between 1 and 100 message(s).", true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
-            return Err(Error::from(why));
+            return Err(why.into());
         }
 
         return Ok(());
@@ -296,7 +296,7 @@ pub(crate) async fn after(
         let reply = messages::warn_reply("Amount must be between 1 and 100 message(s).", true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
-            return Err(Error::from(why));
+            return Err(why.into());
         }
 
         return Ok(());

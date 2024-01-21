@@ -54,7 +54,7 @@ pub(crate) async fn addemoji(
         let reply = messages::warn_reply("Image must be `128`x`128` pixels in size.", true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
-            return Err(Error::from(why));
+            return Err(why.into());
         }
 
         return Ok(());
@@ -66,7 +66,7 @@ pub(crate) async fn addemoji(
         Ok(emoji) => emoji,
         Err(why) => {
             error!("Couldn't create emoji: {why:?}");
-            return Err(Error::from(why));
+            return Err(why.into());
         }
     };
     let encoded_attachment = attachment.to_base64();
@@ -81,10 +81,10 @@ pub(crate) async fn addemoji(
             messages::error_reply(format!("Couldn't create an emoji called `{name}`."), true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
-            return Err(Error::from(why));
+            return Err(why.into());
         }
 
-        return Err(Error::from(why));
+        return Err(why.into());
     }
 
     info!("Created {name:?} emoji in {guild_name}");
@@ -92,7 +92,7 @@ pub(crate) async fn addemoji(
     let reply = messages::ok_reply(format!("Created an emoji called `{name}`."), true);
     if let Err(why) = ctx.send(reply).await {
         error!("Couldn't send reply: {why:?}");
-        return Err(Error::from(why));
+        return Err(why.into());
     }
 
     Ok(())

@@ -43,7 +43,7 @@ pub(crate) async fn delrole(
         let reply = messages::error_reply(format!("Couldn't delete a role called `{name}`."), true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
-            return Err(Error::from(why));
+            return Err(why.into());
         }
 
         return Ok(());
@@ -53,7 +53,7 @@ pub(crate) async fn delrole(
         let reply = messages::ok_reply(format!("Deleted a role called `{name}`."), true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
-            return Err(Error::from(why));
+            return Err(why.into());
         }
     }
 

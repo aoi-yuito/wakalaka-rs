@@ -52,7 +52,7 @@ pub(crate) async fn warn(
         let reply = messages::error_reply("Cannot warn bots or system users.", true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
-            return Err(Error::from(why));
+            return Err(why.into());
         }
 
         return Ok(());
@@ -63,7 +63,7 @@ pub(crate) async fn warn(
         let reply = messages::warn_reply("Reason must be between 8 and 80 characters.", true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
-            return Err(Error::from(why));
+            return Err(why.into());
         }
 
         return Ok(());
@@ -107,7 +107,7 @@ pub(crate) async fn warn(
         );
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
-            return Err(Error::from(why));
+            return Err(why.into());
         }
 
         return Ok(());
@@ -117,7 +117,7 @@ pub(crate) async fn warn(
         ));
         if let Err(why) = user.direct_message(&ctx, message).await {
             error!("Couldn't send reply: {why:?}");
-            return Err(Error::from(why));
+            return Err(why.into());
         }
 
         user_infractions += 1;
@@ -150,7 +150,7 @@ pub(crate) async fn warn(
         let reply = messages::ok_reply(format!("<@{user_id}> has been warned."), true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
-            return Err(Error::from(why));
+            return Err(why.into());
         }
     }
 
