@@ -28,13 +28,16 @@ use crate::{utility::components::messages, Context, Error};
 /// Put yours truly to sleep.
 pub(crate) async fn shutdown(
     ctx: Context<'_>,
-    #[description = "Waiting time before sleep. (1-5s)"]
+    #[description = "Time before she goes to sleep. (seconds)"]
     #[min = 1]
     #[max = 5]
     duration: u64,
 ) -> Result<(), Error> {
     if duration < 1 || duration > 5 {
-        let reply = messages::warn_reply("Duration must be between 1 and 5 seconds.", true);
+        let reply = messages::warn_reply(
+            "I'm afraid the duration has to be between `1` and `5` seconds.",
+            true,
+        );
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
             return Err(why.into());

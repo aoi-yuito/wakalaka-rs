@@ -32,7 +32,7 @@ use crate::{
 /// Create a new role.
 pub(crate) async fn add(
     ctx: Context<'_>,
-    #[description = "The name of the role. (1-100 characters)"]
+    #[description = "The name of the role."]
     #[min_length = 1]
     #[max_length = 100]
     name: String,
@@ -46,7 +46,7 @@ pub(crate) async fn add(
     let number_of_name = name.chars().count();
     if number_of_name < 1 || number_of_name > 100 {
         let reply = messages::warn_reply(
-            format!("Role name must be between 1 and 100 characters."),
+            format!("I'm afraid the name has to be between `1` and `100` characters."),
             true,
         );
         if let Err(why) = ctx.send(reply).await {
@@ -78,7 +78,10 @@ pub(crate) async fn add(
     if let Err(why) = guild.create_role(ctx, role_builder).await {
         error!("Couldn't create @{name} role in {guild_name}: {why:?}");
 
-        let reply = messages::error_reply(format!("Couldn't create a role called `{name}`."), true);
+        let reply = messages::error_reply(
+            format!("Sorry, but I couldn't create a role called `{name}`."),
+            true,
+        );
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
             return Err(why.into());
@@ -89,7 +92,7 @@ pub(crate) async fn add(
 
     info!("Created @{name} role in {guild_name}");
 
-    let reply = messages::ok_reply(format!("Created a role called `{name}`."), true);
+    let reply = messages::ok_reply(format!("I've created a role called `{name}`."), true);
     if let Err(why) = ctx.send(reply).await {
         error!("Couldn't send reply: {why:?}");
         return Err(why.into());

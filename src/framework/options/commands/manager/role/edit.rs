@@ -33,7 +33,7 @@ use crate::{
 pub(crate) async fn edit(
     ctx: Context<'_>,
     #[description = "The role to customise."] mut role: Role,
-    #[description = "The name for the role, if any. (1-100 characters)"]
+    #[description = "The name for the role, if any."]
     #[min_length = 1]
     #[max_length = 100]
     name: Option<String>,
@@ -48,7 +48,7 @@ pub(crate) async fn edit(
         let number_of_name = name.as_ref().unwrap().chars().count();
         if number_of_name < 1 || number_of_name > 100 {
             let reply = messages::warn_reply(
-                format!("Role name must be between 1 and 100 characters."),
+                format!("I'm afraid the name has to be between `1` and `100` characters."),
                 true,
             );
             if let Err(why) = ctx.send(reply).await {
@@ -81,10 +81,12 @@ pub(crate) async fn edit(
     };
 
     if let Err(why) = role.edit(ctx, role_builder).await {
-        error!("Couldn't edit @{role_name} role in {guild_name}: {why:?}");
+        error!("Couldn't alter @{role_name} role in {guild_name}: {why:?}");
 
-        let reply =
-            messages::error_reply(format!("Couldn't edit a role called `{role_name}`."), true);
+        let reply = messages::error_reply(
+            format!("Sorry, but I couldn't alter a role called `{role_name}`."),
+            true,
+        );
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
             return Err(why.into());
@@ -93,9 +95,9 @@ pub(crate) async fn edit(
         return Err(why.into());
     }
 
-    info!("Edited @{role_name} role in {guild_name}");
+    info!("Altered @{role_name} role in {guild_name}");
 
-    let reply = messages::ok_reply(format!("Edited a role called `{role_name}`."), true);
+    let reply = messages::ok_reply(format!("I've altered a role called `{role_name}`."), true);
     if let Err(why) = ctx.send(reply).await {
         error!("Couldn't send reply: {why:?}");
         return Err(why.into());

@@ -36,12 +36,12 @@ pub(crate) async fn add(
     #[min_length = 2]
     #[max_length = 32]
     name: String,
-    #[description = "The image to use for the emoji. (128x128)"] image: Attachment,
+    #[description = "The image used for the emoji."] image: Attachment,
 ) -> Result<(), Error> {
     let number_of_name = name.chars().count();
     if number_of_name < 2 || number_of_name > 32 {
         let reply = messages::warn_reply(
-            format!("Emoji name must be between 2 and 32 characters."),
+            format!("I'm afraid the name has to be between `2` and `32` characters."),
             true,
         );
         if let Err(why) = ctx.send(reply).await {
@@ -69,7 +69,10 @@ pub(crate) async fn add(
         },
     );
     if image_width != 128 || image_height != 128 {
-        let reply = messages::warn_reply("Image must be `128`x`128` pixels in size.", true);
+        let reply = messages::warn_reply(
+            "I'm afraid the width and height of the image has to be `128` pixels.",
+            true,
+        );
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
             return Err(why.into());
@@ -95,8 +98,10 @@ pub(crate) async fn add(
     if let Err(why) = guild.create_emoji(&ctx, &name, &encoded_attachment).await {
         error!("Couldn't create {name:?} emoji in {guild_name}: {why:?}");
 
-        let reply =
-            messages::error_reply(format!("Couldn't create an emoji called `{name}`."), true);
+        let reply = messages::error_reply(
+            format!("Sorry, but I couldn't create an emoji called `{name}`."),
+            true,
+        );
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
             return Err(why.into());
@@ -107,7 +112,7 @@ pub(crate) async fn add(
 
     info!("Created {name:?} emoji in {guild_name}");
 
-    let reply = messages::ok_reply(format!("Created an emoji called `{name}`."), true);
+    let reply = messages::ok_reply(format!("I have created an emoji called `{name}`."), true);
     if let Err(why) = ctx.send(reply).await {
         error!("Couldn't send reply: {why:?}");
         return Err(why.into());

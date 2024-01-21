@@ -49,8 +49,10 @@ pub(crate) async fn remove(
     if let Err(why) = member.remove_roles(&ctx, &role_ids).await {
         error!("Couldn't remove role(s) from @{user_name} in {guild_name}: {why:?}");
 
-        let reply =
-            messages::error_reply(format!("Couldn't remove role(s) from <@{user_id}>."), true);
+        let reply = messages::error_reply(
+            format!("Sorry, but I couldn't remove role(s) from <@{user_id}>."),
+            true,
+        );
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
             return Err(why.into());
@@ -61,7 +63,7 @@ pub(crate) async fn remove(
 
     info!("Removed role(s) from @{user_name} in {guild_name}");
 
-    let reply = messages::ok_reply(format!("Removed role(s) from <@{user_id}>."), true);
+    let reply = messages::ok_reply(format!("I've removed role(s) from <@{user_id}>."), true);
     if let Err(why) = ctx.send(reply).await {
         error!("Couldn't send reply: {why:?}");
         return Err(why.into());

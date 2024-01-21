@@ -39,7 +39,7 @@ pub(crate) async fn untimeout(
     #[description = "The user to get out of a time-out from."]
     #[rename = "user"]
     user_id: UserId,
-    #[description = "The reason for getting out of a time-out, if any. (6-80 characters)"]
+    #[description = "The reason for getting out of a time-out, if any."]
     #[min_length = 6]
     #[max_length = 80]
     reason: Option<String>,
@@ -48,8 +48,10 @@ pub(crate) async fn untimeout(
 
     let user = models::users::user(ctx, user_id).await;
     if user.bot || user.system {
-        let reply =
-            messages::error_reply("Cannot get bots and system users out of a time-out.", true);
+        let reply = messages::error_reply(
+            "Sorry, but bots and system users cannot be timed out.",
+            true,
+        );
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
             return Err(why.into());
@@ -71,8 +73,10 @@ pub(crate) async fn untimeout(
 
     let number_of_infractions = infractions.len();
     if number_of_infractions < 1 {
-        let reply =
-            messages::warn_reply(format!("<@{user_id}> hasn't been punished before."), true);
+        let reply = messages::warn_reply(
+            format!("I'm afraid <@{user_id}> hasn't been punished before."),
+            true,
+        );
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
             return Err(why.into());
@@ -96,7 +100,10 @@ pub(crate) async fn untimeout(
         if let Err(why) = member.enable_communication(ctx).await {
             error!("Couldn't get member out of time-out: {why:?}");
 
-            let reply = messages::error_reply("Couldn't get member out of a time-out.", true);
+            let reply = messages::error_reply(
+                format!("Sorry, but I couldn't get <@{user_id} out of a time-out."),
+                true,
+            );
             if let Err(why) = ctx.send(reply).await {
                 error!("Couldn't send reply: {why:?}");
                 return Err(why.into());
@@ -126,8 +133,10 @@ pub(crate) async fn untimeout(
             if let Some(reason) = reason.clone() {
                 let number_of_reason = reason.chars().count();
                 if number_of_reason < 6 || number_of_reason > 80 {
-                    let reply =
-                        messages::warn_reply("Reason must be between 8 and 80 characters.", true);
+                    let reply = messages::warn_reply(
+                        "I'm afraid the reason has to be between `6` and `80` characters.",
+                        true,
+                    );
                     if let Err(why) = ctx.send(reply).await {
                         error!("Couldn't send reply: {why:?}");
                         return Err(why.into());
@@ -142,7 +151,7 @@ pub(crate) async fn untimeout(
             }
 
             let reply = messages::ok_reply(
-                format!("<@{user_id}> has been gotten out of a time-out."),
+                format!("<@{user_id}> has been released from a time-out."),
                 true,
             );
             if let Err(why) = ctx.send(reply).await {

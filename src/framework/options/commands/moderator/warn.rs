@@ -40,7 +40,7 @@ pub(crate) async fn warn(
     #[description = "The user to warn."]
     #[rename = "user"]
     user_id: UserId,
-    #[description = "The reason for warning. (6-80 characters)"]
+    #[description = "The reason for warning."]
     #[min_length = 6]
     #[max_length = 80]
     reason: String,
@@ -49,7 +49,8 @@ pub(crate) async fn warn(
 
     let user = models::users::user(ctx, user_id).await;
     if user.bot || user.system {
-        let reply = messages::error_reply("Cannot warn bots or system users.", true);
+        let reply =
+            messages::error_reply("Sorry, but bots and system users cannot be warned.", true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
             return Err(why.into());
@@ -60,7 +61,10 @@ pub(crate) async fn warn(
 
     let number_of_reason = reason.chars().count();
     if number_of_reason < 6 || number_of_reason > 80 {
-        let reply = messages::warn_reply("Reason must be between 8 and 80 characters.", true);
+        let reply = messages::warn_reply(
+            "I'm afraid the reason has to be between `6` and `80` characters.",
+            true,
+        );
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
             return Err(why.into());

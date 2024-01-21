@@ -25,14 +25,16 @@ use super::{AUTHORS, DESCRIPTION, GITHUB_URL, NAME, RUST_VERSION, VERSION};
 #[poise::command(prefix_command, slash_command, category = "Info", ephemeral)]
 /// Get basic information about yours truly.
 pub(crate) async fn info(ctx: Context<'_>) -> Result<(), Error> {
-    let bot = match ctx.http().get_current_user().await {
+    let http = ctx.http();
+
+    let bot_raw = match http.get_current_user().await {
         Ok(value) => value,
         Err(why) => {
             error!("Couldn't get current user: {why:?}");
             return Err(why.into());
         }
     };
-    let bot_avatar_url = bot.avatar_url().unwrap_or(bot.default_avatar_url());
+    let bot_avatar_url = bot_raw.avatar_url().unwrap_or(bot_raw.default_avatar_url());
 
     let constants = [
         NAME,         // 0

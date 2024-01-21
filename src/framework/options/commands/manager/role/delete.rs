@@ -43,7 +43,7 @@ pub(crate) async fn delete(
         error!("Couldn't delete @{role_name} role from {guild_name}: {why:?}");
 
         let reply = messages::error_reply(
-            format!("Couldn't delete a role called `{role_name}`."),
+            format!("Sorry, but I couldn't delete a role called `{role_name}`."),
             true,
         );
         if let Err(why) = ctx.send(reply).await {
@@ -56,7 +56,7 @@ pub(crate) async fn delete(
 
     info!("Deleted @{role_name} role from {guild_name}");
 
-    let reply = messages::ok_reply(format!("Deleted a role called `{role_name}`."), true);
+    let reply = messages::ok_reply(format!("I've deleted a role called `{role_name}`."), true);
     if let Err(why) = ctx.send(reply).await {
         error!("Couldn't send reply: {why:?}");
         return Err(why.into());

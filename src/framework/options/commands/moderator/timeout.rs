@@ -40,11 +40,11 @@ pub(crate) async fn timeout(
     #[description = "The user to timeout."]
     #[rename = "user"]
     user_id: UserId,
-    #[description = "The reason for timing out. (6-80 characters)"]
+    #[description = "The reason for timing out."]
     #[min_length = 6]
     #[max_length = 80]
     reason: String,
-    #[description = "The duration of the timeout. (1-28d)"]
+    #[description = "The duration of the timeout. (days)"]
     #[min = 1]
     #[max = 28]
     duration: Option<i64>,
@@ -53,7 +53,10 @@ pub(crate) async fn timeout(
 
     let user = models::users::user(ctx, user_id).await;
     if user.bot || user.system {
-        let reply = messages::error_reply("Cannot time out bots and system users.", true);
+        let reply = messages::error_reply(
+            "Sorry, but bots and system users cannot be timed out.",
+            true,
+        );
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
             return Err(why.into());
@@ -64,7 +67,10 @@ pub(crate) async fn timeout(
 
     let number_of_reason = reason.chars().count();
     if number_of_reason < 6 || number_of_reason > 80 {
-        let reply = messages::warn_reply("Reason must be between 8 and 80 characters.", true);
+        let reply = messages::warn_reply(
+            "I'm afraid the reason has to be between `6` and `80` characters.",
+            true,
+        );
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
             return Err(why.into());
@@ -75,7 +81,10 @@ pub(crate) async fn timeout(
 
     let duration = duration.unwrap_or(1);
     if duration < 1 || duration > 28 {
-        let reply = messages::warn_reply("Duration must be between 1 and 28 days.", true);
+        let reply = messages::warn_reply(
+            "I'm afraid the duration has to be between `1` and `28` days.",
+            true,
+        );
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
             return Err(why.into());
@@ -121,7 +130,10 @@ pub(crate) async fn timeout(
     if let Err(why) = member.disable_communication_until_datetime(ctx, time).await {
         error!("Couldn't put @{user_name} on a time-out: {why:?}");
 
-        let reply = messages::error_reply("Couldn't put member on a time-out.", true);
+        let reply = messages::error_reply(
+            format!("Sorry, but I couldn't put <@{user_id}> on a time-out."),
+            true,
+        );
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
             return Err(why.into());

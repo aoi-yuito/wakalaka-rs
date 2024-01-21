@@ -49,8 +49,10 @@ pub(crate) async fn reset(
     if let Err(why) = member.edit(&ctx, edit_member).await {
         error!("Couldn't remove @{user_name}'s nickname: {why:?}");
 
-        let reply =
-            messages::error_reply(format!("Couldn't remove <@{user_id}>'s nickname."), true);
+        let reply = messages::error_reply(
+            format!("Sorry, but I couldn't remove <@{user_id}>'s nickname."),
+            true,
+        );
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
             return Err(why.into());
@@ -61,7 +63,7 @@ pub(crate) async fn reset(
 
     info!("@{moderator_name} removed @{user_name}'s nickname");
 
-    let reply = messages::ok_reply(format!("Removed <@{user_id}>'s nickname."), true);
+    let reply = messages::ok_reply(format!("I've removed <@{user_id}>'s nickname."), true);
     if let Err(why) = ctx.send(reply).await {
         error!("Couldn't send reply: {why:?}");
         return Err(why.into());

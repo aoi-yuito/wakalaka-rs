@@ -28,14 +28,14 @@ pub(crate) async fn roll(
 ) -> Result<(), Error> {
     let mut rng = StdRng::from_entropy();
 
-    let user_name = &ctx.author().name;
+    let user_id = ctx.author().id;
 
     let number = match number {
         Some(number) => rng.gen_range(1..number),
         None => rng.gen_range(1..100),
     };
 
-    let reply = messages::reply(format!("{user_name} rolled {number} point(s)."), false);
+    let reply = messages::reply(format!("<@{user_id}> rolled {number} point(s)."), false);
     if let Err(why) = ctx.send(reply).await {
         error!("Couldn't send reply: {why:?}");
         return Err(why.into());

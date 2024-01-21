@@ -30,7 +30,7 @@ use crate::{
 /// Send a suggestion of your choice for review.
 pub(crate) async fn suggest(
     ctx: Context<'_>,
-    #[description = "The suggestion to send. (32-1024 characters)"]
+    #[description = "The suggestion to send."]
     #[min_length = 32]
     #[max_length = 1024]
     message: String,
@@ -39,8 +39,10 @@ pub(crate) async fn suggest(
 
     let number_of_message = message.chars().count();
     if number_of_message < 32 || number_of_message > 1024 {
-        let reply =
-            messages::warn_reply("Suggestion must be between 32 and 1024 characters.", true);
+        let reply = messages::warn_reply(
+            "I'm afraid the suggestion has to be between `32` and `1024` characters.",
+            true,
+        );
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
             return Err(why.into());
@@ -126,14 +128,17 @@ pub(crate) async fn suggest(
         )
         .await;
     } else {
-        let reply = messages::error_reply("Couldn't find `#suggestions` channel.", true);
+        let reply = messages::error_reply(
+            "Sorry, but I couldn't find an appropriate channel for suggestions.",
+            true,
+        );
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
             return Err(why.into());
         }
     }
 
-    let reply = messages::ok_reply(format!("Suggestion has been sent in for review."), true);
+    let reply = messages::ok_reply(format!("I've sent your suggestion in for review."), true);
     if let Err(why) = ctx.send(reply).await {
         error!("Couldn't send reply: {why:?}");
         return Err(why.into());

@@ -33,10 +33,10 @@ use crate::{
 pub(crate) async fn kick(
     ctx: Context<'_>,
     #[description = "The user to kick."] user: User,
-    #[description = "The reason for kicking. (6-80 characters)"] reason: String,
+    #[description = "The reason for kicking."] reason: String,
 ) -> Result<(), Error> {
     if user.system {
-        let reply = messages::error_reply("Cannot kick system users.", true);
+        let reply = messages::error_reply("Sorry, but system users cannot be kicked.", true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
             return Err(why.into());
@@ -47,7 +47,10 @@ pub(crate) async fn kick(
 
     let number_of_reason = reason.chars().count();
     if number_of_reason < 6 || number_of_reason > 80 {
-        let reply = messages::warn_reply("Reason must be between 8 and 80 characters.", true);
+        let reply = messages::warn_reply(
+            "I'm afraid the reason has to be between `6` and `80` characters.",
+            true,
+        );
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
             return Err(why.into());
@@ -78,7 +81,8 @@ pub(crate) async fn kick(
     if let Err(why) = member.kick_with_reason(&ctx, &reason).await {
         error!("Couldn't kick @{user_name}: {why:?}");
 
-        let reply = messages::error_reply("Couldn't kick member.", true);
+        let reply =
+            messages::error_reply(format!("Sorry, but I couldn't kick <@{user_id}>."), true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
             return Err(why.into());

@@ -42,7 +42,7 @@ pub(crate) async fn delete(
     let number_of_name = name.chars().count();
     if number_of_name < 2 || number_of_name > 32 {
         let reply = messages::warn_reply(
-            format!("Emoji name must be between 2 and 32 characters."),
+            format!("I'm afraid the name has to be between `2` and `32` characters."),
             true,
         );
         if let Err(why) = ctx.send(reply).await {
@@ -61,8 +61,10 @@ pub(crate) async fn delete(
         None => {
             warn!("Couldn't find {name:?} emoji in {guild_name}");
 
-            let reply =
-                messages::error_reply(format!("Couldn't find an emoji called `{name}`."), true);
+            let reply = messages::error_reply(
+                format!("Sorry, but I couldn't find an emoji called `{name}`."),
+                true,
+            );
             if let Err(why) = ctx.send(reply).await {
                 error!("Couldn't send reply: {why:?}");
                 return Err(why.into());
@@ -79,7 +81,7 @@ pub(crate) async fn delete(
         error!("Couldn't delete {emoji_name:?} emoji from {guild_name}: {why:?}");
 
         let reply = messages::error_reply(
-            format!("Couldn't delete an emoji called `{emoji_name}`"),
+            format!("Sorry, but I couldn't delete an emoji called `{emoji_name}`"),
             true,
         );
         if let Err(why) = ctx.send(reply).await {
@@ -92,7 +94,10 @@ pub(crate) async fn delete(
 
     info!("Deleted {emoji_name:?} emoji from {guild_name}");
 
-    let reply = messages::ok_reply(format!("Deleted an emoji called `{emoji_name}`."), true);
+    let reply = messages::ok_reply(
+        format!("I've deleted an emoji called `{emoji_name}`."),
+        true,
+    );
     if let Err(why) = ctx.send(reply).await {
         error!("Couldn't send reply: {why:?}");
         return Err(why.into());

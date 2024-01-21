@@ -41,7 +41,8 @@ pub(crate) async fn hex(
 
     let hex_regex = Regex::new(r"^[0-9a-fA-F]{3}$|^[0-9a-fA-F]{6}$").unwrap();
     if !hex_regex.is_match(&colour) {
-        let reply = messages::error_reply("Colour code must be in hexadecimal.", true);
+        let reply =
+            messages::error_reply("Sorry, but that's not a valid hexadecimal colour.", true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
             return Err(why.into());

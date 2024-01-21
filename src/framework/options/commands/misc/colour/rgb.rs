@@ -35,7 +35,7 @@ pub(crate) async fn rgb(
 ) -> Result<(), Error> {
     let rgb_re = Regex::new(r"^\d{1,3},\d{1,3},\d{1,3}$").unwrap();
     if !rgb_re.is_match(&colour) {
-        let reply = messages::error_reply("Colour code must be represented in RGB.", true);
+        let reply = messages::error_reply("Sorry, but that's not a valid RGB colour.", true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
             return Err(why.into());

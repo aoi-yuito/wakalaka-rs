@@ -29,14 +29,17 @@ use crate::{utility::components::messages, Context, Error};
 /// Delete a given amount of messages.
 pub(crate) async fn any(
     ctx: Context<'_>,
-    #[description = "The amount to delete. (1-100)"]
+    #[description = "The amount to delete."]
     #[min = 1]
     #[max = 100]
     count: Option<u8>,
 ) -> Result<(), Error> {
     let count = count.unwrap_or(1);
     if count < 1 || count > 100 {
-        let reply = messages::warn_reply("Amount must be between 1 and 100 message(s).", true);
+        let reply = messages::warn_reply(
+            "I'm afraid the amount to delete has to be between `1` and `100` characters.",
+            true,
+        );
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
             return Err(why.into());

@@ -39,7 +39,7 @@ pub(crate) async fn unban(
     #[description = "The user to unban."]
     #[rename = "user"]
     user_id: UserId,
-    #[description = "The reason for unbanning, if any. (6-80 characters)"]
+    #[description = "The reason for unbanning, if any."]
     #[min_length = 6]
     #[max_length = 80]
     reason: Option<String>,
@@ -63,8 +63,10 @@ pub(crate) async fn unban(
 
     let number_of_infractions = infractions.len();
     if number_of_infractions < 1 {
-        let reply =
-            messages::warn_reply(format!("<@{user_id}> hasn't been punished before."), true);
+        let reply = messages::warn_reply(
+            format!("I'm afraid <@{user_id}> hasn't been punished before."),
+            true,
+        );
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
             return Err(why.into());
@@ -87,7 +89,8 @@ pub(crate) async fn unban(
         if let Err(why) = guild_id.unban(&ctx, user_id).await {
             error!("Couldn't unban @{user_name}: {why:?}");
 
-            let reply = messages::error_reply("Couldn't unban member.", true);
+            let reply =
+                messages::error_reply(format!("Sorry, but I couldn't unban <@{user_id}>."), true);
             if let Err(why) = ctx.send(reply).await {
                 error!("Couldn't send reply: {why:?}");
                 return Err(why.into());
@@ -118,8 +121,10 @@ pub(crate) async fn unban(
         if let Some(reason) = reason.clone() {
             let number_of_reason = reason.chars().count();
             if number_of_reason < 6 || number_of_reason > 80 {
-                let reply =
-                    messages::warn_reply("Reason must be between 8 and 80 characters.", true);
+                let reply = messages::warn_reply(
+                    "I'm afraid the reason has to be between `6` and `80` characters.",
+                    true,
+                );
                 if let Err(why) = ctx.send(reply).await {
                     error!("Couldn't send reply: {why:?}");
                     return Err(why.into());

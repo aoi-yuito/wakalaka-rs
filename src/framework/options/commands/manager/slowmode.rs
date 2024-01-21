@@ -35,7 +35,7 @@ pub(crate) async fn slowmode(
     #[description = "The channel to slow down, if any."]
     #[rename = "channel"]
     channel_id: Option<ChannelId>,
-    #[description = "The delay between messages. (0-60 seconds)"]
+    #[description = "Time between messages. (seconds)"]
     #[min = 0]
     #[max = 60]
     delay: Option<u16>,
@@ -43,8 +43,10 @@ pub(crate) async fn slowmode(
     if delay.is_some() {
         if let Some(delay) = delay {
             if delay > 60 {
-                let reply =
-                    messages::warn_reply(format!("Delay must be between 0 and 60 seconds."), true);
+                let reply = messages::warn_reply(
+                    format!("I'm afraid the delay has to be up to `60` seconds."),
+                    true,
+                );
                 if let Err(why) = ctx.send(reply).await {
                     error!("Couldn't send reply: {why:?}");
                     return Err(why.into());
@@ -80,8 +82,10 @@ pub(crate) async fn slowmode(
                 "Couldn't slow #{guild_channel_name} down for {delay}s in {guild_name}: {why:?}"
             );
 
-            let reply =
-                messages::error_reply(format!("Couldn't slow <#{guild_channel_id}> down."), true);
+            let reply = messages::error_reply(
+                format!("Sorry, but I couldn't slow <#{guild_channel_id}> down."),
+                true,
+            );
             if let Err(why) = ctx.send(reply).await {
                 error!("Couldn't send reply: {why:?}");
                 return Err(why.into());
@@ -92,7 +96,7 @@ pub(crate) async fn slowmode(
             info!("@{user_name} slowed #{guild_channel_name} down to {delay}s in {guild_name}");
 
             let reply = messages::ok_reply(
-                format!("Slowed <#{guild_channel_id}> down to `{delay}`s."),
+                format!("I have slowed <#{guild_channel_id}> down to `{delay}`s."),
                 true,
             );
             if let Err(why) = ctx.send(reply).await {

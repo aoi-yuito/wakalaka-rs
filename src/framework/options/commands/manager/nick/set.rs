@@ -43,7 +43,7 @@ pub(crate) async fn set(
     let number_of_nickname = nickname.chars().count();
     if number_of_nickname < 1 || number_of_nickname > 32 {
         let reply = messages::warn_reply(
-            format!("Nickname must be between 1 and 32 characters."),
+            format!("I'm afraid the nickname has to be between `1` and `32` characters."),
             true,
         );
         if let Err(why) = ctx.send(reply).await {
@@ -65,9 +65,12 @@ pub(crate) async fn set(
     let edit_member = EditMember::default().nickname(&nickname);
 
     if let Err(why) = member.edit(&ctx, edit_member).await {
-        error!("Couldn't set @{user_name}'s nickname to {nickname:?}: {why:?}");
+        error!("Couldn't change @{user_name}'s nickname to {nickname:?}: {why:?}");
 
-        let reply = messages::error_reply(format!("Couldn't set <@{user_id}>'s nickname."), true);
+        let reply = messages::error_reply(
+            format!("Sorry, but I couldn't change <@{user_id}>'s nickname."),
+            true,
+        );
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
             return Err(why.into());
@@ -79,7 +82,7 @@ pub(crate) async fn set(
     info!("@{moderator_name} changed @{user_name}'s nickname to {nickname:?}");
 
     let reply = messages::ok_reply(
-        format!("Changed <@{user_id}>'s nickname to {nickname}."),
+        format!("I've changed <@{user_id}>'s nickname to {nickname}."),
         true,
     );
     if let Err(why) = ctx.send(reply).await {
