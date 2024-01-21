@@ -15,3 +15,4 @@
 
 pub(super) mod delnick;
 pub(super) mod setnick;
+pub(super) mod toggle;

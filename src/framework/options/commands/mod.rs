@@ -37,6 +37,7 @@ pub(crate) async fn guild_commands() -> Vec<Command<Data, Error>> {
         info::ping::ping(),
         manager::delnick::delnick(),
         manager::setnick::setnick(),
+        manager::toggle::toggle(),
         misc::avatar::avatar(),
         misc::colour::colour(),
         misc::roll::roll(),
