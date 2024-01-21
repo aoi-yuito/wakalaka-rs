@@ -16,7 +16,7 @@
 use serenity::all::{Guild, UnavailableGuild};
 use tracing::{error, warn};
 
-use crate::{database::users, serenity::Context, Data};
+use crate::{database::users, serenity::Context, utility, Data};
 
 pub(crate) async fn handle_delete(
     unavailable_guild: &UnavailableGuild,
@@ -38,26 +38,13 @@ pub(crate) async fn handle_delete(
     );
 
     let (unavailable_members, members) = (
-        match unavailable_guild_id.members(&ctx.http, None, None).await {
-            Ok(users) => users,
-            Err(why) => {
-                error!("Couldn't get unavailable guild members: {why:?}");
-                return;
-            }
-        },
-        match guild_id.members(&ctx.http, None, None).await {
-            Ok(users) => users,
-            Err(why) => {
-                error!("Couldn't get guild members: {why:?}");
-                return;
-            }
-        },
+        utility::guilds::members_raw(ctx, unavailable_guild_id).await,
+        utility::guilds::members_raw(ctx, guild_id).await,
     );
-
-    let guild_members = unavailable_members
+    let combined_members = unavailable_members
         .into_iter()
         .chain(members.into_iter())
         .collect::<Vec<_>>();
 
-    users::delete_users(guild_members, pool).await;
+    users::delete_users(combined_members, pool).await;
 }
