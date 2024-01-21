@@ -13,12 +13,16 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-use serenity::all::Role;
+use serenity::all::{Role, RoleId};
 use tracing::warn;
 
 use crate::Context;
 
 use super::guilds;
+
+pub(crate) async fn role_ids(roles: Vec<Role>) -> Vec<RoleId> {
+    roles.iter().map(|role| role.id).collect::<Vec<RoleId>>()
+}
 
 pub(crate) async fn role(ctx: Context<'_>, name: &String) -> Role {
     let guild = guilds::guild(ctx).await;
