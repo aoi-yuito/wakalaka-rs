@@ -18,15 +18,15 @@ use serenity::all::Guild;
 use crate::{database::users, serenity::Context, utility::models, Data};
 
 pub(crate) async fn handle_create(guild: &Guild, is_new: bool, ctx: &Context, data: &Data) {
+    if !is_new {
+        return;
+    }
+
     let pool = &data.pool;
 
     let guild_id = guild.id;
 
     let members = models::guilds::members_raw(&ctx, guild_id).await;
 
-    if !is_new {
-        users::update_users(members, pool).await;
-    } else {
-        users::insert_users(members, pool).await;
-    }
+    users::insert_users(members, pool).await;
 }

@@ -24,6 +24,10 @@ pub(crate) async fn handle_delete(
     ctx: &Context,
     data: &Data,
 ) {
+    if unavailable_guild.unavailable {
+        return;
+    }
+
     let pool = &data.pool;
 
     let (unavailable_guild_id, guild_id) = (

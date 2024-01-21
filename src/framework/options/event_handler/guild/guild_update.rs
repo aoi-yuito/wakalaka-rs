@@ -14,9 +14,9 @@
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
 use serenity::all::{Guild, PartialGuild};
-use tracing::{error, warn};
+use tracing::warn;
 
-use crate::{database::users, serenity::Context, Data};
+use crate::{database::users, serenity::Context, utility::models, Data};
 
 pub(crate) async fn handle_update(
     old_guild: &Option<Guild>,
@@ -38,26 +38,13 @@ pub(crate) async fn handle_update(
     );
 
     let (old_members, new_members) = (
-        match old_guild_id.members(&ctx.http, None, None).await {
-            Ok(users) => users,
-            Err(why) => {
-                error!("Couldn't get old guild members: {why:?}");
-                return;
-            }
-        },
-        match new_guild_id.members(&ctx.http, None, None).await {
-            Ok(users) => users,
-            Err(why) => {
-                error!("Couldn't get new guild members: {why:?}");
-                return;
-            }
-        },
+        models::guilds::members_raw(&ctx, old_guild_id).await,
+        models::guilds::members_raw(&ctx, new_guild_id).await,
     );
-
-    let guild_members = old_members
+    let combined_members = old_members
         .into_iter()
         .chain(new_members.into_iter())
         .collect::<Vec<_>>();
 
-    users::update_users(guild_members, pool).await;
+    users::update_users(combined_members, pool).await;
 }
