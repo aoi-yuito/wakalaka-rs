@@ -18,7 +18,7 @@ use tracing::error;
 
 use crate::Context;
 
-pub(crate) async fn name(ctx: Context<'_>, user_id: UserId) -> String {
+pub(crate) async fn user_name(ctx: Context<'_>, user_id: UserId) -> String {
     user(ctx, user_id).await.name
 }
 

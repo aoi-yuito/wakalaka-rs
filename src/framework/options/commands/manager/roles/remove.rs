@@ -39,7 +39,7 @@ pub(crate) async fn remove(
 ) -> Result<(), Error> {
     let role_ids = models::roles::role_ids(roles).await;
 
-    let user_name = models::users::name(ctx, user_id).await;
+    let user_name = models::users::user_name(ctx, user_id).await;
 
     let guild = models::guilds::guild(ctx).await;
     let (guild_id, guild_name) = (guild.id, &guild.name);
