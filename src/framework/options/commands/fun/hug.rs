@@ -19,7 +19,7 @@ use tracing::error;
 use crate::{utility::models, Context, Error};
 
 #[poise::command(prefix_command, slash_command, category = "Fun", guild_only)]
-/// Comfort one of your friends.
+/// Comfort one of your pals.
 pub(crate) async fn hug(
     ctx: Context<'_>,
     #[description = "The user to comfort."]
@@ -33,7 +33,7 @@ pub(crate) async fn hug(
 
     let message = format!("{user_mention} 🫂 {other_mention}");
     if let Err(why) = ctx.say(message).await {
-        error!("Couldn't send reply: {why:?}");
+        error!("Couldn't say message: {why:?}");
         return Err(why.into());
     }
 
