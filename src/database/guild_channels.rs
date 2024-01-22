@@ -14,7 +14,7 @@
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
 use serenity::all::GuildChannel;
-use sqlx::{Row, SqlitePool};
+use sqlx::SqlitePool;
 use tokio::time::Instant;
 use tracing::{debug, error};
 

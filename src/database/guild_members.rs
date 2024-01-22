@@ -14,7 +14,7 @@
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
 use serenity::all::{Member, UserId};
-use sqlx::{Row, SqlitePool};
+use sqlx::SqlitePool;
 use tokio::time::Instant;
 use tracing::{debug, error};
 
@@ -163,7 +163,7 @@ pub(crate) async fn insert_into_guild_members(
         .bind(i64::from(guild_id));
         if let Err(why) = query.execute(pool).await {
             _insert_into_ok = false;
-            
+
             if why.to_string().contains("1555") {
                 // UNIQUE constraint failed: guild_members.user_id
                 continue;
