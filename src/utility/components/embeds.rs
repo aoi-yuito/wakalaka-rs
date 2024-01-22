@@ -24,38 +24,37 @@ use std::fmt::Write;
 use tokio::time::Duration;
 
 pub(crate) fn warnings_embed(
-    case_ids: Vec<i32>,
     user: &User,
-    user_name: &String,
+    uuids: Vec<String>,
     moderator_ids: Vec<i64>,
     reasons: Vec<String>,
 ) -> CreateEmbed {
-    //  |(PFP) {user_name}             |
-    //  | Case | Moderator | Reason    |
-    //  |------|-----------|-----------|
-    //  | 1    | <@{id1}>  | {reason1} |
-    //  | 2    | <@{id2}>  | {reason2} |
-    //  | 3    | <@{id3}>  | {reason3} |
+    //  |(PFP) {user_name}                |
+    //  | ID      | Moderator | Reason    |
+    //  |---------|-----------|-----------|
+    //  | <uuid1> | <@{id1}>  | {reason1} |
+    //  | <uuid2> | <@{id2}>  | {reason2} |
+    //  | <uuid3> | <@{id3}>  | {reason3} |
 
-    let user_icon_url = user.avatar_url().unwrap_or(user.default_avatar_url());
+    let (user_name, user_avatar_url) = (
+        &user.name,
+        user.avatar_url().unwrap_or(user.default_avatar_url()),
+    );
 
-    let embed_author = CreateEmbedAuthor::new(user_name).icon_url(user_icon_url);
+    let embed_author = CreateEmbedAuthor::new(user_name).icon_url(user_avatar_url);
 
-    let mut case_field = String::new();
+    let mut id_field = String::new();
     let mut moderator_field = String::new();
     let mut reason_field = String::new();
-    for ((case_id, moderator_id), reason) in case_ids
-        .iter()
-        .zip(moderator_ids.iter())
-        .zip(reasons.iter())
+    for ((uuid, moderator_id), reason) in uuids.iter().zip(moderator_ids.iter()).zip(reasons.iter())
     {
-        writeln!(case_field, "{case_id}").unwrap();
+        writeln!(id_field, "{uuid}").unwrap();
         writeln!(moderator_field, "<@{moderator_id}>").unwrap();
         writeln!(reason_field, "{reason}").unwrap();
     }
 
     let mut embed_fields = Vec::new();
-    embed_fields.push(("Case", case_field, true));
+    embed_fields.push(("ID", id_field, true));
     embed_fields.push(("Moderator", moderator_field, true));
     embed_fields.push(("Reason", reason_field, true));
 
