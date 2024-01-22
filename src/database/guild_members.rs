@@ -14,7 +14,7 @@
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
 use serenity::all::{Member, UserId};
-use sqlx::SqlitePool;
+use sqlx::{Row, SqlitePool};
 use tokio::time::Instant;
 use tracing::{debug, error};
 
@@ -142,6 +142,25 @@ pub(crate) async fn insert_into_guild_members(
 
         let (user_id, deaf, mute, guild_id) =
             (member.user.id, member.deaf, member.mute, member.guild_id);
+
+        // This query avoids inserting duplicate rows to prevent "UNIQUE constraint failed" error.
+        let existing_query =
+            sqlx::query("SELECT user_id FROM guild_members WHERE user_id = ? AND guild_id = ?")
+                .bind(i64::from(user_id))
+                .bind(i64::from(guild_id));
+        let existing_row = match existing_query.fetch_one(pool).await {
+            Ok(existing_row) => existing_row,
+            Err(why) => {
+                error!("Couldn't select from GuildMembers: {why:?}");
+                return Err(why);
+            }
+        };
+        if let Err(why) = existing_row.try_get::<i64, _>("user_id") {
+            error!("Couldn't get 'userId' from GuildMembers: {why:?}");
+            return Err(why);
+        } else if existing_row.try_get::<i64, _>("user_id")? == i64::from(user_id) {
+            continue;
+        }
 
         let query = sqlx::query(
             "INSERT INTO guild_members (

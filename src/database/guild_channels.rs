@@ -14,7 +14,7 @@
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
 use serenity::all::GuildChannel;
-use sqlx::SqlitePool;
+use sqlx::{Row, SqlitePool};
 use tokio::time::Instant;
 use tracing::{debug, error};
 
@@ -40,6 +40,26 @@ pub(crate) async fn insert_into_guild_channels(
             channel.nsfw,
             channel.rate_limit_per_user.unwrap_or_default(),
         );
+
+        // This query avoids inserting duplicate rows to prevent "UNIQUE constraint failed" error.
+        let existing_query = sqlx::query(
+            "SELECT channel_id FROM guild_channels WHERE channel_id = ? AND guild_id = ?",
+        )
+        .bind(i64::from(channel_id))
+        .bind(i64::from(guild_id));
+        let existing_row = match existing_query.fetch_one(pool).await {
+            Ok(existing_row) => existing_row,
+            Err(why) => {
+                error!("Couldn't select from GuildChannels: {why:?}");
+                return Err(why);
+            }
+        };
+        if let Err(why) = existing_row.try_get::<i64, _>("channel_id") {
+            error!("Couldn't get 'channelId' from GuildChannels: {why:?}");
+            return Err(why);
+        } else if existing_row.try_get::<i64, _>("channel_id")? == i64::from(channel_id) {
+            continue;
+        }
 
         let query = sqlx::query(
             "INSERT INTO guild_channels (

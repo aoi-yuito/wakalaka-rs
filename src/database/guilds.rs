@@ -214,6 +214,23 @@ pub(crate) async fn insert_into_guilds(
     let guild_id = guild.id;
     let owner_id = guild.owner_id;
 
+    // This query avoids inserting duplicate rows to prevent "UNIQUE constraint failed" error.
+    let existing_query =
+        sqlx::query("SELECT guild_id FROM guilds WHERE guild_id = ?").bind(i64::from(guild_id));
+    let existing_row = match existing_query.fetch_one(pool).await {
+        Ok(existing_row) => existing_row,
+        Err(why) => {
+            error!("Couldn't select from Guilds: {why:?}");
+            return Err(why);
+        }
+    };
+    if let Err(why) = existing_row.try_get::<i64, _>("guild_id") {
+        error!("Couldn't get 'guildId' from Guilds: {why:?}");
+        return Err(why);
+    } else if existing_row.try_get::<i64, _>("guild_id")? == i64::from(guild_id) {
+        return Ok(());
+    }
+
     let query = sqlx::query(
         "INSERT INTO guilds (
             guild_id,
