@@ -55,7 +55,7 @@ pub(crate) async fn banner(
 
                 let reply = messages::error_reply(
                     format!("Sorry, but I couldn't find <@{user_id}>'s banner."),
-                    false,
+                    true,
                 );
                 if let Err(why) = ctx.send(reply).await {
                     error!("Couldn't send reply: {why:?}");
