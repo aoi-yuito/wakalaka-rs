@@ -15,7 +15,7 @@
 
 use chrono::{NaiveDateTime, TimeZone, Utc};
 use serenity::{
-    all::{colours::branding, ShardId, User},
+    all::{colours::branding, Guild, ShardId, User},
     builder::{CreateEmbed, CreateEmbedAuthor, CreateEmbedFooter},
     gateway::ConnectionStage,
     model::Timestamp,
@@ -125,6 +125,18 @@ pub(crate) fn banner_embed(name: &String, avatar_url: String, banner_url: String
     CreateEmbed::default()
         .author(embed_author)
         .image(banner_url)
+}
+
+pub(crate) fn roles_embed(guild: &Guild, fields: Vec<(&str, String, bool)>) -> CreateEmbed {
+    let guild_name = &guild.name;
+    let guild_icon_url = guild.icon_url().unwrap_or_default();
+
+    let embed_author = CreateEmbedAuthor::new(guild_name).icon_url(guild_icon_url);
+
+    CreateEmbed::default()
+        .author(embed_author)
+        .title("List of Roles")
+        .fields(fields)
 }
 
 pub(crate) fn ping_embed(

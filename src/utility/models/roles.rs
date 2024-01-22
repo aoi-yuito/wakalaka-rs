@@ -24,6 +24,17 @@ pub(crate) async fn role_ids(roles: Vec<Role>) -> Vec<RoleId> {
     roles.iter().map(|role| role.id).collect::<Vec<RoleId>>()
 }
 
+pub(crate) async fn roles(ctx: Context<'_>) -> Vec<Role> {
+    let guild = guilds::guild(ctx).await;
+
+    guild
+        .roles
+        .clone()
+        .into_iter()
+        .map(|(_, role)| role)
+        .collect::<Vec<Role>>()
+}
+
 pub(crate) async fn role(ctx: Context<'_>, name: &String) -> Role {
     let guild = guilds::guild(ctx).await;
     let guild_name = &guild.name;
