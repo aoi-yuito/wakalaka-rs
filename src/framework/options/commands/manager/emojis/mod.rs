@@ -17,7 +17,7 @@ mod add;
 mod delete;
 
 use crate::{
-    framework::commands::manager::emoji::{add::add, delete::delete},
+    framework::commands::manager::emojis::{add::add, delete::delete},
     Context, Error,
 };
 
@@ -31,6 +31,6 @@ use crate::{
     subcommand_required,
     ephemeral
 )]
-pub(crate) async fn emoji(_: Context<'_>) -> Result<(), Error> {
+pub(crate) async fn emojis(_: Context<'_>) -> Result<(), Error> {
     Ok(())
 }
