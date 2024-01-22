@@ -16,7 +16,7 @@
 use poise::{Framework, FrameworkOptions, PrefixFrameworkOptions};
 use serenity::all::GatewayIntents;
 use tokio::time::Instant;
-use tracing::info;
+use tracing::debug;
 
 use crate::framework::options::commands;
 use crate::{Data, Error};
@@ -44,7 +44,7 @@ pub(crate) async fn initialise_framework(data: Data) -> Framework<Data, Error> {
         .build();
 
     let elapsed_time = start_time.elapsed();
-    info!("Initialised framework in {elapsed_time:.2?}");
+    debug!("Initialised framework in {elapsed_time:.2?}");
 
     framework
 }
@@ -61,7 +61,7 @@ pub(crate) fn initialise_intents() -> GatewayIntents {
         | GatewayIntents::MESSAGE_CONTENT;
 
     let elapsed_time = start_time.elapsed();
-    info!("Initialised intents in {elapsed_time:.2?}");
+    debug!("Initialised intents in {elapsed_time:.2?}");
 
     intents
 }
