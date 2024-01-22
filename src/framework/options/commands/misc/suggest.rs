@@ -18,16 +18,17 @@ use serenity::{
     all::{PermissionOverwrite, PermissionOverwriteType, Permissions},
     builder::{CreateActionRow, CreateMessage},
 };
-use tracing::error;
+use tracing::{error, info};
+use uuid::Uuid;
 
 use crate::{
-    database::suggestions,
+    database::{guilds, suggestions},
     utility::{components::buttons, components::embeds, components::messages, models},
     Context, Error,
 };
 
 #[poise::command(prefix_command, slash_command, category = "Misc", guild_only)]
-/// Send a suggestion of your choice for review.
+/// Send a suggestion to the management team.
 pub(crate) async fn suggest(
     ctx: Context<'_>,
     #[description = "The suggestion to send."]
@@ -56,19 +57,23 @@ pub(crate) async fn suggest(
         models::guilds::guild_name(ctx).await,
     );
 
-    let guild_channels = match ctx.http().get_channels(guild_id).await {
-        Ok(value) => value,
-        Err(why) => {
-            error!("Couldn't get channels in {guild_name}: {why:?}");
+    let suggestion_channel =
+        guilds::select_suggestions_channel_id_from_guilds(&guild_id, pool).await;
+    if suggestion_channel.is_none() {
+        error!("Couldn't find suggestion channel in {guild_name}");
+
+        let reply = messages::error_reply(
+            "Sorry, but a suggestions channel hasn't been configured yet.",
+            true,
+        );
+        if let Err(why) = ctx.send(reply).await {
+            error!("Couldn't send reply: {why:?}");
             return Err(why.into());
         }
-    };
-
-    let suggest_channel = guild_channels
-        .iter()
-        .find(|channel| channel.name == "suggestions");
-    if let Some(channel) = suggest_channel {
-        let (channel_id, channel_name) = (channel.id, &channel.name);
+    } else {
+        let suggestion_channel = suggestion_channel.unwrap();
+        let (suggestion_channel_id, suggestion_channel_name) =
+            (suggestion_channel, suggestion_channel.name(ctx).await?);
 
         let bot_id = ctx.cache().current_user().id;
         let bot_permissions = PermissionOverwrite {
@@ -76,11 +81,11 @@ pub(crate) async fn suggest(
             deny: Permissions::empty(),
             kind: PermissionOverwriteType::Member(bot_id),
         };
-        if let Err(why) = channel_id
+        if let Err(why) = suggestion_channel_id
             .create_permission(&ctx.http(), bot_permissions)
             .await
         {
-            error!("Couldn't create permission overwrite for #{channel_name}: {why:?}");
+            error!("Couldn't create permission overwrite for #{suggestion_channel_name}: {why:?}");
             return Err(why.into());
         }
 
@@ -90,8 +95,7 @@ pub(crate) async fn suggest(
                 .avatar_url()
                 .unwrap_or(ctx.author().default_avatar_url()),
         );
-
-        let (user_id, owner_id) = (ctx.author().id, models::guilds::owner_id(ctx).await);
+        let (user_id, moderator_id) = (ctx.author().id, models::guilds::owner_id(ctx).await);
 
         let created_at = Utc::now().naive_utc();
 
@@ -103,11 +107,14 @@ pub(crate) async fn suggest(
         let embed = embeds::suggest_embed(user_name, user_avatar_url, &message, created_at);
         let components = CreateActionRow::Buttons(vec![accept_suggest, reject_suggest]);
 
-        let suggest_message = CreateMessage::default()
+        let message_builder = CreateMessage::default()
             .embed(embed.clone())
             .components(vec![components]);
 
-        let message = match channel_id.send_message(&ctx.http(), suggest_message).await {
+        let message = match suggestion_channel_id
+            .send_message(&ctx.http(), message_builder)
+            .await
+        {
             Ok(value) => value,
             Err(why) => {
                 error!("Couldn't send message: {why:?}");
@@ -116,32 +123,39 @@ pub(crate) async fn suggest(
         };
         let message_id = message.id;
 
-        suggestions::insert_suggest(
-            i64::from(message_id),
-            i64::from(guild_id),
+        let uuid = Uuid::new_v4().to_string();
+
+        match suggestions::insert_into_suggestions(
+            &uuid,
             i64::from(user_id),
-            i64::from(owner_id),
+            i64::from(moderator_id),
             created_at,
             None,
             None,
+            i64::from(message_id),
+            i64::from(suggestion_channel_id),
+            i64::from(guild_id),
             pool,
         )
-        .await;
-    } else {
-        let reply = messages::error_reply(
-            "Sorry, but I couldn't find an appropriate channel for suggestions.",
-            true,
-        );
-        if let Err(why) = ctx.send(reply).await {
-            error!("Couldn't send reply: {why:?}");
-            return Err(why.into());
-        }
-    }
+        .await
+        {
+            Ok(_) => {
+                info!(
+                    "@{user_name} sent a suggestion to #{suggestion_channel_name} in {guild_name}"
+                );
 
-    let reply = messages::ok_reply(format!("I've sent your suggestion in for review."), true);
-    if let Err(why) = ctx.send(reply).await {
-        error!("Couldn't send reply: {why:?}");
-        return Err(why.into());
+                let reply =
+                    messages::ok_reply(format!("I've sent your suggestion in for review."), true);
+                if let Err(why) = ctx.send(reply).await {
+                    error!("Couldn't send reply: {why:?}");
+                    return Err(why.into());
+                }
+            }
+            Err(why) => {
+                error!("Couldn't insert into Suggestions: {why:?}");
+                return Err(why.into());
+            }
+        }
     }
 
     Ok(())

@@ -13,7 +13,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-use chrono::{NaiveDateTime, Utc};
+use chrono::Utc;
 use serenity::{
     all::{ComponentInteraction, Interaction, MessageId},
     builder::EditMessage,
@@ -23,10 +23,8 @@ use tracing::{error, warn};
 
 use crate::{database::suggestions, serenity::Context, utility::components::messages, Data};
 
-pub(crate) async fn handle_create(interaction: &Interaction, ctx: &Context, data: &Data) {
+pub(crate) async fn handle(interaction: &Interaction, ctx: &Context, data: &Data) {
     let pool = &data.pool;
-
-    let created_at = Utc::now().naive_utc();
 
     match interaction {
         Interaction::Component(component) => {
@@ -36,8 +34,7 @@ pub(crate) async fn handle_create(interaction: &Interaction, ctx: &Context, data
             let message_id = message.id;
 
             if custom_id == "accept_suggest" || custom_id == "reject_suggest" {
-                handle_suggestion_message(component, custom_id, message_id, created_at, ctx, pool)
-                    .await;
+                handle_suggestion_message(component, custom_id, message_id, ctx, pool).await;
             }
         }
         _ => {}
@@ -48,7 +45,6 @@ async fn handle_suggestion_message(
     component: &ComponentInteraction,
     custom_id: &String,
     message_id: MessageId,
-    created_at: NaiveDateTime,
     ctx: &Context,
     pool: &SqlitePool,
 ) {
@@ -59,7 +55,7 @@ async fn handle_suggestion_message(
             return;
         }
     };
-    let (owner_id, user_id, channel_id) = (
+    let (moderator_id, user_id, channel_id) = (
         match guild_id.to_guild_cached(&ctx.cache) {
             Some(value) => value.owner_id,
             None => {
@@ -71,7 +67,7 @@ async fn handle_suggestion_message(
         component.channel_id,
     );
 
-    if user_id != owner_id {
+    if user_id != moderator_id {
         let response =
             messages::error_response("Only moderators can accept or reject suggestions.", true)
                 .await;
@@ -91,29 +87,33 @@ async fn handle_suggestion_message(
     let now = Utc::now().naive_utc();
 
     if custom_id == "accept_suggest" {
-        suggestions::update_suggest(
+        let accept = suggestions::update_suggestions(
+            i64::from(moderator_id),
             i64::from(message_id),
             i64::from(guild_id),
-            i64::from(user_id),
-            i64::from(owner_id),
-            created_at,
             Some(now),
             None,
             pool,
         )
         .await;
+        if let Err(why) = accept {
+            error!("Couldn't accept suggestion: {why:?}");
+            return;
+        }
     } else if custom_id == "reject_suggest" {
-        suggestions::update_suggest(
+        let deny = suggestions::update_suggestions(
+            i64::from(moderator_id),
             i64::from(message_id),
             i64::from(guild_id),
-            i64::from(user_id),
-            i64::from(owner_id),
-            created_at,
             None,
             Some(now),
             pool,
         )
         .await;
+        if let Err(why) = deny {
+            error!("Couldn't deny suggestion: {why:?}");
+            return;
+        }
     }
 
     let edit_message = EditMessage::default().components(Vec::new());

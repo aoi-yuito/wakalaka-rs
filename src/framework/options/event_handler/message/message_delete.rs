@@ -16,9 +16,13 @@
 use serenity::all::{ChannelId, GuildId, MessageId};
 use tracing::{error, warn};
 
-use crate::{database::suggestions, serenity::Context, Data};
+use crate::{
+    database::{guilds, suggestions},
+    serenity::Context,
+    Data,
+};
 
-pub(crate) async fn handle_delete(
+pub(crate) async fn handle(
     channel_id: &ChannelId,
     message_id: &MessageId,
     guild_id: &Option<GuildId>,
@@ -42,19 +46,24 @@ pub(crate) async fn handle_delete(
             return;
         }
     };
-    if channel_name == "suggestions" {
-        let (message_id, guild_id) = (
-            i64::from(*message_id),
-            match guild_id {
-                Some(value) => i64::from(*value),
-                None => {
-                    warn!("Couldn't get guild ID");
-                    return;
-                }
-            },
-        );
 
-        suggestions::delete_suggest(message_id, guild_id, pool).await;
-        return;
+    let guild_id = match guild_id {
+        Some(value) => value,
+        None => {
+            warn!("Couldn't get guild ID");
+            return;
+        }
+    };
+
+    let suggestions_channel_id = guilds::select_suggestions_channel_id_from_guilds(guild_id, pool).await;
+    if suggestions_channel_id.is_some() {
+        let suggestions_channel_id = suggestions_channel_id.unwrap();
+        if channel_id != suggestions_channel_id {
+            error!("Couldn't delete message in #{channel_name}");
+            return;
+        }
+
+        suggestions::delete_from_suggestions(i64::from(*message_id), i64::from(*guild_id), pool)
+            .await;
     }
 }
