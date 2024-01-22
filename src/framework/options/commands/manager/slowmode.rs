@@ -57,7 +57,19 @@ pub(crate) async fn slowmode(
         }
     }
 
-    let channel_id = models::channels::channel_id(ctx, channel_id).await;
+    let channel_id = match channel_id {
+        Some(channel_id) => channel_id,
+        None => {
+            let reply =
+                messages::warn_reply(format!("I'm afraid you have to specify a channel."), true);
+            if let Err(why) = ctx.send(reply).await {
+                error!("Couldn't send reply: {why:?}");
+                return Err(why.into());
+            }
+
+            return Ok(());
+        }
+    };
     let delay = match delay {
         Some(delay) => delay,
         None => 0,
