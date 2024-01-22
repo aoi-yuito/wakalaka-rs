@@ -13,7 +13,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-pub(crate) mod channels;
 pub(crate) mod guilds;
 pub(crate) mod roles;
 pub(crate) mod users;
