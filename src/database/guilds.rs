@@ -201,6 +201,8 @@ pub(crate) async fn insert_into_guilds(
     guild: &Guild,
     pool: &SqlitePool,
 ) -> Result<(), sqlx::Error> {
+    let mut _insert_into_ok = true;
+
     let start_time = Instant::now();
 
     let transaction = match pool.begin().await {
@@ -214,23 +216,6 @@ pub(crate) async fn insert_into_guilds(
     let guild_id = guild.id;
     let owner_id = guild.owner_id;
 
-    // This query avoids inserting duplicate rows to prevent "UNIQUE constraint failed" error.
-    let existing_query =
-        sqlx::query("SELECT guild_id FROM guilds WHERE guild_id = ?").bind(i64::from(guild_id));
-    let existing_row = match existing_query.fetch_one(pool).await {
-        Ok(existing_row) => existing_row,
-        Err(why) => {
-            error!("Couldn't select from Guilds: {why:?}");
-            return Err(why);
-        }
-    };
-    if let Err(why) = existing_row.try_get::<i64, _>("guild_id") {
-        error!("Couldn't get 'guildId' from Guilds: {why:?}");
-        return Err(why);
-    } else if existing_row.try_get::<i64, _>("guild_id")? == i64::from(guild_id) {
-        return Ok(());
-    }
-
     let query = sqlx::query(
         "INSERT INTO guilds (
             guild_id,
@@ -240,6 +225,13 @@ pub(crate) async fn insert_into_guilds(
     .bind(i64::from(guild_id))
     .bind(i64::from(owner_id));
     if let Err(why) = query.execute(pool).await {
+        _insert_into_ok = false;
+        
+        if why.to_string().contains("1555") {
+            // UNIQUE constraint failed: guilds.guild_id
+            return Ok(());
+        }
+
         error!("Couldn't insert into Guilds: {why:?}");
         return Err(why);
     }
@@ -249,8 +241,10 @@ pub(crate) async fn insert_into_guilds(
         return Err(why);
     }
 
-    let elapsed_time = start_time.elapsed();
-    debug!("Inserted into Guilds in {elapsed_time:.2?}");
+    if _insert_into_ok {
+        let elapsed_time = start_time.elapsed();
+        debug!("Inserted into Guilds in {elapsed_time:.2?}");
+    }
 
     Ok(())
 }

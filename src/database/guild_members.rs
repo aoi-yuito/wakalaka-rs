@@ -124,6 +124,8 @@ pub(crate) async fn insert_into_guild_members(
     members: &Vec<Member>,
     pool: &SqlitePool,
 ) -> Result<(), sqlx::Error> {
+    let mut _insert_into_ok = true;
+
     let start_time = Instant::now();
 
     let transaction = match pool.begin().await {
@@ -143,25 +145,6 @@ pub(crate) async fn insert_into_guild_members(
         let (user_id, deaf, mute, guild_id) =
             (member.user.id, member.deaf, member.mute, member.guild_id);
 
-        // This query avoids inserting duplicate rows to prevent "UNIQUE constraint failed" error.
-        let existing_query =
-            sqlx::query("SELECT user_id FROM guild_members WHERE user_id = ? AND guild_id = ?")
-                .bind(i64::from(user_id))
-                .bind(i64::from(guild_id));
-        let existing_row = match existing_query.fetch_one(pool).await {
-            Ok(existing_row) => existing_row,
-            Err(why) => {
-                error!("Couldn't select from GuildMembers: {why:?}");
-                return Err(why);
-            }
-        };
-        if let Err(why) = existing_row.try_get::<i64, _>("user_id") {
-            error!("Couldn't get 'userId' from GuildMembers: {why:?}");
-            return Err(why);
-        } else if existing_row.try_get::<i64, _>("user_id")? == i64::from(user_id) {
-            continue;
-        }
-
         let query = sqlx::query(
             "INSERT INTO guild_members (
             user_id,
@@ -179,6 +162,13 @@ pub(crate) async fn insert_into_guild_members(
         .bind(false)
         .bind(i64::from(guild_id));
         if let Err(why) = query.execute(pool).await {
+            _insert_into_ok = false;
+            
+            if why.to_string().contains("1555") {
+                // UNIQUE constraint failed: guild_members.user_id
+                continue;
+            }
+
             error!("Couldn't insert into GuildMembers: {why:?}");
             return Err(why);
         }
@@ -189,8 +179,10 @@ pub(crate) async fn insert_into_guild_members(
         return Err(why);
     }
 
-    let elapsed_time = start_time.elapsed();
-    debug!("Inserted into GuildMembers in {elapsed_time:.2?}");
+    if _insert_into_ok {
+        let elapsed_time = start_time.elapsed();
+        debug!("Inserted into GuildMembers in {elapsed_time:.2?}");
+    }
 
     Ok(())
 }

@@ -22,6 +22,8 @@ pub(crate) async fn insert_into_guild_channels(
     channels: &Vec<GuildChannel>,
     pool: &SqlitePool,
 ) -> Result<(), sqlx::Error> {
+    let mut _insert_into_ok = true;
+
     let start_time = Instant::now();
 
     let transaction = match pool.begin().await {
@@ -41,26 +43,6 @@ pub(crate) async fn insert_into_guild_channels(
             channel.rate_limit_per_user.unwrap_or_default(),
         );
 
-        // This query avoids inserting duplicate rows to prevent "UNIQUE constraint failed" error.
-        let existing_query = sqlx::query(
-            "SELECT channel_id FROM guild_channels WHERE channel_id = ? AND guild_id = ?",
-        )
-        .bind(i64::from(channel_id))
-        .bind(i64::from(guild_id));
-        let existing_row = match existing_query.fetch_one(pool).await {
-            Ok(existing_row) => existing_row,
-            Err(why) => {
-                error!("Couldn't select from GuildChannels: {why:?}");
-                return Err(why);
-            }
-        };
-        if let Err(why) = existing_row.try_get::<i64, _>("channel_id") {
-            error!("Couldn't get 'channelId' from GuildChannels: {why:?}");
-            return Err(why);
-        } else if existing_row.try_get::<i64, _>("channel_id")? == i64::from(channel_id) {
-            continue;
-        }
-
         let query = sqlx::query(
             "INSERT INTO guild_channels (
                 channel_id,
@@ -76,6 +58,13 @@ pub(crate) async fn insert_into_guild_channels(
         .bind(nsfw)
         .bind(rate_limit_per_user);
         if let Err(why) = query.execute(pool).await {
+            _insert_into_ok = false;
+
+            if why.to_string().contains("1555") {
+                // UNIQUE constraint failed: guild_channels.channel_id
+                continue;
+            }
+
             error!("Couldn't insert into GuildChannels: {why:?}");
             return Err(why);
         }
@@ -86,8 +75,10 @@ pub(crate) async fn insert_into_guild_channels(
         return Err(why);
     }
 
-    let elapsed_time = start_time.elapsed();
-    debug!("Inserted into GuildChannels in {elapsed_time:.2?}");
+    if _insert_into_ok {
+        let elapsed_time = start_time.elapsed();
+        debug!("Inserted into GuildChannels in {elapsed_time:.2?}");
+    }
 
     Ok(())
 }

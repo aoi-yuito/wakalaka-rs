@@ -73,6 +73,8 @@ pub(crate) async fn insert_into_users(
     members: &Vec<Member>,
     pool: &SqlitePool,
 ) -> Result<(), sqlx::Error> {
+    let mut _insert_into_ok = true;
+
     let start_time = Instant::now();
 
     let transaction = match pool.begin().await {
@@ -92,25 +94,15 @@ pub(crate) async fn insert_into_users(
 
         let user_id = member.user.id;
 
-        // This query avoids inserting duplicate rows to prevent "UNIQUE constraint failed" error.
-        let existing_query =
-            sqlx::query("SELECT user_id FROM users WHERE user_id = ?").bind(i64::from(user_id));
-        let existing_row = match existing_query.fetch_one(pool).await {
-            Ok(existing_row) => existing_row,
-            Err(why) => {
-                error!("Couldn't select from Users: {why:?}");
-                return Err(why);
-            }
-        };
-        if let Err(why) = existing_row.try_get::<i64, _>("user_id") {
-            error!("Couldn't get 'userId' from Users: {why:?}");
-            return Err(why);
-        } else if existing_row.try_get::<i64, _>("user_id")? == i64::from(user_id) {
-            continue;
-        }
-
         let query = sqlx::query("INSERT INTO users (user_id) VALUES (?)").bind(i64::from(user_id));
         if let Err(why) = query.execute(pool).await {
+            _insert_into_ok = false;
+            
+            if why.to_string().contains("1555") {
+                // UNIQUE constraint failed: users.user_id
+                continue;
+            }
+
             error!("Couldn't insert into Users: {why:?}");
             return Err(why);
         }
@@ -121,8 +113,10 @@ pub(crate) async fn insert_into_users(
         return Err(why);
     }
 
-    let elapsed_time = start_time.elapsed();
-    debug!("Inserted into Users in {elapsed_time:.2?}");
+    if _insert_into_ok {
+        let elapsed_time = start_time.elapsed();
+        debug!("Inserted into Users in {elapsed_time:.2?}");
+    }
 
     Ok(())
 }
