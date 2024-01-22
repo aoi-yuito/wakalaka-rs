@@ -14,14 +14,13 @@
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
 use serenity::all::{Guild, UnavailableGuild};
-use tracing::warn;
+use tracing::error;
 
-use crate::{database::users, serenity::Context, utility::models, Data};
+use crate::{database::guilds, Data};
 
-pub(crate) async fn handle_delete(
+pub(crate) async fn handle(
     unavailable_guild: &UnavailableGuild,
     guild: &Option<Guild>,
-    ctx: &Context,
     data: &Data,
 ) {
     if unavailable_guild.unavailable {
@@ -30,25 +29,14 @@ pub(crate) async fn handle_delete(
 
     let pool = &data.pool;
 
-    let (unavailable_guild_id, guild_id) = (
-        unavailable_guild.id,
-        match guild {
-            Some(guild) => guild.id,
-            None => {
-                warn!("Couldn't get guild ID");
-                return;
-            }
-        },
-    );
+    let unavailable_guild_id = unavailable_guild.id;
+    if let Err(why) = guilds::delete_from_guilds(&unavailable_guild_id, pool).await {
+        error!("Couldn't delete unavailable guild(s): {why:?}");
+    }
 
-    let (unavailable_members, members) = (
-        models::guilds::members_raw(ctx, unavailable_guild_id).await,
-        models::guilds::members_raw(ctx, guild_id).await,
-    );
-    let combined_members = unavailable_members
-        .into_iter()
-        .chain(members.into_iter())
-        .collect::<Vec<_>>();
-
-    users::delete_users(combined_members, pool).await;
+    let guild = guild.as_ref().expect("Couldn't get guild");
+    let guild_id = guild.id;
+    if let Err(why) = guilds::delete_from_guilds(&guild_id, pool).await {
+        error!("Couldn't delete guild(s): {why:?}");
+    }
 }
