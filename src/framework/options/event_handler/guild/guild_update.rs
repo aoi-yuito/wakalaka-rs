@@ -14,37 +14,14 @@
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
 use serenity::all::{Guild, PartialGuild};
-use tracing::warn;
 
-use crate::{database::users, serenity::Context, utility::models, Data};
+use crate::{serenity::Context, Data};
 
-pub(crate) async fn handle_update(
-    old_guild: &Option<Guild>,
-    new_guild: &PartialGuild,
-    ctx: &Context,
+pub(crate) async fn handle(
+    _old_guild: &Option<Guild>,
+    _new_guild: &PartialGuild,
+    _ctx: &Context,
     data: &Data,
 ) {
-    let pool = &data.pool;
-
-    let (old_guild_id, new_guild_id) = (
-        match old_guild {
-            Some(guild) => guild.id,
-            None => {
-                warn!("Couldn't get old guild ID");
-                return;
-            }
-        },
-        new_guild.id,
-    );
-
-    let (old_members, new_members) = (
-        models::guilds::members_raw(&ctx, old_guild_id).await,
-        models::guilds::members_raw(&ctx, new_guild_id).await,
-    );
-    let combined_members = old_members
-        .into_iter()
-        .chain(new_members.into_iter())
-        .collect::<Vec<_>>();
-
-    users::update_users(combined_members, pool).await;
+    let _pool = &data.pool;
 }
