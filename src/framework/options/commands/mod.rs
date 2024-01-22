@@ -30,6 +30,7 @@ use crate::{Data, Error};
 
 pub(crate) async fn guild_commands() -> Vec<Command<Data, Error>> {
     vec![
+        core::setup::setup(),
         core::restart::restart(),
         core::shutdown::shutdown(),
         fun::flip::flip(),

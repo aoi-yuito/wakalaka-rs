@@ -13,6 +13,18 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-pub(super) mod restart;
-pub(super) mod setup;
-pub(super) mod shutdown;
+mod suggestions;
+
+use crate::{framework::commands::core::setup::suggestions::suggestions, Context, Error};
+
+#[poise::command(
+    prefix_command,
+    slash_command,
+    subcommands("suggestions"),
+    category = "Core",
+    owners_only,
+    guild_only
+)]
+pub(crate) async fn setup(_: Context<'_>) -> Result<(), Error> {
+    Ok(())
+}
