@@ -14,10 +14,16 @@
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
 use serenity::all::Guild;
+use tracing::error;
 
-use crate::{database::users, serenity::Context, utility::models, Data};
+use crate::{
+    database::{guild_channels, guild_members, guilds, users},
+    serenity::Context,
+    utility::models,
+    Data,
+};
 
-pub(crate) async fn handle_create(guild: &Guild, is_new: bool, ctx: &Context, data: &Data) {
+pub(crate) async fn handle(guild: &Guild, is_new: bool, ctx: &Context, data: &Data) {
     if !is_new {
         return;
     }
@@ -25,8 +31,24 @@ pub(crate) async fn handle_create(guild: &Guild, is_new: bool, ctx: &Context, da
     let pool = &data.pool;
 
     let guild_id = guild.id;
+    let (guild_members, guild_channels) = (
+        models::guilds::members_raw(&ctx, &guild_id).await,
+        models::guilds::channels_raw(&ctx, guild_id).await,
+    );
 
-    let members = models::guilds::members_raw(&ctx, guild_id).await;
-
-    users::insert_users(members, pool).await;
+    match users::insert_into_users(&guild_members, pool).await {
+        Err(why) => error!("Couldn't insert into Users: {why:?}"),
+        Ok(()) => match guilds::insert_into_guilds(guild, pool).await {
+            Err(why) => error!("Couldn't insert into Guilds: {why:?}"),
+            Ok(()) => match guild_members::insert_into_guild_members(&guild_members, pool).await {
+                Err(why) => error!("Couldn't insert into GuildMembers: {why:?}"),
+                Ok(()) => {
+                    match guild_channels::insert_into_guild_channels(&guild_channels, pool).await {
+                        Err(why) => error!("Couldn't insert into GuildChannels: {why:?}"),
+                        Ok(()) => (),
+                    }
+                }
+            },
+        },
+    }
 }
