@@ -16,6 +16,7 @@
 use tracing::{error, info, warn};
 
 use crate::framework::options::commands;
+use crate::utility::models;
 use crate::{serenity::Context, Data, Error};
 
 pub(crate) async fn handle(ctx: &Context, data: Data) -> Result<Data, Error> {
@@ -25,31 +26,8 @@ pub(crate) async fn handle(ctx: &Context, data: Data) -> Result<Data, Error> {
 }
 
 async fn register_guild_commands(ctx: &Context) {
-    let current_application_info = match ctx.http.get_current_application_info().await {
-        Ok(value) => value,
-        Err(why) => {
-            error!("Couldn't get current application info: {why:?}");
-            return;
-        }
-    };
-
-    let guild_id = match current_application_info.guild_id {
-        Some(value) => value,
-        None => {
-            warn!("No guild ID found in current application");
-            return;
-        }
-    };
-    let guild_name = {
-        let guild = match ctx.cache.guild(guild_id) {
-            Some(value) => value,
-            None => {
-                warn!("No guild found in cache");
-                return;
-            }
-        };
-        guild.name.clone()
-    };
+    let guild_id = models::guilds::guild_id_raw(ctx).await;
+    let guild_name = models::guilds::guild_name_raw(ctx, guild_id).await;
     let guild_commands = commands::guild_commands().await;
 
     let number_of_guild_commands = guild_commands.len();

@@ -75,8 +75,20 @@ pub(crate) async fn owner_id(ctx: Context<'_>) -> UserId {
     guild(ctx).await.owner_id
 }
 
+pub(crate) async fn guild_name_raw(ctx: &crate::serenity::Context, guild_id: GuildId) -> String {
+    guild_raw(ctx, guild_id).name
+}
+
 pub(crate) async fn guild_name(ctx: Context<'_>) -> String {
     guild(ctx).await.name
+}
+
+pub(crate) async fn guild_id_raw(ctx: &crate::serenity::Context) -> GuildId {
+    super::current_application_info_raw(ctx)
+        .await
+        .expect("Couldn't get current application info")
+        .guild_id
+        .expect("Couldn't find guild ID in current application")
 }
 
 pub(crate) async fn guild_id(ctx: Context<'_>) -> GuildId {
