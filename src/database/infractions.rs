@@ -13,11 +13,12 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-use chrono::{NaiveDateTime, Utc};
+use chrono::NaiveDateTime;
 use serenity::all::{GuildId, UserId};
 use sqlx::{Row, SqlitePool};
 use tokio::time::Instant;
 use tracing::{error, info};
+use uuid::Uuid;
 
 pub(crate) enum InfractionType {
     Warn,
@@ -28,7 +29,7 @@ pub(crate) enum InfractionType {
 }
 
 impl InfractionType {
-    pub(crate) fn as_str(&self) -> &str {
+    fn as_str(&self) -> &str {
         match self {
             Self::Warn => "warning",
             Self::Deaf => "deafen",
@@ -39,86 +40,106 @@ impl InfractionType {
     }
 }
 
-pub(crate) async fn infractions(
-    user_id: UserId,
-    guild_id: GuildId,
-    infraction_type: &'static str,
+pub(crate) async fn select_from_infractions(
+    infraction: InfractionType,
+    user_id: &UserId,
+    guild_id: &GuildId,
     pool: &SqlitePool,
-) -> Result<Vec<(i32, String, i64, String, NaiveDateTime)>, sqlx::Error> {
+) -> Result<Vec<(String, String, i64, i64, String, String, i64)>, sqlx::Error> {
     let start_time = Instant::now();
 
-    let infract_query = sqlx::query(
-        "SELECT id, type, moderator_id, reason, created_at FROM infractions WHERE user_id = ? AND guild_id = ? AND type = ?",
+    let query = sqlx::query(
+        "SELECT uuid, type, user_id, moderator_id, reason, created_at, guild_id FROM infractions WHERE type = ? AND user_id = ? AND guild_id = ?",
     )
-    .bind(i64::from(user_id))
-    .bind(i64::from(guild_id))
-    .bind(infraction_type);
+    .bind(infraction.as_str())
+    .bind(i64::from(*user_id))
+    .bind(i64::from(*guild_id));
 
-    let mut infracts = Vec::new();
+    let mut infractions = Vec::new();
 
-    let rows = infract_query.fetch_all(pool).await?;
+    let rows = query.fetch_all(pool).await?;
     for row in rows {
         if row.is_empty() {
-            return Ok(infracts);
+            return Err(sqlx::Error::RowNotFound);
         }
 
-        let id = row.get::<i32, _>(0);
-        let infraction_type = row.get::<String, _>(1);
-        let moderator_id = row.get::<i64, _>(2);
-        let reason = row.get::<String, _>(3);
-        let created_at = row.get::<NaiveDateTime, _>(4);
+        let (uuid, infraction_type, user_id, moderator_id, reason, created_at, guild_id) = (
+            row.get::<String, _>(0),
+            row.get::<String, _>(1),
+            row.get::<i64, _>(2),
+            row.get::<i64, _>(3),
+            row.get::<String, _>(4),
+            row.get::<NaiveDateTime, _>(5),
+            row.get::<i64, _>(6),
+        );
 
-        infracts.push((id, infraction_type, moderator_id, reason, created_at));
+        infractions.push((
+            uuid,
+            infraction_type,
+            user_id,
+            moderator_id,
+            reason,
+            created_at.to_string(),
+            guild_id,
+        ));
     }
 
     let elapsed_time = start_time.elapsed();
-    info!("Got infractions from database in {elapsed_time:.2?}");
+    info!("Selected from Infractions in {elapsed_time:.2?}");
 
-    Ok(infracts)
+    Ok(infractions)
 }
 
-pub(crate) async fn delete_infraction(id: i32, infraction_type: &'static str, pool: &SqlitePool) {
-    let start_time = Instant::now();
-
-    let infract_query = sqlx::query("DELETE FROM infractions WHERE id = ? AND type = ?")
-        .bind(id)
-        .bind(infraction_type);
-    if let Err(why) = infract_query.execute(pool).await {
-        error!("Couldn't delete infraction from database: {why:?}");
-        return;
-    } else {
-        let elapsed_time = start_time.elapsed();
-        info!("Deleted infraction from database in {elapsed_time:.2?}");
-    }
-}
-
-pub(crate) async fn insert_infraction(
-    user_id: UserId,
-    infraction_type: &'static str,
-    moderator_id: UserId,
-    guild_id: GuildId,
-    reason: &String,
-    created_at: Option<NaiveDateTime>,
+pub(crate) async fn delete_from_infractions(
+    uuid: &String,
+    guild_id: &GuildId,
     pool: &SqlitePool,
-) {
+) -> Result<(), sqlx::Error> {
     let start_time = Instant::now();
 
-    let created_at = created_at.unwrap_or(Utc::now().naive_utc());
-
-    let infract_query = sqlx::query(
-        "INSERT INTO infractions (user_id, type, moderator_id, guild_id, reason, created_at) VALUES (?, ?, ?, ?, ?, ?)",
-    )
-    .bind(i64::from(user_id))
-    .bind(infraction_type)
-    .bind(i64::from(moderator_id))
-    .bind(i64::from(guild_id))
-    .bind(reason)
-    .bind(created_at);
-    if let Err(why) = infract_query.execute(pool).await {
-        error!("Couldn't insert infraction into database: {why:?}");
-        return;
-    } else {
-        let elapsed_time = start_time.elapsed();
-        info!("Inserted infraction into database in {elapsed_time:.2?}");
+    let query = sqlx::query("DELETE FROM infractions WHERE uuid = ? AND guild_id = ?")
+        .bind(uuid)
+        .bind(i64::from(*guild_id));
+    if let Err(why) = query.execute(pool).await {
+        error!("Couldn't delete from Infractions: {why:?}");
+        return Err(why);
     }
+
+    let elapsed_time = start_time.elapsed();
+    info!("Deleted from Infractions in {elapsed_time:.2?}");
+
+    Ok(())
+}
+
+pub(crate) async fn insert_into_infractions(
+    infraction: InfractionType,
+    user_id: &UserId,
+    moderator_id: &UserId,
+    reason: &String,
+    created_at: NaiveDateTime,
+    guild_id: &GuildId,
+    pool: &SqlitePool,
+) -> Result<(), sqlx::Error> {
+    let start_time = Instant::now();
+
+    let uuid = Uuid::new_v4().to_string();
+
+    let query = sqlx::query(
+        "INSERT INTO infractions (uuid, type, user_id, moderator_id, reason, created_at, guild_id) VALUES (?, ?, ?, ?, ?, ?, ?)",
+    ).bind(uuid)
+    .bind(infraction.as_str())
+    .bind(i64::from(*user_id))
+    .bind(i64::from(*moderator_id))
+    .bind(reason)
+    .bind(created_at)
+    .bind(i64::from(*guild_id));
+    if let Err(why) = query.execute(pool).await {
+        error!("Couldn't insert into Infractions: {why:?}");
+        return Err(why);
+    }
+
+    let elapsed_time = start_time.elapsed();
+    info!("Inserted into Infractions in {elapsed_time:.2?}");
+
+    Ok(())
 }

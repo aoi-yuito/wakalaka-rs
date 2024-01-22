@@ -18,7 +18,7 @@ use sqlx::SqlitePool;
 use tokio::time::Instant;
 use tracing::{error, info};
 
-pub(crate) async fn delete_suggest(message_id: i64, guild_id: i64, pool: &SqlitePool) {
+pub(crate) async fn delete_from_suggestions(message_id: i64, guild_id: i64, pool: &SqlitePool) {
     let start_time = Instant::now();
 
     let suggest_query =
@@ -35,52 +35,68 @@ pub(crate) async fn delete_suggest(message_id: i64, guild_id: i64, pool: &Sqlite
     }
 }
 
-pub(crate) async fn update_suggest(
+pub(crate) async fn update_suggestions(
+    moderator_id: i64,
     message_id: i64,
     guild_id: i64,
-    user_id: i64,
-    moderator_id: i64,
-    created_at: NaiveDateTime,
     accepted_at: Option<NaiveDateTime>,
     rejected_at: Option<NaiveDateTime>,
     pool: &SqlitePool,
-) {
+) -> Result<(), sqlx::Error> {
     let start_time = Instant::now();
 
-    let suggest_query = sqlx::query(
-        "UPDATE suggestions SET user_id = ?, moderator_id = ?, created_at = ?, accepted_at = ?, rejected_at = ? WHERE message_id = ? AND guild_id = ?",
-    ).bind(user_id).bind(moderator_id).bind(created_at).bind(accepted_at).bind(rejected_at).bind(message_id).bind(guild_id);
-
-    if let Err(why) = suggest_query.execute(pool).await {
-        error!("Couldn't update suggestion within database: {why:?}");
-        return;
-    } else {
-        let elapsed_time = start_time.elapsed();
-        info!("Updated suggestion within database in {elapsed_time:.2?}");
+    let query = sqlx::query(
+        "UPDATE suggestions SET moderator_id = ?, accepted_at = ?, rejected_at = ? WHERE message_id = ? AND guild_id = ?",
+    )
+    .bind(moderator_id)
+    .bind(accepted_at)
+    .bind(rejected_at)
+    .bind(message_id)
+    .bind(guild_id);
+    if let Err(why) = query.execute(pool).await {
+        error!("Couldn't update suggestion in database: {why:?}");
+        return Err(why);
     }
+
+    let elapsed_time = start_time.elapsed();
+    info!("Updated suggestion in database in {elapsed_time:.2?}");
+
+    Ok(())
 }
 
-pub(crate) async fn insert_suggest(
-    message_id: i64,
-    guild_id: i64,
+pub(crate) async fn insert_into_suggestions(
+    uuid: &String,
     user_id: i64,
     moderator_id: i64,
     created_at: NaiveDateTime,
     accepted_at: Option<NaiveDateTime>,
     rejected_at: Option<NaiveDateTime>,
+    message_id: i64,
+    channel_id: i64,
+    guild_id: i64,
     pool: &SqlitePool,
-) {
+) -> Result<(), sqlx::Error> {
     let start_time = Instant::now();
 
-    let suggest_query = sqlx::query(
-        "INSERT INTO suggestions (message_id, guild_id, user_id, moderator_id, created_at, accepted_at, rejected_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
-    ).bind(message_id).bind(guild_id).bind(user_id).bind(moderator_id).bind(created_at).bind(accepted_at).bind(rejected_at);
-
-    if let Err(why) = suggest_query.execute(pool).await {
-        error!("Couldn't insert suggestion into database: {why:?}");
-        return;
-    } else {
-        let elapsed_time = start_time.elapsed();
-        info!("Inserted suggestion into database in {elapsed_time:.2?}");
+    let query = sqlx::query(
+        "INSERT INTO suggestions (uuid, user_id, moderator_id, created_at, accepted_at, rejected_at, message_id, channel_id, guild_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+    )
+    .bind(uuid)
+    .bind(user_id)
+    .bind(moderator_id)
+    .bind(created_at)
+    .bind(accepted_at)
+    .bind(rejected_at)
+    .bind(message_id)
+    .bind(channel_id)
+    .bind(guild_id);
+    if let Err(why) = query.execute(pool).await {
+        error!("Couldn't insert into Suggestions: {why:?}");
+        return Err(why);
     }
+
+    let elapsed_time = start_time.elapsed();
+    info!("Inserted into Suggestions in {elapsed_time:.2?}");
+
+    Ok(())
 }

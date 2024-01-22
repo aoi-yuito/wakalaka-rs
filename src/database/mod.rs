@@ -13,6 +13,9 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
+pub(crate) mod guild_channels;
+pub(crate) mod guild_members;
+pub(crate) mod guilds;
 pub(crate) mod infractions;
 pub(crate) mod suggestions;
 pub(crate) mod users;
@@ -57,7 +60,7 @@ async fn migrate(pool: &SqlitePool) -> Result<(), sqlx::Error> {
     match sqlx::migrate!("./migrations").run(pool).await {
         Ok(_) => {
             let elapsed_time = start_time.elapsed();
-            info!("Migrated database in {elapsed_time:.2?}");
+            debug!("Migrated database in {elapsed_time:.2?}");
             Ok(())
         }
         Err(why) => {
