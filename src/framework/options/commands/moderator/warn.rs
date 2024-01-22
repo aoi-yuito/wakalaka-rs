@@ -15,7 +15,7 @@
 
 use chrono::Utc;
 use serenity::all::UserId;
-use tracing::{error, info, warn};
+use tracing::{error, info};
 
 use crate::{
     database::{
@@ -86,23 +86,14 @@ pub(crate) async fn warn(
 
     let created_at = Utc::now().naive_utc();
 
-    let warn_type = InfractionType::Warn.as_str();
+    let mut user_infractions = users::select_infractions_from_users(&user_id, pool).await?;
 
-    let mut user_infractions = match users::infractions(user_id, guild_id, pool).await {
-        Some(infractions) => infractions,
-        None => {
-            warn!("Couldn't get infractions for @{user_name} in database");
-            return Ok(());
-        }
-    };
+    let warnings =
+        infractions::select_from_infractions(InfractionType::Warn, &user_id, &guild_id, pool)
+            .await?;
 
-    let infractions = infractions::infractions(user_id, guild_id, warn_type, pool).await?;
-
-    let number_of_infractions = infractions
-        .iter()
-        .filter(|warning| warning.1 == warn_type)
-        .count();
-    if number_of_infractions >= 3 {
+    let number_of_warnings = warnings.len();
+    if number_of_warnings >= 3 {
         let reply = messages::warn_reply(
             format!(
             "<@{user_id}> has reached a maximum number of warnings. Take further action manually.",
@@ -115,47 +106,37 @@ pub(crate) async fn warn(
         }
 
         return Ok(());
-    } else {
-        let message = messages::message(format!(
-            "You've been warned by <@{moderator_id}> in {guild_name} for {reason}.",
-        ));
-        if let Err(why) = user.direct_message(&ctx, message).await {
-            error!("Couldn't send reply: {why:?}");
-            return Err(why.into());
-        }
+    }
 
-        user_infractions += 1;
+    let message = messages::message(format!(
+        "You've been warned by <@{moderator_id}> in {guild_name} for {reason}.",
+    ));
+    if let Err(why) = user.direct_message(&ctx, message).await {
+        error!("Couldn't send reply: {why:?}");
+        return Err(why.into());
+    }
 
-        users::update_user(
-            user_id,
-            guild_id,
-            user_infractions,
-            false,
-            false,
-            false,
-            false,
-            pool,
-        )
-        .await;
+    info!("@{user_name} warned by @{moderator_name}: {reason}");
 
-        infractions::insert_infraction(
-            user_id,
-            warn_type,
-            moderator_id,
-            guild_id,
-            &reason,
-            Some(created_at),
-            pool,
-        )
-        .await;
+    infractions::insert_into_infractions(
+        InfractionType::Warn,
+        &user_id,
+        &moderator_id,
+        &reason,
+        created_at,
+        &guild_id,
+        pool,
+    )
+    .await?;
 
-        info!("@{user_name} warned by @{moderator_name}: {reason}");
+    user_infractions += 1;
 
-        let reply = messages::ok_reply(format!("<@{user_id}> has been warned."), true);
-        if let Err(why) = ctx.send(reply).await {
-            error!("Couldn't send reply: {why:?}");
-            return Err(why.into());
-        }
+    users::update_users_set_infractions(&user_id, user_infractions, pool).await?;
+
+    let reply = messages::ok_reply(format!("<@{user_id}> has been warned."), true);
+    if let Err(why) = ctx.send(reply).await {
+        error!("Couldn't send reply: {why:?}");
+        return Err(why.into());
     }
 
     Ok(())

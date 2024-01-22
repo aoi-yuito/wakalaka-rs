@@ -15,10 +15,11 @@
 
 use chrono::Utc;
 use serenity::{all::UserId, builder::EditMember};
-use tracing::{error, info, warn};
+use tracing::{error, info};
 
 use crate::{
     database::{
+        guild_members,
         infractions::{self, InfractionType},
         users,
     },
@@ -86,18 +87,10 @@ pub(crate) async fn mute(
 
     let created_at = Utc::now().naive_utc();
 
-    let mute_type = InfractionType::Mute.as_str();
-
-    let mut user_infractions = match users::infractions(user_id, guild_id, pool).await {
-        Some(infractions) => infractions,
-        None => {
-            warn!("Couldn't get infractions for @{user_name} in database");
-            return Ok(());
-        }
-    };
+    let mut user_infractions = users::select_infractions_from_users(&user_id, pool).await?;
 
     let mut member = models::guilds::member(ctx, guild_id, user_id).await;
-    let edit_member = EditMember::default().mute(true);
+    let member_builder = EditMember::default().mute(true);
 
     let message = messages::message(format!(
         "You've been muted by <@{moderator_id}> in {guild_name} for {reason}.",
@@ -107,7 +100,7 @@ pub(crate) async fn mute(
         return Err(why.into());
     }
 
-    if let Err(why) = member.edit(&ctx, edit_member).await {
+    if let Err(why) = member.edit(&ctx, member_builder).await {
         error!("Couldn't mute @{user_name}: {why:?}");
 
         let reply =
@@ -120,32 +113,24 @@ pub(crate) async fn mute(
         return Err(why.into());
     }
 
-    user_infractions += 1;
-
-    users::update_user(
-        user_id,
-        guild_id,
-        user_infractions,
-        false,
-        true,
-        false,
-        false,
-        pool,
-    )
-    .await;
-
-    infractions::insert_infraction(
-        user_id,
-        mute_type,
-        moderator_id,
-        guild_id,
-        &reason,
-        Some(created_at),
-        pool,
-    )
-    .await;
+    guild_members::update_guilds_members_set_mute(&user_id, true, pool).await?;
 
     info!("@{moderator_name} muted @{user_name} in {guild_name}: {reason}");
+
+    infractions::insert_into_infractions(
+        InfractionType::Mute,
+        &user_id,
+        &moderator_id,
+        &reason,
+        created_at,
+        &guild_id,
+        pool,
+    )
+    .await?;
+
+    user_infractions += 1;
+
+    users::update_users_set_infractions(&user_id, user_infractions, pool).await?;
 
     let reply = messages::ok_reply(format!("<@{user_id}> has been muted."), true);
     if let Err(why) = ctx.send(reply).await {

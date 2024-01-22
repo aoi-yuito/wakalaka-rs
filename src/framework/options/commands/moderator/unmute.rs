@@ -14,10 +14,11 @@
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
 use serenity::{all::UserId, builder::EditMember};
-use tracing::{error, info, warn};
+use tracing::{error, info};
 
 use crate::{
     database::{
+        guild_members,
         infractions::{self, InfractionType},
         users,
     },
@@ -65,12 +66,8 @@ pub(crate) async fn unmute(
 
     let guild_id = models::guilds::guild_id(ctx).await;
 
-    let mute_type = InfractionType::Mute.as_str();
-
-    let infractions = infractions::infractions(user_id, guild_id, mute_type, pool).await?;
-
-    let number_of_infractions = infractions.len();
-    if number_of_infractions < 1 {
+    let mut user_infractions = users::select_infractions_from_users(&user_id, pool).await?;
+    if user_infractions < 1 {
         let reply = messages::warn_reply(
             format!("I'm afraid <@{user_id}> hasn't been punished before."),
             true,
@@ -83,16 +80,11 @@ pub(crate) async fn unmute(
         return Ok(());
     }
 
-    for infraction in infractions {
-        let case_id = infraction.0;
-
-        let mut user_infractions = match users::infractions(user_id, guild_id, pool).await {
-            Some(infractions) => infractions,
-            None => {
-                warn!("Couldn't get infractions for @{user_name} in database");
-                return Ok(());
-            }
-        };
+    let mutes =
+        infractions::select_from_infractions(InfractionType::Mute, &user_id, &guild_id, pool)
+            .await?;
+    for mute in mutes {
+        let uuid = mute.0;
 
         let mut member = models::guilds::member(ctx, guild_id, user_id).await;
         let edit_member = EditMember::default().mute(false);
@@ -110,24 +102,7 @@ pub(crate) async fn unmute(
             return Err(why.into());
         }
 
-        user_infractions -= 1;
-        if user_infractions < 0 {
-            user_infractions = 0;
-        }
-
-        users::update_user(
-            user_id,
-            guild_id,
-            user_infractions,
-            false,
-            false,
-            false,
-            false,
-            pool,
-        )
-        .await;
-
-        infractions::delete_infraction(case_id, mute_type, pool).await;
+        guild_members::update_guilds_members_set_mute(&user_id, false, pool).await?;
 
         if let Some(reason) = reason.clone() {
             let number_of_reason = reason.chars().count();
@@ -148,6 +123,15 @@ pub(crate) async fn unmute(
         } else {
             info!("@{user_name} unmuted by @{moderator_name}");
         }
+
+        infractions::delete_from_infractions(&uuid, &guild_id, pool).await?;
+
+        user_infractions -= 1;
+        if user_infractions < 0 {
+            user_infractions = 0;
+        }
+
+        users::update_users_set_infractions(&user_id, user_infractions, pool).await?;
 
         let reply = messages::ok_reply(format!("<@{user_id}> has been unmuted."), true);
         if let Err(why) = ctx.send(reply).await {

@@ -14,13 +14,10 @@
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
 use serenity::all::UserId;
-use tracing::{error, warn};
+use tracing::error;
 
 use crate::{
-    database::{
-        infractions::{self, InfractionType},
-        users,
-    },
+    database::infractions::{self, InfractionType},
     utility::{components::embeds, components::messages, models},
     Context, Error,
 };
@@ -56,32 +53,21 @@ pub(crate) async fn warnings(
         return Ok(());
     }
 
-    let user_name = &user.name;
-
     let guild_id = models::guilds::guild_id(ctx).await;
 
-    let warn_type = InfractionType::Warn.as_str();
-
-    let user_infractions = match users::infractions(user_id, guild_id, pool).await {
-        Some(infractions) => infractions,
-        None => {
-            warn!("Couldn't get infractions for @{user_name} in database");
-            return Ok(());
-        }
-    };
-
-    let warnings = match infractions::infractions(user_id, guild_id, warn_type, pool).await {
-        Ok(warnings) => warnings,
-        Err(why) => {
-            error!("Couldn't get warnings from database: {why:?}");
-            return Err(why.into());
-        }
-    };
+    let warnings =
+        match infractions::select_from_infractions(InfractionType::Warn, &user_id, &guild_id, pool)
+            .await
+        {
+            Ok(warnings) => warnings,
+            Err(why) => {
+                error!("Couldn't select warnings from infractions: {why:?}");
+                return Err(why.into());
+            }
+        };
 
     let number_of_warnings = warnings.len();
-
-    // There's a failsafe for if the user doesn't have any entries in the database but has a fucking infraction anyway. Fucking how you ever cause the latter to happen is beyond me...
-    if user_infractions < 1 || number_of_warnings < 1 {
+    if number_of_warnings < 1 {
         let reply = messages::warn_reply(
             format!("I'm afraid <@{user_id}> doesn't have any warnings."),
             true,
@@ -94,22 +80,24 @@ pub(crate) async fn warnings(
         return Ok(());
     }
 
-    let case_ids = warnings
-        .iter()
-        .map(|warning| warning.0)
-        .collect::<Vec<i32>>();
-    let moderator_ids = warnings
-        .iter()
-        .map(|warning| warning.2)
-        .collect::<Vec<i64>>();
-    let reasons = warnings
-        .iter()
-        .map(|warning| warning.3.clone())
-        .collect::<Vec<String>>();
+    let (uuids, moderator_ids, reasons) = (
+        warnings
+            .iter()
+            .map(|(uuid, _, _, _, _, _, _)| uuid.clone())
+            .collect::<Vec<String>>(),
+        warnings
+            .iter()
+            .map(|(_, _, _, moderator_id, _, _, _)| moderator_id.clone())
+            .collect::<Vec<i64>>(),
+        warnings
+            .iter()
+            .map(|(_, _, _, _, reason, _, _)| reason.clone())
+            .collect::<Vec<String>>(),
+    );
 
-    let warns_embed = embeds::warnings_embed(case_ids, &user, &user_name, moderator_ids, reasons);
+    let embed = embeds::warnings_embed(&user, uuids, moderator_ids, reasons);
 
-    let reply = messages::reply_embed(warns_embed, true);
+    let reply = messages::reply_embed(embed, true);
     if let Err(why) = ctx.send(reply).await {
         error!("Couldn't send reply: {why:?}");
         return Err(why.into());

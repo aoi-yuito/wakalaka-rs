@@ -15,10 +15,11 @@
 
 use chrono::Utc;
 use serenity::all::UserId;
-use tracing::{error, info, warn};
+use tracing::{error, info};
 
 use crate::{
     database::{
+        guild_members,
         infractions::{self, InfractionType},
         users,
     },
@@ -85,15 +86,7 @@ pub(crate) async fn ban(
 
     let created_at = Utc::now().naive_utc();
 
-    let ban_type = InfractionType::Ban.as_str();
-
-    let mut user_infractions = match users::infractions(user_id, guild_id, pool).await {
-        Some(infractions) => infractions,
-        None => {
-            warn!("Couldn't get infractions for @{user_name} in database");
-            return Ok(());
-        }
-    };
+    let mut user_infractions = users::select_infractions_from_users(&user_id, pool).await?;
 
     let message = messages::message(format!(
         "You've been banned from {guild_name} by <@{moderator_id}> for {reason}.",
@@ -113,39 +106,31 @@ pub(crate) async fn ban(
         }
 
         return Err(why.into());
-    } else {
-        user_infractions += 1;
+    }
 
-        users::update_user(
-            user_id,
-            guild_id,
-            user_infractions,
-            false,
-            false,
-            false,
-            true,
-            pool,
-        )
-        .await;
+    guild_members::update_guilds_members_set_ban(&user_id, true, pool).await?;
 
-        infractions::insert_infraction(
-            user_id,
-            ban_type,
-            moderator_id,
-            guild_id,
-            &reason,
-            Some(created_at),
-            pool,
-        )
-        .await;
+    info!("@{moderator_name} banned @{user_name} from {guild_name}: {reason}");
 
-        info!("@{moderator_name} banned @{user_name} from {guild_name}: {reason}");
+    infractions::insert_into_infractions(
+        InfractionType::Ban,
+        &user_id,
+        &moderator_id,
+        &reason,
+        created_at,
+        &guild_id,
+        pool,
+    )
+    .await?;
 
-        let reply = messages::ok_reply(format!("<@{user_id}> has been banned."), true);
-        if let Err(why) = ctx.send(reply).await {
-            error!("Couldn't send reply: {why:?}");
-            return Err(why.into());
-        }
+    user_infractions += 1;
+
+    users::update_users_set_infractions(&user_id, user_infractions, pool).await?;
+
+    let reply = messages::ok_reply(format!("<@{user_id}> has been banned."), true);
+    if let Err(why) = ctx.send(reply).await {
+        error!("Couldn't send reply: {why:?}");
+        return Err(why.into());
     }
 
     Ok(())

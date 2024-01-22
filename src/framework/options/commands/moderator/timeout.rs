@@ -15,10 +15,11 @@
 
 use chrono::{Duration, Utc};
 use serenity::{all::UserId, model::Timestamp};
-use tracing::{error, info, warn};
+use tracing::{error, info};
 
 use crate::{
     database::{
+        guild_members,
         infractions::{self, InfractionType},
         users,
     },
@@ -105,15 +106,7 @@ pub(crate) async fn timeout(
 
     let created_at = Utc::now().naive_utc();
 
-    let timeout_type = InfractionType::Timeout.as_str();
-
-    let mut user_infractions = match users::infractions(user_id, guild_id, pool).await {
-        Some(infractions) => infractions,
-        None => {
-            warn!("Couldn't get infractions for @{user_name} in database");
-            return Ok(());
-        }
-    };
+    let mut user_infractions = users::select_infractions_from_users(&user_id, pool).await?;
 
     let mut member = models::guilds::member(ctx, guild_id, user_id).await;
 
@@ -126,6 +119,7 @@ pub(crate) async fn timeout(
     }
 
     let time = Timestamp::from(Utc::now() + Duration::days(duration));
+    let disabled_until = time.to_rfc3339().expect("Couldn't convert time to RFC3339");
 
     if let Err(why) = member.disable_communication_until_datetime(ctx, time).await {
         error!("Couldn't put @{user_name} on a time-out: {why:?}");
@@ -140,39 +134,32 @@ pub(crate) async fn timeout(
         }
 
         return Err(why.into());
-    } else {
-        user_infractions += 1;
+    }
 
-        users::update_user(
-            user_id,
-            guild_id,
-            user_infractions,
-            false,
-            false,
-            true,
-            false,
-            pool,
-        )
-        .await;
+    guild_members::update_guilds_members_set_timeout(&user_id, true, Some(disabled_until), pool)
+        .await?;
 
-        infractions::insert_infraction(
-            user_id,
-            timeout_type,
-            moderator_id,
-            guild_id,
-            &reason,
-            Some(created_at),
-            pool,
-        )
-        .await;
+    info!("@{moderator_name} timed out @{user_name} from {guild_name}: {reason}");
 
-        info!("@{moderator_name} timed out @{user_name} from {guild_name}: {reason}");
+    infractions::insert_into_infractions(
+        InfractionType::Timeout,
+        &user_id,
+        &moderator_id,
+        &reason,
+        created_at,
+        &guild_id,
+        pool,
+    )
+    .await?;
 
-        let reply = messages::ok_reply(format!("<@{user_id}> has been timed out."), true);
-        if let Err(why) = ctx.send(reply).await {
-            error!("Couldn't send reply: {why:?}");
-            return Err(why.into());
-        }
+    user_infractions += 1;
+
+    users::update_users_set_infractions(&user_id, user_infractions, pool).await?;
+
+    let reply = messages::ok_reply(format!("<@{user_id}> has been timed out."), true);
+    if let Err(why) = ctx.send(reply).await {
+        error!("Couldn't send reply: {why:?}");
+        return Err(why.into());
     }
 
     Ok(())

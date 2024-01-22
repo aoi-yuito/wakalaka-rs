@@ -14,10 +14,11 @@
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
 use serenity::all::UserId;
-use tracing::{error, info, warn};
+use tracing::{error, info};
 
 use crate::{
     database::{
+        guild_members,
         infractions::{self, InfractionType},
         users,
     },
@@ -67,12 +68,8 @@ pub(crate) async fn untimeout(
 
     let guild_id = models::guilds::guild_id(ctx).await;
 
-    let timeout_type = InfractionType::Timeout.as_str();
-
-    let infractions = infractions::infractions(user_id, guild_id, timeout_type, pool).await?;
-
-    let number_of_infractions = infractions.len();
-    if number_of_infractions < 1 {
+    let mut user_infractions = users::select_infractions_from_users(&user_id, pool).await?;
+    if user_infractions < 1 {
         let reply = messages::warn_reply(
             format!("I'm afraid <@{user_id}> hasn't been punished before."),
             true,
@@ -85,18 +82,14 @@ pub(crate) async fn untimeout(
         return Ok(());
     }
 
-    for infraction in infractions {
-        let case_id = infraction.0;
-
-        let mut user_infractions = match users::infractions(user_id, guild_id, pool).await {
-            Some(infractions) => infractions,
-            None => {
-                warn!("Couldn't get infractions for @{user_name} in database");
-                return Ok(());
-            }
-        };
+    let timeouts =
+        infractions::select_from_infractions(InfractionType::Timeout, &user_id, &guild_id, pool)
+            .await?;
+    for timeout in timeouts {
+        let uuid = timeout.0;
 
         let mut member = models::guilds::member(ctx, guild_id, user_id).await;
+
         if let Err(why) = member.enable_communication(ctx).await {
             error!("Couldn't get member out of time-out: {why:?}");
 
@@ -110,54 +103,46 @@ pub(crate) async fn untimeout(
             }
 
             return Ok(());
-        } else {
-            user_infractions -= 1;
-            if user_infractions < 0 {
-                user_infractions = 0;
-            }
+        }
 
-            users::update_user(
-                user_id,
-                guild_id,
-                user_infractions,
-                false,
-                false,
-                false,
-                false,
-                pool,
-            )
-            .await;
+        guild_members::update_guilds_members_set_timeout(&user_id, false, None, pool).await?;
 
-            infractions::delete_infraction(case_id, timeout_type, pool).await;
-
-            if let Some(reason) = reason.clone() {
-                let number_of_reason = reason.chars().count();
-                if number_of_reason < 6 || number_of_reason > 80 {
-                    let reply = messages::warn_reply(
-                        "I'm afraid the reason has to be between `6` and `80` characters.",
-                        true,
-                    );
-                    if let Err(why) = ctx.send(reply).await {
-                        error!("Couldn't send reply: {why:?}");
-                        return Err(why.into());
-                    }
-
-                    return Ok(());
+        if let Some(reason) = reason.clone() {
+            let number_of_reason = reason.chars().count();
+            if number_of_reason < 6 || number_of_reason > 80 {
+                let reply = messages::warn_reply(
+                    "I'm afraid the reason has to be between `6` and `80` characters.",
+                    true,
+                );
+                if let Err(why) = ctx.send(reply).await {
+                    error!("Couldn't send reply: {why:?}");
+                    return Err(why.into());
                 }
 
-                info!("@{user_name} got @{moderator_name} out of time-out: {reason}");
-            } else {
-                info!("@{user_name} got @{moderator_name} out of time-out")
+                return Ok(());
             }
 
-            let reply = messages::ok_reply(
-                format!("<@{user_id}> has been released from a time-out."),
-                true,
-            );
-            if let Err(why) = ctx.send(reply).await {
-                error!("Couldn't send reply: {why:?}");
-                return Err(why.into());
-            }
+            info!("@{user_name} got @{moderator_name} out of time-out: {reason}");
+        } else {
+            info!("@{user_name} got @{moderator_name} out of time-out")
+        }
+
+        infractions::delete_from_infractions(&uuid, &guild_id, pool).await?;
+
+        user_infractions -= 1;
+        if user_infractions < 0 {
+            user_infractions = 0;
+        }
+
+        users::update_users_set_infractions(&user_id, user_infractions, pool).await?;
+
+        let reply = messages::ok_reply(
+            format!("<@{user_id}> has been released from a time-out."),
+            true,
+        );
+        if let Err(why) = ctx.send(reply).await {
+            error!("Couldn't send reply: {why:?}");
+            return Err(why.into());
         }
     }
 

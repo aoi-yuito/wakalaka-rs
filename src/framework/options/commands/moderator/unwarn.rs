@@ -14,7 +14,7 @@
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
 use serenity::all::UserId;
-use tracing::{error, info, warn};
+use tracing::{error, info};
 
 use crate::{
     database::{
@@ -39,10 +39,10 @@ pub(crate) async fn unwarn(
     #[description = "The user to unwarn."]
     #[rename = "user"]
     user_id: UserId,
-    #[description = "ID of the warning to delete."]
-    #[rename = "id"]
-    #[min = 1]
-    case_id: i32,
+    #[description = "UUID of the warning to delete."]
+    #[min_length = 36]
+    #[max_length = 36]
+    uuid: String,
     #[description = "The reason for unwarning, if any."]
     #[min_length = 6]
     #[max_length = 80]
@@ -62,8 +62,12 @@ pub(crate) async fn unwarn(
         return Ok(());
     }
 
-    if case_id < 1 {
-        let reply = messages::warn_reply("I'm afraid case ID must be greater than `0`.", true);
+    let number_of_uuid = uuid.chars().count();
+    if number_of_uuid != 36 {
+        let reply = messages::warn_reply(
+            "I'm afraid the UUID has to be exactly `36` characters.",
+            true,
+        );
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
             return Err(why.into());
@@ -79,12 +83,8 @@ pub(crate) async fn unwarn(
 
     let guild_id = models::guilds::guild_id(ctx).await;
 
-    let warn_type = InfractionType::Warn.as_str();
-
-    let infractions = infractions::infractions(user_id, guild_id, warn_type, pool).await?;
-
-    let number_of_infractions = infractions.len();
-    if number_of_infractions < 1 {
+    let mut user_infractions = users::select_infractions_from_users(&user_id, pool).await?;
+    if user_infractions < 1 {
         let reply = messages::warn_reply(
             format!("I'm afraid <@{user_id}> hasn't been punished before."),
             true,
@@ -97,47 +97,11 @@ pub(crate) async fn unwarn(
         return Ok(());
     }
 
-    for infraction in infractions {
-        let case_id = infraction.0;
-        if case_id != case_id {
-            let reply = messages::error_reply(
-                format!("Sorry, but I couldn't find a warning for <@{user_id}>."),
-                true,
-            );
-            if let Err(why) = ctx.send(reply).await {
-                error!("Couldn't send reply: {why:?}");
-                return Err(why.into());
-            }
-
-            break;
-        }
-
-        let mut user_infractions = match users::infractions(user_id, guild_id, pool).await {
-            Some(infractions) => infractions,
-            None => {
-                warn!("Couldn't get infractions for @{user_name} in database");
-                return Ok(());
-            }
-        };
-
-        user_infractions -= 1;
-        if user_infractions < 0 {
-            user_infractions = 0;
-        }
-
-        users::update_user(
-            user_id,
-            guild_id,
-            user_infractions,
-            false,
-            false,
-            false,
-            false,
-            pool,
-        )
-        .await;
-
-        infractions::delete_infraction(case_id, warn_type, pool).await;
+    let warnings =
+        infractions::select_from_infractions(InfractionType::Warn, &user_id, &guild_id, pool)
+            .await?;
+    for warning in warnings {
+        let uuid = warning.0;
 
         if let Some(reason) = reason.clone() {
             let number_of_reason = reason.chars().count();
@@ -159,13 +123,20 @@ pub(crate) async fn unwarn(
             info!("@{user_name} unwarned by @{moderator_name}");
         }
 
+        infractions::delete_from_infractions(&uuid, &guild_id, pool).await?;
+
+        user_infractions -= 1;
+        if user_infractions < 0 {
+            user_infractions = 0;
+        }
+
+        users::update_users_set_infractions(&user_id, user_infractions, pool).await?;
+
         let reply = messages::ok_reply(format!("I've removed a warning from <@{user_id}>."), true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
             return Err(why.into());
         }
-
-        break;
     }
 
     Ok(())
