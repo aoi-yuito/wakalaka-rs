@@ -14,15 +14,17 @@
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
 use serenity::all::Member;
+use tracing::error;
 
 use crate::{database::users, serenity::Context, utility::models, Data};
 
-pub(crate) async fn handle_member_addition(new_member: &Member, ctx: &Context, data: &Data) {
+pub(crate) async fn handle(new_member: &Member, ctx: &Context, data: &Data) {
     let pool = &data.pool;
 
     let guild_id = new_member.guild_id;
 
-    let members = models::guilds::members_raw(&ctx, guild_id).await;
-
-    users::insert_users(members, pool).await;
+    let members = models::guilds::members_raw(&ctx, &guild_id).await;
+    if let Err(why) = users::insert_into_users(&members, pool).await {
+        error!("Couldn't insert into Users: {why:?}");
+    }
 }
