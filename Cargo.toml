@@ -27,3 +27,4 @@ lazy_static = "1.4.0"
 sqlx = { version = "0.7.3", features = ["migrate", "chrono", "runtime-tokio", "runtime-tokio-rustls", "sqlite"] }
 reqwest = { version = "0.11.23", features = ["tokio-native-tls"] }
 regex = "1.10.2"
+uuid = { version = "1.7.0", features = ["v4"] }
