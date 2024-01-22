@@ -23,7 +23,7 @@ use ::serenity::all::GatewayIntents;
 use poise::Framework;
 use sqlx::SqlitePool;
 use tokio::time::Instant;
-use tracing::{error, info, level_filters::LevelFilter, subscriber, warn};
+use tracing::{debug, error, info, level_filters::LevelFilter, subscriber, warn};
 use tracing_subscriber::{fmt::Subscriber, EnvFilter};
 
 pub struct Data {
@@ -79,7 +79,7 @@ async fn initialise_client(
     };
 
     let elapsed_time = start_time.elapsed();
-    info!("Initialised client in {elapsed_time:.2?}");
+    debug!("Initialised client in {elapsed_time:.2?}");
 
     client
 }
@@ -116,5 +116,5 @@ fn initialise_subscriber() {
     }
 
     let elapsed_time = start_time.elapsed();
-    info!("Initialised logger in {elapsed_time:.2?}");
+    debug!("Initialised logger in {elapsed_time:.2?}");
 }
