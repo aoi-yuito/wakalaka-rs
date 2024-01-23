@@ -15,13 +15,8 @@
 
 use serenity::all::{Guild, PartialGuild};
 
-use crate::{serenity::Context, Data};
+use crate::Data;
 
-pub async fn handle(
-    _old_guild: &Option<Guild>,
-    _new_guild: &PartialGuild,
-    _ctx: &Context,
-    data: &Data,
-) {
+pub async fn handle(_old_guild: &Option<Guild>, _new_guild: &PartialGuild, data: &Data) {
     let _pool = &data.pool;
 }
