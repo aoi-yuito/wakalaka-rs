@@ -13,8 +13,19 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-pub(super) mod restart;
-pub(super) mod restrict;
-pub(super) mod setup;
-pub(super) mod shutdown;
-pub(super) mod unrestrict;
+mod channel;
+
+use crate::{framework::commands::core::unrestrict::channel::channel, Context, Error};
+
+#[poise::command(
+    prefix_command,
+    slash_command,
+    subcommands("channel"),
+    category = "Core",
+    owners_only,
+    guild_only,
+    ephemeral
+)]
+pub async fn unrestrict(_ctx: Context<'_>) -> Result<(), Error> {
+    Ok(())
+}
