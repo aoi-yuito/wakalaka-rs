@@ -16,7 +16,9 @@
 use serenity::all::CurrentApplicationInfo;
 use tracing::error;
 
+pub mod channels;
 pub mod guilds;
+pub mod members;
 pub mod roles;
 pub mod users;
 
