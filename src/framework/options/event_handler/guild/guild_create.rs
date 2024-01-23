@@ -32,8 +32,8 @@ pub async fn handle(guild: &Guild, is_new: bool, ctx: &Context, data: &Data) {
 
     let guild_id = guild.id;
     let (guild_members, guild_channels) = (
-        models::guilds::members_raw(&ctx, &guild_id).await,
-        models::guilds::channels_raw(&ctx, guild_id).await,
+        models::members::members_raw(&ctx, &guild_id).await,
+        models::channels::channels_raw(&ctx, guild_id).await,
     );
 
     match users::insert_into_users(&guild_members, pool).await {

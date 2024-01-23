@@ -23,7 +23,7 @@ pub async fn handle(new_member: &Member, ctx: &Context, data: &Data) {
 
     let guild_id = new_member.guild_id;
 
-    let members = models::guilds::members_raw(&ctx, &guild_id).await;
+    let members = models::members::members_raw(&ctx, &guild_id).await;
     if let Err(why) = users::insert_into_users(&members, pool).await {
         error!("Couldn't insert into Users: {why:?}");
     }
