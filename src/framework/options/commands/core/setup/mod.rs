@@ -23,7 +23,8 @@ use crate::{framework::commands::core::setup::suggestions::suggestions, Context,
     subcommands("suggestions"),
     category = "Core",
     owners_only,
-    guild_only
+    guild_only,
+    ephemeral
 )]
 pub async fn setup(_: Context<'_>) -> Result<(), Error> {
     Ok(())

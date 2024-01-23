@@ -23,7 +23,8 @@ use crate::{utility::components::messages, Context, Error};
     slash_command,
     category = "Core",
     owners_only,
-    guild_only
+    guild_only,
+    ephemeral
 )]
 /// Put yours truly to sleep.
 pub async fn shutdown(

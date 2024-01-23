@@ -27,7 +27,8 @@ use crate::{
     slash_command,
     category = "Core",
     owners_only,
-    guild_only
+    guild_only,
+    ephemeral
 )]
 /// Set up a channel for suggestions to be sent to.
 pub async fn suggestions(
@@ -41,7 +42,7 @@ pub async fn suggestions(
 
     let guild_id = models::guilds::guild_id(ctx).await;
 
-    let guild_channels = models::guilds::channels(ctx).await;
+    let guild_channels = models::channels::channels(ctx).await;
     for guild_channel in guild_channels {
         let (guild_channel_id, guild_channel_name) = (guild_channel.id, &guild_channel.name());
 
@@ -49,7 +50,9 @@ pub async fn suggestions(
             continue;
         }
 
-        let query = guilds::update_guilds_set_suggestions_channel_id(guild_channel_id, guild_id, pool).await;
+        let query =
+            guilds::update_guilds_set_suggestions_channel_id(guild_channel_id, guild_id, pool)
+                .await;
         if let Err(why) = query {
             error!("Couldn't set #{guild_channel_name} as suggestions channel: {why:?}");
 

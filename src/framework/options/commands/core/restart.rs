@@ -22,7 +22,8 @@ use crate::{utility::components::messages, Context, Error};
     slash_command,
     category = "Core",
     owners_only,
-    guild_only
+    guild_only,
+    ephemeral
 )]
 /// Restart yours truly to her former glory.
 pub async fn restart(ctx: Context<'_>) -> Result<(), Error> {
