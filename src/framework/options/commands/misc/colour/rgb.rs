@@ -17,6 +17,7 @@ use regex::Regex;
 use tracing::error;
 
 use crate::{
+    check_guild_channel_restriction,
     utility::{
         self,
         components::{embeds, messages},
@@ -33,6 +34,11 @@ pub async fn rgb(
     #[max_length = 11]
     colour: String,
 ) -> Result<(), Error> {
+    let restricted = check_guild_channel_restriction!(ctx);
+    if restricted {
+        return Ok(());
+    }
+
     let rgb_re = Regex::new(r"^\d{1,3},\d{1,3},\d{1,3}$").unwrap();
     if !rgb_re.is_match(&colour) {
         let reply = messages::error_reply("Sorry, but that's not a valid RGB colour.", true);

@@ -19,7 +19,7 @@ mod rgb;
 
 use crate::{
     framework::commands::misc::colour::{hex::hex, random::random, rgb::rgb},
-    Context, Error,
+    check_guild_channel_restriction, Context, Error,
 };
 
 #[poise::command(
@@ -30,6 +30,11 @@ use crate::{
     guild_only,
     subcommand_required
 )]
-pub async fn colour(_: Context<'_>) -> Result<(), Error> {
+pub async fn colour(ctx: Context<'_>) -> Result<(), Error> {
+    let restricted = check_guild_channel_restriction!(ctx);
+    if restricted {
+        return Ok(());
+    }
+
     Ok(())
 }

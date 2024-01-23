@@ -17,6 +17,7 @@ use serenity::{all::Role, builder::EditRole};
 use tracing::{error, info};
 
 use crate::{
+    check_guild_channel_restriction,
     utility::{self, components::messages, models},
     Context, Error,
 };
@@ -44,6 +45,11 @@ pub async fn edit(
     #[description = "Whether the role should be pinned above lesser roles."] hoist: Option<bool>,
     #[description = "Whether the role should be mentionable."] mentionable: Option<bool>,
 ) -> Result<(), Error> {
+    let restricted = check_guild_channel_restriction!(ctx);
+    if restricted {
+        return Ok(());
+    }
+
     if name.is_some() {
         let number_of_name = name.as_ref().unwrap().chars().count();
         if number_of_name < 1 || number_of_name > 100 {

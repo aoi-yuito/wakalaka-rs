@@ -17,6 +17,7 @@ use serenity::all::{Role, UserId};
 use tracing::{error, info};
 
 use crate::{
+    check_guild_channel_restriction,
     utility::{components::messages, models},
     Context, Error,
 };
@@ -37,6 +38,11 @@ pub async fn remove(
     #[rename = "user"]
     user_id: UserId,
 ) -> Result<(), Error> {
+    let restricted = check_guild_channel_restriction!(ctx);
+    if restricted {
+        return Ok(());
+    }
+
     let role_ids = models::roles::role_ids(roles).await;
 
     let user_name = models::users::user_name(ctx, user_id).await;
@@ -44,7 +50,7 @@ pub async fn remove(
     let guild = models::guilds::guild(ctx).await;
     let (guild_id, guild_name) = (guild.id, &guild.name);
 
-    let member = models::guilds::member(ctx, guild_id, user_id).await;
+    let member = models::members::member(ctx, guild_id, user_id).await;
 
     if let Err(why) = member.remove_roles(&ctx, &role_ids).await {
         error!("Couldn't remove role(s) from @{user_name} in {guild_name}: {why:?}");

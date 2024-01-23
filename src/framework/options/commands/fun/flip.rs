@@ -16,11 +16,16 @@
 use serenity::all::Mentionable;
 use tracing::error;
 
-use crate::{utility::components::messages, Context, Error};
+use crate::{check_guild_channel_restriction, utility::components::messages, Context, Error};
 
 #[poise::command(prefix_command, slash_command, category = "Fun", guild_only)]
 /// Flip a coin.
 pub async fn flip(ctx: Context<'_>) -> Result<(), Error> {
+    let restricted = check_guild_channel_restriction!(ctx);
+    if restricted {
+        return Ok(());
+    }
+
     let random = rand::random::<bool>();
 
     let user_mention = ctx.author().mention();

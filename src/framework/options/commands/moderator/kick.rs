@@ -17,6 +17,7 @@ use serenity::all::User;
 use tracing::{error, info};
 
 use crate::{
+    check_guild_channel_restriction,
     utility::{components::messages, models},
     Context, Error,
 };
@@ -35,6 +36,11 @@ pub async fn kick(
     #[description = "The user to kick."] user: User,
     #[description = "The reason for kicking."] reason: String,
 ) -> Result<(), Error> {
+    let restricted = check_guild_channel_restriction!(ctx);
+    if restricted {
+        return Ok(());
+    }
+
     if user.system {
         let reply = messages::error_reply("Sorry, but system users cannot be kicked.", true);
         if let Err(why) = ctx.send(reply).await {
@@ -69,7 +75,7 @@ pub async fn kick(
         models::guilds::guild_name(ctx).await,
     );
 
-    let member = models::guilds::member(ctx, guild_id, user_id).await;
+    let member = models::members::member(ctx, guild_id, user_id).await;
 
     let message = messages::message(format!(
         "You've been kicked from {guild_name} by <@{moderator_id}> for {reason}.",

@@ -17,6 +17,7 @@ use serenity::{all::UserId, builder::EditMember};
 use tracing::{error, info};
 
 use crate::{
+    check_guild_channel_restriction,
     database::{
         guild_members,
         infractions::{self, InfractionType},
@@ -45,6 +46,11 @@ pub async fn unmute(
     #[max_length = 80]
     reason: Option<String>,
 ) -> Result<(), Error> {
+    let restricted = check_guild_channel_restriction!(ctx);
+    if restricted {
+        return Ok(());
+    }
+
     let pool = &ctx.data().pool;
 
     let user = models::users::user(ctx, user_id).await;
@@ -86,7 +92,7 @@ pub async fn unmute(
     for mute in mutes {
         let uuid = mute.0;
 
-        let mut member = models::guilds::member(ctx, guild_id, user_id).await;
+        let mut member = models::members::member(ctx, guild_id, user_id).await;
         let edit_member = EditMember::default().mute(false);
 
         if let Err(why) = member.edit(&ctx, edit_member).await {

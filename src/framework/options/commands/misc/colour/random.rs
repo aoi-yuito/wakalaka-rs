@@ -16,6 +16,7 @@
 use tracing::error;
 
 use crate::{
+    check_guild_channel_restriction,
     utility::{
         self,
         components::{embeds, messages},
@@ -26,6 +27,11 @@ use crate::{
 #[poise::command(prefix_command, slash_command, category = "Misc", guild_only)]
 /// Get information for a random colour.
 pub async fn random(ctx: Context<'_>) -> Result<(), Error> {
+    let restricted = check_guild_channel_restriction!(ctx);
+    if restricted {
+        return Ok(());
+    }
+
     let client = reqwest::Client::new();
 
     let res = client

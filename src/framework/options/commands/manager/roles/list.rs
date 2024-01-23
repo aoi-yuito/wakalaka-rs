@@ -19,6 +19,7 @@ use serenity::model::Colour;
 use tracing::error;
 
 use crate::{
+    check_guild_channel_restriction,
     utility::{
         components::{embeds, messages},
         models,
@@ -36,6 +37,11 @@ use crate::{
 )]
 /// Get a list of roles in a server.
 pub async fn list(ctx: Context<'_>) -> Result<(), Error> {
+    let restricted = check_guild_channel_restriction!(ctx);
+    if restricted {
+        return Ok(());
+    }
+
     let guild = models::guilds::guild(ctx).await;
 
     let mut roles = models::roles::roles(ctx).await;

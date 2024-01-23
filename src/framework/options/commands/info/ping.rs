@@ -17,6 +17,7 @@ use tokio::time::Instant;
 use tracing::error;
 
 use crate::{
+    check_guild_channel_restriction,
     utility::components::{embeds, messages},
     Context, Error,
 };
@@ -30,6 +31,11 @@ use crate::{
 )]
 /// Check if yours truly is alive and well.
 pub async fn ping(ctx: Context<'_>) -> Result<(), Error> {
+    let restricted = check_guild_channel_restriction!(ctx);
+    if restricted {
+        return Ok(());
+    }
+
     let start_time = Instant::now();
 
     let manager = ctx.framework().shard_manager.clone();

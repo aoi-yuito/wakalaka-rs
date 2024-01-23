@@ -22,9 +22,7 @@ use crate::{
         guild_members,
         infractions::{self, InfractionType},
         users,
-    },
-    utility::{components::messages, models},
-    Context, Error,
+    }, check_guild_channel_restriction, utility::{components::messages, models}, Context, Error
 };
 
 #[poise::command(
@@ -46,6 +44,11 @@ pub async fn ban(
     #[max_length = 80]
     reason: String,
 ) -> Result<(), Error> {
+    let restricted = check_guild_channel_restriction!(ctx);
+    if restricted {
+        return Ok(());
+    }
+    
     let pool = &ctx.data().pool;
 
     let user = models::users::user(ctx, user_id).await;

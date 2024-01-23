@@ -17,6 +17,7 @@ use serenity::all::User;
 use tracing::{error, warn};
 
 use crate::{
+    check_guild_channel_restriction,
     utility::components::{embeds, messages},
     Context, Error,
 };
@@ -33,6 +34,11 @@ pub async fn banner(
     ctx: Context<'_>,
     #[description = "The user to get the banner from."] user: User,
 ) -> Result<(), Error> {
+    let restricted = check_guild_channel_restriction!(ctx);
+    if restricted {
+        return Ok(());
+    }
+
     let http = ctx.http();
 
     let user_id = user.id;

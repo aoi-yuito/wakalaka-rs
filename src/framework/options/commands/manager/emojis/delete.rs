@@ -16,11 +16,10 @@
 use tracing::{error, info, warn};
 
 use crate::{
-    utility::{
+    check_guild_channel_restriction, utility::{
         components::{self, messages},
         models,
-    },
-    Context, Error,
+    }, Context, Error
 };
 
 #[poise::command(
@@ -39,6 +38,11 @@ pub async fn delete(
     #[max_length = 32]
     name: String,
 ) -> Result<(), Error> {
+    let restricted = check_guild_channel_restriction!(ctx);
+    if restricted {
+        return Ok(());
+    }
+    
     let number_of_name = name.chars().count();
     if number_of_name < 2 || number_of_name > 32 {
         let reply = messages::warn_reply(

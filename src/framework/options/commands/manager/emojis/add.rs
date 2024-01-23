@@ -17,6 +17,7 @@ use serenity::{all::Attachment, builder::CreateAttachment};
 use tracing::{error, info, warn};
 
 use crate::{
+    check_guild_channel_restriction,
     utility::{components::messages, models},
     Context, Error,
 };
@@ -38,6 +39,11 @@ pub async fn add(
     name: String,
     #[description = "The image used for the emoji."] image: Attachment,
 ) -> Result<(), Error> {
+    let restricted = check_guild_channel_restriction!(ctx);
+    if restricted {
+        return Ok(());
+    }
+
     let number_of_name = name.chars().count();
     if number_of_name < 2 || number_of_name > 32 {
         let reply = messages::warn_reply(

@@ -17,6 +17,7 @@ use serenity::{all::ChannelId, builder::EditChannel};
 use tracing::{error, info};
 
 use crate::{
+    check_guild_channel_restriction,
     utility::{components::messages, models},
     Context, Error,
 };
@@ -40,6 +41,11 @@ pub async fn slowmode(
     #[max = 60]
     delay: Option<u16>,
 ) -> Result<(), Error> {
+    let restricted = check_guild_channel_restriction!(ctx);
+    if restricted {
+        return Ok(());
+    }
+
     if delay.is_some() {
         if let Some(delay) = delay {
             if delay > 60 {
@@ -78,7 +84,7 @@ pub async fn slowmode(
     let user_name = &ctx.author().name;
 
     let guild = models::guilds::guild(ctx).await;
-    let (guild_name, guild_channels) = (guild.name, models::guilds::channels(ctx).await);
+    let (guild_name, guild_channels) = (guild.name, models::channels::channels(ctx).await);
     for mut guild_channel in guild_channels {
         let guild_channel_id = guild_channel.id;
         if channel_id != guild_channel_id {

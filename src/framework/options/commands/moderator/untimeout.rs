@@ -17,6 +17,7 @@ use serenity::all::UserId;
 use tracing::{error, info};
 
 use crate::{
+    check_guild_channel_restriction,
     database::{
         guild_members,
         infractions::{self, InfractionType},
@@ -45,6 +46,11 @@ pub async fn untimeout(
     #[max_length = 80]
     reason: Option<String>,
 ) -> Result<(), Error> {
+    let restricted = check_guild_channel_restriction!(ctx);
+    if restricted {
+        return Ok(());
+    }
+
     let pool = &ctx.data().pool;
 
     let user = models::users::user(ctx, user_id).await;
@@ -88,7 +94,7 @@ pub async fn untimeout(
     for timeout in timeouts {
         let uuid = timeout.0;
 
-        let mut member = models::guilds::member(ctx, guild_id, user_id).await;
+        let mut member = models::members::member(ctx, guild_id, user_id).await;
 
         if let Err(why) = member.enable_communication(ctx).await {
             error!("Couldn't get member out of time-out: {why:?}");

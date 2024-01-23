@@ -17,6 +17,7 @@ use serenity::{all::UserId, builder::EditMember};
 use tracing::{error, info};
 
 use crate::{
+    check_guild_channel_restriction,
     utility::{components::messages, models},
     Context, Error,
 };
@@ -40,6 +41,11 @@ pub async fn edit(
     #[max_length = 32]
     nickname: String,
 ) -> Result<(), Error> {
+    let restricted = check_guild_channel_restriction!(ctx);
+    if restricted {
+        return Ok(());
+    }
+
     let number_of_nickname = nickname.chars().count();
     if number_of_nickname < 1 || number_of_nickname > 32 {
         let reply = messages::warn_reply(
@@ -62,7 +68,7 @@ pub async fn edit(
 
     let moderator_name = &ctx.author().name;
 
-    let mut member = models::guilds::member(ctx, guild_id, user_id).await;
+    let mut member = models::members::member(ctx, guild_id, user_id).await;
     let member_builder = EditMember::default().nickname(nickname.clone());
 
     if let Err(why) = member.edit(ctx, member_builder).await {

@@ -18,6 +18,7 @@ use serenity::{all::UserId, builder::EditMember};
 use tracing::{error, info};
 
 use crate::{
+    check_guild_channel_restriction,
     database::{
         guild_members,
         infractions::{self, InfractionType},
@@ -46,6 +47,11 @@ pub async fn deafen(
     #[max_length = 80]
     reason: String,
 ) -> Result<(), Error> {
+    let restricted = check_guild_channel_restriction!(ctx);
+    if restricted {
+        return Ok(());
+    }
+
     let pool = &ctx.data().pool;
 
     let user = models::users::user(ctx, user_id).await;
@@ -88,7 +94,7 @@ pub async fn deafen(
 
     let mut user_infractions = users::select_infractions_from_users(&user_id, pool).await?;
 
-    let mut member = models::guilds::member(ctx, guild_id, user_id).await;
+    let mut member = models::members::member(ctx, guild_id, user_id).await;
     let member_builder = EditMember::default().deafen(true);
 
     let message = messages::message(format!(

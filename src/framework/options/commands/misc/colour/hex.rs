@@ -17,6 +17,7 @@ use regex::Regex;
 use tracing::error;
 
 use crate::{
+    check_guild_channel_restriction,
     utility::{
         self,
         components::{embeds, messages},
@@ -33,6 +34,11 @@ pub async fn hex(
     #[max_length = 8] // This is to allow users to use `#` or `0x` as a prefix.
     mut colour: String,
 ) -> Result<(), Error> {
+    let restricted = check_guild_channel_restriction!(ctx);
+    if restricted {
+        return Ok(());
+    }
+
     colour = colour
         .trim_start_matches('#')
         .trim_start_matches("0x")

@@ -17,6 +17,7 @@ use serenity::{all::UserId, builder::EditMember};
 use tracing::{error, info};
 
 use crate::{
+    check_guild_channel_restriction,
     utility::{components::messages, models},
     Context, Error,
 };
@@ -36,6 +37,11 @@ pub async fn reset(
     #[rename = "user"]
     user_id: UserId,
 ) -> Result<(), Error> {
+    let restricted = check_guild_channel_restriction!(ctx);
+    if restricted {
+        return Ok(());
+    }
+
     let guild_id = models::guilds::guild_id(ctx).await;
 
     let user = models::users::user(ctx, user_id).await;
@@ -43,7 +49,7 @@ pub async fn reset(
 
     let moderator_name = &ctx.author().name;
 
-    let mut member = models::guilds::member(ctx, guild_id, user_id).await;
+    let mut member = models::members::member(ctx, guild_id, user_id).await;
     let edit_member = EditMember::default().nickname(String::new());
 
     if let Err(why) = member.edit(&ctx, edit_member).await {
