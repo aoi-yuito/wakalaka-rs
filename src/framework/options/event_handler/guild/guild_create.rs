@@ -17,7 +17,7 @@ use serenity::all::Guild;
 use tracing::error;
 
 use crate::{
-    database::{guild_channels, guild_members, guilds, users},
+    database::{guild_members, guilds, users},
     serenity::Context,
     utility::models,
     Data,
@@ -31,10 +31,7 @@ pub async fn handle(guild: &Guild, is_new: bool, ctx: &Context, data: &Data) {
     let pool = &data.pool;
 
     let guild_id = guild.id;
-    let (guild_members, guild_channels) = (
-        models::members::members_raw(&ctx, &guild_id).await,
-        models::channels::channels_raw(&ctx, guild_id).await,
-    );
+    let guild_members = models::members::members_raw(&ctx, &guild_id).await;
 
     match users::insert_into_users(&guild_members, pool).await {
         Err(why) => error!("Couldn't insert into Users: {why:?}"),
@@ -42,12 +39,7 @@ pub async fn handle(guild: &Guild, is_new: bool, ctx: &Context, data: &Data) {
             Err(why) => error!("Couldn't insert into Guilds: {why:?}"),
             Ok(()) => match guild_members::insert_into_guild_members(&guild_members, pool).await {
                 Err(why) => error!("Couldn't insert into GuildMembers: {why:?}"),
-                Ok(()) => {
-                    match guild_channels::insert_into_guild_channels(&guild_channels, pool).await {
-                        Err(why) => error!("Couldn't insert into GuildChannels: {why:?}"),
-                        Ok(()) => (),
-                    }
-                }
+                Ok(()) => (),
             },
         },
     }
