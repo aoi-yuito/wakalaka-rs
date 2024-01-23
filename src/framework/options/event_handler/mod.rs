@@ -34,14 +34,8 @@ pub async fn handle(
         FullEvent::CacheReady { guilds, .. } => {
             cache_ready::handle(guilds, ctx, data).await;
         }
-        FullEvent::ChannelCreate { channel, .. } => {
-            channel::channel_create::handle(channel, data).await;
-        }
         FullEvent::ChannelDelete { channel, .. } => {
             channel::channel_delete::handle(channel, data).await;
-        }
-        FullEvent::ChannelUpdate { old, new, .. } => {
-            channel::channel_update::handle(old, new, data).await;
         }
         FullEvent::GuildCreate { guild, is_new } => {
             guild::guild_create::handle(guild, is_new.is_some(), ctx, data).await;
@@ -53,7 +47,7 @@ pub async fn handle(
             old_data_if_available,
             new_data,
         } => {
-            guild::guild_update::handle(old_data_if_available, new_data, ctx, data).await;
+            guild::guild_update::handle(old_data_if_available, new_data, data).await;
         }
         FullEvent::GuildMemberAddition { new_member, .. } => {
             guild::guild_member_addition::handle(new_member, ctx, data).await;
