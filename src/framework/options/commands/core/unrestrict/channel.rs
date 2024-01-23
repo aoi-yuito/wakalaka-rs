@@ -17,7 +17,7 @@ use serenity::all::{ChannelType, GuildChannel};
 use tracing::{error, info};
 
 use crate::{
-    database::restricted_guild_channels,
+    database::{guilds, restricted_guild_channels},
     utility::{components::messages, models},
     Context, Error,
 };
@@ -51,11 +51,39 @@ pub async fn channel(
         return Ok(());
     }
 
-    let (channel_id, channel_name, guild_name) = (
+    let (channel_id, channel_name, guild_id, guild_name) = (
         channel.id,
         &channel.name,
+        &models::guilds::guild_id(ctx).await,
         &models::guilds::guild_name(ctx).await,
     );
+
+    let failsafe_query = guilds::select_usage_channel_id_from_guilds(&guild_id, &pool).await;
+    if let Some(usage_channel_id) = failsafe_query {
+        if usage_channel_id == channel_id {
+            let reply = messages::warn_reply(
+                format!("I'm afraid yours truly is already allowed within the configured channel."),
+                true,
+            );
+            if let Err(why) = ctx.send(reply).await {
+                error!("Couldn't send reply: {why:?}");
+                return Err(why.into());
+            }
+
+            return Ok(());
+        }
+    } else {
+        let reply = messages::warn_reply(
+            format!("I'm afraid you can't allow usage of yours truly within <#{channel_id}> as the usage channel hasn't been configured yet."),
+            true,
+        );
+        if let Err(why) = ctx.send(reply).await {
+            error!("Couldn't send reply: {why:?}");
+            return Err(why.into());
+        }
+
+        return Ok(());
+    }
 
     let previous_query =
         restricted_guild_channels::select_from_restricted_guild_channels_by_one(&channel_id, &pool)
