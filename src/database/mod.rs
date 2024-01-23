@@ -13,6 +13,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
+#[macro_use]
 pub mod guild_channels;
 pub mod guild_members;
 pub mod guilds;

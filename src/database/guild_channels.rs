@@ -13,10 +13,106 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-use serenity::all::GuildChannel;
-use sqlx::SqlitePool;
+use serenity::all::{ChannelId, GuildChannel, GuildId};
+use sqlx::{Row, SqlitePool};
 use tokio::time::Instant;
 use tracing::{debug, error};
+
+#[macro_export]
+macro_rules! check_guild_channel_restriction {
+    ($ctx:expr) => {{
+        let (pool, channel_id, guild_id) = (
+            &$ctx.data().pool,
+            crate::utility::models::channels::channel_id($ctx).await,
+            crate::utility::models::guilds::guild_id($ctx).await,
+        );
+
+        let restrict = match crate::database::guild_channels::select_restrict_from_guild_channels(
+            &channel_id,
+            &guild_id,
+            pool,
+        )
+        .await
+        {
+            Ok(restrict) => restrict,
+            Err(why) => {
+                tracing::error!("Couldn't select 'restrict' from GuildChannels: {why:?}");
+                return Err(why.into());
+            }
+        };
+
+        if restrict {
+            let reply = $crate::utility::components::messages::warn_reply(
+                format!("I'm afraid <#{channel_id}> is restricted."),
+                true,
+            );
+            if let Err(why) = $ctx.send(reply).await {
+                tracing::error!("Couldn't send reply: {why:?}");
+                return Err(why.into());
+            }
+
+            true
+        } else {
+            false
+        }
+    }};
+}
+
+pub async fn select_restrict_from_guild_channels(
+    channel_id: &ChannelId,
+    guild_id: &GuildId,
+    pool: &SqlitePool,
+) -> Result<bool, sqlx::Error> {
+    let start_time = Instant::now();
+
+    let query = sqlx::query(
+        "SELECT restrict
+        FROM guild_channels
+        WHERE channel_id = ? AND guild_id = ?",
+    )
+    .bind(i64::from(*channel_id))
+    .bind(i64::from(*guild_id));
+    let row = match query.fetch_one(pool).await {
+        Ok(row) => row,
+        Err(why) => {
+            error!("Couldn't select 'restrict' from GuildChannels: {why:?}");
+            return Err(why);
+        }
+    };
+
+    let restrict = row.get(0);
+    let elapsed_time = start_time.elapsed();
+    debug!("Selected 'restrict' from GuildChannels in {elapsed_time:.2?}");
+
+    Ok(restrict)
+}
+
+pub async fn update_guild_channels_set_restrict(
+    channel_id: &ChannelId,
+    guild_id: &GuildId,
+    restrict: bool,
+    pool: &SqlitePool,
+) -> Result<(), sqlx::Error> {
+    let start_time = Instant::now();
+
+    let query = sqlx::query(
+        "UPDATE guild_channels
+        SET restrict = ?
+        WHERE channel_id = ? AND guild_id = ?",
+    )
+    .bind(restrict)
+    .bind(i64::from(*channel_id))
+    .bind(i64::from(*guild_id));
+    if let Err(why) = query.execute(pool).await {
+        error!("Couldn't update 'restrict' from GuildChannels: {why:?}");
+        return Err(why);
+    }
+
+    let elapsed_time = start_time.elapsed();
+    debug!("Updated 'restrict' from GuildChannels in {elapsed_time:.2?}");
+
+    Ok(())
+}
 
 pub async fn insert_into_guild_channels(
     channels: &Vec<GuildChannel>,
