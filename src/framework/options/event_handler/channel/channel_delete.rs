@@ -14,9 +14,28 @@
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
 use serenity::all::GuildChannel;
+use tracing::error;
 
-use crate::Data;
+use crate::{database::restricted_guild_channels, Data};
 
-pub async fn handle(_channel: &GuildChannel, data: &Data) {
-    let _pool = &data.pool;
+pub async fn handle(channel: &GuildChannel, data: &Data) {
+    let pool = &data.pool;
+
+    let channel_id = channel.id;
+
+    let previous_query =
+        restricted_guild_channels::select_from_restricted_guild_channels_by_one(&channel_id, &pool)
+            .await;
+    if let Ok(_) = previous_query {
+        let query = restricted_guild_channels::delete_from_restricted_guild_channels_by_one(
+            &channel, &pool,
+        )
+        .await;
+        if let Err(why) = query {
+            error!("Couldn't delete from RestrictedGuildChannels: {why:?}");
+            return;
+        }
+
+        return;
+    }
 }
