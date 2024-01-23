@@ -37,8 +37,6 @@ pub async fn channel(
 ) -> Result<(), Error> {
     let pool = &ctx.data().pool;
 
-    let current_channel_id = ctx.channel_id();
-
     let channel_type = channel.kind;
     if channel_type == ChannelType::Category {
         let reply = messages::warn_reply(
