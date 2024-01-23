@@ -24,7 +24,7 @@ use super::{AUTHORS, DESCRIPTION, GITHUB_URL, NAME, RUST_VERSION, VERSION};
 
 #[poise::command(prefix_command, slash_command, category = "Info", ephemeral)]
 /// Get basic information about yours truly.
-pub(crate) async fn info(ctx: Context<'_>) -> Result<(), Error> {
+pub async fn info(ctx: Context<'_>) -> Result<(), Error> {
     let http = ctx.http();
 
     let bot_raw = match http.get_current_user().await {

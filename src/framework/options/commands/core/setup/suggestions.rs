@@ -30,7 +30,7 @@ use crate::{
     guild_only
 )]
 /// Set up a channel for suggestions to be sent to.
-pub(crate) async fn suggestions(
+pub async fn suggestions(
     ctx: Context<'_>,
     #[description = "The channel to send suggestions to."]
     #[rename = "channel"]

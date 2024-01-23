@@ -29,7 +29,7 @@ use crate::{
     guild_only
 )]
 /// Get a user's avatar.
-pub(crate) async fn avatar(
+pub async fn avatar(
     ctx: Context<'_>,
     #[description = "The user to get the avatar from."] user: User,
 ) -> Result<(), Error> {

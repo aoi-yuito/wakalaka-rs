@@ -17,6 +17,6 @@ use serenity::all::GuildChannel;
 
 use crate::Data;
 
-pub(crate) async fn handle(_channel: &GuildChannel, data: &Data) {
+pub async fn handle(_channel: &GuildChannel, data: &Data) {
     let _pool = &data.pool;
 }

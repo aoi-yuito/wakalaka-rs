@@ -25,6 +25,6 @@ use crate::{framework::commands::core::setup::suggestions::suggestions, Context,
     owners_only,
     guild_only
 )]
-pub(crate) async fn setup(_: Context<'_>) -> Result<(), Error> {
+pub async fn setup(_: Context<'_>) -> Result<(), Error> {
     Ok(())
 }

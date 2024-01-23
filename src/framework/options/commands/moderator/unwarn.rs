@@ -34,7 +34,7 @@ use crate::{
     ephemeral
 )]
 /// Remove a specific warning from a user.
-pub(crate) async fn unwarn(
+pub async fn unwarn(
     ctx: Context<'_>,
     #[description = "The user to unwarn."]
     #[rename = "user"]

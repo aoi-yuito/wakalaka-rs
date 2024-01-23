@@ -16,11 +16,11 @@
 use serenity::all::CurrentApplicationInfo;
 use tracing::error;
 
-pub(crate) mod guilds;
-pub(crate) mod roles;
-pub(crate) mod users;
+pub mod guilds;
+pub mod roles;
+pub mod users;
 
-pub(crate) async fn current_application_info_raw(
+pub async fn current_application_info_raw(
     ctx: &crate::serenity::Context,
 ) -> Option<CurrentApplicationInfo> {
     match ctx.http.get_current_application_info().await {

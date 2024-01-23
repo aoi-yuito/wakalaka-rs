@@ -18,11 +18,11 @@ use tracing::error;
 
 use crate::Context;
 
-pub(crate) async fn user_name(ctx: Context<'_>, user_id: UserId) -> String {
+pub async fn user_name(ctx: Context<'_>, user_id: UserId) -> String {
     user(ctx, user_id).await.name
 }
 
-pub(crate) async fn user(ctx: Context<'_>, user_id: UserId) -> User {
+pub async fn user(ctx: Context<'_>, user_id: UserId) -> User {
     match user_id.to_user(&ctx).await {
         Ok(user) => user,
         Err(why) => {

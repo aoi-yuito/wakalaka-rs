@@ -17,7 +17,7 @@ use tracing::info;
 
 use crate::Context;
 
-pub(crate) async fn handle(ctx: Context<'_>) {
+pub async fn handle(ctx: Context<'_>) {
     let (user_name, command_name, channel_name) = (
         &ctx.author().name,
         &ctx.command().qualified_name,

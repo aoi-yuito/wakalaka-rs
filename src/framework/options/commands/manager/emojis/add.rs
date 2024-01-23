@@ -30,7 +30,7 @@ use crate::{
     ephemeral
 )]
 /// Create a new emoji.
-pub(crate) async fn add(
+pub async fn add(
     ctx: Context<'_>,
     #[description = "The name of the emoji."]
     #[min_length = 2]

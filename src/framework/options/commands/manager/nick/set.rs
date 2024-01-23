@@ -30,7 +30,7 @@ use crate::{
     ephemeral
 )]
 /// Set a nickname for a user.
-pub(crate) async fn set(
+pub async fn set(
     ctx: Context<'_>,
     #[description = "The user to set the nickname for."]
     #[rename = "user"]

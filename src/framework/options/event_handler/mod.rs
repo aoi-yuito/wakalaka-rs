@@ -24,7 +24,7 @@ use poise::FrameworkContext;
 
 use crate::{serenity::Context, serenity::FullEvent, Data, Error};
 
-pub(crate) async fn handle(
+pub async fn handle(
     ctx: &Context,
     event: &FullEvent,
     _framework: FrameworkContext<'_, Data, Error>,

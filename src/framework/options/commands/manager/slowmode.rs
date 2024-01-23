@@ -30,7 +30,7 @@ use crate::{
     ephemeral
 )]
 /// Reduce the rate of messages in a channel.
-pub(crate) async fn slowmode(
+pub async fn slowmode(
     ctx: Context<'_>,
     #[description = "The channel to slow down, if any."]
     #[rename = "channel"]

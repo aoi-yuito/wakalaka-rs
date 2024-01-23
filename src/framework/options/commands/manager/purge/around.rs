@@ -27,7 +27,7 @@ use crate::{utility::components::messages, Context, Error};
     ephemeral
 )]
 /// Delete a given amount of messages around a specific message.
-pub(crate) async fn around(
+pub async fn around(
     ctx: Context<'_>,
     #[description = "The message to delete around."] message: Message,
     #[description = "The amount to delete around."]

@@ -36,7 +36,7 @@ use crate::{
     ephemeral
 )]
 /// Lock the door for a user.
-pub(crate) async fn ban(
+pub async fn ban(
     ctx: Context<'_>,
     #[description = "The user to ban."]
     #[rename = "user"]

@@ -18,7 +18,7 @@ use sqlx::SqlitePool;
 use tokio::time::Instant;
 use tracing::{error, info};
 
-pub(crate) async fn delete_from_suggestions(message_id: i64, guild_id: i64, pool: &SqlitePool) {
+pub async fn delete_from_suggestions(message_id: i64, guild_id: i64, pool: &SqlitePool) {
     let start_time = Instant::now();
 
     let suggest_query =
@@ -35,7 +35,7 @@ pub(crate) async fn delete_from_suggestions(message_id: i64, guild_id: i64, pool
     }
 }
 
-pub(crate) async fn update_suggestions(
+pub async fn update_suggestions(
     moderator_id: i64,
     message_id: i64,
     guild_id: i64,
@@ -64,7 +64,7 @@ pub(crate) async fn update_suggestions(
     Ok(())
 }
 
-pub(crate) async fn insert_into_suggestions(
+pub async fn insert_into_suggestions(
     uuid: &String,
     user_id: i64,
     moderator_id: i64,

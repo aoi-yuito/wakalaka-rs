@@ -19,7 +19,7 @@ use crate::framework::options::commands;
 use crate::utility::models;
 use crate::{serenity::Context, Data, Error};
 
-pub(crate) async fn handle(ctx: &Context, data: Data) -> Result<Data, Error> {
+pub async fn handle(ctx: &Context, data: Data) -> Result<Data, Error> {
     register_guild_commands(ctx).await;
 
     Ok(data)

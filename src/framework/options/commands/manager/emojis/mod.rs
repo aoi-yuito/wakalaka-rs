@@ -31,6 +31,6 @@ use crate::{
     subcommand_required,
     ephemeral
 )]
-pub(crate) async fn emojis(_: Context<'_>) -> Result<(), Error> {
+pub async fn emojis(_: Context<'_>) -> Result<(), Error> {
     Ok(())
 }

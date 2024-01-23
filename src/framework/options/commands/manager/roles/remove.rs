@@ -30,7 +30,7 @@ use crate::{
     ephemeral
 )]
 /// Take role(s) from a user.
-pub(crate) async fn remove(
+pub async fn remove(
     ctx: Context<'_>,
     #[description = "The role(s) to take."] roles: Vec<Role>,
     #[description = "The user to take the role(s) from."]

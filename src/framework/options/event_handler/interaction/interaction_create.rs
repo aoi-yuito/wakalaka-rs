@@ -23,7 +23,7 @@ use tracing::{error, warn};
 
 use crate::{database::suggestions, serenity::Context, utility::components::messages, Data};
 
-pub(crate) async fn handle(interaction: &Interaction, ctx: &Context, data: &Data) {
+pub async fn handle(interaction: &Interaction, ctx: &Context, data: &Data) {
     let pool = &data.pool;
 
     match interaction {

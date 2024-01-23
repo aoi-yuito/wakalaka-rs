@@ -22,7 +22,7 @@ use crate::{
     Data,
 };
 
-pub(crate) async fn handle(
+pub async fn handle(
     channel_id: &ChannelId,
     message_id: &MessageId,
     guild_id: &Option<GuildId>,

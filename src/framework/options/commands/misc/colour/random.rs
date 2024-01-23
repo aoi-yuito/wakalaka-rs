@@ -25,7 +25,7 @@ use crate::{
 
 #[poise::command(prefix_command, slash_command, category = "Misc", guild_only)]
 /// Get information for a random colour.
-pub(crate) async fn random(ctx: Context<'_>) -> Result<(), Error> {
+pub async fn random(ctx: Context<'_>) -> Result<(), Error> {
     let client = reqwest::Client::new();
 
     let res = client

@@ -35,7 +35,7 @@ use crate::{
     ephemeral
 )]
 /// Warn a user for their misbehavior.
-pub(crate) async fn warn(
+pub async fn warn(
     ctx: Context<'_>,
     #[description = "The user to warn."]
     #[rename = "user"]

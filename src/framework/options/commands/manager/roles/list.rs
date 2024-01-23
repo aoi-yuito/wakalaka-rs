@@ -35,7 +35,7 @@ use crate::{
     ephemeral
 )]
 /// Get a list of roles in a server.
-pub(crate) async fn list(ctx: Context<'_>) -> Result<(), Error> {
+pub async fn list(ctx: Context<'_>) -> Result<(), Error> {
     let guild = models::guilds::guild(ctx).await;
 
     let mut roles = models::roles::roles(ctx).await;

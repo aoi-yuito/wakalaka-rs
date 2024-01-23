@@ -29,7 +29,7 @@ use crate::{
     ephemeral
 )]
 /// Check if yours truly is alive and well.
-pub(crate) async fn ping(ctx: Context<'_>) -> Result<(), Error> {
+pub async fn ping(ctx: Context<'_>) -> Result<(), Error> {
     let start_time = Instant::now();
 
     let manager = ctx.framework().shard_manager.clone();

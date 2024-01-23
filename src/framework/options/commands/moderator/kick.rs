@@ -30,7 +30,7 @@ use crate::{
     ephemeral
 )]
 /// Kick a user outside.
-pub(crate) async fn kick(
+pub async fn kick(
     ctx: Context<'_>,
     #[description = "The user to kick."] user: User,
     #[description = "The reason for kicking."] reason: String,

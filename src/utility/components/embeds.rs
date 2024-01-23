@@ -23,7 +23,7 @@ use serenity::{
 use std::fmt::Write;
 use tokio::time::Duration;
 
-pub(crate) fn warnings_embed(
+pub fn warnings_embed(
     user: &User,
     uuids: Vec<String>,
     moderator_ids: Vec<i64>,
@@ -63,7 +63,7 @@ pub(crate) fn warnings_embed(
         .fields(embed_fields)
 }
 
-pub(crate) fn suggest_embed(
+pub fn suggest_embed(
     name: &String,
     avatar_url: String,
     description: &String,
@@ -79,7 +79,7 @@ pub(crate) fn suggest_embed(
         .timestamp(Timestamp::from(now))
 }
 
-pub(crate) fn colour_embed(colour: u32, url: &String, json: &serde_json::Value) -> CreateEmbed {
+pub fn colour_embed(colour: u32, url: &String, json: &serde_json::Value) -> CreateEmbed {
     let name = json["name"]["value"].as_str().unwrap();
     let hex = format!("{:06X}", colour);
     let rgb = json["rgb"]["value"].as_str().unwrap();
@@ -110,7 +110,7 @@ pub(crate) fn colour_embed(colour: u32, url: &String, json: &serde_json::Value) 
         .colour(colour)
 }
 
-pub(crate) fn avatar_embed(name: &String, avatar_url: String) -> CreateEmbed {
+pub fn avatar_embed(name: &String, avatar_url: String) -> CreateEmbed {
     let embed_author = CreateEmbedAuthor::new(name).icon_url(avatar_url.clone());
 
     CreateEmbed::default()
@@ -118,7 +118,7 @@ pub(crate) fn avatar_embed(name: &String, avatar_url: String) -> CreateEmbed {
         .image(avatar_url)
 }
 
-pub(crate) fn banner_embed(name: &String, avatar_url: String, banner_url: String) -> CreateEmbed {
+pub fn banner_embed(name: &String, avatar_url: String, banner_url: String) -> CreateEmbed {
     let embed_author = CreateEmbedAuthor::new(name).icon_url(avatar_url.clone());
 
     CreateEmbed::default()
@@ -126,7 +126,7 @@ pub(crate) fn banner_embed(name: &String, avatar_url: String, banner_url: String
         .image(banner_url)
 }
 
-pub(crate) fn roles_embed(guild: &Guild, fields: Vec<(&str, String, bool)>) -> CreateEmbed {
+pub fn roles_embed(guild: &Guild, fields: Vec<(&str, String, bool)>) -> CreateEmbed {
     let guild_name = &guild.name;
     let guild_icon_url = guild.icon_url().unwrap_or_default();
 
@@ -138,7 +138,7 @@ pub(crate) fn roles_embed(guild: &Guild, fields: Vec<(&str, String, bool)>) -> C
         .fields(fields)
 }
 
-pub(crate) fn ping_embed(
+pub fn ping_embed(
     elapsed_time: Duration,
     shard_id: &ShardId,
     stage: ConnectionStage,
@@ -164,7 +164,7 @@ pub(crate) fn ping_embed(
     }
 }
 
-pub(crate) fn info_embed(icon_url: &String, constants: [&str; 6]) -> CreateEmbed {
+pub fn info_embed(icon_url: &String, constants: [&str; 6]) -> CreateEmbed {
     let author = match constants[2].split(',').next() {
         Some(value) => value,
         None => "No author found",
@@ -182,25 +182,25 @@ pub(crate) fn info_embed(icon_url: &String, constants: [&str; 6]) -> CreateEmbed
         .footer(embed_footer)
 }
 
-pub(crate) fn error_message_embed(message: &String) -> CreateEmbed {
+pub fn error_message_embed(message: &String) -> CreateEmbed {
     CreateEmbed::default()
         .description(format!("❌ {message}"))
         .colour(branding::RED)
 }
 
-pub(crate) fn warning_message_embed(message: &String) -> CreateEmbed {
+pub fn warning_message_embed(message: &String) -> CreateEmbed {
     CreateEmbed::default()
         .description(format!("⚠️ {message}"))
         .colour(branding::YELLOW)
 }
 
-pub(crate) fn ok_message_embed(message: &String) -> CreateEmbed {
+pub fn ok_message_embed(message: &String) -> CreateEmbed {
     CreateEmbed::default()
         .description(format!("✅ {message}"))
         .colour(branding::GREEN)
 }
 
-pub(crate) fn message_embed(message: &String) -> CreateEmbed {
+pub fn message_embed(message: &String) -> CreateEmbed {
     CreateEmbed::default()
         .description(format!("{message}"))
         .colour(branding::BLURPLE)

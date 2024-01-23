@@ -20,7 +20,7 @@ use crate::{utility::components::messages, Context, Error};
 
 #[poise::command(prefix_command, slash_command, category = "Fun", guild_only)]
 /// Flip a coin.
-pub(crate) async fn flip(ctx: Context<'_>) -> Result<(), Error> {
+pub async fn flip(ctx: Context<'_>) -> Result<(), Error> {
     let random = rand::random::<bool>();
 
     let user_mention = ctx.author().mention();

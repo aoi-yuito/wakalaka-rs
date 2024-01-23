@@ -18,7 +18,7 @@ use sqlx::SqlitePool;
 use tokio::time::Instant;
 use tracing::{debug, error};
 
-pub(crate) async fn update_guilds_members_set_deaf(
+pub async fn update_guilds_members_set_deaf(
     user_id: &UserId,
     deaf: bool,
     pool: &SqlitePool,
@@ -43,7 +43,7 @@ pub(crate) async fn update_guilds_members_set_deaf(
     Ok(())
 }
 
-pub(crate) async fn update_guilds_members_set_mute(
+pub async fn update_guilds_members_set_mute(
     user_id: &UserId,
     mute: bool,
     pool: &SqlitePool,
@@ -68,7 +68,7 @@ pub(crate) async fn update_guilds_members_set_mute(
     Ok(())
 }
 
-pub(crate) async fn update_guilds_members_set_timeout(
+pub async fn update_guilds_members_set_timeout(
     user_id: &UserId,
     timeout: bool,
     communication_disabled_until: Option<String>,
@@ -95,7 +95,7 @@ pub(crate) async fn update_guilds_members_set_timeout(
     Ok(())
 }
 
-pub(crate) async fn update_guilds_members_set_ban(
+pub async fn update_guilds_members_set_ban(
     user_id: &UserId,
     ban: bool,
     pool: &SqlitePool,
@@ -120,7 +120,7 @@ pub(crate) async fn update_guilds_members_set_ban(
     Ok(())
 }
 
-pub(crate) async fn insert_into_guild_members(
+pub async fn insert_into_guild_members(
     members: &Vec<Member>,
     pool: &SqlitePool,
 ) -> Result<(), sqlx::Error> {

@@ -35,7 +35,7 @@ use crate::{
     ephemeral
 )]
 /// Allow a user to interact in voice channels.
-pub(crate) async fn undeafen(
+pub async fn undeafen(
     ctx: Context<'_>,
     #[description = "The user to undeafen."]
     #[rename = "user"]

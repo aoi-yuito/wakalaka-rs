@@ -30,7 +30,7 @@ use crate::{
     ephemeral
 )]
 /// Create a new role.
-pub(crate) async fn add(
+pub async fn add(
     ctx: Context<'_>,
     #[description = "The name of the role."]
     #[min_length = 1]

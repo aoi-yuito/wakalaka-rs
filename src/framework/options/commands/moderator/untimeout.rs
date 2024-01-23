@@ -35,7 +35,7 @@ use crate::{
     ephemeral
 )]
 /// Get a user out of a time-out.
-pub(crate) async fn untimeout(
+pub async fn untimeout(
     ctx: Context<'_>,
     #[description = "The user to get out of a time-out from."]
     #[rename = "user"]

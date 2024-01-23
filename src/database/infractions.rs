@@ -20,7 +20,7 @@ use tokio::time::Instant;
 use tracing::{error, info};
 use uuid::Uuid;
 
-pub(crate) enum InfractionType {
+pub enum InfractionType {
     Warn,
     Deaf,
     Mute,
@@ -40,7 +40,7 @@ impl InfractionType {
     }
 }
 
-pub(crate) async fn select_from_infractions(
+pub async fn select_from_infractions(
     infraction: InfractionType,
     user_id: &UserId,
     guild_id: &GuildId,
@@ -90,7 +90,7 @@ pub(crate) async fn select_from_infractions(
     Ok(infractions)
 }
 
-pub(crate) async fn delete_from_infractions(
+pub async fn delete_from_infractions(
     uuid: &String,
     guild_id: &GuildId,
     pool: &SqlitePool,
@@ -111,7 +111,7 @@ pub(crate) async fn delete_from_infractions(
     Ok(())
 }
 
-pub(crate) async fn insert_into_infractions(
+pub async fn insert_into_infractions(
     infraction: InfractionType,
     user_id: &UserId,
     moderator_id: &UserId,

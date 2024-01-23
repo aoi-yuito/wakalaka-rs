@@ -26,7 +26,7 @@ use crate::{
 
 #[poise::command(prefix_command, slash_command, category = "Misc", guild_only)]
 /// Get information for a colour from hexadecimal representation.
-pub(crate) async fn hex(
+pub async fn hex(
     ctx: Context<'_>,
     #[description = "The colour in hexadecimal."]
     #[min_length = 3]

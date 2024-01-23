@@ -23,7 +23,7 @@ use crate::{
     Data,
 };
 
-pub(crate) async fn handle(guild: &Guild, is_new: bool, ctx: &Context, data: &Data) {
+pub async fn handle(guild: &Guild, is_new: bool, ctx: &Context, data: &Data) {
     if !is_new {
         return;
     }

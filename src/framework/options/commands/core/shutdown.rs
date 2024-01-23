@@ -26,7 +26,7 @@ use crate::{utility::components::messages, Context, Error};
     guild_only
 )]
 /// Put yours truly to sleep.
-pub(crate) async fn shutdown(
+pub async fn shutdown(
     ctx: Context<'_>,
     #[description = "Time before she goes to sleep. (seconds)"]
     #[min = 1]

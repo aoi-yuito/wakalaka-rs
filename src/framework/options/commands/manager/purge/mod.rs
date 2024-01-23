@@ -34,6 +34,6 @@ use crate::{
     ephemeral
 )]
 /// Delete a given amount of messages.
-pub(crate) async fn purge(_: Context<'_>) -> Result<(), Error> {
+pub async fn purge(_: Context<'_>) -> Result<(), Error> {
     Ok(())
 }

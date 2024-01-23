@@ -27,7 +27,7 @@ use crate::{utility::components::messages, Context, Error};
     ephemeral
 )]
 /// Delete a given amount of messages.
-pub(crate) async fn any(
+pub async fn any(
     ctx: Context<'_>,
     #[description = "The amount to delete."]
     #[min = 1]

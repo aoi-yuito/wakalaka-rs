@@ -20,7 +20,7 @@ use crate::{utility::components::messages, Context, Error};
 
 #[poise::command(prefix_command, slash_command, category = "Misc", guild_only)]
 /// Roll a number of point(s).
-pub(crate) async fn roll(
+pub async fn roll(
     ctx: Context<'_>,
     #[description = "The number between point(s), if any."]
     #[min = 1]

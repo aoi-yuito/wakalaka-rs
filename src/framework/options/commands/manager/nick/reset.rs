@@ -30,7 +30,7 @@ use crate::{
     ephemeral
 )]
 /// Remove a user's nickname.
-pub(crate) async fn reset(
+pub async fn reset(
     ctx: Context<'_>,
     #[description = "The user to remove nickname from."]
     #[rename = "user"]

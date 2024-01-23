@@ -27,7 +27,7 @@ use crate::{utility::components::messages, Context, Error};
     ephemeral
 )]
 /// Delete a given amount of messages after a specific message.
-pub(crate) async fn after(
+pub async fn after(
     ctx: Context<'_>,
     #[description = "The message to delete after"] message: Message,
     #[description = "The amount to delete after."]

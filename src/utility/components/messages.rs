@@ -20,7 +20,7 @@ use serenity::builder::{
 
 use super::embeds;
 
-pub(crate) async fn error_response(
+pub async fn error_response(
     message: impl Into<String>,
     ephemeral: bool,
 ) -> CreateInteractionResponse {
@@ -32,7 +32,7 @@ pub(crate) async fn error_response(
     CreateInteractionResponse::Message(response_message)
 }
 
-pub(crate) async fn warn_response(
+pub async fn warn_response(
     message: impl Into<String>,
     ephemeral: bool,
 ) -> CreateInteractionResponse {
@@ -44,7 +44,7 @@ pub(crate) async fn warn_response(
     CreateInteractionResponse::Message(response_message)
 }
 
-pub(crate) async fn ok_response(
+pub async fn ok_response(
     message: impl Into<String>,
     ephemeral: bool,
 ) -> CreateInteractionResponse {
@@ -56,7 +56,7 @@ pub(crate) async fn ok_response(
     CreateInteractionResponse::Message(response_message)
 }
 
-pub(crate) async fn response(
+pub async fn response(
     message: impl Into<String>,
     ephemeral: bool,
 ) -> CreateInteractionResponse {
@@ -68,31 +68,31 @@ pub(crate) async fn response(
     CreateInteractionResponse::Message(response_message)
 }
 
-pub(crate) fn error_message(message: impl Into<String>) -> CreateMessage {
+pub fn error_message(message: impl Into<String>) -> CreateMessage {
     let error_embed = embeds::error_message_embed(&message.into());
 
     CreateMessage::default().embed(error_embed)
 }
 
-pub(crate) fn warn_message(message: impl Into<String>) -> CreateMessage {
+pub fn warn_message(message: impl Into<String>) -> CreateMessage {
     let warn_embed = embeds::warning_message_embed(&message.into());
 
     CreateMessage::default().embed(warn_embed)
 }
 
-pub(crate) fn ok_message(message: impl Into<String>) -> CreateMessage {
+pub fn ok_message(message: impl Into<String>) -> CreateMessage {
     let ok_embed = embeds::ok_message_embed(&message.into());
 
     CreateMessage::default().embed(ok_embed)
 }
 
-pub(crate) fn message(message: impl Into<String>) -> CreateMessage {
+pub fn message(message: impl Into<String>) -> CreateMessage {
     let embed = embeds::message_embed(&message.into());
 
     CreateMessage::default().embed(embed)
 }
 
-pub(crate) fn error_reply(message: impl Into<String>, ephemeral: bool) -> CreateReply {
+pub fn error_reply(message: impl Into<String>, ephemeral: bool) -> CreateReply {
     let error_embed = embeds::error_message_embed(&message.into());
 
     CreateReply::default()
@@ -100,7 +100,7 @@ pub(crate) fn error_reply(message: impl Into<String>, ephemeral: bool) -> Create
         .ephemeral(ephemeral)
 }
 
-pub(crate) fn warn_reply(message: impl Into<String>, ephemeral: bool) -> CreateReply {
+pub fn warn_reply(message: impl Into<String>, ephemeral: bool) -> CreateReply {
     let warn_embed = embeds::warning_message_embed(&message.into());
 
     CreateReply::default()
@@ -108,17 +108,17 @@ pub(crate) fn warn_reply(message: impl Into<String>, ephemeral: bool) -> CreateR
         .ephemeral(ephemeral)
 }
 
-pub(crate) fn ok_reply(message: impl Into<String>, ephemeral: bool) -> CreateReply {
+pub fn ok_reply(message: impl Into<String>, ephemeral: bool) -> CreateReply {
     let ok_embed = embeds::ok_message_embed(&message.into());
 
     CreateReply::default().embed(ok_embed).ephemeral(ephemeral)
 }
 
-pub(crate) fn reply_embed(embed: CreateEmbed, ephemeral: bool) -> CreateReply {
+pub fn reply_embed(embed: CreateEmbed, ephemeral: bool) -> CreateReply {
     CreateReply::default().embed(embed).ephemeral(ephemeral)
 }
 
-pub(crate) fn reply(message: impl Into<String>, ephemeral: bool) -> CreateReply {
+pub fn reply(message: impl Into<String>, ephemeral: bool) -> CreateReply {
     let embed = embeds::message_embed(&message.into());
 
     CreateReply::default().embed(embed).ephemeral(ephemeral)

@@ -36,7 +36,7 @@ use crate::{
     ephemeral
 )]
 /// Put a user on a time-out for a while.
-pub(crate) async fn timeout(
+pub async fn timeout(
     ctx: Context<'_>,
     #[description = "The user to timeout."]
     #[rename = "user"]

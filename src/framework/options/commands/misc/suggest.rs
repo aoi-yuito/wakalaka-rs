@@ -29,7 +29,7 @@ use crate::{
 
 #[poise::command(prefix_command, slash_command, category = "Misc", guild_only)]
 /// Send a suggestion to the management team.
-pub(crate) async fn suggest(
+pub async fn suggest(
     ctx: Context<'_>,
     #[description = "The suggestion to send."]
     #[min_length = 32]

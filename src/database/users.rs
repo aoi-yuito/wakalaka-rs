@@ -18,7 +18,7 @@ use sqlx::{Row, SqlitePool};
 use tokio::time::Instant;
 use tracing::{debug, error};
 
-pub(crate) async fn select_infractions_from_users(
+pub async fn select_infractions_from_users(
     user_id: &UserId,
     pool: &SqlitePool,
 ) -> Result<i32, sqlx::Error> {
@@ -48,7 +48,7 @@ pub(crate) async fn select_infractions_from_users(
     Ok(infractions)
 }
 
-pub(crate) async fn update_users_set_infractions(
+pub async fn update_users_set_infractions(
     user_id: &UserId,
     infractions: i32,
     pool: &SqlitePool,
@@ -69,7 +69,7 @@ pub(crate) async fn update_users_set_infractions(
     Ok(())
 }
 
-pub(crate) async fn insert_into_users(
+pub async fn insert_into_users(
     members: &Vec<Member>,
     pool: &SqlitePool,
 ) -> Result<(), sqlx::Error> {

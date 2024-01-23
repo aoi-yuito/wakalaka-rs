@@ -18,7 +18,7 @@ use tracing::error;
 
 use crate::{database::guilds, Data};
 
-pub(crate) async fn handle(
+pub async fn handle(
     unavailable_guild: &UnavailableGuild,
     guild: &Option<Guild>,
     data: &Data,

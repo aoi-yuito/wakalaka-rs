@@ -17,7 +17,7 @@ use serenity::all::GuildChannel;
 
 use crate::Data;
 
-pub(crate) async fn handle(
+pub async fn handle(
     _old_channel: &Option<GuildChannel>,
     _new_channel: &GuildChannel,
     data: &Data,

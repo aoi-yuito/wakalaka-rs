@@ -35,7 +35,7 @@ use crate::{
     ephemeral
 )]
 /// Allow a user to speak in voice channels.
-pub(crate) async fn unmute(
+pub async fn unmute(
     ctx: Context<'_>,
     #[description = "The user to unmute."]
     #[rename = "user"]

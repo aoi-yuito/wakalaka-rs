@@ -17,7 +17,7 @@ use serenity::all::{Guild, PartialGuild};
 
 use crate::{serenity::Context, Data};
 
-pub(crate) async fn handle(
+pub async fn handle(
     _old_guild: &Option<Guild>,
     _new_guild: &PartialGuild,
     _ctx: &Context,

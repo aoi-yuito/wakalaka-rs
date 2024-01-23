@@ -35,7 +35,7 @@ use crate::{
     ephemeral
 )]
 /// Unlock the door for a user.
-pub(crate) async fn unban(
+pub async fn unban(
     ctx: Context<'_>,
     #[description = "The user to unban."]
     #[rename = "user"]

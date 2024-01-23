@@ -24,7 +24,7 @@ use crate::{Data, Error};
 pub(super) mod options;
 pub(super) mod setup;
 
-pub(crate) async fn initialise_framework(data: Data) -> Framework<Data, Error> {
+pub async fn initialise_framework(data: Data) -> Framework<Data, Error> {
     let start_time = Instant::now();
 
     let framework = Framework::builder()
@@ -49,7 +49,7 @@ pub(crate) async fn initialise_framework(data: Data) -> Framework<Data, Error> {
     framework
 }
 
-pub(crate) fn initialise_intents() -> GatewayIntents {
+pub fn initialise_intents() -> GatewayIntents {
     let start_time = Instant::now();
 
     let intents = GatewayIntents::non_privileged()

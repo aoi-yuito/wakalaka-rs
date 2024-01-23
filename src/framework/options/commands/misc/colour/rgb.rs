@@ -26,7 +26,7 @@ use crate::{
 
 #[poise::command(prefix_command, slash_command, category = "Misc", guild_only)]
 /// Get information for a colour from RGB representation.
-pub(crate) async fn rgb(
+pub async fn rgb(
     ctx: Context<'_>,
     #[description = "The colour in RGB."]
     #[min_length = 5]

@@ -30,7 +30,7 @@ use crate::{
     ephemeral
 )]
 /// Customise an existing role.
-pub(crate) async fn edit(
+pub async fn edit(
     ctx: Context<'_>,
     #[description = "The role to customise."] mut role: Role,
     #[description = "The name for the role, if any."]

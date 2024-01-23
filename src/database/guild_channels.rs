@@ -18,7 +18,7 @@ use sqlx::SqlitePool;
 use tokio::time::Instant;
 use tracing::{debug, error};
 
-pub(crate) async fn insert_into_guild_channels(
+pub async fn insert_into_guild_channels(
     channels: &Vec<GuildChannel>,
     pool: &SqlitePool,
 ) -> Result<(), sqlx::Error> {

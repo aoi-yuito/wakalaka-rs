@@ -24,11 +24,11 @@ use poise::Command;
 
 use crate::{Data, Error};
 
-// pub(crate) async fn global_commands() -> Vec<Command<Data, Error>> {
+// pub async fn global_commands() -> Vec<Command<Data, Error>> {
 //     vec![]
 // }
 
-pub(crate) async fn guild_commands() -> Vec<Command<Data, Error>> {
+pub async fn guild_commands() -> Vec<Command<Data, Error>> {
     vec![
         core::setup::setup(),
         core::restart::restart(),

@@ -18,7 +18,7 @@ use tracing::error;
 
 use crate::{utility::models, Context};
 
-pub(crate) async fn emoji_id(ctx: Context<'_>, name: &str) -> Option<EmojiId> {
+pub async fn emoji_id(ctx: Context<'_>, name: &str) -> Option<EmojiId> {
     let emojis = emojis(ctx).await;
     for emoji in emojis {
         let (emoji_name, emoji_id) = (emoji.name, emoji.id);
@@ -29,7 +29,7 @@ pub(crate) async fn emoji_id(ctx: Context<'_>, name: &str) -> Option<EmojiId> {
     None
 }
 
-pub(crate) async fn emoji(ctx: Context<'_>, id: EmojiId) -> Option<Emoji> {
+pub async fn emoji(ctx: Context<'_>, id: EmojiId) -> Option<Emoji> {
     let guild = models::guilds::guild(ctx).await;
 
     match guild.emoji(&ctx, id).await {
@@ -41,7 +41,7 @@ pub(crate) async fn emoji(ctx: Context<'_>, id: EmojiId) -> Option<Emoji> {
     }
 }
 
-pub(crate) async fn emojis(ctx: Context<'_>) -> Vec<Emoji> {
+pub async fn emojis(ctx: Context<'_>) -> Vec<Emoji> {
     let guild = models::guilds::guild(ctx).await;
 
     match guild.emojis(&ctx).await {

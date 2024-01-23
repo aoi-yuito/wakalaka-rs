@@ -27,7 +27,7 @@ use crate::{utility::components::messages, Context, Error};
     ephemeral
 )]
 /// Delete a given amount of messages before a specific message.
-pub(crate) async fn before(
+pub async fn before(
     ctx: Context<'_>,
     #[description = "The message to delete before."] message: Message,
     #[description = "The amount of to delete before."]

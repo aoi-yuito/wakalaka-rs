@@ -13,7 +13,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-pub(crate) mod buttons;
-pub(crate) mod embeds;
-pub(crate) mod messages;
-pub(crate) mod emojis;
+pub mod buttons;
+pub mod embeds;
+pub mod messages;
+pub mod emojis;

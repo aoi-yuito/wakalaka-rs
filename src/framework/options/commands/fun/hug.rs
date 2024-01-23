@@ -20,7 +20,7 @@ use crate::{utility::models, Context, Error};
 
 #[poise::command(prefix_command, slash_command, category = "Fun", guild_only)]
 /// Comfort one of your pals.
-pub(crate) async fn hug(
+pub async fn hug(
     ctx: Context<'_>,
     #[description = "The user to comfort."]
     #[rename = "user"]

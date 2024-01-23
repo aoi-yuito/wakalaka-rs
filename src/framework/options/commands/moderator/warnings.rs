@@ -31,7 +31,7 @@ use crate::{
     ephemeral
 )]
 /// Get a list of warnings for a user.
-pub(crate) async fn warnings(
+pub async fn warnings(
     ctx: Context<'_>,
     #[description = "The user to get warnings for."]
     #[rename = "user"]

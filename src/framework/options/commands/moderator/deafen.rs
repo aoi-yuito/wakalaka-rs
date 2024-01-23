@@ -36,7 +36,7 @@ use crate::{
     ephemeral
 )]
 /// Disallow a user from interaction in voice channels.
-pub(crate) async fn deafen(
+pub async fn deafen(
     ctx: Context<'_>,
     #[description = "The user to deafen."]
     #[rename = "user"]

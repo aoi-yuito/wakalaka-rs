@@ -29,7 +29,7 @@ use crate::{
     guild_only
 )]
 /// Get a user's banner.
-pub(crate) async fn banner(
+pub async fn banner(
     ctx: Context<'_>,
     #[description = "The user to get the banner from."] user: User,
 ) -> Result<(), Error> {

@@ -30,7 +30,7 @@ use crate::{
     ephemeral
 )]
 /// Delete an existing role.
-pub(crate) async fn delete(
+pub async fn delete(
     ctx: Context<'_>,
     #[description = "The role to delete."] mut role: Role,
 ) -> Result<(), Error> {

@@ -18,7 +18,7 @@ use sqlx::{Row, SqlitePool};
 use tokio::time::Instant;
 use tracing::{debug, error};
 
-pub(crate) async fn select_logs_channel_id_from_guilds(
+pub async fn select_logs_channel_id_from_guilds(
     guild_id: GuildId,
     pool: &SqlitePool,
 ) -> Result<ChannelId, sqlx::Error> {
@@ -48,7 +48,7 @@ pub(crate) async fn select_logs_channel_id_from_guilds(
     Ok(ChannelId::from(logs_channel_id as u64))
 }
 
-pub(crate) async fn select_suggestions_channel_id_from_guilds(
+pub async fn select_suggestions_channel_id_from_guilds(
     guild_id: &GuildId,
     pool: &SqlitePool,
 ) -> Option<ChannelId> {
@@ -82,7 +82,7 @@ pub(crate) async fn select_suggestions_channel_id_from_guilds(
     None
 }
 
-pub(crate) async fn update_guilds_set_logs_channel_id(
+pub async fn update_guilds_set_logs_channel_id(
     channel_id: ChannelId,
     guild_id: GuildId,
     pool: &SqlitePool,
@@ -103,7 +103,7 @@ pub(crate) async fn update_guilds_set_logs_channel_id(
     Ok(())
 }
 
-pub(crate) async fn update_guilds_set_suggestions_channel_id(
+pub async fn update_guilds_set_suggestions_channel_id(
     channel_id: ChannelId,
     guild_id: GuildId,
     pool: &SqlitePool,
@@ -124,7 +124,7 @@ pub(crate) async fn update_guilds_set_suggestions_channel_id(
     Ok(())
 }
 
-pub(crate) async fn update_guilds(
+pub async fn update_guilds(
     guilds: &Vec<Guild>,
     pool: &SqlitePool,
 ) -> Result<(), sqlx::Error> {
@@ -166,7 +166,7 @@ pub(crate) async fn update_guilds(
     Ok(())
 }
 
-pub(crate) async fn delete_from_guilds(
+pub async fn delete_from_guilds(
     guild_id: &GuildId,
     pool: &SqlitePool,
 ) -> Result<(), sqlx::Error> {
@@ -197,7 +197,7 @@ pub(crate) async fn delete_from_guilds(
     Ok(())
 }
 
-pub(crate) async fn insert_into_guilds(
+pub async fn insert_into_guilds(
     guild: &Guild,
     pool: &SqlitePool,
 ) -> Result<(), sqlx::Error> {

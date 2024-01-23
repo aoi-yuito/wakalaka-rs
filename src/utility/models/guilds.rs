@@ -18,7 +18,7 @@ use tracing::{error, warn};
 
 use crate::Context;
 
-pub(crate) async fn channels_raw(
+pub async fn channels_raw(
     ctx: &crate::serenity::Context,
     guild_id: GuildId,
 ) -> Vec<GuildChannel> {
@@ -31,7 +31,7 @@ pub(crate) async fn channels_raw(
     }
 }
 
-pub(crate) async fn channels(ctx: Context<'_>) -> Vec<GuildChannel> {
+pub async fn channels(ctx: Context<'_>) -> Vec<GuildChannel> {
     match guild(ctx).await.channels(&ctx).await {
         Ok(channels) => channels.values().cloned().collect::<Vec<GuildChannel>>(),
         Err(why) => {
@@ -41,7 +41,7 @@ pub(crate) async fn channels(ctx: Context<'_>) -> Vec<GuildChannel> {
     }
 }
 
-pub(crate) async fn member(ctx: Context<'_>, guild_id: GuildId, user_id: UserId) -> Member {
+pub async fn member(ctx: Context<'_>, guild_id: GuildId, user_id: UserId) -> Member {
     match guild_id.member(&ctx, user_id).await {
         Ok(member) => member,
         Err(why) => {
@@ -51,7 +51,7 @@ pub(crate) async fn member(ctx: Context<'_>, guild_id: GuildId, user_id: UserId)
     }
 }
 
-pub(crate) async fn members_raw(ctx: &crate::serenity::Context, guild_id: &GuildId) -> Vec<Member> {
+pub async fn members_raw(ctx: &crate::serenity::Context, guild_id: &GuildId) -> Vec<Member> {
     match guild_id.members(&ctx, None, None).await {
         Ok(users) => users,
         Err(why) => {
@@ -61,7 +61,7 @@ pub(crate) async fn members_raw(ctx: &crate::serenity::Context, guild_id: &Guild
     }
 }
 
-pub(crate) async fn members(ctx: Context<'_>, guild_id: GuildId) -> Vec<Member> {
+pub async fn members(ctx: Context<'_>, guild_id: GuildId) -> Vec<Member> {
     match guild_id.members(&ctx, None, None).await {
         Ok(users) => users,
         Err(why) => {
@@ -71,19 +71,19 @@ pub(crate) async fn members(ctx: Context<'_>, guild_id: GuildId) -> Vec<Member> 
     }
 }
 
-pub(crate) async fn owner_id(ctx: Context<'_>) -> UserId {
+pub async fn owner_id(ctx: Context<'_>) -> UserId {
     guild(ctx).await.owner_id
 }
 
-pub(crate) async fn guild_name_raw(ctx: &crate::serenity::Context, guild_id: GuildId) -> String {
+pub async fn guild_name_raw(ctx: &crate::serenity::Context, guild_id: GuildId) -> String {
     guild_raw(ctx, guild_id).name
 }
 
-pub(crate) async fn guild_name(ctx: Context<'_>) -> String {
+pub async fn guild_name(ctx: Context<'_>) -> String {
     guild(ctx).await.name
 }
 
-pub(crate) async fn guild_id_raw(ctx: &crate::serenity::Context) -> GuildId {
+pub async fn guild_id_raw(ctx: &crate::serenity::Context) -> GuildId {
     super::current_application_info_raw(ctx)
         .await
         .expect("Couldn't get current application info")
@@ -91,11 +91,11 @@ pub(crate) async fn guild_id_raw(ctx: &crate::serenity::Context) -> GuildId {
         .expect("Couldn't find guild ID in current application")
 }
 
-pub(crate) async fn guild_id(ctx: Context<'_>) -> GuildId {
+pub async fn guild_id(ctx: Context<'_>) -> GuildId {
     guild(ctx).await.id
 }
 
-pub(crate) fn guild_raw(ctx: &crate::serenity::Context, guild_id: GuildId) -> Guild {
+pub fn guild_raw(ctx: &crate::serenity::Context, guild_id: GuildId) -> Guild {
     let guild = {
         match ctx.cache.guild(guild_id) {
             Some(value) => value,
@@ -108,7 +108,7 @@ pub(crate) fn guild_raw(ctx: &crate::serenity::Context, guild_id: GuildId) -> Gu
     guild.clone()
 }
 
-pub(crate) async fn guild(ctx: Context<'_>) -> Guild {
+pub async fn guild(ctx: Context<'_>) -> Guild {
     match ctx.guild() {
         Some(value) => value.clone(),
         None => {

@@ -36,7 +36,7 @@ use crate::{
     ephemeral
 )]
 /// Disallow a user from speaking in voice channels.
-pub(crate) async fn mute(
+pub async fn mute(
     ctx: Context<'_>,
     #[description = "The user to mute."]
     #[rename = "user"]

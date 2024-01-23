@@ -18,14 +18,14 @@ use serenity::{
     builder::CreateButton,
 };
 
-pub(crate) fn accept_suggest_button() -> CreateButton {
+pub fn accept_suggest_button() -> CreateButton {
     CreateButton::new("accept_suggest")
         .style(ButtonStyle::Success)
         .emoji(ReactionType::from('👍'))
         .label("Accept")
 }
 
-pub(crate) fn reject_suggest_button() -> CreateButton {
+pub fn reject_suggest_button() -> CreateButton {
     CreateButton::new("reject_suggest")
         .style(ButtonStyle::Danger)
         .emoji(ReactionType::from('👎'))

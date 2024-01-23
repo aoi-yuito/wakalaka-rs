@@ -13,12 +13,12 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-pub(crate) mod guild_channels;
-pub(crate) mod guild_members;
-pub(crate) mod guilds;
-pub(crate) mod infractions;
-pub(crate) mod suggestions;
-pub(crate) mod users;
+pub mod guild_channels;
+pub mod guild_members;
+pub mod guilds;
+pub mod infractions;
+pub mod suggestions;
+pub mod users;
 
 use lazy_static::lazy_static;
 use sqlx::{sqlite::SqlitePoolOptions, SqlitePool};
@@ -26,7 +26,7 @@ use tokio::time::Instant;
 use tracing::{debug, error, info};
 
 lazy_static! {
-    pub(crate) static ref DB_URL: String = match dotenvy::var("DATABASE_URL") {
+    pub static ref DB_URL: String = match dotenvy::var("DATABASE_URL") {
         Ok(url) => url,
         Err(why) => {
             error!("Couldn't find database in environment: {why:?}");
@@ -35,7 +35,7 @@ lazy_static! {
     };
 }
 
-pub(crate) async fn initialise() -> SqlitePool {
+pub async fn initialise() -> SqlitePool {
     let start_time = Instant::now();
 
     let pool = connect().await.unwrap();

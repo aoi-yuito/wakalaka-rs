@@ -18,7 +18,7 @@ use tracing::error;
 pub(super) mod components;
 pub(super) mod models;
 
-pub(crate) fn rgb_to_u32(code: &String) -> u32 {
+pub fn rgb_to_u32(code: &String) -> u32 {
     let mut rgb = code.split(',');
 
     let r = rgb.next().unwrap().parse::<u32>().unwrap();
@@ -29,7 +29,7 @@ pub(crate) fn rgb_to_u32(code: &String) -> u32 {
     hex_to_u32(&hex)
 }
 
-pub(crate) fn hex_to_u32(code: &String) -> u32 {
+pub fn hex_to_u32(code: &String) -> u32 {
     let hex_code: String = code.chars().filter(|c| c.is_digit(16)).collect();
 
     match u32::from_str_radix(&hex_code, 16) {

@@ -30,7 +30,7 @@ use crate::{
     ephemeral
 )]
 /// Give role(s) to a user.
-pub(crate) async fn set(
+pub async fn set(
     ctx: Context<'_>,
     #[description = "The role(s) to give."] roles: Vec<Role>,
     #[description = "The user to give the role(s) for."]

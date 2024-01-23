@@ -32,7 +32,7 @@ use crate::{
     ephemeral
 )]
 /// Delete an existing emoji.
-pub(crate) async fn delete(
+pub async fn delete(
     ctx: Context<'_>,
     #[description = "The name of the emoji."]
     #[min_length = 2]

@@ -18,7 +18,7 @@ use tracing::error;
 
 use crate::{database::users, serenity::Context, utility::models, Data};
 
-pub(crate) async fn handle(new_member: &Member, ctx: &Context, data: &Data) {
+pub async fn handle(new_member: &Member, ctx: &Context, data: &Data) {
     let pool = &data.pool;
 
     let guild_id = new_member.guild_id;
