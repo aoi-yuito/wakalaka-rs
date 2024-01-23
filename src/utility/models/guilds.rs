@@ -13,63 +13,10 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-use serenity::all::{Guild, GuildChannel, GuildId, Member, UserId};
-use tracing::{error, warn};
+use serenity::all::{Guild, GuildId, UserId};
+use tracing::warn;
 
 use crate::Context;
-
-pub async fn channels_raw(
-    ctx: &crate::serenity::Context,
-    guild_id: GuildId,
-) -> Vec<GuildChannel> {
-    match guild_raw(ctx, guild_id).channels(&ctx).await {
-        Ok(channels) => channels.values().cloned().collect::<Vec<GuildChannel>>(),
-        Err(why) => {
-            error!("Couldn't get channels: {why:?}");
-            return Vec::new();
-        }
-    }
-}
-
-pub async fn channels(ctx: Context<'_>) -> Vec<GuildChannel> {
-    match guild(ctx).await.channels(&ctx).await {
-        Ok(channels) => channels.values().cloned().collect::<Vec<GuildChannel>>(),
-        Err(why) => {
-            error!("Couldn't get channels: {why:?}");
-            return Vec::new();
-        }
-    }
-}
-
-pub async fn member(ctx: Context<'_>, guild_id: GuildId, user_id: UserId) -> Member {
-    match guild_id.member(&ctx, user_id).await {
-        Ok(member) => member,
-        Err(why) => {
-            error!("Couldn't get member: {why:?}");
-            return Member::default();
-        }
-    }
-}
-
-pub async fn members_raw(ctx: &crate::serenity::Context, guild_id: &GuildId) -> Vec<Member> {
-    match guild_id.members(&ctx, None, None).await {
-        Ok(users) => users,
-        Err(why) => {
-            error!("Couldn't get members: {why:?}");
-            return Vec::new();
-        }
-    }
-}
-
-pub async fn members(ctx: Context<'_>, guild_id: GuildId) -> Vec<Member> {
-    match guild_id.members(&ctx, None, None).await {
-        Ok(users) => users,
-        Err(why) => {
-            error!("Couldn't get members: {why:?}");
-            return Vec::new();
-        }
-    }
-}
 
 pub async fn owner_id(ctx: Context<'_>) -> UserId {
     guild(ctx).await.owner_id
