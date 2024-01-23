@@ -17,7 +17,7 @@ use serenity::all::Role;
 use tracing::{error, info};
 
 use crate::{
-    check_guild_channel_restriction,
+    check_restricted_guild_channel,
     utility::{components::messages, models},
     Context, Error,
 };
@@ -35,7 +35,7 @@ pub async fn delete(
     ctx: Context<'_>,
     #[description = "The role to delete."] mut role: Role,
 ) -> Result<(), Error> {
-    let restricted = check_guild_channel_restriction!(ctx);
+    let restricted = check_restricted_guild_channel!(ctx);
     if restricted {
         return Ok(());
     }

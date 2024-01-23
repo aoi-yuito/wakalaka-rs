@@ -17,7 +17,7 @@ use serenity::{all::Attachment, builder::CreateAttachment};
 use tracing::{error, info, warn};
 
 use crate::{
-    check_guild_channel_restriction,
+    check_restricted_guild_channel,
     utility::{components::messages, models},
     Context, Error,
 };
@@ -39,7 +39,7 @@ pub async fn add(
     name: String,
     #[description = "The image used for the emoji."] image: Attachment,
 ) -> Result<(), Error> {
-    let restricted = check_guild_channel_restriction!(ctx);
+    let restricted = check_restricted_guild_channel!(ctx);
     if restricted {
         return Ok(());
     }

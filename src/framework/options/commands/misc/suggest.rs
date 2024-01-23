@@ -23,7 +23,7 @@ use uuid::Uuid;
 
 use crate::{
     database::{guilds, suggestions},
-    check_guild_channel_restriction,
+    check_restricted_guild_channel,
     utility::{components::buttons, components::embeds, components::messages, models},
     Context, Error,
 };
@@ -37,7 +37,7 @@ pub async fn suggest(
     #[max_length = 1024]
     message: String,
 ) -> Result<(), Error> {
-    let restricted = check_guild_channel_restriction!(ctx);
+    let restricted = check_restricted_guild_channel!(ctx);
     if restricted {
         return Ok(());
     }

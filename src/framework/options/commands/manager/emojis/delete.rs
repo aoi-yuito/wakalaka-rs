@@ -16,7 +16,7 @@
 use tracing::{error, info, warn};
 
 use crate::{
-    check_guild_channel_restriction, utility::{
+    check_restricted_guild_channel, utility::{
         components::{self, messages},
         models,
     }, Context, Error
@@ -38,7 +38,7 @@ pub async fn delete(
     #[max_length = 32]
     name: String,
 ) -> Result<(), Error> {
-    let restricted = check_guild_channel_restriction!(ctx);
+    let restricted = check_restricted_guild_channel!(ctx);
     if restricted {
         return Ok(());
     }

@@ -16,7 +16,7 @@
 use tracing::error;
 
 use crate::{
-    check_guild_channel_restriction,
+    check_restricted_guild_channel,
     utility::components::{embeds, messages},
     Context, Error,
 };
@@ -26,7 +26,7 @@ use super::{AUTHORS, DESCRIPTION, GITHUB_URL, NAME, RUST_VERSION, VERSION};
 #[poise::command(prefix_command, slash_command, category = "Info", ephemeral)]
 /// Get basic information about yours truly.
 pub async fn info(ctx: Context<'_>) -> Result<(), Error> {
-    let restricted = check_guild_channel_restriction!(ctx);
+    let restricted = check_restricted_guild_channel!(ctx);
     if restricted {
         return Ok(());
     }

@@ -17,7 +17,7 @@ use regex::Regex;
 use tracing::error;
 
 use crate::{
-    check_guild_channel_restriction,
+    check_restricted_guild_channel,
     utility::{
         self,
         components::{embeds, messages},
@@ -34,7 +34,7 @@ pub async fn rgb(
     #[max_length = 11]
     colour: String,
 ) -> Result<(), Error> {
-    let restricted = check_guild_channel_restriction!(ctx);
+    let restricted = check_restricted_guild_channel!(ctx);
     if restricted {
         return Ok(());
     }

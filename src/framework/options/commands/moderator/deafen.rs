@@ -18,7 +18,7 @@ use serenity::{all::UserId, builder::EditMember};
 use tracing::{error, info};
 
 use crate::{
-    check_guild_channel_restriction,
+    check_restricted_guild_channel,
     database::{
         guild_members,
         infractions::{self, InfractionType},
@@ -47,7 +47,7 @@ pub async fn deafen(
     #[max_length = 80]
     reason: String,
 ) -> Result<(), Error> {
-    let restricted = check_guild_channel_restriction!(ctx);
+    let restricted = check_restricted_guild_channel!(ctx);
     if restricted {
         return Ok(());
     }

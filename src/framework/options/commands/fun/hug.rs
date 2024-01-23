@@ -16,7 +16,7 @@
 use serenity::all::{Mentionable, UserId};
 use tracing::error;
 
-use crate::{check_guild_channel_restriction, utility::models, Context, Error};
+use crate::{check_restricted_guild_channel, utility::models, Context, Error};
 
 #[poise::command(prefix_command, slash_command, category = "Fun", guild_only)]
 /// Comfort one of your pals.
@@ -26,7 +26,7 @@ pub async fn hug(
     #[rename = "user"]
     user_id: UserId,
 ) -> Result<(), Error> {
-    let restricted = check_guild_channel_restriction!(ctx);
+    let restricted = check_restricted_guild_channel!(ctx);
     if restricted {
         return Ok(());
     }
