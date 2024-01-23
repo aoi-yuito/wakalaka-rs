@@ -17,7 +17,7 @@ use serenity::all::{ChannelType, GuildChannel};
 use tracing::{error, info};
 
 use crate::{
-    database::guild_channels,
+    database::restricted_guild_channels,
     utility::{components::messages, models},
     Context, Error,
 };
@@ -42,7 +42,7 @@ pub async fn channel(
     let channel_type = channel.kind;
     if channel_type == ChannelType::Category {
         let reply = messages::warn_reply(
-            format!("I'm afraid you can't deny usage of yours truly within a category."),
+            format!("I'm afraid you can't deny usage of yours truly within {channel_type:?} channel(s)."),
             true,
         );
         if let Err(why) = ctx.send(reply).await {
@@ -53,10 +53,9 @@ pub async fn channel(
         return Ok(());
     }
 
-    let (channel_id, channel_name, guild_id, guild_name) = (
+    let (channel_id, channel_name, guild_name) = (
         channel.id,
         &channel.name,
-        channel.guild_id,
         &models::guilds::guild_name(ctx).await,
     );
     if channel_id == current_channel_id {
@@ -72,61 +71,34 @@ pub async fn channel(
         return Ok(());
     }
 
-    // We don't want to try to deny access to a channel that's already been denied.
     let previous_query =
-        guild_channels::select_restrict_from_guild_channels(&channel_id, &guild_id, pool).await;
-    if let Ok(restricted) = previous_query {
-        if !restricted {
-            let reply = messages::warn_reply(
-                format!("Usage of yours truly is already denied within <#{channel_id}>."),
-                true,
-            );
-            if let Err(why) = ctx.send(reply).await {
-                error!("Couldn't send reply: {why:?}");
-                return Err(why.into());
-            }
-
-            return Ok(());
-        }
-    }
-
-    let reply = messages::reply(
-        format!("Denying usage of yours truly within <#{channel_id}>..."),
-        true,
-    );
-    let handle = ctx.send(reply).await;
-
-    let query =
-        guild_channels::update_guild_channels_set_restrict(&channel_id, &guild_id, true, pool)
+        restricted_guild_channels::select_from_restricted_guild_channels_by_one(&channel_id, &pool)
             .await;
-    if let Ok(_) = query {
+    if let Err(_) = previous_query {
         info!("Denied usage within #{channel_name} in {guild_name}");
 
-        if let Ok(message) = handle {
-            let reply = messages::reply(
-                format!("I've denied usage of yours truly within <#{channel_id}>."),
-                true,
-            );
-            if let Err(why) = message.edit(ctx, reply).await {
-                error!("Couldn't edit message: {why:?}");
-                return Err(why.into());
-            }
+        restricted_guild_channels::insert_into_restricted_guild_channels_by_one(&channel, &pool)
+            .await?;
 
-            return Ok(());
+        let reply = messages::ok_reply(
+            format!("I've denied usage of yours truly within <#{channel_id}>."),
+            true,
+        );
+        if let Err(why) = ctx.send(reply).await {
+            error!("Couldn't send reply: {why:?}");
+            return Err(why.into());
         }
-    } else {
-        error!("Couldn't deny usage within #{channel_name} in {guild_name}");
 
-        if let Ok(message) = handle {
-            let reply = messages::error_reply(
-                format!("Sorry, but I couldn't deny usage of yours truly within <#{channel_id}>."),
-                true,
-            );
-            if let Err(why) = message.edit(ctx, reply).await {
-                error!("Couldn't edit message: {why:?}");
-                return Err(why.into());
-            }
-        }
+        return Ok(());
+    }
+
+    let reply = messages::warn_reply(
+        format!("Usage of yours truly is already denied within <#{channel_id}>."),
+        true,
+    );
+    if let Err(why) = ctx.send(reply).await {
+        error!("Couldn't send reply: {why:?}");
+        return Err(why.into());
     }
 
     Ok(())

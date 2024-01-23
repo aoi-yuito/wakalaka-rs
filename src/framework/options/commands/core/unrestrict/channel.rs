@@ -17,7 +17,7 @@ use serenity::all::{ChannelType, GuildChannel};
 use tracing::{error, info};
 
 use crate::{
-    database::guild_channels,
+    database::restricted_guild_channels,
     utility::{components::messages, models},
     Context, Error,
 };
@@ -42,7 +42,7 @@ pub async fn channel(
     let channel_type = channel.kind;
     if channel_type == ChannelType::Category {
         let reply = messages::warn_reply(
-            format!("I'm afraid you can't deny usage of yours truly within a category."),
+            format!("I'm afraid you can't allow usage of yours truly within {channel_type:?} channel(s)."),
             true,
         );
         if let Err(why) = ctx.send(reply).await {
@@ -53,15 +53,23 @@ pub async fn channel(
         return Ok(());
     }
 
-    let (channel_id, channel_name, guild_id, guild_name) = (
+    let (channel_id, channel_name, guild_name) = (
         channel.id,
         &channel.name,
-        channel.guild_id,
         &models::guilds::guild_name(ctx).await,
     );
-    if channel_id == current_channel_id {
-        let reply = messages::warn_reply(
-            format!("I'm afraid you can't unrestrict usage of yours truly within <#{channel_id}>."),
+
+    let previous_query =
+        restricted_guild_channels::select_from_restricted_guild_channels_by_one(&channel_id, &pool)
+            .await;
+    if let Ok(_) = previous_query {
+        info!("Allowed usage within #{channel_name} in {guild_name}");
+
+        restricted_guild_channels::delete_from_restricted_guild_channels_by_one(&channel, &pool)
+            .await?;
+
+        let reply = messages::ok_reply(
+            format!("I've allowed usage of yours truly within <#{channel_id}>."),
             true,
         );
         if let Err(why) = ctx.send(reply).await {
@@ -72,61 +80,13 @@ pub async fn channel(
         return Ok(());
     }
 
-    // We don't want to try to allow access to a channel that's already been allowed.
-    let previous_query =
-        guild_channels::select_restrict_from_guild_channels(&channel_id, &guild_id, pool).await;
-    if let Ok(restricted) = previous_query {
-        if !restricted {
-            let reply = messages::warn_reply(
-                format!("Usage of yours truly is already allowed within <#{channel_id}>."),
-                true,
-            );
-            if let Err(why) = ctx.send(reply).await {
-                error!("Couldn't send reply: {why:?}");
-                return Err(why.into());
-            }
-
-            return Ok(());
-        }
-    }
-
-    let reply = messages::reply(
-        format!("Allowing usage of yours truly within <#{channel_id}>..."),
+    let reply = messages::warn_reply(
+        format!("Usage of yours truly is already allowed within <#{channel_id}>."),
         true,
     );
-    let handle = ctx.send(reply).await;
-
-    let query =
-        guild_channels::update_guild_channels_set_restrict(&channel_id, &guild_id, false, pool)
-            .await;
-    if let Ok(_) = query {
-        info!("Allowed usage within #{channel_name} in {guild_name}");
-
-        if let Ok(message) = handle {
-            let reply = messages::reply(
-                format!("I've allowed usage of yours truly within <#{channel_id}>."),
-                true,
-            );
-            if let Err(why) = message.edit(ctx, reply).await {
-                error!("Couldn't edit message: {why:?}");
-                return Err(why.into());
-            }
-
-            return Ok(());
-        }
-    } else {
-        error!("Couldn't allow usage within #{channel_name} in {guild_name}");
-
-        if let Ok(message) = handle {
-            let reply = messages::error_reply(
-                format!("Sorry, but I couldn't allow usage of yours truly within <#{channel_id}>."),
-                true,
-            );
-            if let Err(why) = message.edit(ctx, reply).await {
-                error!("Couldn't edit message: {why:?}");
-                return Err(why.into());
-            }
-        }
+    if let Err(why) = ctx.send(reply).await {
+        error!("Couldn't send reply: {why:?}");
+        return Err(why.into());
     }
 
     Ok(())
