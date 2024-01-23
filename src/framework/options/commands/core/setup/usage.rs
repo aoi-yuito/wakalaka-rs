@@ -17,7 +17,7 @@ use serenity::all::ChannelId;
 use tracing::{error, info};
 
 use crate::{
-    database::guilds,
+    database::{guilds, restricted_guild_channels},
     utility::{components::messages, models},
     Context, Error,
 };
@@ -37,8 +37,25 @@ pub async fn usage(
     #[rename = "channel"]
     channel_id: ChannelId,
 ) -> Result<(), Error> {
-    let data = ctx.data();
-    let pool = &data.pool;
+    let pool = &ctx.data().pool;
+
+    let previous_query =
+        restricted_guild_channels::select_from_restricted_guild_channels_by_one(&channel_id, &pool)
+            .await;
+    if let Ok(_) = previous_query {
+        let reply = messages::error_reply(
+            format!(
+                "Sorry, but <#{channel_id}> has to be unrestricted for yours truly to be used in."
+            ),
+            true,
+        );
+        if let Err(why) = ctx.send(reply).await {
+            error!("Couldn't send reply: {why:?}");
+            return Err(why.into());
+        }
+
+        return Ok(());
+    }
 
     let guild_id = models::guilds::guild_id(ctx).await;
 
