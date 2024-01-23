@@ -82,6 +82,40 @@ pub async fn select_suggestions_channel_id_from_guilds(
     None
 }
 
+pub async fn select_usage_channel_id_from_guilds(
+    guild_id: &GuildId,
+    pool: &SqlitePool,
+) -> Option<ChannelId> {
+    let start_time = Instant::now();
+
+    let query = sqlx::query("SELECT usage_channel_id FROM guilds WHERE guild_id = ?")
+        .bind(i64::from(*guild_id));
+    let row = match query.fetch_one(pool).await {
+        Ok(row) => row,
+        Err(why) => {
+            error!("Couldn't fetch 'usageChannelId' from Guilds: {why:?}");
+            return None;
+        }
+    };
+
+    let usage_channel_id = match row.try_get::<i64, _>("usage_channel_id") {
+        Ok(usage_channel_id) => usage_channel_id,
+        Err(why) => {
+            error!("Couldn't get 'usageChannelId' from Guilds: {why:?}");
+            return None;
+        }
+    };
+    if usage_channel_id != 0 {
+        let elapsed_time = start_time.elapsed();
+        debug!("Selected 'usageChannelId' from Guilds in {elapsed_time:.2?}");
+
+        return Some(ChannelId::from(usage_channel_id as u64));
+    }
+
+    error!("Couldn't find 'usageChannelId' in Guilds");
+    None
+}
+
 pub async fn update_guilds_set_logs_channel_id(
     channel_id: ChannelId,
     guild_id: GuildId,
@@ -124,10 +158,28 @@ pub async fn update_guilds_set_suggestions_channel_id(
     Ok(())
 }
 
-pub async fn update_guilds(
-    guilds: &Vec<Guild>,
+pub async fn update_guilds_set_usage_channel_id(
+    channel_id: ChannelId,
+    guild_id: GuildId,
     pool: &SqlitePool,
 ) -> Result<(), sqlx::Error> {
+    let start_time = Instant::now();
+
+    let query = sqlx::query("UPDATE guilds SET usage_channel_id = ? WHERE guild_id = ?")
+        .bind(i64::from(channel_id))
+        .bind(i64::from(guild_id));
+    if let Err(why) = query.execute(pool).await {
+        error!("Couldn't update 'usageChannelId' from Guilds: {why:?}");
+        return Err(why);
+    }
+
+    let elapsed_time = start_time.elapsed();
+    debug!("Updated 'usageChannelId' from Guilds in {elapsed_time:.2?}");
+
+    Ok(())
+}
+
+pub async fn update_guilds(guilds: &Vec<Guild>, pool: &SqlitePool) -> Result<(), sqlx::Error> {
     let start_time = Instant::now();
 
     let transaction = match pool.begin().await {
@@ -166,10 +218,7 @@ pub async fn update_guilds(
     Ok(())
 }
 
-pub async fn delete_from_guilds(
-    guild_id: &GuildId,
-    pool: &SqlitePool,
-) -> Result<(), sqlx::Error> {
+pub async fn delete_from_guilds(guild_id: &GuildId, pool: &SqlitePool) -> Result<(), sqlx::Error> {
     let start_time = Instant::now();
 
     let transaction = match pool.begin().await {
@@ -197,10 +246,7 @@ pub async fn delete_from_guilds(
     Ok(())
 }
 
-pub async fn insert_into_guilds(
-    guild: &Guild,
-    pool: &SqlitePool,
-) -> Result<(), sqlx::Error> {
+pub async fn insert_into_guilds(guild: &Guild, pool: &SqlitePool) -> Result<(), sqlx::Error> {
     let mut _insert_into_ok = true;
 
     let start_time = Instant::now();
@@ -226,7 +272,7 @@ pub async fn insert_into_guilds(
     .bind(i64::from(owner_id));
     if let Err(why) = query.execute(pool).await {
         _insert_into_ok = false;
-        
+
         if why.to_string().contains("1555") {
             // UNIQUE constraint failed: guilds.guild_id
             return Ok(());

@@ -14,13 +14,17 @@
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
 mod suggestions;
+mod usage;
 
-use crate::{framework::commands::core::setup::suggestions::suggestions, Context, Error};
+use crate::{
+    framework::commands::core::setup::{suggestions::suggestions, usage::usage},
+    Context, Error,
+};
 
 #[poise::command(
     prefix_command,
     slash_command,
-    subcommands("suggestions"),
+    subcommands("suggestions", "usage"),
     category = "Core",
     owners_only,
     guild_only,
