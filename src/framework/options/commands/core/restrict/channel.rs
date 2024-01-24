@@ -75,7 +75,7 @@ pub async fn channel(
     } else {
         let reply = messages::info_reply(
             format!(
-                "I need to be configured before my usage in <#{channel_id}> could be denied. Please use `/setup channel` to configure me."
+                "I need to be configured before my usage in <#{channel_id}> could be denied. Please use `/setup usage` to configure me."
             ),
             true,
         );
