@@ -15,7 +15,7 @@
 
 use poise::CreateReply;
 use serenity::builder::{
-    CreateEmbed, CreateInteractionResponse, CreateInteractionResponseMessage, CreateMessage,
+    CreateInteractionResponse, CreateInteractionResponseMessage, CreateMessage,
 };
 
 use super::embeds;
@@ -24,10 +24,10 @@ pub async fn error_response(
     message: impl Into<String>,
     ephemeral: bool,
 ) -> CreateInteractionResponse {
-    let error_embed = embeds::error_message_embed(&message.into());
+    let embed = embeds::error_message_embed(&message.into());
 
     let response_message = CreateInteractionResponseMessage::new()
-        .embed(error_embed)
+        .embed(embed)
         .ephemeral(ephemeral);
     CreateInteractionResponse::Message(response_message)
 }
@@ -36,30 +36,36 @@ pub async fn warn_response(
     message: impl Into<String>,
     ephemeral: bool,
 ) -> CreateInteractionResponse {
-    let warn_embed = embeds::warning_message_embed(&message.into());
+    let embed = embeds::warn_message_embed(&message.into());
 
     let response_message = CreateInteractionResponseMessage::new()
-        .embed(warn_embed)
+        .embed(embed)
         .ephemeral(ephemeral);
     CreateInteractionResponse::Message(response_message)
 }
 
-pub async fn ok_response(
-    message: impl Into<String>,
-    ephemeral: bool,
-) -> CreateInteractionResponse {
-    let ok_embed = embeds::ok_message_embed(&message.into());
+pub async fn ok_response(message: impl Into<String>, ephemeral: bool) -> CreateInteractionResponse {
+    let embed = embeds::ok_message_embed(&message.into());
 
     let response_message = CreateInteractionResponseMessage::new()
-        .embed(ok_embed)
+        .embed(embed)
         .ephemeral(ephemeral);
     CreateInteractionResponse::Message(response_message)
 }
 
-pub async fn response(
+pub async fn info_response(
     message: impl Into<String>,
     ephemeral: bool,
 ) -> CreateInteractionResponse {
+    let embed = embeds::info_message_embed(&message.into());
+
+    let response_message = CreateInteractionResponseMessage::new()
+        .embed(embed)
+        .ephemeral(ephemeral);
+    CreateInteractionResponse::Message(response_message)
+}
+
+pub async fn response(message: impl Into<String>, ephemeral: bool) -> CreateInteractionResponse {
     let embed = embeds::message_embed(&message.into());
 
     let response_message = CreateInteractionResponseMessage::new()
@@ -69,21 +75,27 @@ pub async fn response(
 }
 
 pub fn error_message(message: impl Into<String>) -> CreateMessage {
-    let error_embed = embeds::error_message_embed(&message.into());
+    let embed = embeds::error_message_embed(&message.into());
 
-    CreateMessage::default().embed(error_embed)
+    CreateMessage::default().embed(embed)
 }
 
 pub fn warn_message(message: impl Into<String>) -> CreateMessage {
-    let warn_embed = embeds::warning_message_embed(&message.into());
+    let embed = embeds::warn_message_embed(&message.into());
 
-    CreateMessage::default().embed(warn_embed)
+    CreateMessage::default().embed(embed)
 }
 
 pub fn ok_message(message: impl Into<String>) -> CreateMessage {
-    let ok_embed = embeds::ok_message_embed(&message.into());
+    let embed = embeds::ok_message_embed(&message.into());
 
-    CreateMessage::default().embed(ok_embed)
+    CreateMessage::default().embed(embed)
+}
+
+pub fn info_message(message: impl Into<String>) -> CreateMessage {
+    let embed = embeds::info_message_embed(&message.into());
+
+    CreateMessage::default().embed(embed)
 }
 
 pub fn message(message: impl Into<String>) -> CreateMessage {
@@ -93,28 +105,26 @@ pub fn message(message: impl Into<String>) -> CreateMessage {
 }
 
 pub fn error_reply(message: impl Into<String>, ephemeral: bool) -> CreateReply {
-    let error_embed = embeds::error_message_embed(&message.into());
+    let embed = embeds::error_message_embed(&message.into());
 
-    CreateReply::default()
-        .embed(error_embed)
-        .ephemeral(ephemeral)
+    CreateReply::default().embed(embed).ephemeral(ephemeral)
 }
 
 pub fn warn_reply(message: impl Into<String>, ephemeral: bool) -> CreateReply {
-    let warn_embed = embeds::warning_message_embed(&message.into());
+    let embed = embeds::warn_message_embed(&message.into());
 
-    CreateReply::default()
-        .embed(warn_embed)
-        .ephemeral(ephemeral)
+    CreateReply::default().embed(embed).ephemeral(ephemeral)
 }
 
 pub fn ok_reply(message: impl Into<String>, ephemeral: bool) -> CreateReply {
-    let ok_embed = embeds::ok_message_embed(&message.into());
+    let embed = embeds::ok_message_embed(&message.into());
 
-    CreateReply::default().embed(ok_embed).ephemeral(ephemeral)
+    CreateReply::default().embed(embed).ephemeral(ephemeral)
 }
 
-pub fn reply_embed(embed: CreateEmbed, ephemeral: bool) -> CreateReply {
+pub fn info_reply(message: impl Into<String>, ephemeral: bool) -> CreateReply {
+    let embed = embeds::info_message_embed(&message.into());
+
     CreateReply::default().embed(embed).ephemeral(ephemeral)
 }
 
