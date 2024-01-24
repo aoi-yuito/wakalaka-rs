@@ -17,7 +17,7 @@ use serenity::all::ChannelId;
 use tracing::{error, info};
 
 use crate::{
-    database::{guilds, restricted_guild_channels},
+    database::guilds,
     utility::{components::messages, models},
     Context, Error,
 };
