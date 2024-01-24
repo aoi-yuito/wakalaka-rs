@@ -22,8 +22,8 @@ use tracing::{error, info};
 use uuid::Uuid;
 
 use crate::{
-    database::{guilds, suggestions},
     check_restricted_guild_channel,
+    database::{guilds, suggestions},
     utility::{components::buttons, components::embeds, components::messages, models},
     Context, Error,
 };
@@ -68,8 +68,10 @@ pub async fn suggest(
     if suggestion_channel.is_none() {
         error!("Couldn't find suggestion channel in {guild_name}");
 
-        let reply = messages::error_reply(
-            "Sorry, but a suggestions channel hasn't been configured yet.",
+        let reply = messages::info_reply(
+            format!(
+                "I need to be configured before suggestions could be made. Please use `/setup suggestions` to configure me."
+            ),
             true,
         );
         if let Err(why) = ctx.send(reply).await {
