@@ -14,7 +14,7 @@
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
 use tokio::time::Duration;
-use tracing::{error, info};
+use tracing::error;
 
 use crate::{utility::components::messages, Context, Error};
 
