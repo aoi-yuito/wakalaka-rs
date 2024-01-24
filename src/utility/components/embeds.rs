@@ -23,7 +23,7 @@ use serenity::{
 use std::fmt::Write;
 use tokio::time::Duration;
 
-pub fn warnings_embed(
+pub fn warnings_command_embed(
     user: &User,
     uuids: Vec<String>,
     moderator_ids: Vec<i64>,
@@ -63,7 +63,7 @@ pub fn warnings_embed(
         .fields(embed_fields)
 }
 
-pub fn suggest_embed(
+pub fn suggest_command_embed(
     name: &String,
     avatar_url: String,
     description: &String,
@@ -79,7 +79,7 @@ pub fn suggest_embed(
         .timestamp(Timestamp::from(now))
 }
 
-pub fn colour_embed(colour: u32, url: &String, json: &serde_json::Value) -> CreateEmbed {
+pub fn colour_command_embed(colour: u32, url: &String, json: &serde_json::Value) -> CreateEmbed {
     let name = json["name"]["value"].as_str().unwrap();
     let hex = format!("{:06X}", colour);
     let rgb = json["rgb"]["value"].as_str().unwrap();
@@ -110,7 +110,7 @@ pub fn colour_embed(colour: u32, url: &String, json: &serde_json::Value) -> Crea
         .colour(colour)
 }
 
-pub fn avatar_embed(name: &String, avatar_url: String) -> CreateEmbed {
+pub fn avatar_command_embed(name: &String, avatar_url: String) -> CreateEmbed {
     let embed_author = CreateEmbedAuthor::new(name).icon_url(avatar_url.clone());
 
     CreateEmbed::default()
@@ -118,7 +118,7 @@ pub fn avatar_embed(name: &String, avatar_url: String) -> CreateEmbed {
         .image(avatar_url)
 }
 
-pub fn banner_embed(name: &String, avatar_url: String, banner_url: String) -> CreateEmbed {
+pub fn banned_command_embed(name: &String, avatar_url: String, banner_url: String) -> CreateEmbed {
     let embed_author = CreateEmbedAuthor::new(name).icon_url(avatar_url.clone());
 
     CreateEmbed::default()
@@ -126,45 +126,64 @@ pub fn banner_embed(name: &String, avatar_url: String, banner_url: String) -> Cr
         .image(banner_url)
 }
 
-pub fn roles_embed(guild: &Guild, fields: Vec<(&str, String, bool)>) -> CreateEmbed {
+pub fn roles_command_embed(guild: &Guild, fields: Vec<(&str, String, bool)>) -> CreateEmbed {
     let guild_name = &guild.name;
     let guild_icon_url = guild.icon_url().unwrap_or_default();
 
     let embed_author = CreateEmbedAuthor::new(guild_name).icon_url(guild_icon_url);
 
     CreateEmbed::default()
+        .title("Roles")
         .author(embed_author)
-        .title("List of Roles")
         .fields(fields)
 }
 
-pub fn ping_embed(
+pub fn ping_command_embed(
     elapsed_time: Duration,
-    shard_id: &ShardId,
-    stage: ConnectionStage,
-    latency: Option<Duration>,
+    ids: Vec<&ShardId>,
+    stages: Vec<ConnectionStage>,
+    latencies: Vec<Option<Duration>>,
 ) -> CreateEmbed {
-    if latency.is_some() {
-        // If this doesn't get the "Some(value)" formatting fuck out of here, shit the bed with a default, fresh out from under my foreskin.
-        let latency = latency.unwrap_or_default();
+    //  | Pong!                             |
+    //  | Shard    | State      | Latency   |
+    //  |----------|------------|-----------|
+    //  | <id1>    | <@{state1> | {ms1}     |
+    //  | <id2>    | <@{state2> | {ms2}     |
+    //  | Response |                        |
+    //  |----------|                        |
+    //  | {response_latency}                |
 
-        CreateEmbed::default()
-            .title("Pong!")
-            .field(
-                "Shards",
-                format!("{shard_id} ({stage}, {latency:.2?})"),
-                true,
-            )
-            .field("Response", format!("{elapsed_time:.2?}"), true)
-    } else {
-        CreateEmbed::default()
-            .title("Pong!")
-            .field("Shards", format!("{shard_id} ({stage})"), true)
-            .field("Response", format!("{elapsed_time:.2?}"), true)
+    let mut id_field = String::new();
+    let mut stage_field = String::new();
+    let mut latency_field = String::new();
+
+    for ((id, stage), latency) in ids.iter().zip(stages.iter()).zip(latencies.iter()) {
+        writeln!(id_field, "{id}").unwrap();
+        writeln!(stage_field, "{stage}").unwrap();
+
+        if latency.is_some() {
+            let latency = latency.unwrap_or_default();
+
+            writeln!(latency_field, "{latency:.2?}").unwrap();
+        } else {
+            writeln!(latency_field, "N/A").unwrap();
+        }
     }
+
+    let embed_fields = vec![
+        ("Shard", id_field, true),
+        ("State", stage_field, true),
+        ("Latency", latency_field, true),
+    ];
+    let embed_footer = CreateEmbedFooter::new(format!("{elapsed_time:.2?}"));
+
+    CreateEmbed::default()
+        .title("Pong!")
+        .fields(embed_fields)
+        .footer(embed_footer)
 }
 
-pub fn info_embed(icon_url: &String, constants: [&str; 6]) -> CreateEmbed {
+pub fn info_command_embed(icon_url: &String, constants: [&str; 6]) -> CreateEmbed {
     let author = match constants[2].split(',').next() {
         Some(value) => value,
         None => "No author found",
@@ -188,7 +207,7 @@ pub fn error_message_embed(message: &String) -> CreateEmbed {
         .colour(branding::RED)
 }
 
-pub fn warning_message_embed(message: &String) -> CreateEmbed {
+pub fn warn_message_embed(message: &String) -> CreateEmbed {
     CreateEmbed::default()
         .description(format!("⚠️ {message}"))
         .colour(branding::YELLOW)
@@ -200,8 +219,12 @@ pub fn ok_message_embed(message: &String) -> CreateEmbed {
         .colour(branding::GREEN)
 }
 
-pub fn message_embed(message: &String) -> CreateEmbed {
+pub fn info_message_embed(message: &String) -> CreateEmbed {
     CreateEmbed::default()
-        .description(format!("{message}"))
+        .description(format!(":information_source: {message}"))
         .colour(branding::BLURPLE)
+}
+
+pub fn message_embed(message: &String) -> CreateEmbed {
+    CreateEmbed::default().description(format!("{message}"))
 }
