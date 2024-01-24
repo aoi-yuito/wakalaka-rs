@@ -13,6 +13,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
+mod logs;
 mod suggestions;
 mod usage;
 
