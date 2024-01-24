@@ -16,10 +16,12 @@
 use tracing::{error, info, warn};
 
 use crate::{
-    check_restricted_guild_channel, utility::{
+    check_restricted_guild_channel,
+    utility::{
         components::{self, messages},
         models,
-    }, Context, Error
+    },
+    Context, Error,
 };
 
 #[poise::command(
@@ -42,11 +44,11 @@ pub async fn delete(
     if restricted {
         return Ok(());
     }
-    
-    let number_of_name = name.chars().count();
-    if number_of_name < 2 || number_of_name > 32 {
-        let reply = messages::warn_reply(
-            format!("I'm afraid the name has to be between `2` and `32` characters."),
+
+    let name_chars_count = name.chars().count();
+    if name_chars_count < 2 || name_chars_count > 32 {
+        let reply = messages::info_reply(
+            format!("Name of the emoji must be between `2` and `32` characters."),
             true,
         );
         if let Err(why) = ctx.send(reply).await {

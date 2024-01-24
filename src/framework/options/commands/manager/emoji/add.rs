@@ -44,10 +44,10 @@ pub async fn add(
         return Ok(());
     }
 
-    let number_of_name = name.chars().count();
-    if number_of_name < 2 || number_of_name > 32 {
-        let reply = messages::warn_reply(
-            format!("I'm afraid the name has to be between `2` and `32` characters."),
+    let name_chars_count = name.chars().count();
+    if name_chars_count < 2 || name_chars_count > 32 {
+        let reply = messages::info_reply(
+            format!("Name of the emoji must be between `2` and `32` characters."),
             true,
         );
         if let Err(why) = ctx.send(reply).await {
@@ -75,10 +75,8 @@ pub async fn add(
         },
     );
     if image_width != 128 || image_height != 128 {
-        let reply = messages::warn_reply(
-            "I'm afraid the width and height of the image has to be `128` pixels.",
-            true,
-        );
+        let reply =
+            messages::info_reply("Width and height of the image must be `128` pixels.", true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
             return Err(why.into());
@@ -118,7 +116,7 @@ pub async fn add(
 
     info!("Created {name:?} emoji in {guild_name}");
 
-    let reply = messages::ok_reply(format!("I have created an emoji called `{name}`."), true);
+    let reply = messages::ok_reply(format!("I've created an emoji called `{name}`."), true);
     if let Err(why) = ctx.send(reply).await {
         error!("Couldn't send reply: {why:?}");
         return Err(why.into());

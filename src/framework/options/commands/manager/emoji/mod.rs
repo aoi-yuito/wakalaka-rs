@@ -17,7 +17,7 @@ mod add;
 mod delete;
 
 use crate::{
-    framework::commands::manager::emojis::{add::add, delete::delete},
+    framework::commands::manager::emoji::{add::add, delete::delete},
     check_restricted_guild_channel, Context, Error,
 };
 
@@ -31,7 +31,7 @@ use crate::{
     subcommand_required,
     ephemeral
 )]
-pub async fn emojis(ctx: Context<'_>) -> Result<(), Error> {
+pub async fn emoji(ctx: Context<'_>) -> Result<(), Error> {
     let restricted = check_restricted_guild_channel!(ctx);
     if restricted {
         return Ok(());
