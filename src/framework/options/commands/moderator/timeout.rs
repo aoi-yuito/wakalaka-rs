@@ -72,12 +72,9 @@ pub async fn timeout(
         return Ok(());
     }
 
-    let number_of_reason = reason.chars().count();
-    if number_of_reason < 6 || number_of_reason > 80 {
-        let reply = messages::warn_reply(
-            "I'm afraid the reason has to be between `6` and `80` characters.",
-            true,
-        );
+    let reason_chars_count = reason.chars().count();
+    if reason_chars_count < 6 || reason_chars_count > 80 {
+        let reply = messages::info_reply("Reason must be between `6` and `80` characters.", true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
             return Err(why.into());
@@ -88,10 +85,7 @@ pub async fn timeout(
 
     let duration = duration.unwrap_or(1);
     if duration < 1 || duration > 28 {
-        let reply = messages::warn_reply(
-            "I'm afraid the duration has to be between `1` and `28` days.",
-            true,
-        );
+        let reply = messages::info_reply("Duration must be between `1` and `28` day(s).", true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
             return Err(why.into());
@@ -116,7 +110,7 @@ pub async fn timeout(
 
     let mut member = models::members::member(ctx, guild_id, user_id).await;
 
-    let message = messages::message(format!(
+    let message = messages::info_message(format!(
         "You've been timed out in {guild_name} by <@{moderator_id}> for {reason}.",
     ));
     if let Err(why) = user.direct_message(&ctx, message).await {

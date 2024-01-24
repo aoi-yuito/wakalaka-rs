@@ -44,9 +44,7 @@ pub async fn usage(
             .await;
     if let Ok(_) = previous_query {
         let reply = messages::error_reply(
-            format!(
-                "Sorry, but <#{channel_id}> has to be unrestricted for yours truly to be used in."
-            ),
+            format!("Sorry, but <#{channel_id}> must be unrestricted before configuration."),
             true,
         );
         if let Err(why) = ctx.send(reply).await {
@@ -70,10 +68,10 @@ pub async fn usage(
         let query =
             guilds::update_guilds_set_usage_channel_id(guild_channel_id, guild_id, pool).await;
         if let Err(why) = query {
-            error!("Couldn't set #{guild_channel_name} as usage channel: {why:?}");
+            error!("Couldn't configure #{guild_channel_name} for primary usage: {why:?}");
 
             let reply = messages::error_reply(
-                format!("Sorry, but I couldn't set <#{guild_channel_id}> as the usage channel."),
+                format!("Sorry, but I couldn't set <#{guild_channel_id}> to be for primary usage."),
                 true,
             );
             if let Err(why) = ctx.send(reply).await {
@@ -84,10 +82,10 @@ pub async fn usage(
             return Err(why.into());
         }
 
-        info!("Set #{guild_channel_name} as usage channel");
+        info!("Configured #{guild_channel_name} for primary usage");
 
         let reply = messages::ok_reply(
-            format!("I've set <#{guild_channel_id}> as the usage channel."),
+            format!("I've set <#{guild_channel_id}> to be for primary usage."),
             true,
         );
         if let Err(why) = ctx.send(reply).await {

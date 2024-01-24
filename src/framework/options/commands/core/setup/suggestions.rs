@@ -54,12 +54,10 @@ pub async fn suggestions(
             guilds::update_guilds_set_suggestions_channel_id(guild_channel_id, guild_id, pool)
                 .await;
         if let Err(why) = query {
-            error!("Couldn't set #{guild_channel_name} as suggestions channel: {why:?}");
+            error!("Couldn't configure #{guild_channel_name} for suggestions: {why:?}");
 
             let reply = messages::error_reply(
-                format!(
-                    "Sorry, but I couldn't set <#{guild_channel_id}> as the suggestions channel."
-                ),
+                format!("Sorry, but I couldn't set <#{guild_channel_id}> to be for suggestions."),
                 true,
             );
             if let Err(why) = ctx.send(reply).await {
@@ -70,10 +68,10 @@ pub async fn suggestions(
             return Err(why.into());
         }
 
-        info!("Set #{guild_channel_name} as suggestions channel");
+        info!("Configured #{guild_channel_name} for suggestions");
 
         let reply = messages::ok_reply(
-            format!("I've set <#{guild_channel_id}> as the suggestions channel."),
+            format!("I've set <#{guild_channel_id}> to be for suggestions."),
             true,
         );
         if let Err(why) = ctx.send(reply).await {

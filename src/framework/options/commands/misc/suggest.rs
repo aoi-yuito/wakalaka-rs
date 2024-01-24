@@ -44,10 +44,10 @@ pub async fn suggest(
 
     let pool = &ctx.data().pool;
 
-    let number_of_message = message.chars().count();
-    if number_of_message < 32 || number_of_message > 1024 {
-        let reply = messages::warn_reply(
-            "I'm afraid the suggestion has to be between `32` and `1024` characters.",
+    let message_chars_count = message.chars().count();
+    if message_chars_count < 32 || message_chars_count > 1024 {
+        let reply = messages::info_reply(
+            "Suggestion must be between `32` and `1024` characters.",
             true,
         );
         if let Err(why) = ctx.send(reply).await {
@@ -110,7 +110,7 @@ pub async fn suggest(
             buttons::reject_suggest_button(),
         );
 
-        let embed = embeds::suggest_embed(user_name, user_avatar_url, &message, created_at);
+        let embed = embeds::suggest_command_embed(user_name, user_avatar_url, &message, created_at);
         let components = CreateActionRow::Buttons(vec![accept_suggest, reject_suggest]);
 
         let message_builder = CreateMessage::default()

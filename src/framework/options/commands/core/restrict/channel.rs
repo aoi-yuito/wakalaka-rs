@@ -37,10 +37,17 @@ pub async fn channel(
 ) -> Result<(), Error> {
     let pool = &ctx.data().pool;
 
+    let (channel_id, channel_name, guild_id, guild_name) = (
+        channel.id,
+        &channel.name,
+        &models::guilds::guild_id(ctx).await,
+        &models::guilds::guild_name(ctx).await,
+    );
+
     let channel_type = channel.kind;
-    if channel_type == ChannelType::Category {
-        let reply = messages::warn_reply(
-            format!("I'm afraid you can't deny usage of yours truly within {channel_type:?} channel(s)."),
+    if channel_type == ChannelType::Category || channel_type == ChannelType::Directory {
+        let reply = messages::error_reply(
+            format!("Sorry, but I can't deny usage within <#{channel_id}>."),
             true,
         );
         if let Err(why) = ctx.send(reply).await {
@@ -51,18 +58,11 @@ pub async fn channel(
         return Ok(());
     }
 
-    let (channel_id, channel_name, guild_id, guild_name) = (
-        channel.id,
-        &channel.name,
-        &models::guilds::guild_id(ctx).await,
-        &models::guilds::guild_name(ctx).await,
-    );
-
     let failsafe_query = guilds::select_usage_channel_id_from_guilds(&guild_id, &pool).await;
     if let Some(usage_channel_id) = failsafe_query {
         if usage_channel_id == channel_id {
             let reply = messages::error_reply(
-                format!("Couldn't deny usage within the configured usage channel."),
+                format!("Couldn't deny usage within <#{usage_channel_id}>."),
                 true,
             );
             if let Err(why) = ctx.send(reply).await {
@@ -73,8 +73,10 @@ pub async fn channel(
             return Ok(());
         }
     } else {
-        let reply = messages::warn_reply(
-            format!("I'm afraid you can't deny usage of yours truly within <#{channel_id}> as the usage channel hasn't been configured yet."),
+        let reply = messages::info_reply(
+            format!(
+                "I need to be configured before my usage in <#{channel_id}> could be denied. Please use `/setup channel` to configure me."
+            ),
             true,
         );
         if let Err(why) = ctx.send(reply).await {
@@ -95,7 +97,7 @@ pub async fn channel(
             .await?;
 
         let reply = messages::ok_reply(
-            format!("I've denied usage of yours truly within <#{channel_id}>."),
+            format!("I've denied myself to be used within <#{channel_id}>."),
             true,
         );
         if let Err(why) = ctx.send(reply).await {
@@ -107,7 +109,7 @@ pub async fn channel(
     }
 
     let reply = messages::warn_reply(
-        format!("Usage of yours truly is already denied within <#{channel_id}>."),
+        format!("My usage is already denied within <#{channel_id}>."),
         true,
     );
     if let Err(why) = ctx.send(reply).await {

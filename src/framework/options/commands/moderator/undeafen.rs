@@ -76,10 +76,8 @@ pub async fn undeafen(
 
     let mut user_infractions = users::select_infractions_from_users(&user_id, pool).await?;
     if user_infractions < 1 {
-        let reply = messages::warn_reply(
-            format!("I'm afraid <@{user_id}> hasn't been punished before."),
-            true,
-        );
+        let reply =
+            messages::info_reply(format!("<@{user_id}> hasn't been punished before."), true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
             return Err(why.into());
@@ -115,12 +113,10 @@ pub async fn undeafen(
         guild_members::update_guilds_members_set_deaf(&user_id, false, pool).await?;
 
         if let Some(reason) = reason.clone() {
-            let number_of_reason = reason.chars().count();
-            if number_of_reason < 6 || number_of_reason > 80 {
-                let reply = messages::warn_reply(
-                    "I'm afraid the reason has to be between `6` and `80` characters.",
-                    true,
-                );
+            let reason_chars_count = reason.chars().count();
+            if reason_chars_count < 6 || reason_chars_count > 80 {
+                let reply =
+                    messages::info_reply("Reason must be between `6` and `80` characters.", true);
                 if let Err(why) = ctx.send(reply).await {
                     error!("Couldn't send reply: {why:?}");
                     return Err(why.into());

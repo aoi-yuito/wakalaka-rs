@@ -37,8 +37,8 @@ pub async fn before(
 ) -> Result<(), Error> {
     let count = count.unwrap_or(1);
     if count < 1 || count > 100 {
-        let reply = messages::warn_reply(
-            "I'm afraid the amount to delete has to be between `1` and `100` characters.",
+        let reply = messages::info_reply(
+            "Amount to delete must be between `1` and `100` messages.",
             true,
         );
         if let Err(why) = ctx.send(reply).await {
@@ -54,13 +54,13 @@ pub async fn before(
     let user_name = ctx.author().name.clone();
 
     let handle = tokio::spawn(async move {
-        let mut number_of_deleted_messages = 0;
+        let mut deleted_messages_count = 0;
 
         let channel_name = match channel_id.name(&http).await {
             Ok(channel_name) => channel_name,
             Err(why) => {
                 error!("Couldn't get channel name: {why:?}");
-                return number_of_deleted_messages;
+                return deleted_messages_count;
             }
         };
 
@@ -71,7 +71,7 @@ pub async fn before(
             Ok(messages) => messages,
             Err(why) => {
                 error!("Couldn't get messages: {why:?}");
-                return number_of_deleted_messages;
+                return deleted_messages_count;
             }
         };
         for message in messages {
@@ -80,21 +80,21 @@ pub async fn before(
                 continue;
             }
 
-            number_of_deleted_messages += 1;
+            deleted_messages_count += 1;
         }
 
-        info!("@{user_name} deleted {number_of_deleted_messages} message(s) in #{channel_name}");
+        info!("@{user_name} deleted {deleted_messages_count} message(s) in #{channel_name}");
 
-        number_of_deleted_messages
+        deleted_messages_count
     });
 
-    let reply_before = messages::reply("Deleting message(s)...", true);
+    let reply_before = messages::info_reply("Deleting message(s)...", true);
     let reply = ctx.send(reply_before).await?;
 
-    let number_of_deleted_messages = handle.await.unwrap_or(0);
+    let deleted_messages_count = handle.await.unwrap_or(0);
 
     let reply_after = messages::ok_reply(
-        format!("I've deleted {number_of_deleted_messages} message(s)."),
+        format!("I've deleted {deleted_messages_count} message(s)."),
         true,
     );
     reply.edit(ctx, reply_after).await?;

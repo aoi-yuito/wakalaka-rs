@@ -49,10 +49,8 @@ pub async fn slowmode(
     if delay.is_some() {
         if let Some(delay) = delay {
             if delay > 60 {
-                let reply = messages::warn_reply(
-                    format!("I'm afraid the delay has to be up to `60` seconds."),
-                    true,
-                );
+                let reply =
+                    messages::info_reply(format!("Delay must be up to `60` seconds."), true);
                 if let Err(why) = ctx.send(reply).await {
                     error!("Couldn't send reply: {why:?}");
                     return Err(why.into());
@@ -67,7 +65,7 @@ pub async fn slowmode(
         Some(channel_id) => channel_id,
         None => {
             let reply =
-                messages::warn_reply(format!("I'm afraid you have to specify a channel."), true);
+                messages::info_reply(format!("You must specify a channel to slow down."), true);
             if let Err(why) = ctx.send(reply).await {
                 error!("Couldn't send reply: {why:?}");
                 return Err(why.into());
@@ -114,7 +112,7 @@ pub async fn slowmode(
             info!("@{user_name} slowed #{guild_channel_name} down to {delay}s in {guild_name}");
 
             let reply = messages::ok_reply(
-                format!("I have slowed <#{guild_channel_id}> down to `{delay}`s."),
+                format!("I've' slowed <#{guild_channel_id}> down to `{delay}`s."),
                 true,
             );
             if let Err(why) = ctx.send(reply).await {

@@ -66,10 +66,10 @@ pub async fn mute(
         return Ok(());
     }
 
-    let number_of_reason = reason.chars().count();
-    if number_of_reason < 6 || number_of_reason > 80 {
-        let reply = messages::warn_reply(
-            "I'm afraid the reason has to be between `6` and `80` characters.",
+    let reason_chars_count = reason.chars().count();
+    if reason_chars_count < 6 || reason_chars_count > 80 {
+        let reply = messages::info_reply(
+            "Reason must be between `6` and `80` characters.",
             true,
         );
         if let Err(why) = ctx.send(reply).await {
@@ -98,7 +98,7 @@ pub async fn mute(
     let mut member = models::members::member(ctx, guild_id, user_id).await;
     let member_builder = EditMember::default().mute(true);
 
-    let message = messages::message(format!(
+    let message = messages::info_message(format!(
         "You've been muted by <@{moderator_id}> in {guild_name} for {reason}.",
     ));
     if let Err(why) = user.direct_message(&ctx, message).await {

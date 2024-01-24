@@ -51,10 +51,10 @@ pub async fn edit(
     }
 
     if name.is_some() {
-        let number_of_name = name.as_ref().unwrap().chars().count();
-        if number_of_name < 1 || number_of_name > 100 {
-            let reply = messages::warn_reply(
-                format!("I'm afraid the name has to be between `1` and `100` characters."),
+        let name_chars_count = name.as_ref().unwrap().chars().count();
+        if name_chars_count < 1 || name_chars_count > 100 {
+            let reply = messages::info_reply(
+                format!("Name of the role must be between `1` and `100` characters."),
                 true,
             );
             if let Err(why) = ctx.send(reply).await {

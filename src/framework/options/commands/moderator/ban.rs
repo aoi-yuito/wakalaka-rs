@@ -18,11 +18,14 @@ use serenity::all::UserId;
 use tracing::{error, info};
 
 use crate::{
+    check_restricted_guild_channel,
     database::{
         guild_members,
         infractions::{self, InfractionType},
         users,
-    }, check_restricted_guild_channel, utility::{components::messages, models}, Context, Error
+    },
+    utility::{components::messages, models},
+    Context, Error,
 };
 
 #[poise::command(
@@ -48,7 +51,7 @@ pub async fn ban(
     if restricted {
         return Ok(());
     }
-    
+
     let pool = &ctx.data().pool;
 
     let user = models::users::user(ctx, user_id).await;
@@ -63,12 +66,9 @@ pub async fn ban(
         return Ok(());
     }
 
-    let number_of_reason = reason.chars().count();
-    if number_of_reason < 6 || number_of_reason > 80 {
-        let reply = messages::warn_reply(
-            "I'm afraid the reason has to be between `6` and `80` characters.",
-            true,
-        );
+    let reason_chars_count = reason.chars().count();
+    if reason_chars_count < 6 || reason_chars_count > 80 {
+        let reply = messages::info_reply("Reason must be between `6` and `80` characters.", true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
             return Err(why.into());
@@ -91,7 +91,7 @@ pub async fn ban(
 
     let mut user_infractions = users::select_infractions_from_users(&user_id, pool).await?;
 
-    let message = messages::message(format!(
+    let message = messages::info_message(format!(
         "You've been banned from {guild_name} by <@{moderator_id}> for {reason}.",
     ));
     if let Err(why) = user.direct_message(&ctx, message).await {
