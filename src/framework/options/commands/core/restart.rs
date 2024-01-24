@@ -27,7 +27,7 @@ use crate::{utility::components::messages, Context, Error};
 )]
 /// Restart yours truly to her former glory.
 pub async fn restart(ctx: Context<'_>) -> Result<(), Error> {
-    let reply = messages::reply("Restarting yours truly...", true);
+    let reply = messages::reply("Restarting...", true);
     if let Err(why) = ctx.send(reply).await {
         error!("Couldn't send reply: {why:?}");
         return Err(why.into());
@@ -43,7 +43,7 @@ pub async fn restart(ctx: Context<'_>) -> Result<(), Error> {
         .cloned()
         .collect::<Vec<_>>();
     for shard_id in shard_ids {
-        info!("Restarting shard {}", shard_id);
+        info!("Restarting shard {shard_id}");
         manager.restart(shard_id).await;
     }
 
