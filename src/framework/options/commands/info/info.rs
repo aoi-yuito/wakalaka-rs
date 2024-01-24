@@ -17,7 +17,7 @@ use tracing::error;
 
 use crate::{
     check_restricted_guild_channel,
-    utility::components::{embeds, messages},
+    utility::components::{embeds, replies},
     Context, Error,
 };
 
@@ -51,9 +51,9 @@ pub async fn info(ctx: Context<'_>) -> Result<(), Error> {
         RUST_VERSION, // 5
     ];
 
-    let info_embed = embeds::info_embed(&bot_avatar_url, constants);
+    let info_embed = embeds::info_command_embed(&bot_avatar_url, constants);
 
-    let reply = messages::reply_embed(info_embed, true);
+    let reply = replies::reply_embed(info_embed, true);
     if let Err(why) = ctx.send(reply).await {
         error!("Couldn't send reply: {why:?}");
         return Err(why.into());

@@ -18,7 +18,7 @@ use tracing::error;
 
 use crate::{
     check_restricted_guild_channel,
-    utility::components::{embeds, messages},
+    utility::components::{embeds, replies},
     Context, Error,
 };
 
@@ -44,9 +44,9 @@ pub async fn avatar(
         user.avatar_url().unwrap_or(user.default_avatar_url()),
     );
 
-    let embed = embeds::avatar_embed(user_name, user_avatar_url);
+    let embed = embeds::avatar_command_embed(user_name, user_avatar_url);
 
-    let reply = messages::reply_embed(embed, false);
+    let reply = replies::reply_embed(embed, false);
     if let Err(why) = ctx.send(reply).await {
         error!("Couldn't send reply: {why:?}");
         return Err(why.into());

@@ -18,7 +18,7 @@ use tracing::{error, warn};
 
 use crate::{
     check_restricted_guild_channel,
-    utility::components::{embeds, messages},
+    utility::components::{embeds, messages, replies},
     Context, Error,
 };
 
@@ -73,9 +73,9 @@ pub async fn banner(
         },
     );
 
-    let embed = embeds::banner_embed(user_name, user_avatar_url, user_banner_url);
+    let embed = embeds::banned_command_embed(user_name, user_avatar_url, user_banner_url);
 
-    let reply = messages::reply_embed(embed, false);
+    let reply = replies::reply_embed(embed, false);
     if let Err(why) = ctx.send(reply).await {
         error!("Couldn't send reply: {why:?}");
         return Err(why.into());

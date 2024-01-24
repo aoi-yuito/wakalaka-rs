@@ -20,7 +20,7 @@ use crate::{
     check_restricted_guild_channel,
     utility::{
         self,
-        components::{embeds, messages},
+        components::{embeds, messages, replies},
     },
     Context, Error,
 };
@@ -71,9 +71,9 @@ pub async fn hex(
     let colour = utility::hex_to_u32(&colour);
     let colour_url = format!("https://singlecolorimage.com/get/{colour}/400x400");
 
-    let embed = embeds::colour_embed(colour, &colour_url, &res_json);
+    let embed = embeds::colour_command_embed(colour, &colour_url, &res_json);
 
-    let reply = messages::reply_embed(embed, false);
+    let reply = replies::reply_embed(embed, false);
     if let Err(why) = ctx.send(reply).await {
         error!("Couldn't send reply: {why:?}");
         return Err(why.into());

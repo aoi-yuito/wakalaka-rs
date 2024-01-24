@@ -21,7 +21,7 @@ use tracing::error;
 use crate::{
     check_restricted_guild_channel,
     utility::{
-        components::{embeds, messages},
+        components::{embeds, replies},
         models,
     },
     Context, Error,
@@ -68,9 +68,9 @@ pub async fn list(ctx: Context<'_>) -> Result<(), Error> {
         ("Permissions", permissions_field, true),
     ];
 
-    let embed = embeds::roles_embed(&guild, embed_fields);
+    let embed = embeds::roles_command_embed(&guild, embed_fields);
 
-    let reply = messages::reply_embed(embed, true);
+    let reply = replies::reply_embed(embed, true);
     if let Err(why) = ctx.send(reply).await {
         error!("Couldn't send reply: {why:?}");
         return Err(why.into());

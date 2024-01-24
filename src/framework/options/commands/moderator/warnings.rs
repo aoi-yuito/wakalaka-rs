@@ -19,7 +19,11 @@ use tracing::error;
 use crate::{
     check_restricted_guild_channel,
     database::infractions::{self, InfractionType},
-    utility::{components::embeds, components::messages, models},
+    utility::{
+        components::embeds,
+        components::{messages, replies},
+        models,
+    },
     Context, Error,
 };
 
@@ -72,12 +76,9 @@ pub async fn warnings(
             }
         };
 
-    let number_of_warnings = warnings.len();
-    if number_of_warnings < 1 {
-        let reply = messages::warn_reply(
-            format!("I'm afraid <@{user_id}> doesn't have any warnings."),
-            true,
-        );
+    let warning_count = warnings.len();
+    if warning_count < 1 {
+        let reply = messages::info_reply(format!("<@{user_id}> doesn't have any warnings."), true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
             return Err(why.into());
@@ -101,9 +102,9 @@ pub async fn warnings(
             .collect::<Vec<String>>(),
     );
 
-    let embed = embeds::warnings_embed(&user, uuids, moderator_ids, reasons);
+    let embed = embeds::warnings_command_embed(&user, uuids, moderator_ids, reasons);
 
-    let reply = messages::reply_embed(embed, true);
+    let reply = replies::reply_embed(embed, true);
     if let Err(why) = ctx.send(reply).await {
         error!("Couldn't send reply: {why:?}");
         return Err(why.into());

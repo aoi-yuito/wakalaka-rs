@@ -18,7 +18,7 @@ use tracing::error;
 
 use crate::{
     check_restricted_guild_channel,
-    utility::components::{embeds, messages},
+    utility::components::{embeds, replies},
     Context, Error,
 };
 
@@ -40,19 +40,27 @@ pub async fn ping(ctx: Context<'_>) -> Result<(), Error> {
 
     let manager = ctx.framework().shard_manager.clone();
     let runners = manager.runners.lock().await;
+
+    let (mut shard_ids, mut shard_stages, mut shard_latencies) =
+        (Vec::new(), Vec::new(), Vec::new());
+
     for (id, runner) in runners.iter() {
         let stage = runner.stage;
         let latency = runner.latency;
 
-        let elapsed_time = start_time.elapsed();
+        shard_ids.push(id);
+        shard_stages.push(stage);
+        shard_latencies.push(latency);
+    }
 
-        let ping_embed = embeds::ping_embed(elapsed_time, id, stage, latency);
+    let elapsed_time = start_time.elapsed();
 
-        let reply = messages::reply_embed(ping_embed, true);
-        if let Err(why) = ctx.send(reply).await {
-            error!("Couldn't send reply: {why:?}");
-            return Err(why.into());
-        }
+    let ping_embed = embeds::ping_command_embed(elapsed_time, shard_ids, shard_stages, shard_latencies);
+
+    let reply = replies::reply_embed(ping_embed, true);
+    if let Err(why) = ctx.send(reply).await {
+        error!("Couldn't send reply: {why:?}");
+        return Err(why.into());
     }
     Ok(())
 }
