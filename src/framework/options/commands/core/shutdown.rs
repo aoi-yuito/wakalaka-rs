@@ -29,16 +29,13 @@ use crate::{utility::components::messages, Context, Error};
 /// Put yours truly to sleep.
 pub async fn shutdown(
     ctx: Context<'_>,
-    #[description = "Time before she goes to sleep. (seconds)"]
+    #[description = "Time before yours truly goes to sleep. (seconds)"]
     #[min = 1]
     #[max = 5]
     duration: u64,
 ) -> Result<(), Error> {
     if duration < 1 || duration > 5 {
-        let reply = messages::warn_reply(
-            "I'm afraid the duration has to be between `1` and `5` seconds.",
-            true,
-        );
+        let reply = messages::info_reply("Duration must be between `1` and `5` seconds.", true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
             return Err(why.into());
@@ -54,22 +51,9 @@ pub async fn shutdown(
     }
 
     let manager = ctx.framework().shard_manager.clone();
+    manager.shutdown_all().await;
 
-    let shard_ids = manager
-        .runners
-        .lock()
-        .await
-        .keys()
-        .cloned()
-        .collect::<Vec<_>>();
-    for shard_id in shard_ids {
-        info!("Shutting down shard {}", shard_id);
-        manager.shutdown_finished(shard_id);
+    tokio::time::sleep(Duration::from_secs(duration)).await;
 
-        tokio::time::sleep(Duration::from_secs(duration)).await;
-
-        std::process::exit(0);
-    }
-
-    Ok(())
+    std::process::exit(0);
 }
