@@ -18,14 +18,14 @@ mod suggestions;
 mod usage;
 
 use crate::{
-    framework::commands::core::setup::{suggestions::suggestions, usage::usage},
+    framework::commands::core::setup::{logs::logs, suggestions::suggestions, usage::usage},
     Context, Error,
 };
 
 #[poise::command(
     prefix_command,
     slash_command,
-    subcommands("suggestions", "usage"),
+    subcommands("logs", "suggestions", "usage"),
     category = "Core",
     owners_only,
     guild_only,
