@@ -14,7 +14,6 @@
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
 use serenity::all::{Role, RoleId};
-use tracing::warn;
 
 use crate::Context;
 
@@ -33,17 +32,4 @@ pub async fn roles(ctx: Context<'_>) -> Vec<Role> {
         .into_iter()
         .map(|(_, role)| role)
         .collect::<Vec<Role>>()
-}
-
-pub async fn role(ctx: Context<'_>, name: &String) -> Role {
-    let guild = guilds::guild(ctx).await;
-    let guild_name = &guild.name;
-
-    match guild.role_by_name(&name) {
-        Some(role) => role.clone(),
-        None => {
-            warn!("Couldn't find role named @{name} in {guild_name}");
-            return Role::default();
-        }
-    }
 }
