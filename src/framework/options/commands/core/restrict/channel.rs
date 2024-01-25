@@ -89,12 +89,12 @@ pub async fn channel(
     }
 
     let previous_query =
-        restricted_guild_channels::select_from_restricted_guild_channels_by_one(&channel_id, &pool)
+        restricted_guild_channels::select_channel_id_from_restricted_guild_channels(&channel_id, &pool)
             .await;
     if let Err(_) = previous_query {
         info!("Denied usage within #{channel_name} in {guild_name}");
 
-        restricted_guild_channels::insert_into_restricted_guild_channels_by_one(&channel, &pool)
+        restricted_guild_channels::insert_into_restricted_guild_channels(&channel, &pool)
             .await?;
 
         let reply = messages::ok_reply(

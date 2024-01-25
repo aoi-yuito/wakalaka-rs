@@ -24,10 +24,10 @@ pub async fn handle(channel: &GuildChannel, data: &Data) {
     let channel_id = channel.id;
 
     let previous_query =
-        restricted_guild_channels::select_from_restricted_guild_channels_by_one(&channel_id, &pool)
+        restricted_guild_channels::select_channel_id_from_restricted_guild_channels(&channel_id, &pool)
             .await;
     if let Ok(_) = previous_query {
-        let query = restricted_guild_channels::delete_from_restricted_guild_channels_by_one(
+        let query = restricted_guild_channels::delete_from_restricted_guild_channels(
             &channel, &pool,
         )
         .await;
