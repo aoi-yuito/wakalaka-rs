@@ -18,11 +18,7 @@ use tracing::error;
 
 use crate::{database::guilds, Data};
 
-pub async fn handle(
-    unavailable_guild: &UnavailableGuild,
-    guild: &Option<Guild>,
-    data: &Data,
-) {
+pub async fn handle(unavailable_guild: &UnavailableGuild, guild: &Option<Guild>, data: &Data) {
     if unavailable_guild.unavailable {
         return;
     }
@@ -30,13 +26,14 @@ pub async fn handle(
     let pool = &data.pool;
 
     let unavailable_guild_id = unavailable_guild.id;
-    if let Err(why) = guilds::delete_from_guilds(&unavailable_guild_id, pool).await {
-        error!("Couldn't delete unavailable guild(s): {why:?}");
-    }
 
     let guild = guild.as_ref().expect("Couldn't get guild");
     let guild_id = guild.id;
-    if let Err(why) = guilds::delete_from_guilds(&guild_id, pool).await {
-        error!("Couldn't delete guild(s): {why:?}");
+
+    let combined_guild_ids = vec![guild_id, unavailable_guild_id];
+    for combined_guild_id in combined_guild_ids {
+        if let Err(why) = guilds::delete_from_guilds(&combined_guild_id, pool).await {
+            error!("Couldn't delete guild(s): {why:?}");
+        }
     }
 }
