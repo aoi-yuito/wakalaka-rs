@@ -26,5 +26,6 @@ pub async fn handle(ctx: Context<'_>) {
             .await
             .expect("No channel name found"),
     );
+    
     info!("@{user_name} invoked {command_name:?} in #{channel_name}");
 }
