@@ -24,6 +24,7 @@ use crate::{framework::commands::core::restrict::channel::channel, Context, Erro
     category = "Core",
     owners_only,
     guild_only,
+    subcommand_required,
     ephemeral
 )]
 pub async fn restrict(_ctx: Context<'_>) -> Result<(), Error> {

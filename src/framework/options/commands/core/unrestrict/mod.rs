@@ -24,6 +24,7 @@ use crate::{framework::commands::core::unrestrict::channel::channel, Context, Er
     category = "Core",
     owners_only,
     guild_only,
+    subcommand_required,
     ephemeral
 )]
 pub async fn unrestrict(_ctx: Context<'_>) -> Result<(), Error> {
