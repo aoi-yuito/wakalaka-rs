@@ -26,7 +26,7 @@ macro_rules! check_restricted_guild_channel {
             crate::utility::models::channels::channel_id($ctx).await,
         );
 
-        match crate::database::restricted_guild_channels::select_from_restricted_guild_channels_by_one(
+        match crate::database::restricted_guild_channels::select_channel_id_from_restricted_guild_channels(
             &channel_id,
             pool,
         )
@@ -52,7 +52,7 @@ macro_rules! check_restricted_guild_channel {
     }};
 }
 
-pub async fn select_from_restricted_guild_channels_by_one(
+pub async fn select_channel_id_from_restricted_guild_channels(
     channel_id: &ChannelId,
     pool: &SqlitePool,
 ) -> Result<bool, sqlx::Error> {
@@ -77,7 +77,7 @@ pub async fn select_from_restricted_guild_channels_by_one(
     Ok(row.get::<i64, _>(0) as u64 == u64::from(*channel_id))
 }
 
-pub async fn delete_from_restricted_guild_channels_by_one(
+pub async fn delete_from_restricted_guild_channels(
     channel: &GuildChannel,
     pool: &SqlitePool,
 ) -> Result<(), sqlx::Error> {
@@ -101,7 +101,7 @@ pub async fn delete_from_restricted_guild_channels_by_one(
     Ok(())
 }
 
-pub async fn insert_into_restricted_guild_channels_by_one(
+pub async fn insert_into_restricted_guild_channels(
     channel: &GuildChannel,
     pool: &SqlitePool,
 ) -> Result<(), sqlx::Error> {
