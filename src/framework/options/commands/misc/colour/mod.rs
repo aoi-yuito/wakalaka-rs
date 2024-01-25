@@ -30,6 +30,6 @@ use crate::{
     guild_only,
     subcommand_required
 )]
-pub async fn colour(ctx: Context<'_>) -> Result<(), Error> {
+pub async fn colour(_ctx: Context<'_>) -> Result<(), Error> {
     Ok(())
 }
