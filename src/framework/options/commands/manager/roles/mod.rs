@@ -24,7 +24,7 @@ use crate::{
     framework::commands::manager::roles::{
         add::add, delete::delete, edit::edit, list::list, remove::remove, set::set,
     },
-    check_restricted_guild_channel, Context, Error,
+    Context, Error,
 };
 
 #[poise::command(
@@ -37,11 +37,6 @@ use crate::{
     subcommand_required,
     ephemeral
 )]
-pub async fn roles(ctx: Context<'_>) -> Result<(), Error> {
-    let restricted = check_restricted_guild_channel!(ctx);
-    if restricted {
-        return Ok(());
-    }
-
+pub async fn roles(_ctx: Context<'_>) -> Result<(), Error> {
     Ok(())
 }

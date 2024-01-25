@@ -20,7 +20,7 @@ mod before;
 
 use crate::{
     framework::commands::manager::purge::{after::after, any::any, around::around, before::before},
-    check_restricted_guild_channel, Context, Error,
+    Context, Error,
 };
 
 #[poise::command(
@@ -33,12 +33,6 @@ use crate::{
     subcommand_required,
     ephemeral
 )]
-/// Delete a given amount of messages.
-pub async fn purge(ctx: Context<'_>) -> Result<(), Error> {
-    let restricted = check_restricted_guild_channel!(ctx);
-    if restricted {
-        return Ok(());
-    }
-
+pub async fn purge(_ctx: Context<'_>) -> Result<(), Error> {
     Ok(())
 }

@@ -18,8 +18,7 @@ mod reset;
 mod set;
 
 use crate::{
-    framework::commands::manager::nick::{edit::edit, reset::reset, set::set},
-    check_restricted_guild_channel, Context, Error,
+    framework::commands::manager::nick::{edit::edit, reset::reset, set::set}, Context, Error,
 };
 
 #[poise::command(
@@ -32,11 +31,6 @@ use crate::{
     subcommand_required,
     ephemeral
 )]
-pub async fn nick(ctx: Context<'_>) -> Result<(), Error> {
-    let restricted = check_restricted_guild_channel!(ctx);
-    if restricted {
-        return Ok(());
-    }
-
+pub async fn nick(_ctx: Context<'_>) -> Result<(), Error> {
     Ok(())
 }

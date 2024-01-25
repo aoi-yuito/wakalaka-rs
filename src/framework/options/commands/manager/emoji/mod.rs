@@ -18,7 +18,7 @@ mod delete;
 
 use crate::{
     framework::commands::manager::emoji::{add::add, delete::delete},
-    check_restricted_guild_channel, Context, Error,
+    Context, Error,
 };
 
 #[poise::command(
@@ -31,11 +31,6 @@ use crate::{
     subcommand_required,
     ephemeral
 )]
-pub async fn emoji(ctx: Context<'_>) -> Result<(), Error> {
-    let restricted = check_restricted_guild_channel!(ctx);
-    if restricted {
-        return Ok(());
-    }
-
+pub async fn emoji(_ctx: Context<'_>) -> Result<(), Error> {
     Ok(())
 }
