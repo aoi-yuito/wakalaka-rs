@@ -13,7 +13,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-use serenity::all::{ChannelId, Guild, GuildId};
+use serenity::all::{ChannelId, Guild, GuildId, UserId};
 use sqlx::{Row, SqlitePool};
 use tokio::time::Instant;
 use tracing::{debug, error};
@@ -29,7 +29,6 @@ pub async fn select_logs_channel_id_from_guilds(
     let row = match query.fetch_one(pool).await {
         Ok(row) => row,
         Err(why) => {
-            error!("Couldn't fetch 'logsChannelId' from Guilds: {why:?}");
             return Err(why);
         }
     };
@@ -58,8 +57,7 @@ pub async fn select_suggestions_channel_id_from_guilds(
         .bind(i64::from(*guild_id));
     let row = match query.fetch_one(pool).await {
         Ok(row) => row,
-        Err(why) => {
-            error!("Couldn't fetch 'suggestionsChannelId' from Guilds: {why:?}");
+        Err(_) => {
             return None;
         }
     };
@@ -78,7 +76,6 @@ pub async fn select_suggestions_channel_id_from_guilds(
         return Some(ChannelId::from(suggestions_channel_id as u64));
     }
 
-    error!("Couldn't find 'suggestionsChannelId' in Guilds");
     None
 }
 
@@ -92,8 +89,7 @@ pub async fn select_usage_channel_id_from_guilds(
         .bind(i64::from(*guild_id));
     let row = match query.fetch_one(pool).await {
         Ok(row) => row,
-        Err(why) => {
-            error!("Couldn't fetch 'usageChannelId' from Guilds: {why:?}");
+        Err(_) => {
             return None;
         }
     };
@@ -112,7 +108,64 @@ pub async fn select_usage_channel_id_from_guilds(
         return Some(ChannelId::from(usage_channel_id as u64));
     }
 
-    error!("Couldn't find 'usageChannelId' in Guilds");
+    None
+}
+
+pub async fn select_owner_id_from_guilds(guild_id: &GuildId, pool: &SqlitePool) -> Option<GuildId> {
+    let start_time = Instant::now();
+
+    let query =
+        sqlx::query("SELECT owner_id FROM guilds WHERE guild_id = ?").bind(i64::from(*guild_id));
+    let row = match query.fetch_one(pool).await {
+        Ok(row) => row,
+        Err(_) => {
+            return None;
+        }
+    };
+
+    let owner_id = match row.try_get::<i64, _>("owner_id") {
+        Ok(owner_id) => owner_id,
+        Err(why) => {
+            error!("Couldn't get 'ownerId' from Guilds: {why:?}");
+            return None;
+        }
+    };
+    if owner_id != 0 {
+        let elapsed_time = start_time.elapsed();
+        debug!("Selected 'ownerId' from Guilds in {elapsed_time:.2?}");
+
+        return Some(GuildId::from(owner_id as u64));
+    }
+
+    None
+}
+
+pub async fn select_guild_id_from_guilds(guild_id: &GuildId, pool: &SqlitePool) -> Option<GuildId> {
+    let start_time = Instant::now();
+
+    let query =
+        sqlx::query("SELECT guild_id FROM guilds WHERE guild_id = ?").bind(i64::from(*guild_id));
+    let row = match query.fetch_one(pool).await {
+        Ok(row) => row,
+        Err(_) => {
+            return None;
+        }
+    };
+
+    let guild_id = match row.try_get::<i64, _>("guild_id") {
+        Ok(guild_id) => guild_id,
+        Err(why) => {
+            error!("Couldn't get 'guildId' from Guilds: {why:?}");
+            return None;
+        }
+    };
+    if guild_id != 0 {
+        let elapsed_time = start_time.elapsed();
+        debug!("Selected 'guildId' from Guilds in {elapsed_time:.2?}");
+
+        return Some(GuildId::from(guild_id as u64));
+    }
+
     None
 }
 
@@ -179,7 +232,11 @@ pub async fn update_guilds_set_usage_channel_id(
     Ok(())
 }
 
-pub async fn update_guilds(guilds: &Vec<Guild>, pool: &SqlitePool) -> Result<(), sqlx::Error> {
+pub async fn update_guilds_set_owner_id(
+    guild_id: &GuildId,
+    owner_id: &UserId,
+    pool: &SqlitePool,
+) -> Result<(), sqlx::Error> {
     let start_time = Instant::now();
 
     let transaction = match pool.begin().await {
@@ -190,21 +247,16 @@ pub async fn update_guilds(guilds: &Vec<Guild>, pool: &SqlitePool) -> Result<(),
         }
     };
 
-    for guild in guilds {
-        let guild_id = guild.id;
-        let owner_id = guild.owner_id;
-
-        let query = sqlx::query(
-            "UPDATE guilds SET
-            owner_id = ?
-            WHERE guild_id = ?",
-        )
-        .bind(i64::from(owner_id))
-        .bind(i64::from(guild_id));
-        if let Err(why) = query.execute(pool).await {
-            error!("Couldn't update Guilds: {why:?}");
-            return Err(why);
-        }
+    let query = sqlx::query(
+        "UPDATE guilds SET
+        owner_id = ?
+        WHERE guild_id = ?",
+    )
+    .bind(i64::from(*owner_id))
+    .bind(i64::from(*guild_id));
+    if let Err(why) = query.execute(pool).await {
+        error!("Couldn't update Guilds: {why:?}");
+        return Err(why);
     }
 
     if let Err(why) = transaction.commit().await {
