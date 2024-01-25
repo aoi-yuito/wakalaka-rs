@@ -67,7 +67,6 @@ pub async fn select_from_restricted_guild_channels_by_one(
     let row = match query.fetch_one(pool).await {
         Ok(row) => row,
         Err(why) => {
-            error!("Couldn't select from RestrictedGuildChannels: {why:?}");
             return Err(why);
         }
     };
