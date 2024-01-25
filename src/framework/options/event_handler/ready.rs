@@ -13,15 +13,20 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-use crate::serenity::{ActivityData, Context, Ready};
+use crate::{
+    serenity::{ActivityData, Context, Ready},
+    Data,
+};
 
-pub(super) fn handle(_: &Ready, ctx: &Context) {
-    set_activity(ctx);
+pub(super) async fn handle(_: &Ready, ctx: &Context, _data: &Data) {
+    set_activity(ctx).await;
 }
 
-fn set_activity(ctx: &Context) {
+async fn set_activity(ctx: &Context) {
     let guild_count = ctx.cache.guilds().len();
 
-    let activity = format!("Blue As You Are in {guild_count} guild(s)");
+    let ytpmv = "Blue As You Are";
+
+    let activity = format!("{ytpmv:?} in {guild_count} guild(s)");
     ctx.set_activity(Some(ActivityData::listening(&activity)));
 }
