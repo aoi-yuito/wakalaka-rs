@@ -23,6 +23,17 @@ use serenity::{
 use std::fmt::Write;
 use tokio::time::Duration;
 
+pub async fn welcome_message_embed(user: &User, message: &String) -> CreateEmbed {
+    let (user_name, user_avatar_url) = (&user.name, &user.default_avatar_url());
+
+    let embed_author = CreateEmbedAuthor::new(user_name).icon_url(user_avatar_url);
+
+    CreateEmbed::default()
+        .author(embed_author)
+        .description(message)
+        .colour(branding::BLURPLE)
+}
+
 pub fn warnings_command_embed(
     user: &User,
     uuids: Vec<String>,

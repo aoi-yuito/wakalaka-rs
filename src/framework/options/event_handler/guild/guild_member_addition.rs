@@ -13,18 +13,41 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-use serenity::all::Member;
+use serenity::{all::Member, builder::CreateMessage};
 use tracing::error;
 
-use crate::{database::users, serenity::Context, utility::models, Data};
+use crate::{
+    check_logs_channel,
+    database::users,
+    serenity::Context,
+    utility::{components::embeds, models},
+    Data,
+};
 
 pub async fn handle(new_member: &Member, ctx: &Context, data: &Data) {
     let pool = &data.pool;
 
     let guild_id = new_member.guild_id;
+    let guild_name = guild_id.name(ctx).expect("Couldn't get guild name");
 
     let members = models::members::members_raw(&ctx, &guild_id).await;
     if let Err(why) = users::insert_into_users(&members, pool).await {
         error!("Couldn't insert into Users: {why:?}");
+    } else {
+        let user = &new_member.user;
+
+        let logs_channel = check_logs_channel!(guild_id, pool);
+        if let Ok(channel_id) = logs_channel {
+            let embed =
+                embeds::welcome_message_embed(&user, &format!("Welcome to {guild_name}!")).await;
+
+            let message_builder = CreateMessage::default().embed(embed);
+            let message = channel_id.send_message(&ctx, message_builder).await;
+            if let Err(why) = message {
+                error!("Couldn't send message: {why:?}");
+            }
+        } else {
+            error!("Couldn't find 'logsChannel' in {guild_name}");
+        }
     }
 }
