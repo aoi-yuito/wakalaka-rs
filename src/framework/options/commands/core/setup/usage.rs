@@ -47,17 +47,6 @@ pub async fn usage(
         let (guild_channel_id, guild_channel_name) = (guild_channel.id, &guild_channel.name());
         if guild_channel_id != channel_id {
             continue;
-        } else if guild_channel_id == channel_id {
-            let reply = messages::warn_reply(
-                format!("I've already been set to be primarily used in <#{guild_channel_id}>.",),
-                true,
-            );
-            if let Err(why) = ctx.send(reply).await {
-                error!("Couldn't send reply: {why:?}");
-                return Err(why.into());
-            }
-
-            return Ok(());
         }
 
         let query =
