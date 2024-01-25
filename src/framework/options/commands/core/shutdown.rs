@@ -24,6 +24,7 @@ use crate::{utility::components::messages, Context, Error};
     category = "Core",
     owners_only,
     guild_only,
+    user_cooldown = 5,
     ephemeral
 )]
 /// Put yours truly to sleep.

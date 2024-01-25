@@ -33,6 +33,7 @@ use crate::{
     category = "Moderator",
     required_permissions = "MODERATE_MEMBERS",
     guild_only,
+    user_cooldown = 5,
     ephemeral
 )]
 /// Get a user out of a time-out.
@@ -46,8 +47,8 @@ pub async fn untimeout(
     #[max_length = 80]
     reason: Option<String>,
 ) -> Result<(), Error> {
-    let restricted = check_restricted_guild_channel!(ctx);
-    if restricted {
+    let restricted_guild_channel = check_restricted_guild_channel!(ctx);
+    if restricted_guild_channel {
         return Ok(());
     }
 

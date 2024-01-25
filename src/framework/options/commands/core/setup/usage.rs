@@ -17,7 +17,7 @@ use serenity::all::ChannelId;
 use tracing::{error, info};
 
 use crate::{
-    database::{guilds, restricted_guild_channels},
+    database::guilds,
     utility::{components::messages, models},
     Context, Error,
 };
@@ -28,6 +28,7 @@ use crate::{
     category = "Core",
     owners_only,
     guild_only,
+    user_cooldown = 5,
     ephemeral
 )]
 /// Set up a channel for yours truly to be used in.
@@ -39,30 +40,24 @@ pub async fn usage(
 ) -> Result<(), Error> {
     let pool = &ctx.data().pool;
 
-    let previous_query =
-        restricted_guild_channels::select_from_restricted_guild_channels_by_one(&channel_id, &pool)
-            .await;
-    if let Ok(_) = previous_query {
-        let reply = messages::error_reply(
-            format!("Sorry, but <#{channel_id}> must be unrestricted before configuration."),
-            true,
-        );
-        if let Err(why) = ctx.send(reply).await {
-            error!("Couldn't send reply: {why:?}");
-            return Err(why.into());
-        }
-
-        return Ok(());
-    }
-
     let guild_id = models::guilds::guild_id(ctx).await;
 
     let guild_channels = models::channels::channels(ctx).await;
     for guild_channel in guild_channels {
         let (guild_channel_id, guild_channel_name) = (guild_channel.id, &guild_channel.name());
-
         if guild_channel_id != channel_id {
             continue;
+        } else if guild_channel_id == channel_id {
+            let reply = messages::warn_reply(
+                format!("I've already been set to be primarily used in <#{guild_channel_id}>.",),
+                true,
+            );
+            if let Err(why) = ctx.send(reply).await {
+                error!("Couldn't send reply: {why:?}");
+                return Err(why.into());
+            }
+
+            return Ok(());
         }
 
         let query =

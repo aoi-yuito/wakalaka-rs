@@ -27,6 +27,7 @@ use crate::{
     slash_command,
     context_menu_command = "Get Banner",
     category = "Misc",
+    user_cooldown = 5,
     guild_only
 )]
 /// Get a user's banner.
@@ -34,8 +35,8 @@ pub async fn banner(
     ctx: Context<'_>,
     #[description = "The user to get the banner from."] user: User,
 ) -> Result<(), Error> {
-    let restricted = check_restricted_guild_channel!(ctx);
-    if restricted {
+    let restricted_guild_channel = check_restricted_guild_channel!(ctx);
+    if restricted_guild_channel {
         return Ok(());
     }
 

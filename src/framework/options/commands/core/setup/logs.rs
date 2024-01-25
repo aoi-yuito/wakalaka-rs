@@ -28,6 +28,7 @@ use crate::{
     category = "Core",
     owners_only,
     guild_only,
+    user_cooldown = 5,
     ephemeral
 )]
 /// Set up a logging channel for yours truly.
@@ -47,6 +48,17 @@ pub async fn usage(
 
         if guild_channel_id != channel_id {
             continue;
+        } else if guild_channel_id == channel_id {
+            let reply = messages::warn_reply(
+                format!("I've already been set to be logging in <#{guild_channel_id}>.",),
+                true,
+            );
+            if let Err(why) = ctx.send(reply).await {
+                error!("Couldn't send reply: {why:?}");
+                return Err(why.into());
+            }
+
+            return Ok(());
         }
 
         let query =

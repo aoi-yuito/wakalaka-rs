@@ -28,6 +28,7 @@ use crate::{
     category = "Manager",
     required_permissions = "MANAGE_ROLES",
     guild_only,
+    user_cooldown = 5,
     ephemeral
 )]
 /// Delete an existing role.
@@ -35,8 +36,8 @@ pub async fn delete(
     ctx: Context<'_>,
     #[description = "The role to delete."] mut role: Role,
 ) -> Result<(), Error> {
-    let restricted = check_restricted_guild_channel!(ctx);
-    if restricted {
+    let restricted_guild_channel = check_restricted_guild_channel!(ctx);
+    if restricted_guild_channel {
         return Ok(());
     }
 

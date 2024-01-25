@@ -28,8 +28,14 @@ use crate::{
     Context, Error,
 };
 
-#[poise::command(prefix_command, slash_command, category = "Misc", guild_only)]
-/// Send a suggestion to the management team.
+#[poise::command(
+    prefix_command,
+    slash_command,
+    category = "Misc",
+    guild_only,
+    user_cooldown = 5
+)]
+/// Send a suggestion to the management.
 pub async fn suggest(
     ctx: Context<'_>,
     #[description = "The suggestion to send."]
@@ -37,8 +43,8 @@ pub async fn suggest(
     #[max_length = 1024]
     message: String,
 ) -> Result<(), Error> {
-    let restricted = check_restricted_guild_channel!(ctx);
-    if restricted {
+    let restricted_guild_channel = check_restricted_guild_channel!(ctx);
+    if restricted_guild_channel {
         return Ok(());
     }
 

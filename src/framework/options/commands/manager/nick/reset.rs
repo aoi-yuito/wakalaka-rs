@@ -28,6 +28,7 @@ use crate::{
     category = "Manager",
     required_permissions = "MANAGE_NICKNAMES",
     guild_only,
+    user_cooldown = 5,
     ephemeral
 )]
 /// Remove a user's nickname.
@@ -37,8 +38,8 @@ pub async fn reset(
     #[rename = "user"]
     user_id: UserId,
 ) -> Result<(), Error> {
-    let restricted = check_restricted_guild_channel!(ctx);
-    if restricted {
+    let restricted_guild_channel = check_restricted_guild_channel!(ctx);
+    if restricted_guild_channel {
         return Ok(());
     }
 

@@ -33,6 +33,7 @@ use crate::{
     category = "Moderator",
     required_permissions = "MODERATE_MEMBERS",
     guild_only,
+    user_cooldown = 5,
     ephemeral
 )]
 /// Get a list of warnings for a user.
@@ -42,8 +43,8 @@ pub async fn warnings(
     #[rename = "user"]
     user_id: UserId,
 ) -> Result<(), Error> {
-    let restricted = check_restricted_guild_channel!(ctx);
-    if restricted {
+    let restricted_guild_channel = check_restricted_guild_channel!(ctx);
+    if restricted_guild_channel {
         return Ok(());
     }
 

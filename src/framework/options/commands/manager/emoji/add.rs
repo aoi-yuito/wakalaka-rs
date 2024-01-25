@@ -28,6 +28,7 @@ use crate::{
     category = "Manager",
     required_permissions = "CREATE_GUILD_EXPRESSIONS",
     guild_only,
+    user_cooldown = 5,
     ephemeral
 )]
 /// Create a new emoji.
@@ -39,8 +40,8 @@ pub async fn add(
     name: String,
     #[description = "The image used for the emoji."] image: Attachment,
 ) -> Result<(), Error> {
-    let restricted = check_restricted_guild_channel!(ctx);
-    if restricted {
+    let restricted_guild_channel = check_restricted_guild_channel!(ctx);
+    if restricted_guild_channel {
         return Ok(());
     }
 

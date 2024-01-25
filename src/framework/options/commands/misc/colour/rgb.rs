@@ -25,7 +25,13 @@ use crate::{
     Context, Error,
 };
 
-#[poise::command(prefix_command, slash_command, category = "Misc", guild_only)]
+#[poise::command(
+    prefix_command,
+    slash_command,
+    category = "Misc",
+    guild_only,
+    user_cooldown = 5
+)]
 /// Get information for a colour from RGB representation.
 pub async fn rgb(
     ctx: Context<'_>,
@@ -34,8 +40,8 @@ pub async fn rgb(
     #[max_length = 11]
     colour: String,
 ) -> Result<(), Error> {
-    let restricted = check_restricted_guild_channel!(ctx);
-    if restricted {
+    let restricted_guild_channel = check_restricted_guild_channel!(ctx);
+    if restricted_guild_channel {
         return Ok(());
     }
 

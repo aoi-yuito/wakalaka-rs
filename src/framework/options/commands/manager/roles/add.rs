@@ -28,6 +28,7 @@ use crate::{
     category = "Manager",
     required_permissions = "MANAGE_ROLES",
     guild_only,
+    user_cooldown = 5,
     ephemeral
 )]
 /// Create a new role.
@@ -44,8 +45,8 @@ pub async fn add(
     #[description = "Whether the role should be pinned above lesser roles."] hoist: Option<bool>,
     #[description = "Whether the role should be mentionable."] mentionable: Option<bool>,
 ) -> Result<(), Error> {
-    let restricted = check_restricted_guild_channel!(ctx);
-    if restricted {
+    let restricted_guild_channel = check_restricted_guild_channel!(ctx);
+    if restricted_guild_channel {
         return Ok(());
     }
 

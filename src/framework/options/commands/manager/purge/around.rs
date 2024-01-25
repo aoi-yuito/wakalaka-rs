@@ -24,6 +24,7 @@ use crate::{utility::components::messages, Context, Error};
     category = "Moderator",
     required_permissions = "MANAGE_MESSAGES",
     guild_only,
+    user_cooldown = 5,
     ephemeral
 )]
 /// Delete a given amount of messages around a specific message.

@@ -18,7 +18,13 @@ use tracing::error;
 
 use crate::{check_restricted_guild_channel, utility::components::messages, Context, Error};
 
-#[poise::command(prefix_command, slash_command, category = "Misc", guild_only)]
+#[poise::command(
+    prefix_command,
+    slash_command,
+    category = "Misc",
+    guild_only,
+    user_cooldown = 5
+)]
 /// Roll a number of point(s).
 pub async fn roll(
     ctx: Context<'_>,
@@ -26,8 +32,8 @@ pub async fn roll(
     #[min = 1]
     number: Option<u32>,
 ) -> Result<(), Error> {
-    let restricted = check_restricted_guild_channel!(ctx);
-    if restricted {
+    let restricted_guild_channel = check_restricted_guild_channel!(ctx);
+    if restricted_guild_channel {
         return Ok(());
     }
 

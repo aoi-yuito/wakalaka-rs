@@ -17,8 +17,7 @@ use serenity::{all::ChannelId, builder::EditChannel};
 use tracing::{error, info};
 
 use crate::{
-    check_restricted_guild_channel,
-    utility::{components::messages, models},
+    check_restricted_guild_channel, utility::{components::messages, models},
     Context, Error,
 };
 
@@ -28,6 +27,7 @@ use crate::{
     category = "Manager",
     required_permissions = "MANAGE_CHANNELS",
     guild_only,
+    user_cooldown = 5,
     ephemeral
 )]
 /// Reduce the rate of messages in a channel.
@@ -41,8 +41,8 @@ pub async fn slowmode(
     #[max = 60]
     delay: Option<u16>,
 ) -> Result<(), Error> {
-    let restricted = check_restricted_guild_channel!(ctx);
-    if restricted {
+    let restricted_guild_channel = check_restricted_guild_channel!(ctx);
+    if restricted_guild_channel {
         return Ok(());
     }
 

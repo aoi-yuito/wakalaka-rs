@@ -28,6 +28,7 @@ use crate::{
     category = "Core",
     owners_only,
     guild_only,
+    user_cooldown = 5,
     ephemeral
 )]
 /// Allow usage of yours truly in a specified channel.

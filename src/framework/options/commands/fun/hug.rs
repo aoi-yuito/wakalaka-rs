@@ -18,7 +18,13 @@ use tracing::error;
 
 use crate::{check_restricted_guild_channel, utility::models, Context, Error};
 
-#[poise::command(prefix_command, slash_command, category = "Fun", guild_only)]
+#[poise::command(
+    prefix_command,
+    slash_command,
+    category = "Fun",
+    guild_only,
+    user_cooldown = 5
+)]
 /// Comfort one of your pals.
 pub async fn hug(
     ctx: Context<'_>,
@@ -26,8 +32,8 @@ pub async fn hug(
     #[rename = "user"]
     user_id: UserId,
 ) -> Result<(), Error> {
-    let restricted = check_restricted_guild_channel!(ctx);
-    if restricted {
+    let restricted_guild_channel = check_restricted_guild_channel!(ctx);
+    if restricted_guild_channel {
         return Ok(());
     }
 

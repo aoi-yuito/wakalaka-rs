@@ -23,11 +23,17 @@ use crate::{
 
 use super::{AUTHORS, DESCRIPTION, GITHUB_URL, NAME, RUST_VERSION, VERSION};
 
-#[poise::command(prefix_command, slash_command, category = "Info", ephemeral)]
+#[poise::command(
+    prefix_command,
+    slash_command,
+    category = "Info",
+    user_cooldown = 5,
+    ephemeral
+)]
 /// Get basic information about yours truly.
 pub async fn info(ctx: Context<'_>) -> Result<(), Error> {
-    let restricted = check_restricted_guild_channel!(ctx);
-    if restricted {
+    let restricted_guild_channel = check_restricted_guild_channel!(ctx);
+    if restricted_guild_channel {
         return Ok(());
     }
 

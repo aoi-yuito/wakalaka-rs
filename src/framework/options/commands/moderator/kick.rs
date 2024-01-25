@@ -28,6 +28,7 @@ use crate::{
     category = "Moderator",
     required_permissions = "KICK_MEMBERS",
     guild_only,
+    user_cooldown = 5,
     ephemeral
 )]
 /// Kick a user outside.
@@ -36,8 +37,8 @@ pub async fn kick(
     #[description = "The user to kick."] user: User,
     #[description = "The reason for kicking."] reason: String,
 ) -> Result<(), Error> {
-    let restricted = check_restricted_guild_channel!(ctx);
-    if restricted {
+    let restricted_guild_channel = check_restricted_guild_channel!(ctx);
+    if restricted_guild_channel {
         return Ok(());
     }
 

@@ -17,8 +17,7 @@ use serenity::all::User;
 use tracing::error;
 
 use crate::{
-    check_restricted_guild_channel,
-    utility::components::{embeds, replies},
+    check_restricted_guild_channel, utility::components::{embeds, replies},
     Context, Error,
 };
 
@@ -27,6 +26,7 @@ use crate::{
     slash_command,
     context_menu_command = "Get Avatar",
     category = "Misc",
+    user_cooldown = 5,
     guild_only
 )]
 /// Get a user's avatar.
@@ -34,8 +34,8 @@ pub async fn avatar(
     ctx: Context<'_>,
     #[description = "The user to get the avatar from."] user: User,
 ) -> Result<(), Error> {
-    let restricted = check_restricted_guild_channel!(ctx);
-    if restricted {
+    let restricted_guild_channel = check_restricted_guild_channel!(ctx);
+    if restricted_guild_channel {
         return Ok(());
     }
 

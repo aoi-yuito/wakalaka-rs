@@ -27,12 +27,13 @@ use crate::{
     slash_command,
     category = "Info",
     guild_only,
+    user_cooldown = 5,
     ephemeral
 )]
 /// Check if yours truly is alive and well.
 pub async fn ping(ctx: Context<'_>) -> Result<(), Error> {
-    let restricted = check_restricted_guild_channel!(ctx);
-    if restricted {
+    let restricted_guild_channel = check_restricted_guild_channel!(ctx);
+    if restricted_guild_channel {
         return Ok(());
     }
 

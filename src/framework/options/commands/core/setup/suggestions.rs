@@ -28,6 +28,7 @@ use crate::{
     category = "Core",
     owners_only,
     guild_only,
+    user_cooldown = 5,
     ephemeral
 )]
 /// Set up a channel for suggestions to be sent to.
@@ -37,15 +38,13 @@ pub async fn suggestions(
     #[rename = "channel"]
     channel_id: ChannelId,
 ) -> Result<(), Error> {
-    let data = ctx.data();
-    let pool = &data.pool;
+    let pool = &ctx.data().pool;
 
     let guild_id = models::guilds::guild_id(ctx).await;
 
     let guild_channels = models::channels::channels(ctx).await;
     for guild_channel in guild_channels {
         let (guild_channel_id, guild_channel_name) = (guild_channel.id, &guild_channel.name());
-
         if guild_channel_id != channel_id {
             continue;
         }

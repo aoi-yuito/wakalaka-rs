@@ -23,6 +23,7 @@ use crate::{utility::components::messages, Context, Error};
     category = "Core",
     owners_only,
     guild_only,
+    user_cooldown = 5,
     ephemeral
 )]
 /// Restart yours truly to her former glory.
