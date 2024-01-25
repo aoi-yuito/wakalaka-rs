@@ -18,6 +18,13 @@ use sqlx::{Row, SqlitePool};
 use tokio::time::Instant;
 use tracing::{debug, error};
 
+#[macro_export]
+macro_rules! check_logs_channel {
+    ($guild_id:expr, $pool:expr) => {
+        crate::database::guilds::select_logs_channel_id_from_guilds($guild_id, $pool).await
+    };
+}
+
 pub async fn select_logs_channel_id_from_guilds(
     guild_id: GuildId,
     pool: &SqlitePool,
