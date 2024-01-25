@@ -29,6 +29,7 @@ use crate::{
     category = "Core",
     owners_only,
     guild_only,
+    subcommand_required,
     ephemeral
 )]
 pub async fn setup(_: Context<'_>) -> Result<(), Error> {
