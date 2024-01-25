@@ -75,7 +75,7 @@ pub async fn timeout(
 
     let reason_chars_count = reason.chars().count();
     if reason_chars_count < 6 || reason_chars_count > 80 {
-        let reply = messages::info_reply("Reason must be between `6` and `80` characters.", true);
+        let reply = messages::info_reply("Reason must be between `6` and `80` characters long.", true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
             return Err(why.into());
