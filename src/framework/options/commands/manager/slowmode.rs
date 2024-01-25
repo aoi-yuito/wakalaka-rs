@@ -91,9 +91,9 @@ pub async fn slowmode(
 
         let guild_channel_name = guild_channel.name.clone();
 
-        let edit_channel = EditChannel::default().rate_limit_per_user(delay);
+        let channel_builder = EditChannel::default().rate_limit_per_user(delay);
 
-        if let Err(why) = guild_channel.edit(&ctx, edit_channel).await {
+        if let Err(why) = guild_channel.edit(&ctx, channel_builder).await {
             error!(
                 "Couldn't slow #{guild_channel_name} down for {delay}s in {guild_name}: {why:?}"
             );

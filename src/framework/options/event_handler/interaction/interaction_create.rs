@@ -116,8 +116,9 @@ async fn handle_suggestion_message(
         }
     }
 
-    let edit_message = EditMessage::default().components(Vec::new());
-    if let Err(why) = message.edit(&ctx.http, edit_message).await {
+    let member_builder = EditMessage::default().components(Vec::new());
+
+    if let Err(why) = message.edit(&ctx.http, member_builder).await {
         error!("Couldn't edit message: {why:?}");
         return;
     }

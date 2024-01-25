@@ -69,9 +69,9 @@ pub async fn set(
     let moderator_name = &ctx.author().name;
 
     let mut member = models::members::member(ctx, guild_id, user_id).await;
-    let edit_member = EditMember::default().nickname(&nickname);
+    let member_builder = EditMember::default().nickname(&nickname);
 
-    if let Err(why) = member.edit(&ctx, edit_member).await {
+    if let Err(why) = member.edit(&ctx, member_builder).await {
         error!("Couldn't change @{user_name}'s nickname to {nickname:?}: {why:?}");
 
         let reply = messages::error_reply(

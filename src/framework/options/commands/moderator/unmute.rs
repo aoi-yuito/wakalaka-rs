@@ -94,9 +94,9 @@ pub async fn unmute(
         let uuid = mute.0;
 
         let mut member = models::members::member(ctx, guild_id, user_id).await;
-        let edit_member = EditMember::default().mute(false);
+        let member_builder = EditMember::default().mute(false);
 
-        if let Err(why) = member.edit(&ctx, edit_member).await {
+        if let Err(why) = member.edit(&ctx, member_builder).await {
             error!("Couldn't unmute @{user_name}: {why:?}");
 
             let reply =
@@ -115,7 +115,7 @@ pub async fn unmute(
             let reason_chars_count = reason.chars().count();
             if reason_chars_count < 6 || reason_chars_count > 80 {
                 let reply = messages::info_reply(
-                    "Reason must be between `6` and `80` characters.",
+                    "Reason must be between `6` and `80` characters long.",
                     true,
                 );
                 if let Err(why) = ctx.send(reply).await {
