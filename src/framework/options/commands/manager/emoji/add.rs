@@ -45,8 +45,8 @@ pub async fn add(
         return Ok(());
     }
 
-    let name_chars_count = name.chars().count();
-    if name_chars_count < 2 || name_chars_count > 32 {
+    let name_char_count = name.chars().count();
+    if name_char_count < 2 || name_char_count > 32 {
         let reply = messages::info_reply(
             format!("Name of the emoji must be between `2` and `32` characters long."),
             true,

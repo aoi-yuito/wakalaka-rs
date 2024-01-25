@@ -69,8 +69,8 @@ pub async fn unwarn(
         return Ok(());
     }
 
-    let uuid_chars_count = uuid.chars().count();
-    if uuid_chars_count != 36 {
+    let uuid_char_count = uuid.chars().count();
+    if uuid_char_count != 36 {
         let reply = messages::info_reply("UUID must be exactly `36` characters long.", true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
@@ -108,8 +108,8 @@ pub async fn unwarn(
         let uuid = warning.0;
 
         if let Some(reason) = reason.clone() {
-            let reason_chars_count = reason.chars().count();
-            if reason_chars_count < 6 || reason_chars_count > 80 {
+            let reason_char_count = reason.chars().count();
+            if reason_char_count < 6 || reason_char_count > 80 {
                 let reply = messages::info_reply(
                     "Reason must be between `6` and `80` characters long.",
                     true,

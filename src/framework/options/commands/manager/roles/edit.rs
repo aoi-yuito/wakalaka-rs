@@ -52,8 +52,8 @@ pub async fn edit(
     }
 
     if name.is_some() {
-        let name_chars_count = name.as_ref().unwrap().chars().count();
-        if name_chars_count < 1 || name_chars_count > 100 {
+        let name_char_count = name.as_ref().unwrap().chars().count();
+        if name_char_count < 1 || name_char_count > 100 {
             let reply = messages::info_reply(
                 format!("Name of the role must be between `1` and `100` characters long."),
                 true,

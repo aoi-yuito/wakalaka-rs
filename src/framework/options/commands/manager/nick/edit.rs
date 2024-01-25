@@ -47,8 +47,8 @@ pub async fn edit(
         return Ok(());
     }
 
-    let nickname_chars_count = nickname.chars().count();
-    if nickname_chars_count < 1 || nickname_chars_count > 32 {
+    let nickname_char_count = nickname.chars().count();
+    if nickname_char_count < 1 || nickname_char_count > 32 {
         let reply = messages::info_reply(
             format!("Nickname must be between `1` and `32` characters long."),
             true,

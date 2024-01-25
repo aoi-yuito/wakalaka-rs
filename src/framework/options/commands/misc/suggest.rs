@@ -50,8 +50,8 @@ pub async fn suggest(
 
     let pool = &ctx.data().pool;
 
-    let message_chars_count = message.chars().count();
-    if message_chars_count < 32 || message_chars_count > 1024 {
+    let message_char_count = message.chars().count();
+    if message_char_count < 32 || message_char_count > 1024 {
         let reply = messages::info_reply(
             "Suggestion must be between `32` and `1024` characters long.",
             true,
