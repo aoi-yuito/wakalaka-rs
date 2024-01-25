@@ -16,4 +16,3 @@
 pub(super) mod guild_create;
 pub(super) mod guild_delete;
 pub(super) mod guild_member_addition;
-pub(super) mod guild_update;
