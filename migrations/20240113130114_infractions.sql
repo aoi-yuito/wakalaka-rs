@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS infractions (
     uuid VARCHAR(32) PRIMARY KEY,
-    type VARCHAR,
+    type VARCHAR NOT NULL,
     user_id BIGINT NOT NULL,
     moderator_id BIGINT NOT NULL,
     reason VARCHAR(120) NOT NULL,
