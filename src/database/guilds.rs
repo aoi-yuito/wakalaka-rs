@@ -25,18 +25,25 @@ macro_rules! check_logs_channel {
     };
 }
 
+#[macro_export]
+macro_rules! check_welcome_channel {
+    ($guild_id:expr, $pool:expr) => {
+        crate::database::guilds::select_welcome_channel_id_from_guilds($guild_id, $pool).await
+    };
+}
+
 pub async fn select_logs_channel_id_from_guilds(
-    guild_id: GuildId,
+    guild_id: &GuildId,
     pool: &SqlitePool,
-) -> Result<ChannelId, sqlx::Error> {
+) -> Option<ChannelId> {
     let start_time = Instant::now();
 
     let query = sqlx::query("SELECT logs_channel_id FROM guilds WHERE guild_id = ?")
-        .bind(i64::from(guild_id));
+        .bind(i64::from(*guild_id));
     let row = match query.fetch_one(pool).await {
         Ok(row) => row,
-        Err(why) => {
-            return Err(why);
+        Err(_) => {
+            return None;
         }
     };
 
@@ -44,14 +51,49 @@ pub async fn select_logs_channel_id_from_guilds(
         Ok(logs_channel_id) => logs_channel_id,
         Err(why) => {
             error!("Couldn't get 'logsChannelId' from Guilds: {why:?}");
-            return Err(why);
+            return None;
+        }
+    };
+    if logs_channel_id != 0 {
+        let elapsed_time = start_time.elapsed();
+        debug!("Selected 'logsChannelId' from Guilds in {elapsed_time:.2?}");
+
+        return Some(ChannelId::from(logs_channel_id as u64));
+    }
+
+    None
+}
+
+pub async fn select_welcome_channel_id_from_guilds(
+    guild_id: &GuildId,
+    pool: &SqlitePool,
+) -> Option<ChannelId> {
+    let start_time = Instant::now();
+
+    let query = sqlx::query("SELECT welcome_channel_id FROM guilds WHERE guild_id = ?")
+        .bind(i64::from(*guild_id));
+    let row = match query.fetch_one(pool).await {
+        Ok(row) => row,
+        Err(_) => {
+            return None;
         }
     };
 
-    let elapsed_time = start_time.elapsed();
-    debug!("Selected 'logsChannelId' from Guilds in {elapsed_time:.2?}");
+    let welcome_channel_id = match row.try_get::<i64, _>("welcome_channel_id") {
+        Ok(welcome_channel_id) => welcome_channel_id,
+        Err(why) => {
+            error!("Couldn't get 'welcomeChannelId' from Guilds: {why:?}");
+            return None;
+        }
+    };
+    if welcome_channel_id != 0 {
+        let elapsed_time = start_time.elapsed();
+        debug!("Selected 'welcomeChannelId' from Guilds in {elapsed_time:.2?}");
 
-    Ok(ChannelId::from(logs_channel_id as u64))
+        return Some(ChannelId::from(welcome_channel_id as u64));
+    }
+
+    None
 }
 
 pub async fn select_suggestions_channel_id_from_guilds(
@@ -193,6 +235,27 @@ pub async fn update_guilds_set_logs_channel_id(
 
     let elapsed_time = start_time.elapsed();
     debug!("Updated 'logsChannelId' from Guilds in {elapsed_time:.2?}");
+
+    Ok(())
+}
+
+pub async fn update_guilds_set_welcome_channel_id(
+    channel_id: ChannelId,
+    guild_id: GuildId,
+    pool: &SqlitePool,
+) -> Result<(), sqlx::Error> {
+    let start_time = Instant::now();
+
+    let query = sqlx::query("UPDATE guilds SET welcome_channel_id = ? WHERE guild_id = ?")
+        .bind(i64::from(channel_id))
+        .bind(i64::from(guild_id));
+    if let Err(why) = query.execute(pool).await {
+        error!("Couldn't update 'welcomeChannelId' from Guilds: {why:?}");
+        return Err(why);
+    }
+
+    let elapsed_time = start_time.elapsed();
+    debug!("Updated 'welcomeChannelId' from Guilds in {elapsed_time:.2?}");
 
     Ok(())
 }
