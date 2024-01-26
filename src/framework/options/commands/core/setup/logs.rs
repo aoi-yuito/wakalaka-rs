@@ -31,10 +31,10 @@ use crate::{
     user_cooldown = 5,
     ephemeral
 )]
-/// Set up a logging channel for yours truly.
+/// Set up a channel to log messages in.
 pub async fn logs(
     ctx: Context<'_>,
-    #[description = "The channel used for logging."]
+    #[description = "The channel to log messages in."]
     #[rename = "channel"]
     channel_id: ChannelId,
 ) -> Result<(), Error> {
