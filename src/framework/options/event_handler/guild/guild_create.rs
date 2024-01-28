@@ -17,6 +17,7 @@ use serenity::all::Guild;
 use tracing::error;
 
 use crate::{
+    check_restricted_guild,
     database::{guild_members, guilds, users},
     serenity::Context,
     utility::models,
@@ -24,14 +25,15 @@ use crate::{
 };
 
 pub async fn handle(guild: &Guild, is_new: bool, ctx: &Context, data: &Data) {
-    if !is_new {
-        return;
-    }
-
     let pool = &data.pool;
 
     let guild_id = guild.id;
     let guild_members = models::members::members_raw(&ctx, &guild_id).await;
+
+    let restricted_guild = check_restricted_guild!(&pool, &guild_id);
+    if restricted_guild || !is_new {
+        return;
+    }
 
     match users::insert_into_users(&guild_members, pool).await {
         Err(why) => error!("Couldn't insert into Users: {why:?}"),

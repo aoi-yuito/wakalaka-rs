@@ -13,12 +13,32 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
+use tracing::error;
+
 use crate::{
+    check_restricted_guild,
     serenity::{ActivityData, Context, Ready},
+    utility::models,
     Data,
 };
 
-pub(super) async fn handle(_: &Ready, ctx: &Context, _data: &Data) {
+pub(super) async fn handle(_: &Ready, ctx: &Context, data: &Data) {
+    let pool = &data.pool;
+
+    let guild_ids = ctx.cache.guilds();
+    for guild_id in guild_ids {
+        let guild_name = models::guilds::guild_name_from_guild_id_raw(ctx, guild_id).await;
+
+        let restricted_guild = check_restricted_guild!(&pool, &guild_id);
+        if restricted_guild {
+            if let Err(why) = guild_id.leave(ctx).await {
+                error!("Couldn't leave {guild_name}: {why:?}");
+            }
+
+            return;
+        }
+    }
+
     set_activity(ctx).await;
 }
 
