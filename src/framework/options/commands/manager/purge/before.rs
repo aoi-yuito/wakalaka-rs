@@ -89,7 +89,7 @@ pub async fn before(
         deleted_messages_count
     });
 
-    let reply_before = messages::info_reply("Deleting message(s)...", true);
+    let reply_before = messages::reply("Deleting message(s)...", true);
     let reply = ctx.send(reply_before).await?;
 
     let deleted_messages_count = handle.await.unwrap_or(0);
