@@ -21,7 +21,7 @@ use crate::{
     Context, Error,
 };
 
-use super::{AUTHORS, DESCRIPTION, GITHUB_URL, NAME, RUST_VERSION, VERSION};
+use super::{CARGO_AUTHORS, CARGO_DESCRIPTION, GITHUB_URL, CARGO_NAME, CARGO_RUST_VERSION, CARGO_VERSION};
 
 #[poise::command(
     prefix_command,
@@ -49,12 +49,12 @@ pub async fn info(ctx: Context<'_>) -> Result<(), Error> {
     let bot_avatar_url = bot_raw.avatar_url().unwrap_or(bot_raw.default_avatar_url());
 
     let constants = [
-        NAME,         // 0
-        VERSION,      // 1
-        AUTHORS,      // 2
-        DESCRIPTION,  // 3
+        CARGO_NAME,         // 0
+        CARGO_VERSION,      // 1
+        CARGO_AUTHORS,      // 2
+        CARGO_DESCRIPTION,  // 3
         GITHUB_URL,   // 4
-        RUST_VERSION, // 5
+        CARGO_RUST_VERSION, // 5
     ];
 
     let info_embed = embeds::info_command_embed(&bot_avatar_url, constants);
