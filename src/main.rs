@@ -20,7 +20,10 @@ mod utility;
 use poise::serenity_prelude as serenity;
 
 use ::serenity::all::GatewayIntents;
+use anyhow::{anyhow, Context as _};
 use poise::Framework;
+use shuttle_secrets::{SecretStore, Secrets};
+use shuttle_serenity::ShuttleSerenity;
 use sqlx::SqlitePool;
 use tokio::time::Instant;
 use tracing::{debug, error, info, level_filters::LevelFilter, subscriber, warn};
@@ -33,31 +36,30 @@ pub struct Data {
 type Error = Box<dyn std::error::Error + Send + Sync>;
 type Context<'a> = poise::Context<'a, Data, Error>;
 
-#[tokio::main]
-pub async fn main() {
+#[shuttle_runtime::main]
+async fn main(#[Secrets] secret_store: SecretStore) -> ShuttleSerenity {
     initialise_subscriber();
 
     let pool = database::initialise().await;
 
     let data = Data { pool: pool.clone() };
 
-    let token = match dotenvy::var("TOKEN") {
-        Ok(token) => token,
-        Err(why) => {
-            error!("Couldn't find token in environment: {why:?}");
-            return;
-        }
-    };
+    let token = secret_store
+        .get("DISCORD_TOKEN")
+        .context("Couldn't find 'DISCORD_TOKEN' in environment")?;
     let intents = framework::initialise_intents();
     let framework = framework::initialise_framework(data).await;
 
     let mut client = initialise_client(token, intents, framework).await;
 
     info!("Starting client with automatic sharding...");
+    
     if let Err(why) = client.start_autosharded().await {
         error!("Couldn't start client with automatic sharding: {why:?}");
-        return;
+        return Err(anyhow!("Couldn't start client: {why:?}").into());
     }
+
+    Ok(client.into())
 }
 
 async fn initialise_client(
