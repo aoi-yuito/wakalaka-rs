@@ -14,26 +14,36 @@
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
 use serenity::all::{Guild, UnavailableGuild};
-use tracing::error;
+use tracing::{error, info};
 
-use crate::{database::guilds, Data};
+use crate::{database::guilds, serenity::Context, utility::models, Data};
 
-pub async fn handle(unavailable_guild: &UnavailableGuild, guild: &Option<Guild>, data: &Data) {
+pub async fn handle(
+    unavailable_guild: &UnavailableGuild,
+    guild: &Option<Guild>,
+    ctx: &Context,
+    data: &Data,
+) {
     if unavailable_guild.unavailable {
         return;
     }
 
     let pool = &data.pool;
 
+    let app_name = models::current_application_name_raw(&ctx).await;
+
     let unavailable_guild_id = unavailable_guild.id;
 
     let guild = guild.as_ref().expect("Couldn't get guild");
     let guild_id = guild.id;
+    let guild_name = &guild.name;
 
     let combined_guild_ids = vec![guild_id, unavailable_guild_id];
     for combined_guild_id in combined_guild_ids {
         if let Err(why) = guilds::delete_from_guilds(&combined_guild_id, pool).await {
             error!("Couldn't delete guild(s): {why:?}");
+        } else {
+            info!("@{app_name} left from {guild_name}");
         }
     }
 }
