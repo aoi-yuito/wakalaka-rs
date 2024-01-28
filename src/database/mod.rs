@@ -36,35 +36,9 @@ use tracing::{debug, error, info};
 lazy_static! {
     pub static ref DB_URL: String = match dotenvy::var("DATABASE_URL") {
         Ok(url) => url,
-        Err(_) => {
-            let toml = match std::fs::read_to_string("Config.toml") {
-                Ok(toml) => toml,
-                Err(why) => {
-                    error!("Couldn't read Config.toml: {why:?}");
-                    panic!("{why:?}")
-                }
-            };
-
-            let config: toml::Value = match toml::from_str(&toml) {
-                Ok(config) => config,
-                Err(why) => {
-                    error!("Couldn't parse Config.toml: {why:?}");
-                    panic!("{why:?}")
-                }
-            };
-
-            let url = match config.get("DATABASE_URL") {
-                Some(url) => match url.as_str() {
-                    Some(url) => url,
-                    None => {
-                        panic!("Couldn't find DATABASE_URL in Config.toml")
-                    }
-                },
-                None => {
-                    panic!("Couldn't find DATABASE_URL in Config.toml")
-                }
-            };
-            url.to_string()
+        Err(why) => {
+            error!("Couldn't find 'DATABASE_URL' in environment: {why:?}");
+            panic!("{why:?}")
         }
     };
 }

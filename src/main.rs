@@ -20,10 +20,7 @@ mod utility;
 use poise::serenity_prelude as serenity;
 
 use ::serenity::all::GatewayIntents;
-use anyhow::{anyhow, Context as _};
 use poise::Framework;
-use shuttle_secrets::{SecretStore, Secrets};
-use shuttle_serenity::ShuttleSerenity;
 use sqlx::SqlitePool;
 use tokio::time::Instant;
 use tracing::{debug, error, info, level_filters::LevelFilter, subscriber, warn};
@@ -36,17 +33,21 @@ pub struct Data {
 type Error = Box<dyn std::error::Error + Send + Sync>;
 type Context<'a> = poise::Context<'a, Data, Error>;
 
-#[shuttle_runtime::main]
-async fn main(#[Secrets] secret_store: SecretStore) -> ShuttleSerenity {
+#[tokio::main]
+async fn main() {
     initialise_subscriber();
 
     let pool = database::initialise().await;
 
     let data = Data { pool: pool.clone() };
 
-    let token = secret_store
-        .get("DISCORD_TOKEN")
-        .context("Couldn't find 'DISCORD_TOKEN' in environment")?;
+    let token = match dotenvy::var("DISCORD_TOKEN") {
+        Ok(token) => token,
+        Err(why) => {
+            error!("Couldn't find 'DISCORD_TOKEN' in environment: {why:?}");
+            return;
+        }
+    };
     let intents = framework::initialise_intents();
     let framework = framework::initialise_framework(data).await;
 
@@ -56,10 +57,8 @@ async fn main(#[Secrets] secret_store: SecretStore) -> ShuttleSerenity {
 
     if let Err(why) = client.start_autosharded().await {
         error!("Couldn't start client with automatic sharding: {why:?}");
-        return Err(anyhow!("Couldn't start client: {why:?}").into());
+        return;
     }
-
-    Ok(client.into())
 }
 
 async fn initialise_client(
@@ -91,35 +90,9 @@ fn initialise_subscriber() {
 
     let rust_log = match dotenvy::var("RUST_LOG") {
         Ok(level) => level,
-        Err(_) => {
-            let toml = match std::fs::read_to_string("Config.toml") {
-                Ok(toml) => toml,
-                Err(why) => {
-                    error!("Couldn't read Config.toml: {why:?}");
-                    panic!("{why:?}")
-                }
-            };
-
-            let config: toml::Value = match toml::from_str(&toml) {
-                Ok(config) => config,
-                Err(why) => {
-                    error!("Couldn't parse Config.toml: {why:?}");
-                    panic!("{why:?}")
-                }
-            };
-
-            let rust_log = match config.get("RUST_LOG") {
-                Some(rust_log) => match rust_log.as_str() {
-                    Some(rust_log) => rust_log,
-                    None => {
-                        panic!("Couldn't find RUST_LOG in Config.toml")
-                    }
-                },
-                None => {
-                    panic!("Couldn't find RUST_LOG in Config.toml")
-                }
-            };
-            rust_log.to_string()
+        Err(why) => {
+            error!("Couldn't find 'RUST_LOG' in environment: {why:?}");
+            panic!("{why:?}");
         }
     };
 
