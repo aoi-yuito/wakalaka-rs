@@ -26,23 +26,25 @@ pub async fn handle(ctx: &Context, data: Data) -> Result<Data, Error> {
 }
 
 async fn register_guild_commands(ctx: &Context) {
-    let guild_id = models::guilds::guild_id_raw(ctx).await;
-    let guild_name = models::guilds::guild_name_raw(ctx, guild_id).await;
-    let guild_commands = commands::guild_commands().await;
+    let guild_ids = ctx.cache.guilds();
+    for guild_id in guild_ids {
+        let guild_name = models::guilds::guild_name_from_guild_id_raw(ctx, guild_id).await;
+        let guild_commands = commands::guild_commands().await;
 
-    let guild_commands_count = guild_commands.len();
-    if guild_commands_count == 0 {
-        warn!("No guild command(s) to register in {guild_name}");
-        return;
-    }
-
-    match poise::builtins::register_in_guild(&ctx.http, &guild_commands, guild_id).await {
-        Ok(_) => {
-            info!("Registered {guild_commands_count} guild command(s) in {guild_name}");
-        }
-        Err(why) => {
-            error!("Couldn't register guild commands: {why:?}");
+        let guild_command_count = guild_commands.len();
+        if guild_command_count == 0 {
+            warn!("No guild command(s) to register in {guild_name}");
             return;
+        }
+
+        match poise::builtins::register_in_guild(&ctx, &guild_commands, guild_id).await {
+            Ok(_) => {
+                info!("Registered {guild_command_count} guild command(s) in {guild_name}");
+            }
+            Err(why) => {
+                error!("Couldn't register guild commands: {why:?}");
+                return;
+            }
         }
     }
 }
