@@ -109,9 +109,10 @@ To compile the project, follow these steps:
 
 1. Download the project to your computer.
 2. Go to the project directory.
-3. Type `sqlx database setup` to set up the database.
+3. Type `sqlx database create` to create a new database `.db` file.
    - _If you can't run `sqlx`, you can install it by typing `cargo install sqlx-cli --no-default-features --features sqlite`._
-4. Type `cargo build --release` to build the project for use. Or, type `cargo build` to build the project for development.
+4. Run `sqlx migrate run` to create the database tables if they don't exist, which they don't if you've just created the database.
+5. Type `cargo build --release` to build the project for general use. Or, type `cargo build` to build the project for use in development.
 
 The executable will be in the `target` directory.
 
