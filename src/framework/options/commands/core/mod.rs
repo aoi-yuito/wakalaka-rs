@@ -13,8 +13,10 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
+pub(super) mod register;
 pub(super) mod restart;
 pub(super) mod restrict;
 pub(super) mod setup;
 pub(super) mod shutdown;
+pub(super) mod unregister;
 pub(super) mod unrestrict;
