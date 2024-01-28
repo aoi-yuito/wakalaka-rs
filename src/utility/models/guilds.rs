@@ -30,7 +30,7 @@ pub async fn guild_name_from_guild_id_raw(
         value
     } else {
         warn!("Couldn't get guild name, using guild ID instead");
-        format!("`{guild_id}`")
+        format!("'{guild_id}'")
     }
 }
 
@@ -39,7 +39,7 @@ pub async fn guild_name_from_guild_id(ctx: Context<'_>, guild_id: GuildId) -> St
         value
     } else {
         warn!("Couldn't get guild name, using guild ID instead");
-        format!("`{guild_id}`")
+        format!("'{guild_id}'")
     }
 }
 
