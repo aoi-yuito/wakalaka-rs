@@ -24,23 +24,34 @@ use crate::{Data, Error};
 pub(super) mod options;
 pub(super) mod setup;
 
+pub async fn initialise_framework_options() -> FrameworkOptions<Data, Error> {
+    let start_time = Instant::now();
+
+    let framework_options = FrameworkOptions {
+        commands: commands::guild_commands().await,
+        prefix_options: PrefixFrameworkOptions {
+            prefix: Some(format!("?")),
+            ..Default::default()
+        },
+        post_command: |ctx| Box::pin(options::post_command::handle(ctx)),
+        event_handler: |ctx, event, framework, data| {
+            Box::pin(options::event_handler::handle(ctx, event, framework, data))
+        },
+        ..Default::default()
+    };
+
+    let elapsed_time = start_time.elapsed();
+    debug!("Initialised framework options in {elapsed_time:.2?}");
+
+    framework_options
+}
+
 pub async fn initialise_framework(data: Data) -> Framework<Data, Error> {
     let start_time = Instant::now();
 
     let framework = Framework::builder()
         .setup(|ctx, _, _| Box::pin(async move { setup::handle(ctx, data).await }))
-        .options(FrameworkOptions {
-            commands: commands::guild_commands().await,
-            prefix_options: PrefixFrameworkOptions {
-                prefix: Some(format!("?")),
-                ..Default::default()
-            },
-            post_command: |ctx| Box::pin(options::post_command::handle(ctx)),
-            event_handler: |ctx, event, framework, data| {
-                Box::pin(options::event_handler::handle(ctx, event, framework, data))
-            },
-            ..Default::default()
-        })
+        .options(initialise_framework_options().await)
         .build();
 
     let elapsed_time = start_time.elapsed();
