@@ -14,11 +14,17 @@
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
 pub mod guild_members;
+
 #[macro_use]
 pub mod guilds;
+
 pub mod infractions;
+
 #[macro_use]
 pub mod restricted_guild_channels;
+#[macro_use]
+pub mod restricted_guilds;
+
 pub mod suggestions;
 pub mod users;
 

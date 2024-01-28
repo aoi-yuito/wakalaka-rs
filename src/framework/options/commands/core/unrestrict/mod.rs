@@ -14,13 +14,17 @@
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
 mod channel;
+mod server;
 
-use crate::{framework::commands::core::unrestrict::channel::channel, Context, Error};
+use crate::{
+    framework::commands::core::unrestrict::{channel::channel, server::server},
+    Context, Error,
+};
 
 #[poise::command(
     prefix_command,
     slash_command,
-    subcommands("channel"),
+    subcommands("channel", "server"),
     category = "Core",
     owners_only,
     guild_only,
