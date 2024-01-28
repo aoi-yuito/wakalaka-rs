@@ -25,7 +25,6 @@ pub async fn role_ids(roles: Vec<Role>) -> Vec<RoleId> {
 
 pub async fn roles(ctx: Context<'_>) -> Vec<Role> {
     let guild = guilds::guild(ctx).await;
-
     guild
         .roles
         .clone()
