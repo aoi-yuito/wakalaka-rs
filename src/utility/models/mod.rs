@@ -22,6 +22,16 @@ pub mod members;
 pub mod roles;
 pub mod users;
 
+pub async fn current_application_name_raw(ctx: &crate::serenity::Context) -> String {
+    match current_application_info_raw(ctx).await {
+        Some(value) => value.name,
+        None => {
+            error!("Couldn't get current application name");
+            String::new()
+        }
+    }
+}
+
 pub async fn current_application_info_raw(
     ctx: &crate::serenity::Context,
 ) -> Option<CurrentApplicationInfo> {
