@@ -53,7 +53,7 @@ async fn main(#[Secrets] secret_store: SecretStore) -> ShuttleSerenity {
     let mut client = initialise_client(token, intents, framework).await;
 
     info!("Starting client with automatic sharding...");
-    
+
     if let Err(why) = client.start_autosharded().await {
         error!("Couldn't start client with automatic sharding: {why:?}");
         return Err(anyhow!("Couldn't start client: {why:?}").into());
@@ -92,8 +92,34 @@ fn initialise_subscriber() {
     let rust_log = match dotenvy::var("RUST_LOG") {
         Ok(level) => level,
         Err(_) => {
-            error!("Couldn't get log level from environment, setting default...");
-            format!("info")
+            let toml = match std::fs::read_to_string("Config.toml") {
+                Ok(toml) => toml,
+                Err(why) => {
+                    error!("Couldn't read Config.toml: {why:?}");
+                    panic!("{why:?}")
+                }
+            };
+
+            let config: toml::Value = match toml::from_str(&toml) {
+                Ok(config) => config,
+                Err(why) => {
+                    error!("Couldn't parse Config.toml: {why:?}");
+                    panic!("{why:?}")
+                }
+            };
+
+            let rust_log = match config.get("RUST_LOG") {
+                Some(rust_log) => match rust_log.as_str() {
+                    Some(rust_log) => rust_log,
+                    None => {
+                        panic!("Couldn't find RUST_LOG in Config.toml")
+                    }
+                },
+                None => {
+                    panic!("Couldn't find RUST_LOG in Config.toml")
+                }
+            };
+            rust_log.to_string()
         }
     };
 
