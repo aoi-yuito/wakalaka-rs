@@ -26,12 +26,11 @@ pub async fn guild_name_from_guild_id_raw(
     ctx: &crate::serenity::Context,
     guild_id: GuildId,
 ) -> String {
-    match guild_id.name(ctx) {
-        Some(value) => value,
-        None => {
-            warn!("Couldn't get guild name, using ID instead..");
-            format!("`{guild_id}`")
-        }
+    if let Some(value) = guild_id.name(ctx) {
+        value
+    } else {
+        warn!("Couldn't get guild name, using guild ID instead");
+        format!("`{guild_id}`")
     }
 }
 
@@ -40,12 +39,11 @@ pub async fn guild_name_raw(ctx: &crate::serenity::Context, guild_id: GuildId) -
 }
 
 pub async fn guild_name_from_guild_id(ctx: Context<'_>, guild_id: GuildId) -> String {
-    match guild_id.name(ctx) {
-        Some(value) => value,
-        None => {
-            warn!("Couldn't get guild name, using ID instead..");
-            format!("`{guild_id}`")
-        }
+    if let Some(value) = guild_id.name(ctx) {
+        value
+    } else {
+        warn!("Couldn't get guild name, using guild ID instead");
+        format!("`{guild_id}`")
     }
 }
 
@@ -66,24 +64,17 @@ pub async fn guild_id(ctx: Context<'_>) -> GuildId {
 }
 
 pub fn guild_raw(ctx: &crate::serenity::Context, guild_id: GuildId) -> Guild {
-    let guild = {
-        match ctx.cache.guild(guild_id) {
-            Some(value) => value,
-            None => {
-                warn!("Couldn't get guild, setting default...");
-                return Guild::default();
-            }
-        }
-    };
-    guild.clone()
+    if let Some(value) = ctx.cache.guild(guild_id) {
+        value.clone()
+    } else {
+        panic!("Couldn't get guild from cache");
+    }
 }
 
 pub async fn guild(ctx: Context<'_>) -> Guild {
-    match ctx.guild() {
-        Some(value) => value.clone(),
-        None => {
-            warn!("Couldn't get guild, setting default...");
-            return Guild::default();
-        }
+    if let Some(value) = ctx.guild() {
+        value.clone()
+    } else {
+        panic!("Couldn't get guild");
     }
 }
