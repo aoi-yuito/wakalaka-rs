@@ -22,8 +22,31 @@ pub async fn owner_id(ctx: Context<'_>) -> UserId {
     guild(ctx).await.owner_id
 }
 
+pub async fn guild_name_from_guild_id_raw(
+    ctx: &crate::serenity::Context,
+    guild_id: GuildId,
+) -> String {
+    match guild_id.name(ctx) {
+        Some(value) => value,
+        None => {
+            warn!("Couldn't get guild name, using ID instead..");
+            format!("`{guild_id}`")
+        }
+    }
+}
+
 pub async fn guild_name_raw(ctx: &crate::serenity::Context, guild_id: GuildId) -> String {
     guild_raw(ctx, guild_id).name
+}
+
+pub async fn guild_name_from_guild_id(ctx: Context<'_>, guild_id: GuildId) -> String {
+    match guild_id.name(ctx) {
+        Some(value) => value,
+        None => {
+            warn!("Couldn't get guild name, using ID instead..");
+            format!("`{guild_id}`")
+        }
+    }
 }
 
 pub async fn guild_name(ctx: Context<'_>) -> String {
