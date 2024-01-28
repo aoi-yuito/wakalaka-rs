@@ -23,7 +23,7 @@ use ::serenity::all::GatewayIntents;
 use poise::Framework;
 use sqlx::SqlitePool;
 use tokio::time::Instant;
-use tracing::{debug, error, info, level_filters::LevelFilter, subscriber, warn};
+use tracing::{debug, error, level_filters::LevelFilter, subscriber, warn};
 use tracing_subscriber::{fmt::Subscriber, EnvFilter};
 
 pub struct Data {
@@ -34,7 +34,7 @@ type Error = Box<dyn std::error::Error + Send + Sync>;
 type Context<'a> = poise::Context<'a, Data, Error>;
 
 #[tokio::main]
-async fn main() {
+async fn main() -> Result<(), Error> {
     initialise_subscriber();
 
     let pool = database::initialise().await;
@@ -45,7 +45,7 @@ async fn main() {
         Ok(token) => token,
         Err(why) => {
             error!("Couldn't find 'DISCORD_TOKEN' in environment: {why:?}");
-            return;
+            return Err(why.into());
         }
     };
     let intents = framework::initialise_intents();
@@ -53,12 +53,12 @@ async fn main() {
 
     let mut client = initialise_client(token, intents, framework).await;
 
-    info!("Starting client with automatic sharding...");
-
     if let Err(why) = client.start_autosharded().await {
         error!("Couldn't start client with automatic sharding: {why:?}");
-        return;
+        return Err(why.into());
     }
+
+    Ok(())
 }
 
 async fn initialise_client(
