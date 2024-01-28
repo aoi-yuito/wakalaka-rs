@@ -34,10 +34,6 @@ pub async fn guild_name_from_guild_id_raw(
     }
 }
 
-pub async fn guild_name_raw(ctx: &crate::serenity::Context, guild_id: GuildId) -> String {
-    guild_raw(ctx, guild_id).name
-}
-
 pub async fn guild_name_from_guild_id(ctx: Context<'_>, guild_id: GuildId) -> String {
     if let Some(value) = guild_id.name(ctx) {
         value
@@ -63,7 +59,7 @@ pub async fn guild_id(ctx: Context<'_>) -> GuildId {
     guild(ctx).await.id
 }
 
-pub fn guild_raw(ctx: &crate::serenity::Context, guild_id: GuildId) -> Guild {
+pub fn guild_from_guild_id_raw(ctx: &crate::serenity::Context, guild_id: GuildId) -> Guild {
     if let Some(value) = ctx.cache.guild(guild_id) {
         value.clone()
     } else {
