@@ -14,7 +14,7 @@
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
 use serenity::all::GuildId;
-use tracing::error;
+use tracing::{error, info};
 
 use crate::{check_restricted_guild, serenity::Context, utility::models, Data};
 
@@ -33,4 +33,8 @@ pub(super) async fn handle(guild_ids: &Vec<GuildId>, ctx: &Context, data: &Data)
             return;
         }
     }
+
+    let guild_count = guild_ids.len();
+
+    info!("Cache prepared for {guild_count} guild(s)");
 }
