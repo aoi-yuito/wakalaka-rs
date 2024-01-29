@@ -45,7 +45,7 @@ pub async fn register(
     let command_count = commands_builder.len();
 
     if global {
-        let mut reply = messages::reply("Registering command(s) globally...", true);
+        let mut reply = messages::reply("Registering global command(s)...", true);
         let reply_handle = ctx.send(reply).await?;
 
         let global_commands = Command::set_global_commands(ctx, commands_builder).await;
@@ -55,7 +55,7 @@ pub async fn register(
         }
 
         reply = messages::ok_reply(
-            format!("I've registered {command_count} command(s) globally."),
+            format!("I've registered {command_count} global command(s)."),
             true,
         );
         reply_handle.edit(ctx, reply).await?;

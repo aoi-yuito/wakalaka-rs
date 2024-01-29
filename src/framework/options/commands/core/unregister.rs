@@ -48,7 +48,7 @@ pub async fn unregister(
             return Err(why.into());
         }
 
-        reply = messages::ok_reply("I've unregistered every command globally.", true);
+        reply = messages::ok_reply("I've unregistered every global command.", true);
         reply_handle.edit(ctx, reply).await?;
 
         return Ok(());
