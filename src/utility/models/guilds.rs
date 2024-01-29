@@ -61,15 +61,16 @@ pub async fn guild_id(ctx: Context<'_>) -> GuildId {
 }
 
 pub async fn guild_raw(ctx: &crate::serenity::Context) -> Guild {
-    match guild_id_raw(ctx).await.to_guild_cached(ctx) {
-        Some(value) => value.clone(),
-        None => panic!("Couldn't get guild from guild ID"),
+    if let Some(guild) = guild_id_raw(ctx).await.to_guild_cached(ctx) {
+        guild.clone()
+    } else {
+        panic!("Couldn't get guild from guild ID");
     }
 }
 
 pub async fn guild(ctx: Context<'_>) -> Guild {
-    if let Some(value) = ctx.guild() {
-        value.clone()
+    if let Some(guild) = ctx.guild() {
+        guild.clone()
     } else {
         panic!("Couldn't get guild");
     }
