@@ -16,7 +16,7 @@
 use serenity::{all::Message, builder::GetMessages};
 use tracing::{error, info};
 
-use crate::{utility::components::messages, Context, Error};
+use crate::{utility::{components::messages, models}, Context, Error};
 
 #[poise::command(
     prefix_command,
@@ -52,7 +52,7 @@ pub async fn before(
 
     let http = ctx.serenity_context().http.clone();
     let channel_id = ctx.channel_id();
-    let user_name = ctx.author().name.clone();
+    let user_name = models::author_name(ctx)?.clone();
 
     let handle = tokio::spawn(async move {
         let mut deleted_messages_count = 0;

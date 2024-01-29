@@ -23,7 +23,7 @@ macro_rules! check_restricted_guild_channel {
     ($ctx:expr) => {{
         let (pool, channel_id) = (
             &$ctx.data().pool,
-            crate::utility::models::channels::channel_id($ctx).await,
+            crate::utility::models::channels::channel_id($ctx),
         );
 
         match crate::database::restricted_guild_channels::select_channel_id_from_restricted_guild_channels(

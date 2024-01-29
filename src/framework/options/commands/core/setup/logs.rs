@@ -42,7 +42,7 @@ pub async fn logs(
 
     let guild_id = models::guilds::guild_id(ctx).await;
 
-    let guild_channels = models::channels::channels(ctx).await;
+    let guild_channels = models::channels::channels(ctx).await?;
     for guild_channel in guild_channels {
         let (guild_channel_id, guild_channel_name) = (guild_channel.id, &guild_channel.name());
 
