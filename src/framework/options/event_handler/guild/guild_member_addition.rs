@@ -25,7 +25,7 @@ pub async fn handle(new_member: &Member, ctx: &Context, data: &Data) {
     let pool = &data.pool;
 
     let guild_id = new_member.guild_id;
-    let guild_name = guild_id.name(ctx).expect("Couldn't get guild name");
+    let guild_name = models::guilds::guild_name_from_guild_id_raw(ctx, guild_id);
 
     let members = models::members::members_raw(&ctx, &guild_id).await;
     if let Err(why) = users::insert_into_users(&members, pool).await {
