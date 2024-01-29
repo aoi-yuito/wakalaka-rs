@@ -25,9 +25,9 @@ use tokio::time::Duration;
 
 pub fn warnings_command_embed(
     user: &User,
-    uuids: Vec<String>,
-    moderator_ids: Vec<i64>,
-    reasons: Vec<String>,
+    uuids: Vec<&String>,
+    moderator_ids: Vec<&i64>,
+    reasons: Vec<&String>,
 ) -> CreateEmbed {
     //  |(PFP) {user_name}                |
     //  | ID      | Moderator | Reason    |
@@ -111,7 +111,7 @@ pub fn colour_command_embed(colour: u32, url: &String, json: &serde_json::Value)
 }
 
 pub fn avatar_command_embed(name: &String, avatar_url: String) -> CreateEmbed {
-    let embed_author = CreateEmbedAuthor::new(name).icon_url(avatar_url.clone());
+    let embed_author = CreateEmbedAuthor::new(name).icon_url(&avatar_url);
 
     CreateEmbed::default()
         .author(embed_author)
@@ -119,7 +119,7 @@ pub fn avatar_command_embed(name: &String, avatar_url: String) -> CreateEmbed {
 }
 
 pub fn banned_command_embed(name: &String, avatar_url: String, banner_url: String) -> CreateEmbed {
-    let embed_author = CreateEmbedAuthor::new(name).icon_url(avatar_url.clone());
+    let embed_author = CreateEmbedAuthor::new(name).icon_url(&avatar_url);
 
     CreateEmbed::default()
         .author(embed_author)

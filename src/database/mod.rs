@@ -37,7 +37,7 @@ lazy_static! {
     pub static ref DB_URL: String = match dotenvy::var("DATABASE_URL") {
         Ok(url) => url,
         Err(why) => {
-            error!("Couldn't find database in environment: {why:?}");
+            error!("Couldn't find 'DATABASE_URL' in environment: {why:?}");
             panic!("{why:?}")
         }
     };

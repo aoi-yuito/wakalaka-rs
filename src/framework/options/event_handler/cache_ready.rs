@@ -14,15 +14,17 @@
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
 use serenity::all::GuildId;
-use tracing::error;
+use tracing::{error, info};
 
 use crate::{check_restricted_guild, serenity::Context, utility::models, Data};
 
 pub(super) async fn handle(guild_ids: &Vec<GuildId>, ctx: &Context, data: &Data) {
     let pool = &data.pool;
 
+    let bot_name = models::current_application_name_raw(ctx).await;
+
     for guild_id in guild_ids {
-        let guild_name = models::guilds::guild_name_from_guild_id_raw(ctx, *guild_id).await;
+        let guild_name = models::guilds::guild_name_from_guild_id_raw(ctx, *guild_id);
 
         let restricted_guild = check_restricted_guild!(&pool, &guild_id);
         if restricted_guild {
@@ -33,4 +35,8 @@ pub(super) async fn handle(guild_ids: &Vec<GuildId>, ctx: &Context, data: &Data)
             return;
         }
     }
+
+    let guild_count = guild_ids.len();
+
+    info!("@{bot_name} prepared for {guild_count} guild(s)");
 }

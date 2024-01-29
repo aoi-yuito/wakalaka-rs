@@ -77,10 +77,8 @@ pub async fn untimeout(
 
     let mut user_infractions = users::select_infractions_from_users(&user_id, pool).await?;
     if user_infractions < 1 {
-        let reply = messages::info_reply(
-            format!("<@{user_id}> hasn't been punished before."),
-            true,
-        );
+        let reply =
+            messages::info_reply(format!("<@{user_id}> hasn't been punished before."), true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
             return Err(why.into());
@@ -114,7 +112,7 @@ pub async fn untimeout(
 
         guild_members::update_guilds_members_set_timeout(&user_id, false, None, pool).await?;
 
-        if let Some(reason) = reason.clone() {
+        if let Some(ref reason) = reason {
             let reason_char_count = reason.chars().count();
             if reason_char_count < 6 || reason_char_count > 80 {
                 let reply = messages::info_reply(

@@ -13,25 +13,21 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-use serenity::all::{Role, RoleId};
+use serenity::all::{GuildId, Member, User};
+use tracing::info;
 
-use crate::Context;
+use crate::{serenity::Context, utility::models};
 
-use super::guilds;
+pub async fn handle(guild_id: &GuildId, user: &User, member: &Option<Member>, ctx: &Context) {
+    let guild_name = models::guilds::guild_name_from_guild_id_raw(ctx, *guild_id);
 
-pub fn role_name(role: &Role) -> &String {
-    &role.name
-}
+    let user_name = &user.name;
 
-pub async fn role_ids(roles: Vec<Role>) -> Vec<RoleId> {
-    roles.iter().map(|role| role.id).collect::<Vec<RoleId>>()
-}
+    if let Some(member) = member {
+        let member_name = &member.user.name;
 
-pub async fn roles(ctx: Context<'_>) -> Vec<Role> {
-    let guild = guilds::guild(ctx).await;
-    guild
-        .roles
-        .into_iter()
-        .map(|(_, role)| role)
-        .collect::<Vec<Role>>()
+        info!("@{member_name} left from {guild_name}")
+    } else {
+        info!("@{user_name} left from {guild_name}")
+    }
 }

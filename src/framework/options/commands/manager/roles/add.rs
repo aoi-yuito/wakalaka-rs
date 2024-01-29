@@ -64,42 +64,43 @@ pub async fn add(
         return Ok(());
     }
 
-    let guild = models::guilds::guild(ctx).await;
-    let guild_name = &guild.name;
+    let result = {
+        let guild = models::guilds::guild(ctx).await;
+        let guild_name = &guild.name;
 
-    let role_builder = if let Some(colour) = colour {
-        let colour = utility::hex_to_u32(&colour);
+        let role_builder = if let Some(colour) = colour {
+            let colour = utility::hex_to_u32(&colour);
 
-        EditRole::new()
-            .name(&name)
-            .colour(colour)
-            .hoist(hoist.is_some())
-            .mentionable(mentionable.is_some())
-    } else {
-        EditRole::new()
-            .name(&name)
-            .hoist(hoist.is_some())
-            .mentionable(mentionable.is_some())
+            EditRole::new()
+                .name(&name)
+                .colour(colour)
+                .hoist(hoist.is_some())
+                .mentionable(mentionable.is_some())
+        } else {
+            EditRole::new()
+                .name(&name)
+                .hoist(hoist.is_some())
+                .mentionable(mentionable.is_some())
+        };
+
+        match guild.create_role(ctx, role_builder).await {
+            Ok(_) => {
+                info!("Created role called @{name} in {guild_name}");
+                Ok(format!("I've created a role called `{name}`."))
+            }
+            Err(why) => {
+                error!("Couldn't create role called @{name} in {guild_name}: {why:?}");
+                Err(format!(
+                    "Sorry, but I couldn't create a role called `{name}`."
+                ))
+            }
+        }
     };
 
-    if let Err(why) = guild.create_role(ctx, role_builder).await {
-        error!("Couldn't create @{name} role in {guild_name}: {why:?}");
-
-        let reply = messages::error_reply(
-            format!("Sorry, but I couldn't create a role called `{name}`."),
-            true,
-        );
-        if let Err(why) = ctx.send(reply).await {
-            error!("Couldn't send reply: {why:?}");
-            return Err(why.into());
-        }
-
-        return Err(why.into());
-    }
-
-    info!("Created @{name} role in {guild_name}");
-
-    let reply = messages::ok_reply(format!("I've created a role called `{name}`."), true);
+    let reply = match result {
+        Ok(message) => messages::ok_reply(message, true),
+        Err(message) => messages::error_reply(message, true),
+    };
     if let Err(why) = ctx.send(reply).await {
         error!("Couldn't send reply: {why:?}");
         return Err(why.into());

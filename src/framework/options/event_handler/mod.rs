@@ -41,10 +41,18 @@ pub async fn handle(
             guild::guild_create::handle(guild, is_new.is_some(), ctx, data).await;
         }
         FullEvent::GuildDelete { incomplete, full } => {
-            guild::guild_delete::handle(incomplete, full, data).await;
+            guild::guild_delete::handle(incomplete, full, ctx, data).await;
         }
         FullEvent::GuildMemberAddition { new_member, .. } => {
             guild::guild_member_addition::handle(new_member, ctx, data).await;
+        }
+        FullEvent::GuildMemberRemoval {
+            guild_id,
+            user,
+            member_data_if_available,
+        } => {
+            guild::guild_member_removal::handle(guild_id, user, member_data_if_available, ctx)
+                .await;
         }
         FullEvent::Ready { data_about_bot, .. } => {
             ready::handle(data_about_bot, ctx, data).await;

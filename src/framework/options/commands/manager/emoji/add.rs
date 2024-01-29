@@ -100,24 +100,25 @@ pub async fn add(
     let guild = models::guilds::guild(ctx).await;
     let guild_name = &guild.name;
 
-    if let Err(why) = guild.create_emoji(&ctx, &name, &encoded_attachment).await {
-        error!("Couldn't create {name:?} emoji in {guild_name}: {why:?}");
+    let result = match guild.create_emoji(&ctx, &name, &encoded_attachment).await {
+        Ok(_) => {
+            let user_name = models::author_name(ctx)?;
 
-        let reply = messages::error_reply(
-            format!("Sorry, but I couldn't create an emoji called `{name}`."),
-            true,
-        );
-        if let Err(why) = ctx.send(reply).await {
-            error!("Couldn't send reply: {why:?}");
-            return Err(why.into());
+            info!("@{user_name} created emoji called {name:?} in {guild_name}");
+            Ok(format!("I've created an emoji called `{name}`."))
         }
+        Err(why) => {
+            error!("Couldn't create emoji called{name:?} in {guild_name}: {why:?}");
+            Err(format!(
+                "Sorry, but I couldn't create an emoji called `{name}`."
+            ))
+        }
+    };
 
-        return Err(why.into());
-    }
-
-    info!("Created {name:?} emoji in {guild_name}");
-
-    let reply = messages::ok_reply(format!("I've created an emoji called `{name}`."), true);
+    let reply = match result {
+        Ok(message) => messages::ok_reply(message, true),
+        Err(message) => messages::error_reply(message, true),
+    };
     if let Err(why) = ctx.send(reply).await {
         error!("Couldn't send reply: {why:?}");
         return Err(why.into());

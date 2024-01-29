@@ -91,16 +91,16 @@ pub async fn warnings(
     let (uuids, moderator_ids, reasons) = (
         warnings
             .iter()
-            .map(|(uuid, _, _, _, _, _, _)| uuid.clone())
-            .collect::<Vec<String>>(),
+            .map(|(uuid, _, _, _, _, _, _)| uuid)
+            .collect::<Vec<&String>>(),
         warnings
             .iter()
-            .map(|(_, _, _, moderator_id, _, _, _)| moderator_id.clone())
-            .collect::<Vec<i64>>(),
+            .map(|(_, _, _, moderator_id, _, _, _)| moderator_id)
+            .collect::<Vec<&i64>>(),
         warnings
             .iter()
-            .map(|(_, _, _, _, reason, _, _)| reason.clone())
-            .collect::<Vec<String>>(),
+            .map(|(_, _, _, _, reason, _, _)| reason)
+            .collect::<Vec<&String>>(),
     );
 
     let embed = embeds::warnings_command_embed(&user, uuids, moderator_ids, reasons);

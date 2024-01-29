@@ -17,7 +17,7 @@ use serenity::{
     all::{Member, Mentionable},
     builder::CreateMessage,
 };
-use tracing::error;
+use tracing::{error, info};
 
 use crate::{check_welcome_channel, database::users, serenity::Context, utility::models, Data};
 
@@ -25,15 +25,17 @@ pub async fn handle(new_member: &Member, ctx: &Context, data: &Data) {
     let pool = &data.pool;
 
     let guild_id = new_member.guild_id;
-    let guild_name = guild_id.name(ctx).expect("Couldn't get guild name");
+    let guild_name = models::guilds::guild_name_from_guild_id_raw(ctx, guild_id);
 
     let members = models::members::members_raw(&ctx, &guild_id).await;
     if let Err(why) = users::insert_into_users(&members, pool).await {
         error!("Couldn't insert into Users: {why:?}");
-        return;
     } else {
         let user = &new_member.user;
+        let user_name = &user.name;
         let user_mention = user.mention();
+
+        info!("@{user_name} joined {guild_name}");
 
         let logs_channel_id = check_welcome_channel!(&guild_id, pool);
         if let Some(channel_id) = logs_channel_id {

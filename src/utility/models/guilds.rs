@@ -22,31 +22,26 @@ pub async fn owner_id(ctx: Context<'_>) -> UserId {
     guild(ctx).await.owner_id
 }
 
-pub async fn guild_name_from_guild_id_raw(
-    ctx: &crate::serenity::Context,
-    guild_id: GuildId,
-) -> String {
-    match guild_id.name(ctx) {
-        Some(value) => value,
-        None => {
-            warn!("Couldn't get guild name, using ID instead..");
-            format!("`{guild_id}`")
-        }
+pub fn guild_name_from_guild_id_raw(ctx: &crate::serenity::Context, guild_id: GuildId) -> String {
+    if let Some(value) = guild_id.name(ctx) {
+        value
+    } else {
+        warn!("Couldn't get guild name, using guild ID instead");
+        format!("'{guild_id}'")
     }
 }
 
-pub async fn guild_name_raw(ctx: &crate::serenity::Context, guild_id: GuildId) -> String {
-    guild_raw(ctx, guild_id).name
+pub fn guild_name_from_guild_id(ctx: Context<'_>, guild_id: GuildId) -> String {
+    if let Some(value) = guild_id.name(ctx) {
+        value
+    } else {
+        warn!("Couldn't get guild name, using guild ID instead");
+        format!("'{guild_id}'")
+    }
 }
 
-pub async fn guild_name_from_guild_id(ctx: Context<'_>, guild_id: GuildId) -> String {
-    match guild_id.name(ctx) {
-        Some(value) => value,
-        None => {
-            warn!("Couldn't get guild name, using ID instead..");
-            format!("`{guild_id}`")
-        }
-    }
+pub async fn guild_name_raw(ctx: &crate::serenity::Context) -> String {
+    guild_raw(ctx).await.name
 }
 
 pub async fn guild_name(ctx: Context<'_>) -> String {
@@ -65,25 +60,18 @@ pub async fn guild_id(ctx: Context<'_>) -> GuildId {
     guild(ctx).await.id
 }
 
-pub fn guild_raw(ctx: &crate::serenity::Context, guild_id: GuildId) -> Guild {
-    let guild = {
-        match ctx.cache.guild(guild_id) {
-            Some(value) => value,
-            None => {
-                warn!("Couldn't get guild, setting default...");
-                return Guild::default();
-            }
-        }
-    };
-    guild.clone()
+pub async fn guild_raw(ctx: &crate::serenity::Context) -> Guild {
+    if let Some(guild) = guild_id_raw(ctx).await.to_guild_cached(ctx) {
+        guild.clone()
+    } else {
+        panic!("Couldn't get guild from guild ID");
+    }
 }
 
 pub async fn guild(ctx: Context<'_>) -> Guild {
-    match ctx.guild() {
-        Some(value) => value.clone(),
-        None => {
-            warn!("Couldn't get guild, setting default...");
-            return Guild::default();
-        }
+    if let Some(guild) = ctx.guild() {
+        guild.clone()
+    } else {
+        panic!("Couldn't get guild");
     }
 }

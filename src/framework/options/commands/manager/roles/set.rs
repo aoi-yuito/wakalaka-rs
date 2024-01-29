@@ -44,33 +44,34 @@ pub async fn set(
         return Ok(());
     }
 
-    let role_ids = models::roles::role_ids(roles).await;
+    let result = {
+        let role_ids = models::roles::role_ids(roles).await;
 
-    let user_name = models::users::user_name(ctx, user_id).await;
+        let user_name = models::users::user_name(ctx, user_id).await;
 
-    let guild = models::guilds::guild(ctx).await;
-    let (guild_id, guild_name) = (guild.id, &guild.name);
+        let guild = models::guilds::guild(ctx).await;
+        let (guild_id, guild_name) = (guild.id, &guild.name);
 
-    let member = models::members::member(ctx, guild_id, user_id).await;
+        let member = models::members::member(ctx, guild_id, user_id).await;
 
-    if let Err(why) = member.add_roles(&ctx, &role_ids).await {
-        error!("Couldn't add role(s) to @{user_name} in {guild_name}: {why:?}");
-
-        let reply = messages::error_reply(
-            format!("Sorry, but I couldn't add role(s) to <@{user_id}>."),
-            true,
-        );
-        if let Err(why) = ctx.send(reply).await {
-            error!("Couldn't send reply: {why:?}");
-            return Err(why.into());
+        match member.add_roles(&ctx, &role_ids).await {
+            Ok(_) => {
+                info!("Added role(s) to @{user_name} in {guild_name}");
+                Ok(format!("I've added role(s) to <@{user_id}>."))
+            }
+            Err(why) => {
+                error!("Couldn't add role(s) to @{user_name} in {guild_name}: {why:?}");
+                Err(format!(
+                    "Sorry, but I couldn't add role(s) to <@{user_id}>."
+                ))
+            }
         }
+    };
 
-        return Err(why.into());
-    }
-
-    info!("Added role(s) to @{user_name} in {guild_name}");
-
-    let reply = messages::ok_reply(format!("I've added role(s) to <@{user_id}>."), true);
+    let reply = match result {
+        Ok(message) => messages::ok_reply(message, true),
+        Err(message) => messages::error_reply(message, true),
+    };
     if let Err(why) = ctx.send(reply).await {
         error!("Couldn't send reply: {why:?}");
         return Err(why.into());

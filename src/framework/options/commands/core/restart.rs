@@ -13,6 +13,9 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
+use std::sync::Arc;
+
+use serenity::all::ShardId;
 use tracing::{error, info};
 
 use crate::{utility::components::messages, Context, Error};
@@ -34,7 +37,7 @@ pub async fn restart(ctx: Context<'_>) -> Result<(), Error> {
         return Err(why.into());
     }
 
-    let manager = ctx.framework().shard_manager.clone();
+    let manager = Arc::new(ctx.framework().shard_manager);
 
     let shard_ids = manager
         .runners
@@ -42,7 +45,7 @@ pub async fn restart(ctx: Context<'_>) -> Result<(), Error> {
         .await
         .keys()
         .cloned()
-        .collect::<Vec<_>>();
+        .collect::<Vec<ShardId>>();
     for shard_id in shard_ids {
         info!("Restarting shard {shard_id}");
         manager.restart(shard_id).await;

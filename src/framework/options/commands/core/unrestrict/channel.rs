@@ -60,59 +60,32 @@ pub async fn channel(
     }
 
     let failsafe_query = guilds::select_usage_channel_id_from_guilds(&guild_id, &pool).await;
-    if let Some(usage_channel_id) = failsafe_query {
-        if usage_channel_id == channel_id {
-            let reply = messages::warn_reply(
-                format!("I've been configured to be primarily used in <#{usage_channel_id}>."),
-                true,
-            );
-            if let Err(why) = ctx.send(reply).await {
-                error!("Couldn't send reply: {why:?}");
-                return Err(why.into());
-            }
-
-            return Ok(());
+    let result = match failsafe_query {
+        Some(usage_channel_id) if usage_channel_id == channel_id => {
+            Err(format!("I've been configured to be primarily used in <#{usage_channel_id}>."))
         }
-    } else {
-        let reply = messages::info_reply(
-            format!(
+        None => {
+            Err(format!(
                 "I need to be configured before my usage in <#{channel_id}> could be allowed. Please use `/setup usage` to configure me."
-            ),
-            true,
-        );
-        if let Err(why) = ctx.send(reply).await {
-            error!("Couldn't send reply: {why:?}");
-            return Err(why.into());
+            ))
         }
-
-        return Ok(());
-    }
-
-    let previous_query =
-        restricted_guild_channels::select_channel_id_from_restricted_guild_channels(&channel_id, &pool)
-            .await;
-    if let Ok(_) = previous_query {
-        info!("Allowed usage within #{channel_name} in {guild_name}");
-
-        restricted_guild_channels::delete_from_restricted_guild_channels(&channel, &pool)
-            .await?;
-
-        let reply = messages::ok_reply(
-            format!("I've allowed myself to be used within <#{channel_id}>."),
-            true,
-        );
-        if let Err(why) = ctx.send(reply).await {
-            error!("Couldn't send reply: {why:?}");
-            return Err(why.into());
+        _ => {
+            let previous_query = restricted_guild_channels::select_channel_id_from_restricted_guild_channels(&channel_id, &pool).await;
+            match previous_query {
+                Ok(_) => {
+                    info!("Allowed usage within #{channel_name} in {guild_name}");
+                    restricted_guild_channels::delete_from_restricted_guild_channels(&channel, &pool).await?;
+                    Ok(format!("I've allowed myself to be used within <#{channel_id}>."))
+                }
+                _ => Err(format!("My usage is already allowed within <#{channel_id}>."))
+            }
         }
+    };
 
-        return Ok(());
-    }
-
-    let reply = messages::warn_reply(
-        format!("My usage is already allowed within <#{channel_id}>."),
-        true,
-    );
+    let reply = match result {
+        Ok(message) => messages::ok_reply(message, true),
+        Err(message) => messages::error_reply(message, true),
+    };
     if let Err(why) = ctx.send(reply).await {
         error!("Couldn't send reply: {why:?}");
         return Err(why.into());

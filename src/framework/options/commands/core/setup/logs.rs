@@ -42,35 +42,32 @@ pub async fn logs(
 
     let guild_id = models::guilds::guild_id(ctx).await;
 
-    let guild_channels = models::channels::channels(ctx).await;
+    let guild_channels = models::channels::channels(ctx).await?;
     for guild_channel in guild_channels {
         let (guild_channel_id, guild_channel_name) = (guild_channel.id, &guild_channel.name());
-
         if guild_channel_id != channel_id {
             continue;
         }
 
-        let query =
-            guilds::update_guilds_set_logs_channel_id(guild_channel_id, guild_id, pool).await;
-        if let Err(why) = query {
-            error!("Couldn't configure #{guild_channel_name} for logging: {why:?}");
+        let result =
+            match guilds::update_guilds_set_logs_channel_id(guild_channel_id, guild_id, pool).await
+            {
+                Ok(_) => {
+                    info!("Configured #{guild_channel_name} for logging");
+                    Ok(format!("I've set <#{guild_channel_id}> for logging."))
+                }
+                Err(why) => {
+                    error!("Couldn't configure #{guild_channel_name} for logging: {why:?}");
+                    Err(format!(
+                        "Sorry, but I couldn't set <#{guild_channel_id}> for logging."
+                    ))
+                }
+            };
 
-            let reply = messages::error_reply(
-                format!("Sorry, but I couldn't set <#{guild_channel_id}> for logging."),
-                true,
-            );
-            if let Err(why) = ctx.send(reply).await {
-                error!("Couldn't send reply: {why:?}");
-                return Err(why.into());
-            }
-
-            return Err(why.into());
-        }
-
-        info!("Configured #{guild_channel_name} for logging");
-
-        let reply =
-            messages::ok_reply(format!("I've set <#{guild_channel_id}> for logging."), true);
+        let reply = match result {
+            Ok(message) => messages::ok_reply(message, true),
+            Err(message) => messages::error_reply(message, true),
+        };
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
             return Err(why.into());

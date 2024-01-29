@@ -122,7 +122,7 @@ pub async fn suggest(
         let components = CreateActionRow::Buttons(vec![accept_suggest, reject_suggest]);
 
         let message_builder = CreateMessage::default()
-            .embed(embed.clone())
+            .embed(embed)
             .components(vec![components]);
 
         let message = match suggestion_channel_id

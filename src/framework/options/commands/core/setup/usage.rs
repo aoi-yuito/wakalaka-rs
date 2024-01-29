@@ -31,7 +31,7 @@ use crate::{
     user_cooldown = 5,
     ephemeral
 )]
-/// Set up a channel for yours truly to be used in.
+/// Set up a channel for yours truly to be primarily used in.
 pub async fn usage(
     ctx: Context<'_>,
     #[description = "The channel to be used in."]
@@ -42,36 +42,38 @@ pub async fn usage(
 
     let guild_id = models::guilds::guild_id(ctx).await;
 
-    let guild_channels = models::channels::channels(ctx).await;
+    let guild_channels = models::channels::channels(ctx).await?;
     for guild_channel in guild_channels {
         let (guild_channel_id, guild_channel_name) = (guild_channel.id, &guild_channel.name());
         if guild_channel_id != channel_id {
             continue;
         }
 
-        let query =
-            guilds::update_guilds_set_usage_channel_id(guild_channel_id, guild_id, pool).await;
-        if let Err(why) = query {
-            error!("Couldn't configure #{guild_channel_name} for primary usage: {why:?}");
-
-            let reply = messages::error_reply(
-                format!("Sorry, but I couldn't set <#{guild_channel_id}> to be for primary usage."),
-                true,
-            );
-            if let Err(why) = ctx.send(reply).await {
-                error!("Couldn't send reply: {why:?}");
-                return Err(why.into());
+        let result = match guilds::update_guilds_set_usage_channel_id(
+            guild_channel_id,
+            guild_id,
+            pool,
+        )
+        .await
+        {
+            Ok(_) => {
+                info!("Configured #{guild_channel_name} for primary usage");
+                Ok(format!(
+                    "I've set <#{guild_channel_id}> to be for primary usage."
+                ))
             }
+            Err(why) => {
+                error!("Couldn't configure #{guild_channel_name} for primary usage: {why:?}");
+                Err(format!(
+                    "Sorry, but I couldn't set <#{guild_channel_id}> to be for primary usage."
+                ))
+            }
+        };
 
-            return Err(why.into());
-        }
-
-        info!("Configured #{guild_channel_name} for primary usage");
-
-        let reply = messages::ok_reply(
-            format!("I've set <#{guild_channel_id}> to be for primary usage."),
-            true,
-        );
+        let reply = match result {
+            Ok(message) => messages::ok_reply(message, true),
+            Err(message) => messages::error_reply(message, true),
+        };
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
             return Err(why.into());

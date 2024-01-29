@@ -2,7 +2,6 @@
 .DS_Store
 
 # SQLite
-./sqlx
 *.db
 *.db-shm
 *.db-wal

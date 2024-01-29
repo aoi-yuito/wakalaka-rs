@@ -97,7 +97,7 @@ pub async fn insert_into_users(
         let query = sqlx::query("INSERT INTO users (user_id) VALUES (?)").bind(i64::from(user_id));
         if let Err(why) = query.execute(pool).await {
             _insert_into_ok = false;
-            
+
             if why.to_string().contains("1555") {
                 // UNIQUE constraint failed: users.user_id
                 continue;

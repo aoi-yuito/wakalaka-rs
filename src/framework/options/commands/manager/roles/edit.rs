@@ -67,44 +67,45 @@ pub async fn edit(
         }
     }
 
-    let role_name = role.name.clone();
+    let result = {
+        let role_name = models::roles::role_name(&role).clone();
 
-    let guild = models::guilds::guild(ctx).await;
-    let guild_name = &guild.name;
+        let guild = models::guilds::guild(ctx).await;
+        let guild_name = &guild.name;
 
-    let role_builder = if let Some(colour) = colour {
-        let colour = utility::hex_to_u32(&colour);
+        let role_builder = if let Some(colour) = colour {
+            let colour = utility::hex_to_u32(&colour);
 
-        EditRole::new()
-            .name(&name.unwrap_or(role_name.clone()))
-            .colour(colour)
-            .hoist(hoist.is_some())
-            .mentionable(mentionable.is_some())
-    } else {
-        EditRole::new()
-            .name(&name.unwrap_or(role_name.clone()))
-            .hoist(hoist.is_some())
-            .mentionable(mentionable.is_some())
+            EditRole::new()
+                .name(&name.unwrap_or(role_name.clone()))
+                .colour(colour)
+                .hoist(hoist.is_some())
+                .mentionable(mentionable.is_some())
+        } else {
+            EditRole::new()
+                .name(&name.unwrap_or(role_name.clone()))
+                .hoist(hoist.is_some())
+                .mentionable(mentionable.is_some())
+        };
+
+        match role.edit(ctx, role_builder).await {
+            Ok(_) => {
+                info!("Altered @{role_name} role in {guild_name}");
+                Ok(format!("I've altered a role called `{role_name}`."))
+            }
+            Err(why) => {
+                error!("Couldn't alter @{role_name} role in {guild_name}: {why:?}");
+                Err(format!(
+                    "Sorry, but I couldn't alter a role called `{role_name}`."
+                ))
+            }
+        }
     };
 
-    if let Err(why) = role.edit(ctx, role_builder).await {
-        error!("Couldn't alter @{role_name} role in {guild_name}: {why:?}");
-
-        let reply = messages::error_reply(
-            format!("Sorry, but I couldn't alter a role called `{role_name}`."),
-            true,
-        );
-        if let Err(why) = ctx.send(reply).await {
-            error!("Couldn't send reply: {why:?}");
-            return Err(why.into());
-        }
-
-        return Err(why.into());
-    }
-
-    info!("Altered @{role_name} role in {guild_name}");
-
-    let reply = messages::ok_reply(format!("I've altered a role called `{role_name}`."), true);
+    let reply = match result {
+        Ok(message) => messages::ok_reply(message, true),
+        Err(message) => messages::error_reply(message, true),
+    };
     if let Err(why) = ctx.send(reply).await {
         error!("Couldn't send reply: {why:?}");
         return Err(why.into());

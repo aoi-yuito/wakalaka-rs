@@ -13,7 +13,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-use tracing::error;
+use tracing::{error, info};
 
 use crate::{
     check_restricted_guild,
@@ -22,12 +22,12 @@ use crate::{
     Data,
 };
 
-pub(super) async fn handle(_: &Ready, ctx: &Context, data: &Data) {
+pub(super) async fn handle(ready: &Ready, ctx: &Context, data: &Data) {
     let pool = &data.pool;
 
-    let guild_ids = ctx.cache.guilds();
-    for guild_id in guild_ids {
-        let guild_name = models::guilds::guild_name_from_guild_id_raw(ctx, guild_id).await;
+    let guild_ids = ctx.cache.guilds(); // Cannot have this as a utility function as it would refuse to find the IDs in cache.
+    for guild_id in &guild_ids {
+        let guild_name = models::guilds::guild_name_from_guild_id_raw(ctx, *guild_id);
 
         let restricted_guild = check_restricted_guild!(&pool, &guild_id);
         if restricted_guild {
@@ -38,6 +38,12 @@ pub(super) async fn handle(_: &Ready, ctx: &Context, data: &Data) {
             return;
         }
     }
+
+    let guild_count = guild_ids.len();
+
+    let user_name = &ready.user.name;
+
+    info!("@{user_name} connected to {guild_count} guild(s)");
 
     set_activity(ctx).await;
 }

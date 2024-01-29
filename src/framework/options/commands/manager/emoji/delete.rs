@@ -84,27 +84,25 @@ pub async fn delete(
     let emoji = components::emojis::emoji(ctx, emoji_id).await.unwrap();
     let emoji_name = &emoji.name;
 
-    if let Err(why) = guild.delete_emoji(&ctx, emoji_id).await {
-        error!("Couldn't delete {emoji_name:?} emoji from {guild_name}: {why:?}");
+    let result = match guild.delete_emoji(&ctx, emoji_id).await {
+        Ok(_) => {
+            let user_name = models::author_name(ctx)?;
 
-        let reply = messages::error_reply(
-            format!("Sorry, but I couldn't delete an emoji called `{emoji_name}`"),
-            true,
-        );
-        if let Err(why) = ctx.send(reply).await {
-            error!("Couldn't send reply: {why:?}");
-            return Err(why.into());
+            info!("@{user_name} deleted emoji called {emoji_name:?} from {guild_name}");
+            Ok(format!("I've deleted an emoji called `{emoji_name}`."))
         }
+        Err(why) => {
+            error!("Couldn't delete {emoji_name:?} emoji from {guild_name}: {why:?}");
+            Err(format!(
+                "Sorry, but I couldn't delete an emoji called `{emoji_name}`"
+            ))
+        }
+    };
 
-        return Err(why.into());
-    }
-
-    info!("Deleted {emoji_name:?} emoji from {guild_name}");
-
-    let reply = messages::ok_reply(
-        format!("I've deleted an emoji called `{emoji_name}`."),
-        true,
-    );
+    let reply = match result {
+        Ok(message) => messages::ok_reply(message, true),
+        Err(message) => messages::error_reply(message, true),
+    };
     if let Err(why) = ctx.send(reply).await {
         error!("Couldn't send reply: {why:?}");
         return Err(why.into());

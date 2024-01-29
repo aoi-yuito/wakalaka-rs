@@ -13,6 +13,8 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
+use std::sync::Arc;
+
 use tokio::time::Instant;
 use tracing::error;
 
@@ -39,7 +41,7 @@ pub async fn ping(ctx: Context<'_>) -> Result<(), Error> {
 
     let start_time = Instant::now();
 
-    let manager = ctx.framework().shard_manager.clone();
+    let manager = Arc::new(ctx.framework().shard_manager);
     let runners = manager.runners.lock().await;
 
     let (mut shard_ids, mut shard_stages, mut shard_latencies) =
@@ -56,7 +58,8 @@ pub async fn ping(ctx: Context<'_>) -> Result<(), Error> {
 
     let elapsed_time = start_time.elapsed();
 
-    let ping_embed = embeds::ping_command_embed(elapsed_time, shard_ids, shard_stages, shard_latencies);
+    let ping_embed =
+        embeds::ping_command_embed(elapsed_time, shard_ids, shard_stages, shard_latencies);
 
     let reply = replies::reply_embed(ping_embed, true);
     if let Err(why) = ctx.send(reply).await {

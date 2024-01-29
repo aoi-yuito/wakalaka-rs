@@ -48,29 +48,28 @@ pub async fn reset(
     let user = models::users::user(ctx, user_id).await;
     let user_name = &user.name;
 
-    let moderator_name = &ctx.author().name;
-
     let mut member = models::members::member(ctx, guild_id, user_id).await;
     let member_builder = EditMember::default().nickname(String::new());
 
-    if let Err(why) = member.edit(&ctx, member_builder).await {
-        error!("Couldn't remove @{user_name}'s nickname: {why:?}");
+    let result = match member.edit(&ctx, member_builder).await {
+        Ok(_) => {
+            let moderator_name = models::author_name(ctx)?;
 
-        let reply = messages::error_reply(
-            format!("Sorry, but I couldn't remove <@{user_id}>'s nickname."),
-            true,
-        );
-        if let Err(why) = ctx.send(reply).await {
-            error!("Couldn't send reply: {why:?}");
-            return Err(why.into());
+            info!("@{moderator_name} removed @{user_name}'s nickname");
+            Ok(format!("I've removed <@{user_id}>'s nickname."))
         }
+        Err(why) => {
+            error!("Couldn't remove @{user_name}'s nickname: {why:?}");
+            Err(format!(
+                "Sorry, but I couldn't remove <@{user_id}>'s nickname."
+            ))
+        }
+    };
 
-        return Err(why.into());
-    }
-
-    info!("@{moderator_name} removed @{user_name}'s nickname");
-
-    let reply = messages::ok_reply(format!("I've removed <@{user_id}>'s nickname."), true);
+    let reply = match result {
+        Ok(message) => messages::ok_reply(message, true),
+        Err(message) => messages::error_reply(message, true),
+    };
     if let Err(why) = ctx.send(reply).await {
         error!("Couldn't send reply: {why:?}");
         return Err(why.into());

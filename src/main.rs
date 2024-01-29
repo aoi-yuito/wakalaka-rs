@@ -17,35 +17,39 @@ mod database;
 mod framework;
 mod utility;
 
+use std::sync::Arc;
+
 use poise::serenity_prelude as serenity;
 
 use ::serenity::all::GatewayIntents;
 use poise::Framework;
 use sqlx::SqlitePool;
 use tokio::time::Instant;
-use tracing::{debug, error, info, level_filters::LevelFilter, subscriber, warn};
+use tracing::{debug, error, level_filters::LevelFilter, subscriber, warn};
 use tracing_subscriber::{fmt::Subscriber, EnvFilter};
 
 pub struct Data {
-    pub pool: SqlitePool,
+    pub pool: Arc<SqlitePool>,
 }
 
 type Error = Box<dyn std::error::Error + Send + Sync>;
 type Context<'a> = poise::Context<'a, Data, Error>;
 
 #[tokio::main]
-pub async fn main() {
+async fn main() -> Result<(), Error> {
     initialise_subscriber();
 
     let pool = database::initialise().await;
 
-    let data = Data { pool: pool.clone() };
+    let data = Data {
+        pool: Arc::new(pool),
+    };
 
-    let token = match dotenvy::var("TOKEN") {
+    let token = match dotenvy::var("DISCORD_TOKEN") {
         Ok(token) => token,
         Err(why) => {
-            error!("Couldn't find token in environment: {why:?}");
-            return;
+            error!("Couldn't find 'DISCORD_TOKEN' in environment: {why:?}");
+            return Err(why.into());
         }
     };
     let intents = framework::initialise_intents();
@@ -53,11 +57,12 @@ pub async fn main() {
 
     let mut client = initialise_client(token, intents, framework).await;
 
-    info!("Starting client with automatic sharding...");
     if let Err(why) = client.start_autosharded().await {
         error!("Couldn't start client with automatic sharding: {why:?}");
-        return;
+        return Err(why.into());
     }
+
+    Ok(())
 }
 
 async fn initialise_client(
@@ -89,9 +94,9 @@ fn initialise_subscriber() {
 
     let rust_log = match dotenvy::var("RUST_LOG") {
         Ok(level) => level,
-        Err(_) => {
-            error!("Couldn't get log level from environment, setting default...");
-            format!("info")
+        Err(why) => {
+            error!("Couldn't find 'RUST_LOG' in environment: {why:?}");
+            panic!("{why:?}");
         }
     };
 
