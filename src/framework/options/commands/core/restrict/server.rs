@@ -40,10 +40,10 @@ pub async fn server(
 ) -> Result<(), Error> {
     let pool = &ctx.data().pool;
 
-    let other_guild_name = models::guilds::guild_name_from_guild_id(ctx, other_guild_id).await;
+    let other_guild_name = models::guilds::guild_name_from_guild_id(ctx, other_guild_id);
 
     let guild_id = models::guilds::guild_id(ctx).await;
-    let guild_name = models::guilds::guild_name_from_guild_id(ctx, guild_id).await;
+    let guild_name = models::guilds::guild_name_from_guild_id(ctx, guild_id);
 
     // Imagine trying to block your own server... in your OWN server.
     let failsafe_query = guilds::select_guild_id_from_guilds(&guild_id, &pool).await;

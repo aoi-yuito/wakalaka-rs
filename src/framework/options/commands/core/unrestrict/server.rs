@@ -40,7 +40,7 @@ pub async fn server(
 ) -> Result<(), Error> {
     let pool = &ctx.data().pool;
 
-    let other_guild_name = models::guilds::guild_name_from_guild_id(ctx, other_guild_id).await;
+    let other_guild_name = models::guilds::guild_name_from_guild_id(ctx, other_guild_id);
 
     let failsafe_query = guilds::select_guild_id_from_guilds(&other_guild_id, &pool).await;
     if let Some(guild_id) = failsafe_query {
