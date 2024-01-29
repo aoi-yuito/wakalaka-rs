@@ -60,59 +60,32 @@ pub async fn channel(
     }
 
     let failsafe_query = guilds::select_usage_channel_id_from_guilds(&guild_id, &pool).await;
-    if let Some(usage_channel_id) = failsafe_query {
-        if usage_channel_id == channel_id {
-            let reply = messages::error_reply(
-                format!("Couldn't deny usage within <#{usage_channel_id}>."),
-                true,
-            );
-            if let Err(why) = ctx.send(reply).await {
-                error!("Couldn't send reply: {why:?}");
-                return Err(why.into());
-            }
-
-            return Ok(());
+    let result = match failsafe_query {
+        Some(usage_channel_id) if usage_channel_id == channel_id => {
+            Err(format!("Couldn't deny usage within <#{usage_channel_id}>."))
         }
-    } else {
-        let reply = messages::info_reply(
-            format!(
+        None => {
+            Err(format!(
                 "I need to be configured before my usage in <#{channel_id}> could be denied. Please use `/setup usage` to configure me."
-            ),
-            true,
-        );
-        if let Err(why) = ctx.send(reply).await {
-            error!("Couldn't send reply: {why:?}");
-            return Err(why.into());
+            ))
         }
-
-        return Ok(());
-    }
-
-    let previous_query =
-        restricted_guild_channels::select_channel_id_from_restricted_guild_channels(&channel_id, &pool)
-            .await;
-    if let Err(_) = previous_query {
-        info!("Denied usage within #{channel_name} in {guild_name}");
-
-        restricted_guild_channels::insert_into_restricted_guild_channels(&channel, &pool)
-            .await?;
-
-        let reply = messages::ok_reply(
-            format!("I've denied myself to be used within <#{channel_id}>."),
-            true,
-        );
-        if let Err(why) = ctx.send(reply).await {
-            error!("Couldn't send reply: {why:?}");
-            return Err(why.into());
+        _ => {
+            let previous_query = restricted_guild_channels::select_channel_id_from_restricted_guild_channels(&channel_id, &pool).await;
+            match previous_query {
+                Err(_) => {
+                    info!("Denied usage within #{channel_name} in {guild_name}");
+                    restricted_guild_channels::insert_into_restricted_guild_channels(&channel, &pool).await?;
+                    Ok(format!("I've denied myself to be used within <#{channel_id}>."))
+                }
+                _ => Err(format!("My usage is already denied within <#{channel_id}>.")),
+            }
         }
+    };
 
-        return Ok(());
-    }
-
-    let reply = messages::warn_reply(
-        format!("My usage is already denied within <#{channel_id}>."),
-        true,
-    );
+    let reply = match result {
+        Ok(message) => messages::ok_reply(message, true),
+        Err(message) => messages::error_reply(message, true),
+    };
     if let Err(why) = ctx.send(reply).await {
         error!("Couldn't send reply: {why:?}");
         return Err(why.into());

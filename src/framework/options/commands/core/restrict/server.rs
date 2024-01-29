@@ -47,49 +47,35 @@ pub async fn server(
 
     // Imagine trying to block your own server... in your OWN server.
     let failsafe_query = guilds::select_guild_id_from_guilds(&guild_id, &pool).await;
-    if let Some(guild_id) = failsafe_query {
-        if guild_id == other_guild_id {
-            let reply = messages::error_reply(
-                format!("Sorry, but I can't deny invitation to {guild_name}."),
-                true,
-            );
-            if let Err(why) = ctx.send(reply).await {
-                error!("Couldn't send reply: {why:?}");
-                return Err(why.into());
+    let result = match failsafe_query {
+        Some(guild_id) if guild_id == other_guild_id => Err(format!(
+            "Sorry, but I can't deny invitation to {guild_name}."
+        )),
+        _ => {
+            let previous_query =
+                restricted_guilds::select_guild_id_from_restricted_guilds(&other_guild_id, &pool)
+                    .await;
+            match previous_query {
+                Err(_) => {
+                    info!("Denied invitation to {other_guild_name}");
+                    if let Err(why) = other_guild_id.leave(ctx).await {
+                        error!("Couldn't leave {other_guild_name}: {why:?}");
+                        return Err(why.into());
+                    }
+                    restricted_guilds::insert_into_restricted_guilds(&other_guild_id, pool).await?;
+                    Ok(format!(
+                        "I've denied myself from being able to join {other_guild_name}."
+                    ))
+                }
+                _ => Err(format!("I'm already unable to join {other_guild_name}.")),
             }
-
-            return Ok(());
         }
-    }
+    };
 
-    let previous_query =
-        restricted_guilds::select_guild_id_from_restricted_guilds(&other_guild_id, &pool).await;
-    if let Err(_) = previous_query {
-        info!("Denied invitation to {other_guild_name}");
-
-        if let Err(why) = other_guild_id.leave(ctx).await {
-            error!("Couldn't leave {other_guild_name}: {why:?}");
-            return Err(why.into());
-        }
-
-        restricted_guilds::insert_into_restricted_guilds(&other_guild_id, pool).await?;
-
-        let reply = messages::ok_reply(
-            format!("I've denied myself from being invited to {other_guild_name}."),
-            true,
-        );
-        if let Err(why) = ctx.send(reply).await {
-            error!("Couldn't send reply: {why:?}");
-            return Err(why.into());
-        }
-
-        return Ok(());
-    }
-
-    let reply = messages::warn_reply(
-        format!("I'm already unable to be invited to {other_guild_name}."),
-        true,
-    );
+    let reply = match result {
+        Ok(message) => messages::ok_reply(message, true),
+        Err(message) => messages::error_reply(message, true),
+    };
     if let Err(why) = ctx.send(reply).await {
         error!("Couldn't send reply: {why:?}");
         return Err(why.into());

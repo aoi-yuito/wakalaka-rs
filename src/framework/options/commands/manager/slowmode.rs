@@ -84,6 +84,7 @@ pub async fn slowmode(
 
     let guild = models::guilds::guild(ctx).await;
     let (guild_name, guild_channels) = (guild.name, models::channels::channels(ctx).await?);
+
     for mut guild_channel in guild_channels {
         let guild_channel_id = guild_channel.id;
         if channel_id != guild_channel_id {
@@ -94,32 +95,28 @@ pub async fn slowmode(
 
         let channel_builder = EditChannel::default().rate_limit_per_user(delay);
 
-        if let Err(why) = guild_channel.edit(&ctx, channel_builder).await {
-            error!(
-                "Couldn't slow #{guild_channel_name} down for {delay}s in {guild_name}: {why:?}"
-            );
-
-            let reply = messages::error_reply(
-                format!("Sorry, but I couldn't slow <#{guild_channel_id}> down."),
-                true,
-            );
-            if let Err(why) = ctx.send(reply).await {
-                error!("Couldn't send reply: {why:?}");
-                return Err(why.into());
+        let result = match guild_channel.edit(&ctx, channel_builder).await {
+            Ok(_) => {
+                info!("@{user_name} slowed #{guild_channel_name} down to {delay} second(s) in {guild_name}");
+                Ok(format!(
+                    "I've slowed <#{guild_channel_id}> down to `{delay}` second(s)."
+                ))
             }
+            Err(why) => {
+                error!("Couldn't slow #{guild_channel_name} down for {delay} second(s) in {guild_name}: {why:?}");
+                Err(format!(
+                    "Sorry, but I couldn't slow <#{guild_channel_id}> down."
+                ))
+            }
+        };
 
+        let reply = match result {
+            Ok(message) => messages::ok_reply(message, true),
+            Err(message) => messages::error_reply(message, true),
+        };
+        if let Err(why) = ctx.send(reply).await {
+            error!("Couldn't send reply: {why:?}");
             return Err(why.into());
-        } else {
-            info!("@{user_name} slowed #{guild_channel_name} down to {delay}s in {guild_name}");
-
-            let reply = messages::ok_reply(
-                format!("I've' slowed <#{guild_channel_id}> down to `{delay}`s."),
-                true,
-            );
-            if let Err(why) = ctx.send(reply).await {
-                error!("Couldn't send reply: {why:?}");
-                return Err(why.into());
-            }
         }
     }
 

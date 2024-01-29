@@ -67,32 +67,30 @@ pub async fn edit(
     let user_id = user.id;
     let user_name = &user.name;
 
-    let moderator_name = &ctx.author().name;
-
     let mut member = models::members::member(ctx, guild_id, user_id).await;
     let member_builder = EditMember::default().nickname(&nickname);
 
-    if let Err(why) = member.edit(ctx, member_builder).await {
-        error!("Couldn't edit @{user_name}'s nickname to {nickname:?}: {why:?}");
+    let result = match member.edit(ctx, member_builder).await {
+        Ok(_) => {
+            let moderator_name = models::author_name(ctx)?;
 
-        let reply = messages::error_reply(
-            format!("Sorry, but I couldn't change <@{user_id}>'s nickname to `{nickname}`."),
-            true,
-        );
-        if let Err(why) = ctx.send(reply).await {
-            error!("Couldn't send reply: {why:?}");
-            return Err(why.into());
+            info!("@{moderator_name} changed @{user_name}'s nickname to {nickname:?}");
+            Ok(format!(
+                "I've changed <@{user_id}>'s nickname to `{nickname}`."
+            ))
         }
+        Err(why) => {
+            error!("Couldn't edit @{user_name}'s nickname to {nickname:?}: {why:?}");
+            Err(format!(
+                "Sorry, but I couldn't change <@{user_id}>'s nickname to `{nickname}`."
+            ))
+        }
+    };
 
-        return Err(why.into());
-    }
-
-    info!("@{moderator_name} changed @{user_name}'s nickname to {nickname:?}");
-
-    let reply = messages::ok_reply(
-        format!("I've changed <@{user_id}>'s nickname to `{nickname}`."),
-        true,
-    );
+    let reply = match result {
+        Ok(message) => messages::ok_reply(message, true),
+        Err(message) => messages::error_reply(message, true),
+    };
     if let Err(why) = ctx.send(reply).await {
         error!("Couldn't send reply: {why:?}");
         return Err(why.into());

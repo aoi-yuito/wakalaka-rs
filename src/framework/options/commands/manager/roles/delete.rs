@@ -41,29 +41,30 @@ pub async fn delete(
         return Ok(());
     }
 
-    let role_name = role.name.clone();
+    let result = {
+        let role_name = models::roles::role_name(&role).clone();
 
-    let guild = models::guilds::guild(ctx).await;
-    let guild_name = &guild.name;
+        let guild = models::guilds::guild(ctx).await;
+        let guild_name = &guild.name;
 
-    if let Err(why) = role.delete(ctx).await {
-        error!("Couldn't delete @{role_name} role from {guild_name}: {why:?}");
-
-        let reply = messages::error_reply(
-            format!("Sorry, but I couldn't delete a role called `{role_name}`."),
-            true,
-        );
-        if let Err(why) = ctx.send(reply).await {
-            error!("Couldn't send reply: {why:?}");
-            return Err(why.into());
+        match role.delete(ctx).await {
+            Ok(_) => {
+                info!("Deleted role called @{role_name} from {guild_name}");
+                Ok(format!("I've deleted a role called `{role_name}`."))
+            }
+            Err(why) => {
+                error!("Couldn't delete role called @{role_name} from {guild_name}: {why:?}");
+                Err(format!(
+                    "Sorry, but I couldn't delete a role called `{role_name}`."
+                ))
+            }
         }
+    };
 
-        return Ok(());
-    }
-
-    info!("Deleted @{role_name} role from {guild_name}");
-
-    let reply = messages::ok_reply(format!("I've deleted a role called `{role_name}`."), true);
+    let reply = match result {
+        Ok(message) => messages::ok_reply(message, true),
+        Err(message) => messages::error_reply(message, true),
+    };
     if let Err(why) = ctx.send(reply).await {
         error!("Couldn't send reply: {why:?}");
         return Err(why.into());

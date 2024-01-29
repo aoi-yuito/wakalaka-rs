@@ -49,30 +49,31 @@ pub async fn suggestions(
             continue;
         }
 
-        let query =
-            guilds::update_guilds_set_suggestions_channel_id(guild_channel_id, guild_id, pool)
-                .await;
-        if let Err(why) = query {
-            error!("Couldn't configure #{guild_channel_name} for suggestions: {why:?}");
-
-            let reply = messages::error_reply(
-                format!("Sorry, but I couldn't set <#{guild_channel_id}> to be for suggestions."),
-                true,
-            );
-            if let Err(why) = ctx.send(reply).await {
-                error!("Couldn't send reply: {why:?}");
-                return Err(why.into());
+        let result = match guilds::update_guilds_set_suggestions_channel_id(
+            guild_channel_id,
+            guild_id,
+            pool,
+        )
+        .await
+        {
+            Ok(_) => {
+                info!("Configured #{guild_channel_name} for suggestions");
+                Ok(format!(
+                    "I've set <#{guild_channel_id}> to be for suggestions."
+                ))
             }
+            Err(why) => {
+                error!("Couldn't configure #{guild_channel_name} for suggestions: {why:?}");
+                Err(format!(
+                    "Sorry, but I couldn't set <#{guild_channel_id}> to be for suggestions."
+                ))
+            }
+        };
 
-            return Err(why.into());
-        }
-
-        info!("Configured #{guild_channel_name} for suggestions");
-
-        let reply = messages::ok_reply(
-            format!("I've set <#{guild_channel_id}> to be for suggestions."),
-            true,
-        );
+        let reply = match result {
+            Ok(message) => messages::ok_reply(message, true),
+            Err(message) => messages::error_reply(message, true),
+        };
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
             return Err(why.into());
