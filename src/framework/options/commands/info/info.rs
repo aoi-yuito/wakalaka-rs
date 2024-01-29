@@ -21,7 +21,9 @@ use crate::{
     Context, Error,
 };
 
-use super::{CARGO_AUTHORS, CARGO_DESCRIPTION, GITHUB_URL, CARGO_NAME, CARGO_RUST_VERSION, CARGO_VERSION};
+use super::{
+    CARGO_AUTHORS, CARGO_DESCRIPTION, CARGO_NAME, CARGO_RUST_VERSION, CARGO_VERSION, GITHUB_URL,
+};
 
 #[poise::command(
     prefix_command,
@@ -53,7 +55,7 @@ pub async fn info(ctx: Context<'_>) -> Result<(), Error> {
         CARGO_VERSION,      // 1
         CARGO_AUTHORS,      // 2
         CARGO_DESCRIPTION,  // 3
-        GITHUB_URL,   // 4
+        GITHUB_URL,         // 4
         CARGO_RUST_VERSION, // 5
     ];
 
