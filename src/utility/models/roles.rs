@@ -19,6 +19,10 @@ use crate::Context;
 
 use super::guilds;
 
+pub fn role_name(role: &Role) -> &String {
+    &role.name
+}
+
 pub async fn role_ids(roles: Vec<Role>) -> Vec<RoleId> {
     roles.iter().map(|role| role.id).collect::<Vec<RoleId>>()
 }
