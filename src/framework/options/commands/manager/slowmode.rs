@@ -17,7 +17,8 @@ use serenity::{all::ChannelId, builder::EditChannel};
 use tracing::{error, info};
 
 use crate::{
-    check_restricted_guild_channel, utility::{components::messages, models},
+    check_restricted_guild_channel,
+    utility::{components::messages, models},
     Context, Error,
 };
 
