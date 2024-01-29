@@ -17,6 +17,8 @@ mod database;
 mod framework;
 mod utility;
 
+use std::sync::Arc;
+
 use poise::serenity_prelude as serenity;
 
 use ::serenity::all::GatewayIntents;
@@ -27,7 +29,7 @@ use tracing::{debug, error, level_filters::LevelFilter, subscriber, warn};
 use tracing_subscriber::{fmt::Subscriber, EnvFilter};
 
 pub struct Data {
-    pub pool: SqlitePool,
+    pub pool: Arc<SqlitePool>,
 }
 
 type Error = Box<dyn std::error::Error + Send + Sync>;
@@ -39,7 +41,9 @@ async fn main() -> Result<(), Error> {
 
     let pool = database::initialise().await;
 
-    let data = Data { pool: pool.clone() };
+    let data = Data {
+        pool: Arc::new(pool),
+    };
 
     let token = match dotenvy::var("DISCORD_TOKEN") {
         Ok(token) => token,

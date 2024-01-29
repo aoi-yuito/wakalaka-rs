@@ -13,6 +13,8 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
+use std::sync::Arc;
+
 use tokio::time::Duration;
 use tracing::error;
 
@@ -51,7 +53,7 @@ pub async fn shutdown(
         return Err(why.into());
     }
 
-    let manager = ctx.framework().shard_manager.clone();
+    let manager = Arc::new(ctx.framework().shard_manager);
     manager.shutdown_all().await;
 
     tokio::time::sleep(Duration::from_secs(duration)).await;
