@@ -13,14 +13,37 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-use serenity::all::CurrentApplicationInfo;
-use tracing::error;
-
 pub mod channels;
 pub mod guilds;
 pub mod members;
 pub mod roles;
 pub mod users;
+
+use serenity::all::{CurrentApplicationInfo, User, UserId};
+use tracing::error;
+
+use crate::{Context, Error};
+
+pub fn author_name(
+    ctx: Context<'_>,
+) -> Result<&String, Error> {
+    let author = author(ctx)?;
+    let author_name = &author.name;
+    Ok(author_name)
+}
+
+pub fn author_id(
+    ctx: Context<'_>,
+) -> Result<&UserId, Error> {
+    let author = author(ctx)?;
+    let author_id = &author.id;
+    Ok(author_id)
+}
+
+pub fn author(ctx: Context<'_>) -> Result<&User, Error> {
+    let author = ctx.author();
+    Ok(author)
+}
 
 pub async fn current_application_name_raw(ctx: &crate::serenity::Context) -> String {
     match current_application_info_raw(ctx).await {
