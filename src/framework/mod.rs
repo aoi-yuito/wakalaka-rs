@@ -21,8 +21,8 @@ use tracing::debug;
 use crate::framework::options::commands;
 use crate::{Data, Error};
 
-pub(super) mod options;
-pub(super) mod setup;
+pub mod options;
+pub mod setup;
 
 pub async fn initialise_framework_options() -> FrameworkOptions<Data, Error> {
     let start_time = Instant::now();

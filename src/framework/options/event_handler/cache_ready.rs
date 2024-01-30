@@ -18,7 +18,7 @@ use tracing::{error, info};
 
 use crate::{check_restricted_guild, serenity::Context, utility::models, Data};
 
-pub(super) async fn handle(guild_ids: &Vec<GuildId>, ctx: &Context, data: &Data) {
+pub async fn handle(guild_ids: &Vec<GuildId>, ctx: &Context, data: &Data) {
     let pool = &data.pool;
 
     let bot_name = models::current_application_name_raw(ctx).await;

@@ -15,8 +15,8 @@
 
 use tracing::error;
 
-pub(super) mod components;
-pub(super) mod models;
+pub mod components;
+pub mod models;
 
 pub fn rgb_to_u32(code: &String) -> u32 {
     let mut rgb = code.split(',');

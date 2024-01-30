@@ -25,7 +25,7 @@ use crate::{
     Data,
 };
 
-pub(super) async fn handle(ready: &Ready, ctx: &Context, data: &Data) {
+pub async fn handle(ready: &Ready, ctx: &Context, data: &Data) {
     let pool = &data.pool;
 
     let guild_ids = ctx.cache.guilds(); // Cannot have this as a utility function as it would refuse to find the IDs in cache.
