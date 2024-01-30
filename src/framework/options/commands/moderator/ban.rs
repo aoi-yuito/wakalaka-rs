@@ -69,7 +69,8 @@ pub async fn ban(
 
     let reason_char_count = reason.chars().count();
     if reason_char_count < 6 || reason_char_count > 80 {
-        let reply = messages::info_reply("Reason must be between `6` and `80` characters long.", true);
+        let reply =
+            messages::info_reply("Reason must be between `6` and `80` characters long.", true);
         if let Err(why) = ctx.send(reply).await {
             error!("Couldn't send reply: {why:?}");
             return Err(why.into());
@@ -78,60 +79,61 @@ pub async fn ban(
         return Ok(());
     }
 
-    let user_name = &user.name;
+    let result = {
+        let user_name = &user.name;
 
-    let moderator = ctx.author();
-    let (moderator_id, moderator_name) = (moderator.id, &moderator.name);
+        let moderator = ctx.author();
+        let (moderator_id, moderator_name) = (moderator.id, &moderator.name);
 
-    let (guild_id, guild_name) = (
-        models::guilds::guild_id(ctx).await,
-        models::guilds::guild_name(ctx).await,
-    );
+        let (guild_id, guild_name) = (
+            models::guilds::guild_id(ctx).await,
+            models::guilds::guild_name(ctx).await,
+        );
 
-    let created_at = Utc::now().naive_utc();
+        let created_at = Utc::now().naive_utc();
 
-    let mut user_infractions = users::select_infractions_from_users(&user_id, pool).await?;
+        let mut user_infractions = users::select_infractions_from_users(&user_id, pool).await?;
 
-    let message = messages::info_message(format!(
-        "You've been banned from {guild_name} by <@{moderator_id}> for {reason}.",
-    ));
-    if let Err(why) = user.direct_message(&ctx, message).await {
-        error!("Couldn't send reply: {why:?}");
-        return Err(why.into());
-    }
-
-    if let Err(why) = guild_id.ban_with_reason(&ctx, user_id, 0, &reason).await {
-        error!("Couldn't ban @{user_name}: {why:?}");
-
-        let reply = messages::error_reply(format!("Sorry, but I couldn't ban <@{user_id}>."), true);
-        if let Err(why) = ctx.send(reply).await {
-            error!("Couldn't send reply: {why:?}");
-            return Err(why.into());
+        let message = messages::info_message(format!(
+            "You've been banned from {guild_name} by <@{moderator_id}> for {reason}.",
+        ));
+        if let Err(why) = user.direct_message(&ctx, message).await {
+            return Err(format!("Couldn't send reply: {why:?}").into());
         }
 
-        return Err(why.into());
-    }
+        match guild_id.ban_with_reason(&ctx, user_id, 0, &reason).await {
+            Ok(_) => {
+                guild_members::update_guilds_members_set_ban(&user_id, true, pool).await?;
 
-    guild_members::update_guilds_members_set_ban(&user_id, true, pool).await?;
+                infractions::insert_into_infractions(
+                    InfractionType::Ban,
+                    &user_id,
+                    &moderator_id,
+                    &reason,
+                    created_at,
+                    &guild_id,
+                    pool,
+                )
+                .await?;
 
-    info!("@{moderator_name} banned @{user_name} from {guild_name}: {reason}");
+                user_infractions += 1;
 
-    infractions::insert_into_infractions(
-        InfractionType::Ban,
-        &user_id,
-        &moderator_id,
-        &reason,
-        created_at,
-        &guild_id,
-        pool,
-    )
-    .await?;
+                users::update_users_set_infractions(&user_id, user_infractions, pool).await?;
 
-    user_infractions += 1;
+                info!("@{moderator_name} banned @{user_name} from {guild_name}: {reason}");
+                Ok(format!("<@{user_id}> has been banned."))
+            }
+            Err(why) => {
+                error!("Couldn't ban @{user_name}: {why:?}");
+                Err(format!("Sorry, but I couldn't ban <@{user_id}>."))
+            }
+        }
+    };
 
-    users::update_users_set_infractions(&user_id, user_infractions, pool).await?;
-
-    let reply = messages::ok_reply(format!("<@{user_id}> has been banned."), true);
+    let reply = match result {
+        Ok(message) => messages::ok_reply(message, true),
+        Err(message) => messages::error_reply(message, true),
+    };
     if let Err(why) = ctx.send(reply).await {
         error!("Couldn't send reply: {why:?}");
         return Err(why.into());
