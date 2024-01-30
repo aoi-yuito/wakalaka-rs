@@ -32,8 +32,7 @@ pub async fn handle(new_member: &Member, ctx: &Context, data: &Data) {
         error!("Couldn't insert into Users: {why:?}");
     } else {
         let user = &new_member.user;
-        let user_name = &user.name;
-        let user_mention = user.mention();
+        let (user_name, user_mention) = (&user.name, user.mention());
 
         info!("@{user_name} joined {guild_name}");
 
