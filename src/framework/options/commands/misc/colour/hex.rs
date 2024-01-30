@@ -75,7 +75,8 @@ pub async fn hex(
     let res_json: serde_json::Value = serde_json::from_str(&res_text)?;
 
     let colour = utility::hex_to_u32(&colour);
-    let colour_url = format!("https://singlecolorimage.com/get/{colour}/400x400");
+    let hex_colour = format!("{:06X}", colour);
+    let colour_url = format!("https://singlecolorimage.com/get/{hex_colour}/400x400");
 
     let embed = embeds::colour_command_embed(colour, &colour_url, &res_json);
 
