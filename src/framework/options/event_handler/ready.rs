@@ -13,6 +13,9 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
+use std::sync::Arc;
+
+use tokio::time::Duration;
 use tracing::{error, info};
 
 use crate::{
@@ -45,7 +48,14 @@ pub(super) async fn handle(ready: &Ready, ctx: &Context, data: &Data) {
 
     info!("@{user_name} connected to {guild_count} guild(s)");
 
-    set_activity(ctx).await;
+    let ctx = Arc::new(ctx.clone());
+    tokio::spawn(async move {
+        loop {
+            set_activity(&ctx).await;
+
+            tokio::time::sleep(Duration::from_secs(30)).await;
+        }
+    });
 }
 
 async fn set_activity(ctx: &Context) {
