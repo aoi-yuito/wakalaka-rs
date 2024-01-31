@@ -20,37 +20,30 @@ pub mod roles;
 pub mod users;
 
 use serenity::all::{CurrentApplicationInfo, User, UserId};
-use tracing::error;
+use tracing::{error, warn};
 
 use crate::{Context, Error};
 
-pub fn author_name(
-    ctx: Context<'_>,
-) -> Result<&String, Error> {
+pub fn author_name(ctx: Context<'_>) -> Result<&String, Error> {
     let author = author(ctx)?;
-    let author_name = &author.name;
-    Ok(author_name)
+    Ok(&author.name)
 }
 
-pub fn author_id(
-    ctx: Context<'_>,
-) -> Result<&UserId, Error> {
+pub fn author_id(ctx: Context<'_>) -> Result<&UserId, Error> {
     let author = author(ctx)?;
-    let author_id = &author.id;
-    Ok(author_id)
+    Ok(&author.id)
 }
 
 pub fn author(ctx: Context<'_>) -> Result<&User, Error> {
-    let author = ctx.author();
-    Ok(author)
+    Ok(ctx.author())
 }
 
-pub async fn current_application_name_raw(ctx: &crate::serenity::Context) -> String {
+pub async fn current_application_name_raw(ctx: &crate::serenity::Context) -> Option<String> {
     match current_application_info_raw(ctx).await {
-        Some(value) => value.name,
+        Some(app_info) => Some(app_info.name),
         None => {
-            error!("Couldn't get current application name");
-            String::new()
+            warn!("Couldn't get current application name");
+            None
         }
     }
 }

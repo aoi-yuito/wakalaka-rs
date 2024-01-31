@@ -13,21 +13,24 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-use serenity::all::{User, UserId};
+use serenity::{
+    all::{User, UserId},
+    model::ModelError,
+};
 use tracing::error;
 
 use crate::Context;
 
-pub async fn user_name(ctx: Context<'_>, user_id: UserId) -> String {
-    user(ctx, user_id).await.name
+pub async fn user_name(ctx: Context<'_>, user_id: UserId) -> Result<String, ModelError> {
+    Ok(user(ctx, user_id).await?.name)
 }
 
-pub async fn user(ctx: Context<'_>, user_id: UserId) -> User {
+pub async fn user(ctx: Context<'_>, user_id: UserId) -> Result<User, ModelError> {
     match user_id.to_user(&ctx).await {
-        Ok(user) => user,
+        Ok(user) => Ok(user),
         Err(why) => {
             error!("Couldn't get user: {why:?}");
-            return User::default();
+            return Err(ModelError::MemberNotFound);
         }
     }
 }
