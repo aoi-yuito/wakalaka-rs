@@ -21,8 +21,6 @@ use crate::{check_restricted_guild, serenity::Context, utility::models, Data};
 pub async fn handle(guild_ids: &Vec<GuildId>, ctx: &Context, data: &Data) {
     let pool = &data.pool;
 
-    let bot_name = models::current_application_name_raw(ctx).await;
-
     for guild_id in guild_ids {
         let guild_name = models::guilds::guild_name_from_guild_id_raw(ctx, *guild_id);
 
@@ -36,7 +34,9 @@ pub async fn handle(guild_ids: &Vec<GuildId>, ctx: &Context, data: &Data) {
         }
     }
 
+    let bot_name = models::current_application_name_raw(ctx).await.unwrap();
+
     let guild_count = guild_ids.len();
 
-    info!("@{bot_name} prepared for {guild_count} guild(s)");
+    info!("Prepared {guild_count} guild(s) for @{bot_name}");
 }
