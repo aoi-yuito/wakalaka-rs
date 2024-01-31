@@ -97,7 +97,7 @@ pub async fn add(
     };
     let encoded_attachment = attachment.to_base64();
 
-    let guild = models::guilds::guild(ctx).await;
+    let guild = models::guilds::guild(ctx)?;
     let guild_name = &guild.name;
 
     let result = match guild.create_emoji(&ctx, &name, &encoded_attachment).await {

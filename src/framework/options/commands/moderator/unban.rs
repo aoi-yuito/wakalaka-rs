@@ -54,15 +54,15 @@ pub async fn unban(
 
     let pool = &ctx.data().pool;
 
-    let user = models::users::user(ctx, user_id).await;
+    let user = models::users::user(ctx, user_id).await?;
     let user_name = &user.name;
 
     let moderator = ctx.author();
     let moderator_name = &moderator.name;
 
     let (guild_id, guild_name) = (
-        models::guilds::guild_id(ctx).await,
-        models::guilds::guild_name(ctx).await,
+        models::guilds::guild_id(ctx)?,
+        models::guilds::guild_name(ctx)?,
     );
 
     let mut user_infractions = users::select_infractions_from_users(&user_id, pool).await?;

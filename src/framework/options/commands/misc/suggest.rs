@@ -65,8 +65,8 @@ pub async fn suggest(
     }
 
     let (guild_id, guild_name) = (
-        models::guilds::guild_id(ctx).await,
-        models::guilds::guild_name(ctx).await,
+        models::guilds::guild_id(ctx)?,
+        models::guilds::guild_name(ctx)?,
     );
 
     let suggestion_channel =
@@ -109,7 +109,7 @@ pub async fn suggest(
                 .avatar_url()
                 .unwrap_or(ctx.author().default_avatar_url()),
         );
-        let (user_id, moderator_id) = (ctx.author().id, models::guilds::owner_id(ctx).await);
+        let (user_id, moderator_id) = (ctx.author().id, models::guilds::owner_id(ctx)?);
 
         let created_at = Utc::now().naive_utc();
 

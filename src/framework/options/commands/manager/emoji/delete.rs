@@ -60,7 +60,7 @@ pub async fn delete(
         return Ok(());
     }
 
-    let guild = models::guilds::guild(ctx).await;
+    let guild = models::guilds::guild(ctx)?;
     let guild_name = &guild.name;
 
     let emoji_id = match components::emojis::emoji_id(ctx, &name).await {

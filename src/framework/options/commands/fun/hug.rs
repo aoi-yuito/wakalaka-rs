@@ -37,7 +37,7 @@ pub async fn hug(
         return Ok(());
     }
 
-    let user = models::users::user(ctx, user_id).await;
+    let user = models::users::user(ctx, user_id).await?;
 
     let user_mention = ctx.author().mention();
     let other_mention = user.mention();

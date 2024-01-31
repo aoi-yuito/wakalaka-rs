@@ -40,7 +40,7 @@ pub async fn usage(
 ) -> Result<(), Error> {
     let pool = &ctx.data().pool;
 
-    let guild_id = models::guilds::guild_id(ctx).await;
+    let guild_id = models::guilds::guild_id(ctx)?;
 
     let guild_channels = models::channels::channels(ctx).await?;
     for guild_channel in guild_channels {

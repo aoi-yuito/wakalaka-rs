@@ -57,7 +57,7 @@ pub async fn unwarn(
 
     let pool = &ctx.data().pool;
 
-    let user = models::users::user(ctx, user_id).await;
+    let user = models::users::user(ctx, user_id).await?;
     if user.bot || user.system {
         let reply =
             messages::error_reply("Sorry, but bots and system users cannot be unwarned.", true);
@@ -85,7 +85,7 @@ pub async fn unwarn(
     let moderator = ctx.author();
     let moderator_name = &moderator.name;
 
-    let guild_id = models::guilds::guild_id(ctx).await;
+    let guild_id = models::guilds::guild_id(ctx)?;
 
     let mut user_infractions = users::select_infractions_from_users(&user_id, pool).await?;
     if user_infractions < 1 {

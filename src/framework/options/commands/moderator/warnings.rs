@@ -50,7 +50,7 @@ pub async fn warnings(
 
     let pool = &ctx.data().pool;
 
-    let user = models::users::user(ctx, user_id).await;
+    let user = models::users::user(ctx, user_id).await?;
     if user.bot || user.system {
         let reply = messages::error_reply(
             "Sorry, but bots and system users cannot have warnings.",
@@ -64,7 +64,7 @@ pub async fn warnings(
         return Ok(());
     }
 
-    let guild_id = models::guilds::guild_id(ctx).await;
+    let guild_id = models::guilds::guild_id(ctx)?;
 
     let warnings =
         match infractions::select_from_infractions(InfractionType::Warn, &user_id, &guild_id, pool)

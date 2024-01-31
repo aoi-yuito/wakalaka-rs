@@ -44,7 +44,7 @@ pub async fn delete(
     let result = {
         let role_name = models::roles::role_name(&role).clone();
 
-        let guild = models::guilds::guild(ctx).await;
+        let guild = models::guilds::guild(ctx)?;
         let guild_name = &guild.name;
 
         match role.delete(ctx).await {

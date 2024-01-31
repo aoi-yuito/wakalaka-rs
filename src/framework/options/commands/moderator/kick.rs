@@ -71,11 +71,11 @@ pub async fn kick(
         let (moderator_id, moderator_name) = (moderator.id, &moderator.name);
 
         let (guild_id, guild_name) = (
-            models::guilds::guild_id(ctx).await,
-            models::guilds::guild_name(ctx).await,
+            models::guilds::guild_id(ctx)?,
+            models::guilds::guild_name(ctx)?,
         );
 
-        let member = models::members::member(ctx, guild_id, user_id).await;
+        let member = models::members::member(ctx, guild_id, user_id).await?;
 
         let message = messages::info_message(format!(
             "You've been kicked from {guild_name} by <@{moderator_id}> for {reason}.",

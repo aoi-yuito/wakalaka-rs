@@ -47,12 +47,12 @@ pub async fn remove(
     let result = {
         let role_ids = models::roles::role_ids(roles).await;
 
-        let user_name = models::users::user_name(ctx, user_id).await;
+        let user_name = models::users::user_name(ctx, user_id).await?;
 
-        let guild = models::guilds::guild(ctx).await;
+        let guild = models::guilds::guild(ctx)?;
         let (guild_id, guild_name) = (guild.id, &guild.name);
 
-        let member = models::members::member(ctx, guild_id, user_id).await;
+        let member = models::members::member(ctx, guild_id, user_id).await?;
 
         match member.remove_roles(&ctx, &role_ids).await {
             Ok(_) => {

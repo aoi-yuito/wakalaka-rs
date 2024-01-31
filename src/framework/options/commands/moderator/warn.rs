@@ -54,7 +54,7 @@ pub async fn warn(
 
     let pool = &ctx.data().pool;
 
-    let user = models::users::user(ctx, user_id).await;
+    let user = models::users::user(ctx, user_id).await?;
     if user.bot || user.system {
         let reply =
             messages::error_reply("Sorry, but bots and system users cannot be warned.", true);
@@ -85,8 +85,8 @@ pub async fn warn(
     let moderator_name = &moderator.name;
 
     let (guild_id, guild_name) = (
-        models::guilds::guild_id(ctx).await,
-        models::guilds::guild_name(ctx).await,
+        models::guilds::guild_id(ctx)?,
+        models::guilds::guild_name(ctx)?,
     );
 
     let created_at = Utc::now().naive_utc();

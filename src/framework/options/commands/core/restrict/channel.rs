@@ -41,8 +41,8 @@ pub async fn channel(
     let (channel_id, channel_name, guild_id, guild_name) = (
         channel.id,
         &channel.name,
-        &models::guilds::guild_id(ctx).await,
-        &models::guilds::guild_name(ctx).await,
+        &models::guilds::guild_id(ctx)?,
+        &models::guilds::guild_name(ctx)?,
     );
 
     let channel_type = channel.kind;

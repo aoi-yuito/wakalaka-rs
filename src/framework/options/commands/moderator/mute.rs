@@ -55,7 +55,7 @@ pub async fn mute(
 
     let pool = &ctx.data().pool;
 
-    let user = models::users::user(ctx, user_id).await;
+    let user = models::users::user(ctx, user_id).await?;
     if user.bot || user.system {
         let reply =
             messages::error_reply("Sorry, but bots and system users cannot be muted.", true);
@@ -86,15 +86,15 @@ pub async fn mute(
         let (moderator_id, moderator_name) = (moderator.id, &moderator.name);
 
         let (guild_id, guild_name) = (
-            models::guilds::guild_id(ctx).await,
-            models::guilds::guild_name(ctx).await,
+            models::guilds::guild_id(ctx)?,
+            models::guilds::guild_name(ctx)?,
         );
 
         let created_at = Utc::now().naive_utc();
 
         let mut user_infractions = users::select_infractions_from_users(&user_id, pool).await?;
 
-        let mut member = models::members::member(ctx, guild_id, user_id).await;
+        let mut member = models::members::member(ctx, guild_id, user_id).await?;
         let member_builder = EditMember::default().mute(true);
 
         let message = messages::info_message(format!(

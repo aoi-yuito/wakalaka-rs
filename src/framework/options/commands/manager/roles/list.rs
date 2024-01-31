@@ -43,9 +43,9 @@ pub async fn list(ctx: Context<'_>) -> Result<(), Error> {
         return Ok(());
     }
 
-    let guild = models::guilds::guild(ctx).await;
+    let guild = models::guilds::guild(ctx)?;
 
-    let mut roles = models::roles::roles(ctx).await;
+    let mut roles = models::roles::roles(ctx)?;
 
     let mut name_field = String::new();
     let mut colour_field = String::new();

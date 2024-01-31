@@ -42,7 +42,7 @@ pub async fn server(
 
     let other_guild_name = models::guilds::guild_name_from_guild_id(ctx, other_guild_id);
 
-    let guild_id = models::guilds::guild_id(ctx).await;
+    let guild_id = models::guilds::guild_id(ctx)?;
     let guild_name = models::guilds::guild_name_from_guild_id(ctx, guild_id);
 
     // Imagine trying to block your own server... in your OWN server.

@@ -54,7 +54,7 @@ pub async fn untimeout(
 
     let pool = &ctx.data().pool;
 
-    let user = models::users::user(ctx, user_id).await;
+    let user = models::users::user(ctx, user_id).await?;
     if user.bot || user.system {
         let reply = messages::error_reply(
             "Sorry, but bots and system users cannot be timed out.",
@@ -73,7 +73,7 @@ pub async fn untimeout(
     let moderator = ctx.author();
     let moderator_name = &moderator.name;
 
-    let guild_id = models::guilds::guild_id(ctx).await;
+    let guild_id = models::guilds::guild_id(ctx)?;
 
     let mut user_infractions = users::select_infractions_from_users(&user_id, pool).await?;
     if user_infractions < 1 {
@@ -93,7 +93,7 @@ pub async fn untimeout(
     for timeout in timeouts {
         let uuid = timeout.0;
 
-        let mut member = models::members::member(ctx, guild_id, user_id).await;
+        let mut member = models::members::member(ctx, guild_id, user_id).await?;
 
         if let Err(why) = member.enable_communication(ctx).await {
             error!("Couldn't get member out of time-out: {why:?}");

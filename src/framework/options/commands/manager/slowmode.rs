@@ -82,7 +82,7 @@ pub async fn slowmode(
 
     let user_name = &ctx.author().name;
 
-    let guild = models::guilds::guild(ctx).await;
+    let guild = models::guilds::guild(ctx)?;
     let (guild_name, guild_channels) = (guild.name, models::channels::channels(ctx).await?);
 
     for mut guild_channel in guild_channels {

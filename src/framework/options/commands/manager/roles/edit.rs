@@ -70,7 +70,7 @@ pub async fn edit(
     let result = {
         let role_name = models::roles::role_name(&role).clone();
 
-        let guild = models::guilds::guild(ctx).await;
+        let guild = models::guilds::guild(ctx)?;
         let guild_name = &guild.name;
 
         let role_builder = if let Some(colour) = colour {
