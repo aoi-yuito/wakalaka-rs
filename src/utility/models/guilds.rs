@@ -13,13 +13,16 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-use serenity::all::{Guild, GuildId, UserId};
-use tracing::warn;
+use serenity::{
+    all::{Guild, GuildId, UserId},
+    model::ModelError,
+};
+use tracing::{error, warn};
 
 use crate::Context;
 
-pub async fn owner_id(ctx: Context<'_>) -> UserId {
-    guild(ctx).await.owner_id
+pub fn owner_id(ctx: Context<'_>) -> Result<UserId, ModelError> {
+    Ok(guild(ctx)?.owner_id)
 }
 
 pub fn guild_name_from_guild_id_raw(ctx: &crate::serenity::Context, guild_id: GuildId) -> String {
@@ -40,12 +43,12 @@ pub fn guild_name_from_guild_id(ctx: Context<'_>, guild_id: GuildId) -> String {
     }
 }
 
-pub async fn guild_name_raw(ctx: &crate::serenity::Context) -> String {
-    guild_raw(ctx).await.name
+pub async fn guild_name_raw(ctx: &crate::serenity::Context) -> Result<String, ModelError> {
+    Ok(guild_raw(ctx).await?.name)
 }
 
-pub async fn guild_name(ctx: Context<'_>) -> String {
-    guild(ctx).await.name
+pub fn guild_name(ctx: Context<'_>) -> Result<String, ModelError> {
+    Ok(guild(ctx)?.name)
 }
 
 pub async fn guild_id_raw(ctx: &crate::serenity::Context) -> GuildId {
@@ -56,22 +59,26 @@ pub async fn guild_id_raw(ctx: &crate::serenity::Context) -> GuildId {
         .expect("Couldn't find guild ID in current application")
 }
 
-pub async fn guild_id(ctx: Context<'_>) -> GuildId {
-    guild(ctx).await.id
+pub fn guild_id(ctx: Context<'_>) -> Result<GuildId, ModelError> {
+    Ok(guild(ctx)?.id)
 }
 
-pub async fn guild_raw(ctx: &crate::serenity::Context) -> Guild {
-    if let Some(guild) = guild_id_raw(ctx).await.to_guild_cached(ctx) {
-        guild.clone()
-    } else {
-        panic!("Couldn't get guild from guild ID");
+pub async fn guild_raw(ctx: &crate::serenity::Context) -> Result<Guild, ModelError> {
+    match guild_id_raw(ctx).await.to_guild_cached(ctx) {
+        Some(guild) => Ok(guild.clone()),
+        None => {
+            error!("Couldn't get guild");
+            return Err(ModelError::GuildNotFound);
+        }
     }
 }
 
-pub async fn guild(ctx: Context<'_>) -> Guild {
-    if let Some(guild) = ctx.guild() {
-        guild.clone()
-    } else {
-        panic!("Couldn't get guild");
+pub fn guild(ctx: Context<'_>) -> Result<Guild, ModelError> {
+    match ctx.guild() {
+        Some(guild) => Ok(guild.clone()),
+        None => {
+            error!("Couldn't get guild");
+            return Err(ModelError::GuildNotFound);
+        }
     }
 }
