@@ -46,7 +46,7 @@ pub async fn handle(ready: &Ready, ctx: &Context, data: &Data) {
 
     let user_name = &ready.user.name;
 
-    info!("@{user_name} connected to {guild_count} guild(s)");
+    info!("Connected to {guild_count} guild(s) as @{user_name}");
 
     let ctx = Arc::new(ctx.clone());
     tokio::spawn(async move {
