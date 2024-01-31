@@ -67,7 +67,7 @@ pub async fn rgb(
     let res_text = res.text().await?;
     let res_json: serde_json::Value = serde_json::from_str(&res_text)?;
 
-    let colour = utility::hex_to_u32(&colour);
+    let colour = utility::rgb_to_u32(&colour);
     let hex_colour = format!("{:06X}", colour);
     let colour_url = format!("https://singlecolorimage.com/get/{hex_colour}/400x400");
 
