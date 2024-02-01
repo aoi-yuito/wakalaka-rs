@@ -26,7 +26,7 @@ pub async fn user_name(ctx: Context<'_>, user_id: UserId) -> Result<String, Mode
 }
 
 pub async fn user(ctx: Context<'_>, user_id: UserId) -> Result<User, ModelError> {
-    match user_id.to_user(&ctx).await {
+    match user_id.to_user(ctx).await {
         Ok(user) => Ok(user),
         Err(why) => {
             error!("Couldn't get user: {why:?}");

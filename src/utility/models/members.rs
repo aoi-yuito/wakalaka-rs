@@ -35,7 +35,7 @@ pub async fn members_raw(
 }
 
 pub async fn members(ctx: Context<'_>, guild_id: GuildId) -> Result<Vec<Member>, ModelError> {
-    match guild_id.members(&ctx, None, None).await {
+    match guild_id.members(ctx, None, None).await {
         Ok(members) => Ok(members),
         Err(why) => {
             error!("Couldn't get members: {why:?}");

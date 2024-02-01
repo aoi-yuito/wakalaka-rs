@@ -22,7 +22,7 @@ pub async fn handle(ctx: Context<'_>) {
         &ctx.author().name,
         &ctx.command().qualified_name,
         ctx.channel_id()
-            .name(&ctx)
+            .name(ctx)
             .await
             .expect("No channel name found"),
     );

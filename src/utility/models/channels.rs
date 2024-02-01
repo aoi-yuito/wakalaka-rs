@@ -39,7 +39,7 @@ pub async fn channels_raw(ctx: &crate::serenity::Context) -> Result<Vec<GuildCha
 }
 
 pub async fn channels(ctx: Context<'_>) -> Result<Vec<GuildChannel>, ModelError> {
-    let channels = match guilds::guild(ctx)?.channels(&ctx).await {
+    let channels = match guilds::guild(ctx)?.channels(ctx).await {
         Ok(channels) => channels.values().cloned().collect::<Vec<GuildChannel>>(),
         Err(why) => {
             error!("Couldn't get channels: {why:?}");

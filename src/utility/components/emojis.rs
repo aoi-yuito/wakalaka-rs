@@ -32,7 +32,7 @@ pub async fn emoji_id(ctx: Context<'_>, name: &str) -> Option<EmojiId> {
 pub async fn emoji(ctx: Context<'_>, id: EmojiId) -> Option<Emoji> {
     let guild = models::guilds::guild(ctx).ok()?;
 
-    match guild.emoji(&ctx, id).await {
+    match guild.emoji(ctx, id).await {
         Ok(emoji) => Some(emoji),
         Err(why) => {
             error!("Couldn't get emoji: {why:?}");
@@ -44,7 +44,7 @@ pub async fn emoji(ctx: Context<'_>, id: EmojiId) -> Option<Emoji> {
 pub async fn emojis(ctx: Context<'_>) -> Option<Vec<Emoji>> {
     let guild = models::guilds::guild(ctx).ok()?;
 
-    match guild.emojis(&ctx).await {
+    match guild.emojis(ctx).await {
         Ok(emojis) => Some(emojis),
         Err(why) => {
             error!("Couldn't get emojis: {why:?}");
