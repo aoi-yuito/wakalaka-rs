@@ -98,7 +98,7 @@ pub async fn suggest(
         }
 
         let (user_name, user_avatar_url) = (
-            models::author_name(ctx)?,
+            models::users::author_name(ctx)?,
             ctx.author()
                 .avatar_url()
                 .unwrap_or(ctx.author().default_avatar_url()),
