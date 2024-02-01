@@ -118,7 +118,7 @@ pub fn avatar_command_embed(name: &String, avatar_url: String) -> CreateEmbed {
         .image(avatar_url)
 }
 
-pub fn banned_command_embed(name: &String, avatar_url: String, banner_url: String) -> CreateEmbed {
+pub fn banner_command_embed(name: &String, avatar_url: String, banner_url: String) -> CreateEmbed {
     let embed_author = CreateEmbedAuthor::new(name).icon_url(&avatar_url);
 
     CreateEmbed::default()
