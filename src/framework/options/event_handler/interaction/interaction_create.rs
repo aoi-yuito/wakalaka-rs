@@ -56,7 +56,7 @@ async fn handle_suggestion_message(
         }
     };
     let (moderator_id, user_id, channel_id) = (
-        match guild_id.to_guild_cached(&ctx.cache) {
+        match guild_id.to_guild_cached(&ctx) {
             Some(value) => value.owner_id,
             None => {
                 warn!("Couldn't get guild owner ID");
@@ -71,12 +71,12 @@ async fn handle_suggestion_message(
         let response =
             messages::error_response("Only moderators can accept or reject suggestions.", true)
                 .await;
-        let _ = component.create_response(&ctx.http, response).await;
+        let _ = component.create_response(&ctx, response).await;
 
         return;
     }
 
-    let mut message = match channel_id.message(&ctx.http, message_id).await {
+    let mut message = match channel_id.message(&ctx, message_id).await {
         Ok(message) => message,
         Err(why) => {
             error!("Couldn't get message: {why:?}");
@@ -118,7 +118,7 @@ async fn handle_suggestion_message(
 
     let member_builder = EditMessage::default().components(Vec::new());
 
-    if let Err(why) = message.edit(&ctx.http, member_builder).await {
+    if let Err(why) = message.edit(&ctx, member_builder).await {
         error!("Couldn't edit message: {why:?}");
         return;
     }

@@ -26,8 +26,8 @@ pub fn owner_id(ctx: Context<'_>) -> Result<UserId, ModelError> {
 }
 
 pub fn guild_name_from_guild_id_raw(ctx: &crate::serenity::Context, guild_id: GuildId) -> String {
-    if let Some(value) = guild_id.name(ctx) {
-        value
+    if let Some(guild_name) = guild_id.name(ctx) {
+        guild_name
     } else {
         warn!("Couldn't get guild name, using guild ID instead");
         format!("'{guild_id}'")
@@ -35,8 +35,8 @@ pub fn guild_name_from_guild_id_raw(ctx: &crate::serenity::Context, guild_id: Gu
 }
 
 pub fn guild_name_from_guild_id(ctx: Context<'_>, guild_id: GuildId) -> String {
-    if let Some(value) = guild_id.name(ctx) {
-        value
+    if let Some(guild_name) = guild_id.name(ctx) {
+        guild_name
     } else {
         warn!("Couldn't get guild name, using guild ID instead");
         format!("'{guild_id}'")
