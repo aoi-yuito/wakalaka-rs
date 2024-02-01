@@ -61,25 +61,28 @@ pub async fn edit(
     let guild_id = models::guilds::guild_id(ctx)?;
 
     let user = models::users::user(ctx, user_id).await?;
-    let user_id = user.id;
-    let user_name = &user.name;
+    let (user_id, user_name, user_mention) = (
+        user.id,
+        user.name,
+        models::users::user_mention(ctx, user_id).await?,
+    );
 
     let mut member = models::members::member(ctx, guild_id, user_id).await?;
     let member_builder = EditMember::default().nickname(&nickname);
 
     let result = match member.edit(ctx, member_builder).await {
         Ok(_) => {
-            let moderator_name = models::author_name(ctx)?;
+            let moderator_name = models::users::author_name(ctx)?;
 
             info!("@{moderator_name} changed @{user_name}'s nickname to {nickname:?}");
             Ok(format!(
-                "I've changed <@{user_id}>'s nickname to `{nickname}`."
+                "I've changed {user_mention}'s nickname to `{nickname}`."
             ))
         }
         Err(why) => {
             error!("Couldn't edit @{user_name}'s nickname to {nickname:?}: {why:?}");
             Err(format!(
-                "Sorry, but I couldn't change <@{user_id}>'s nickname to `{nickname}`."
+                "Sorry, but I couldn't change {user_mention}'s nickname to `{nickname}`."
             ))
         }
     };

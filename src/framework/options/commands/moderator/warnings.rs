@@ -51,6 +51,8 @@ pub async fn warnings(
     let pool = &ctx.data().pool;
 
     let user = models::users::user(ctx, user_id).await?;
+    let user_mention = models::users::user_mention(ctx, user_id).await?;
+
     if user.bot || user.system {
         let reply = messages::error_reply(
             "Sorry, but bots and system users cannot have warnings.",
@@ -76,7 +78,8 @@ pub async fn warnings(
 
     let warning_count = warnings.len();
     if warning_count < 1 {
-        let reply = messages::info_reply(format!("<@{user_id}> doesn't have any warnings."), true);
+        let reply =
+            messages::info_reply(format!("{user_mention} doesn't have any warnings."), true);
         ctx.send(reply).await?;
 
         return Ok(());

@@ -55,11 +55,14 @@ pub async fn warn(
     let pool = &ctx.data().pool;
 
     let user = models::users::user(ctx, user_id).await?;
-    let user_name = &user.name;
+    let (user_name, user_mention) = (&user.name, models::users::user_mention(ctx, user_id).await?);
 
-    let moderator = models::author(ctx)?;
-    let moderator_id = moderator.id;
-    let moderator_name = &moderator.name;
+    let moderator = models::users::author(ctx)?;
+    let (moderator_id, moderator_name, moderator_mention) = (
+        moderator.id,
+        &moderator.name,
+        models::users::author_mention(ctx)?,
+    );
 
     if user.bot || user.system {
         let reply =
@@ -101,7 +104,7 @@ pub async fn warn(
     if warning_count >= 3 {
         let reply = messages::warn_reply(
             format!(
-            "<@{user_id}> has reached a maximum number of warnings. Take further action manually.",
+            "{user_mention} has reached a maximum number of warnings. Take further action manually.",
         ),
             true,
         );
@@ -111,7 +114,7 @@ pub async fn warn(
     }
 
     let message = messages::info_message(format!(
-        "You've been warned by <@{moderator_id}> in {guild_name} for {reason}.",
+        "You've been warned by {moderator_mention} in {guild_name} for {reason}.",
     ));
     if let Err(why) = user.direct_message(ctx, message).await {
         error!("Couldn't send reply: {why:?}");
@@ -135,7 +138,7 @@ pub async fn warn(
 
     users::update_users_set_infractions(&user_id, user_infractions, pool).await?;
 
-    let reply = messages::ok_reply(format!("<@{user_id}> has been warned."), true);
+    let reply = messages::ok_reply(format!("{user_mention} has been warned."), true);
     ctx.send(reply).await?;
 
     Ok(())

@@ -47,7 +47,10 @@ pub async fn remove(
     let result = {
         let role_ids = models::roles::role_ids(roles).await;
 
-        let user_name = models::users::user_name(ctx, user_id).await?;
+        let (user_name, user_mention) = (
+            models::users::user_name(ctx, user_id).await?,
+            models::users::user_mention(ctx, user_id).await?,
+        );
 
         let guild = models::guilds::guild(ctx)?;
         let (guild_id, guild_name) = (guild.id, &guild.name);
@@ -57,12 +60,12 @@ pub async fn remove(
         match member.remove_roles(ctx, &role_ids).await {
             Ok(_) => {
                 info!("Removed role(s) from @{user_name} in {guild_name}");
-                Ok(format!("I've removed role(s) from <@{user_id}>."))
+                Ok(format!("I've removed role(s) from {user_mention}."))
             }
             Err(why) => {
                 error!("Couldn't remove role(s) from @{user_name} in {guild_name}: {why:?}");
                 Err(format!(
-                    "Sorry, but I couldn't remove role(s) from <@{user_id}>."
+                    "Sorry, but I couldn't remove role(s) from {user_mention}."
                 ))
             }
         }

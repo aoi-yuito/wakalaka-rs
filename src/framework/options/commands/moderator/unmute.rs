@@ -55,11 +55,10 @@ pub async fn unmute(
     let pool = &ctx.data().pool;
 
     let user = models::users::user(ctx, user_id).await?;
-    let user_name = &user.name;
+    let (user_name, user_mention) = (&user.name, models::users::user_mention(ctx, user_id).await?);
 
-    let moderator = models::author(ctx)?;
-    let moderator_id = moderator.id;
-    let moderator_name = &moderator.name;
+    let moderator = models::users::author(ctx)?;
+    let (moderator_id, moderator_name) = (moderator.id, &moderator.name);
 
     if user_id == moderator_id {
         let reply = messages::error_reply("Sorry, but you cannot unmute yourself.", true);
@@ -73,7 +72,7 @@ pub async fn unmute(
     let mut user_infractions = users::select_infractions_from_users(&user_id, pool).await?;
     if user_infractions < 1 {
         let reply =
-            messages::info_reply(format!("<@{user_id}> hasn't been punished before."), true);
+            messages::info_reply(format!("{user_mention} hasn't been punished before."), true);
         ctx.send(reply).await?;
 
         return Ok(());
@@ -91,8 +90,10 @@ pub async fn unmute(
         if let Err(why) = member.edit(ctx, member_builder).await {
             error!("Couldn't unmute @{user_name}: {why:?}");
 
-            let reply =
-                messages::error_reply(format!("Sorry, but I couldn't unmute <@{user_id}>."), true);
+            let reply = messages::error_reply(
+                format!("Sorry, but I couldn't unmute {user_mention}."),
+                true,
+            );
             ctx.send(reply).await?;
 
             return Err(why.into());
@@ -126,7 +127,7 @@ pub async fn unmute(
 
         users::update_users_set_infractions(&user_id, user_infractions, pool).await?;
 
-        let reply = messages::ok_reply(format!("<@{user_id}> has been unmuted."), true);
+        let reply = messages::ok_reply(format!("{user_mention} has been unmuted."), true);
         ctx.send(reply).await?;
     }
 

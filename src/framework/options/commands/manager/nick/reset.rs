@@ -46,22 +46,26 @@ pub async fn reset(
     let guild_id = models::guilds::guild_id(ctx)?;
 
     let user = models::users::user(ctx, user_id).await?;
-    let user_name = &user.name;
+    let (user_id, user_name, user_mention) = (
+        user.id,
+        user.name,
+        models::users::user_mention(ctx, user_id).await?,
+    );
 
     let mut member = models::members::member(ctx, guild_id, user_id).await?;
     let member_builder = EditMember::default().nickname(String::new());
 
     let result = match member.edit(ctx, member_builder).await {
         Ok(_) => {
-            let moderator_name = models::author_name(ctx)?;
+            let moderator_name = models::users::author_name(ctx)?;
 
             info!("@{moderator_name} removed @{user_name}'s nickname");
-            Ok(format!("I've removed <@{user_id}>'s nickname."))
+            Ok(format!("I've removed {user_mention}'s nickname."))
         }
         Err(why) => {
             error!("Couldn't remove @{user_name}'s nickname: {why:?}");
             Err(format!(
-                "Sorry, but I couldn't remove <@{user_id}>'s nickname."
+                "Sorry, but I couldn't remove {user_mention}'s nickname."
             ))
         }
     };

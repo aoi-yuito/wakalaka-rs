@@ -61,7 +61,7 @@ pub async fn timeout(
 
     let user = models::users::user(ctx, user_id).await?;
 
-    let moderator = models::author(ctx)?;
+    let moderator = models::users::author(ctx)?;
     let moderator_id = moderator.id;
 
     if user.bot || user.system {
@@ -98,9 +98,11 @@ pub async fn timeout(
     }
 
     let result = {
-        let user_name = &user.name;
+        let (user_name, user_mention) =
+            (&user.name, models::users::user_mention(ctx, user_id).await?);
 
-        let moderator_name = &moderator.name;
+        let (moderator_name, moderator_mention) =
+            (&moderator.name, models::users::author_mention(ctx)?);
 
         let (guild_id, guild_name) = (
             models::guilds::guild_id(ctx)?,
@@ -114,10 +116,10 @@ pub async fn timeout(
         let mut member = models::members::member(ctx, guild_id, user_id).await?;
 
         let message = messages::info_message(format!(
-            "You've been timed out in {guild_name} by <@{moderator_id}> for {reason}.",
+            "You've been timed out in {guild_name} by {moderator_mention} for {reason}.",
         ));
         if let Err(why) = user.direct_message(ctx, message).await {
-            return Err(format!("Couldn't send reply: {why:?}").into());
+            return Err(format!("Couldn't send direct message: {why:?}").into());
         }
 
         let time = Timestamp::from(Utc::now() + Duration::days(duration));
@@ -150,12 +152,12 @@ pub async fn timeout(
 
                 users::update_users_set_infractions(&user_id, user_infractions, pool).await?;
 
-                Ok(format!("<@{user_id}> has been timed out."))
+                Ok(format!("{user_mention} has been timed out."))
             }
             Err(why) => {
                 error!("Couldn't put @{user_name} on a time-out: {why:?}");
                 Err(format!(
-                    "Sorry, but I couldn't put <@{user_id}> on a time-out."
+                    "Sorry, but I couldn't put {user_mention} on a time-out."
                 ))
             }
         }

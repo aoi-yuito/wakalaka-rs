@@ -57,7 +57,7 @@ pub async fn ban(
 
     let user = models::users::user(ctx, user_id).await?;
 
-    let moderator = models::author(ctx)?;
+    let moderator = models::users::author(ctx)?;
     let moderator_id = moderator.id;
 
     if user.bot || user.system {
@@ -84,9 +84,11 @@ pub async fn ban(
     }
 
     let result = {
-        let user_name = &user.name;
+        let (user_name, user_mention) =
+            (&user.name, models::users::user_mention(ctx, user_id).await?);
 
-        let moderator_name = &moderator.name;
+        let (moderator_name, moderator_mention) =
+            (&moderator.name, models::users::author_mention(ctx)?);
 
         let (guild_id, guild_name) = (
             models::guilds::guild_id(ctx)?,
@@ -98,10 +100,10 @@ pub async fn ban(
         let mut user_infractions = users::select_infractions_from_users(&user_id, pool).await?;
 
         let message = messages::info_message(format!(
-            "You've been banned from {guild_name} by <@{moderator_id}> for {reason}.",
+            "You've been banned from {guild_name} by {moderator_mention} for {reason}.",
         ));
         if let Err(why) = user.direct_message(ctx, message).await {
-            return Err(format!("Couldn't send reply: {why:?}").into());
+            return Err(format!("Couldn't send direct message: {why:?}").into());
         }
 
         match guild_id.ban_with_reason(ctx, user_id, 0, &reason).await {
@@ -124,11 +126,11 @@ pub async fn ban(
                 users::update_users_set_infractions(&user_id, user_infractions, pool).await?;
 
                 info!("@{moderator_name} banned @{user_name} from {guild_name}: {reason}");
-                Ok(format!("<@{user_id}> has been banned."))
+                Ok(format!("{user_mention} has been banned."))
             }
             Err(why) => {
                 error!("Couldn't ban @{user_name}: {why:?}");
-                Err(format!("Sorry, but I couldn't ban <@{user_id}>."))
+                Err(format!("Sorry, but I couldn't ban {user_mention}."))
             }
         }
     };

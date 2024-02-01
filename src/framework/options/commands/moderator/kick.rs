@@ -44,7 +44,7 @@ pub async fn kick(
 
     let user_id = user.id;
 
-    let moderator = models::author(ctx)?;
+    let moderator = models::users::author(ctx)?;
     let moderator_id = moderator.id;
 
     if user.system {
@@ -70,9 +70,11 @@ pub async fn kick(
     }
 
     let result = {
-        let user_name = &user.name;
+        let (user_name, user_mention) =
+            (&user.name, models::users::user_mention(ctx, user_id).await?);
 
-        let moderator_name = &moderator.name;
+        let (moderator_name, moderator_mention) =
+            (&moderator.name, models::users::author_mention(ctx)?);
 
         let (guild_id, guild_name) = (
             models::guilds::guild_id(ctx)?,
@@ -82,20 +84,20 @@ pub async fn kick(
         let member = models::members::member(ctx, guild_id, user_id).await?;
 
         let message = messages::info_message(format!(
-            "You've been kicked from {guild_name} by <@{moderator_id}> for {reason}.",
+            "You've been kicked from {guild_name} by {moderator_mention} for {reason}.",
         ));
         if let Err(why) = user.direct_message(ctx, message).await {
-            return Err(format!("Couldn't send reply: {why:?}").into());
+            return Err(format!("Couldn't send direct message: {why:?}").into());
         }
 
         match member.kick_with_reason(ctx, &reason).await {
             Ok(_) => {
                 info!("@{moderator_name} kicked @{user_name} from {guild_name}: {reason}");
-                Ok(format!("<@{user_id}> has been kicked."))
+                Ok(format!("{user_mention} has been kicked."))
             }
             Err(why) => {
                 error!("Couldn't kick @{user_name}: {why:?}");
-                Err(format!("Sorry, but I couldn't kick <@{user_id}>."))
+                Err(format!("Sorry, but I couldn't kick {user_mention}."))
             }
         }
     };
