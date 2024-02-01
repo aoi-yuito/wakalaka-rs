@@ -56,13 +56,20 @@ pub async fn ban(
     let pool = &ctx.data().pool;
 
     let user = models::users::user(ctx, user_id).await?;
+
+    let moderator = models::author(ctx)?;
+    let moderator_id = moderator.id;
+
     if user.bot || user.system {
         let reply =
             messages::error_reply("Sorry, but bots and system users cannot be banned.", true);
-        if let Err(why) = ctx.send(reply).await {
-            error!("Couldn't send reply: {why:?}");
-            return Err(why.into());
-        }
+        ctx.send(reply).await?;
+
+        return Ok(());
+    }
+    if user_id == moderator_id {
+        let reply = messages::error_reply("Sorry, but you cannot ban yourself.", true);
+        ctx.send(reply).await?;
 
         return Ok(());
     }
@@ -71,10 +78,7 @@ pub async fn ban(
     if reason_char_count < 6 || reason_char_count > 80 {
         let reply =
             messages::info_reply("Reason must be between `6` and `80` characters long.", true);
-        if let Err(why) = ctx.send(reply).await {
-            error!("Couldn't send reply: {why:?}");
-            return Err(why.into());
-        }
+        ctx.send(reply).await?;
 
         return Ok(());
     }
@@ -82,8 +86,7 @@ pub async fn ban(
     let result = {
         let user_name = &user.name;
 
-        let moderator = ctx.author();
-        let (moderator_id, moderator_name) = (moderator.id, &moderator.name);
+        let moderator_name = &moderator.name;
 
         let (guild_id, guild_name) = (
             models::guilds::guild_id(ctx)?,
@@ -97,11 +100,11 @@ pub async fn ban(
         let message = messages::info_message(format!(
             "You've been banned from {guild_name} by <@{moderator_id}> for {reason}.",
         ));
-        if let Err(why) = user.direct_message(&ctx, message).await {
+        if let Err(why) = user.direct_message(ctx, message).await {
             return Err(format!("Couldn't send reply: {why:?}").into());
         }
 
-        match guild_id.ban_with_reason(&ctx, user_id, 0, &reason).await {
+        match guild_id.ban_with_reason(ctx, user_id, 0, &reason).await {
             Ok(_) => {
                 guild_members::update_guilds_members_set_ban(&user_id, true, pool).await?;
 
@@ -134,10 +137,7 @@ pub async fn ban(
         Ok(message) => messages::ok_reply(message, true),
         Err(message) => messages::error_reply(message, true),
     };
-    if let Err(why) = ctx.send(reply).await {
-        error!("Couldn't send reply: {why:?}");
-        return Err(why.into());
-    }
+    ctx.send(reply).await?;
 
     Ok(())
 }

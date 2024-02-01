@@ -42,12 +42,20 @@ pub async fn kick(
         return Ok(());
     }
 
+    let user_id = user.id;
+
+    let moderator = models::author(ctx)?;
+    let moderator_id = moderator.id;
+
     if user.system {
         let reply = messages::error_reply("Sorry, but system users cannot be kicked.", true);
-        if let Err(why) = ctx.send(reply).await {
-            error!("Couldn't send reply: {why:?}");
-            return Err(why.into());
-        }
+        ctx.send(reply).await?;
+
+        return Ok(());
+    }
+    if user_id == moderator_id {
+        let reply = messages::error_reply("Sorry, but you cannot ban yourself.", true);
+        ctx.send(reply).await?;
 
         return Ok(());
     }
@@ -56,19 +64,15 @@ pub async fn kick(
     if reason_char_count < 6 || reason_char_count > 80 {
         let reply =
             messages::info_reply("Reason must be between `6` and `80` characters long.", true);
-        if let Err(why) = ctx.send(reply).await {
-            error!("Couldn't send reply: {why:?}");
-            return Err(why.into());
-        }
+        ctx.send(reply).await?;
 
         return Ok(());
     }
 
     let result = {
-        let (user_id, user_name) = (user.id, &user.name);
+        let user_name = &user.name;
 
-        let moderator = ctx.author();
-        let (moderator_id, moderator_name) = (moderator.id, &moderator.name);
+        let moderator_name = &moderator.name;
 
         let (guild_id, guild_name) = (
             models::guilds::guild_id(ctx)?,
@@ -80,11 +84,11 @@ pub async fn kick(
         let message = messages::info_message(format!(
             "You've been kicked from {guild_name} by <@{moderator_id}> for {reason}.",
         ));
-        if let Err(why) = user.direct_message(&ctx, message).await {
+        if let Err(why) = user.direct_message(ctx, message).await {
             return Err(format!("Couldn't send reply: {why:?}").into());
         }
 
-        match member.kick_with_reason(&ctx, &reason).await {
+        match member.kick_with_reason(ctx, &reason).await {
             Ok(_) => {
                 info!("@{moderator_name} kicked @{user_name} from {guild_name}: {reason}");
                 Ok(format!("<@{user_id}> has been kicked."))
@@ -100,10 +104,7 @@ pub async fn kick(
         Ok(message) => messages::ok_reply(message, true),
         Err(message) => messages::error_reply(message, true),
     };
-    if let Err(why) = ctx.send(reply).await {
-        error!("Couldn't send reply: {why:?}");
-        return Err(why.into());
-    }
+    ctx.send(reply).await?;
 
     Ok(())
 }

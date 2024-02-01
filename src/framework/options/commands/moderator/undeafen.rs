@@ -55,23 +55,18 @@ pub async fn undeafen(
     let pool = &ctx.data().pool;
 
     let user = models::users::user(ctx, user_id).await?;
-    if user.bot || user.system {
-        let reply = messages::error_reply(
-            "Sorry, but bots and system users cannot be undeafened.",
-            true,
-        );
-        if let Err(why) = ctx.send(reply).await {
-            error!("Couldn't send reply: {why:?}");
-            return Err(why.into());
-        }
+    let user_name = &user.name;
+
+    let moderator = models::author(ctx)?;
+    let moderator_id = moderator.id;
+    let moderator_name = &moderator.name;
+
+    if user_id == moderator_id {
+        let reply = messages::error_reply("Sorry, but you cannot undeafen yourself.", true);
+        ctx.send(reply).await?;
 
         return Ok(());
     }
-
-    let user_name = &user.name;
-
-    let moderator = ctx.author();
-    let moderator_name = &moderator.name;
 
     let guild_id = models::guilds::guild_id(ctx)?;
 
@@ -79,10 +74,7 @@ pub async fn undeafen(
     if user_infractions < 1 {
         let reply =
             messages::info_reply(format!("<@{user_id}> hasn't been punished before."), true);
-        if let Err(why) = ctx.send(reply).await {
-            error!("Couldn't send reply: {why:?}");
-            return Err(why.into());
-        }
+        ctx.send(reply).await?;
 
         return Ok(());
     }
@@ -96,17 +88,14 @@ pub async fn undeafen(
         let mut member = models::members::member(ctx, guild_id, user_id).await?;
         let member_builder = EditMember::default().deafen(false);
 
-        if let Err(why) = member.edit(&ctx, member_builder).await {
+        if let Err(why) = member.edit(ctx, member_builder).await {
             error!("Couldn't undeafen @{user_name}: {why:?}");
 
             let reply = messages::error_reply(
                 format!("Sorry, but I couldn't undeafen <@{user_id}>."),
                 true,
             );
-            if let Err(why) = ctx.send(reply).await {
-                error!("Couldn't send reply: {why:?}");
-                return Err(why.into());
-            }
+            ctx.send(reply).await?;
 
             return Err(why.into());
         }
@@ -120,10 +109,7 @@ pub async fn undeafen(
                     "Reason must be between `6` and `80` characters long.",
                     true,
                 );
-                if let Err(why) = ctx.send(reply).await {
-                    error!("Couldn't send reply: {why:?}");
-                    return Err(why.into());
-                }
+                ctx.send(reply).await?;
 
                 return Ok(());
             }
@@ -143,10 +129,7 @@ pub async fn undeafen(
         users::update_users_set_infractions(&user_id, user_infractions, pool).await?;
 
         let reply = messages::ok_reply(format!("<@{user_id}> has been undeafened."), true);
-        if let Err(why) = ctx.send(reply).await {
-            error!("Couldn't send reply: {why:?}");
-            return Err(why.into());
-        }
+        ctx.send(reply).await?;
     }
 
     Ok(())

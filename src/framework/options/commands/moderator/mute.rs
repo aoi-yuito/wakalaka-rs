@@ -56,13 +56,20 @@ pub async fn mute(
     let pool = &ctx.data().pool;
 
     let user = models::users::user(ctx, user_id).await?;
+
+    let moderator = models::author(ctx)?;
+    let moderator_id = moderator.id;
+
     if user.bot || user.system {
         let reply =
             messages::error_reply("Sorry, but bots and system users cannot be muted.", true);
-        if let Err(why) = ctx.send(reply).await {
-            error!("Couldn't send reply: {why:?}");
-            return Err(why.into());
-        }
+        ctx.send(reply).await?;
+
+        return Ok(());
+    }
+    if user_id == moderator_id {
+        let reply = messages::error_reply("Sorry, but you cannot mute yourself.", true);
+        ctx.send(reply).await?;
 
         return Ok(());
     }
@@ -71,10 +78,7 @@ pub async fn mute(
     if reason_char_count < 6 || reason_char_count > 80 {
         let reply =
             messages::info_reply("Reason must be between `6` and `80` characters long.", true);
-        if let Err(why) = ctx.send(reply).await {
-            error!("Couldn't send reply: {why:?}");
-            return Err(why.into());
-        }
+        ctx.send(reply).await?;
 
         return Ok(());
     }
@@ -82,8 +86,7 @@ pub async fn mute(
     let result = {
         let user_name = &user.name;
 
-        let moderator = ctx.author();
-        let (moderator_id, moderator_name) = (moderator.id, &moderator.name);
+        let moderator_name = &moderator.name;
 
         let (guild_id, guild_name) = (
             models::guilds::guild_id(ctx)?,
@@ -100,11 +103,11 @@ pub async fn mute(
         let message = messages::info_message(format!(
             "You've been muted by <@{moderator_id}> in {guild_name} for {reason}.",
         ));
-        if let Err(why) = user.direct_message(&ctx, message).await {
+        if let Err(why) = user.direct_message(ctx, message).await {
             return Err(format!("Couldn't send reply: {why:?}").into());
         }
 
-        match member.edit(&ctx, member_builder).await {
+        match member.edit(ctx, member_builder).await {
             Ok(_) => {
                 guild_members::update_guilds_members_set_mute(&user_id, true, pool).await?;
 
@@ -138,10 +141,7 @@ pub async fn mute(
         Ok(message) => messages::ok_reply(message, true),
         Err(message) => messages::error_reply(message, true),
     };
-    if let Err(why) = ctx.send(reply).await {
-        error!("Couldn't send reply: {why:?}");
-        return Err(why.into());
-    }
+    ctx.send(reply).await?;
 
     Ok(())
 }
