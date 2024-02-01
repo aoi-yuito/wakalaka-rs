@@ -14,7 +14,6 @@
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
 use regex::Regex;
-use tracing::error;
 
 use crate::{
     check_restricted_guild_channel,
@@ -48,10 +47,7 @@ pub async fn rgb(
     let rgb_re = Regex::new(r"^\d{1,3},\d{1,3},\d{1,3}$").unwrap();
     if !rgb_re.is_match(&colour) {
         let reply = messages::error_reply("Sorry, but that's not a valid RGB colour.", true);
-        if let Err(why) = ctx.send(reply).await {
-            error!("Couldn't send reply: {why:?}");
-            return Err(why.into());
-        }
+        ctx.send(reply).await?;
 
         return Ok(());
     }
@@ -74,10 +70,7 @@ pub async fn rgb(
     let embed = embeds::colour_command_embed(colour, &colour_url, &res_json);
 
     let reply = replies::reply_embed(embed, false);
-    if let Err(why) = ctx.send(reply).await {
-        error!("Couldn't send reply: {why:?}");
-        return Err(why.into());
-    }
+    ctx.send(reply).await?;
 
     Ok(())
 }

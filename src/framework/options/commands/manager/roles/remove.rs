@@ -54,7 +54,7 @@ pub async fn remove(
 
         let member = models::members::member(ctx, guild_id, user_id).await?;
 
-        match member.remove_roles(&ctx, &role_ids).await {
+        match member.remove_roles(ctx, &role_ids).await {
             Ok(_) => {
                 info!("Removed role(s) from @{user_name} in {guild_name}");
                 Ok(format!("I've removed role(s) from <@{user_id}>."))
@@ -72,10 +72,7 @@ pub async fn remove(
         Ok(message) => messages::ok_reply(message, true),
         Err(message) => messages::error_reply(message, true),
     };
-    if let Err(why) = ctx.send(reply).await {
-        error!("Couldn't send reply: {why:?}");
-        return Err(why.into());
-    }
+    ctx.send(reply).await?;
 
     Ok(())
 }

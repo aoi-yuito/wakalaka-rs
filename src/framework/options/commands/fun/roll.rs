@@ -14,7 +14,6 @@
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
 use rand::{rngs::StdRng, Rng, SeedableRng};
-use tracing::error;
 
 use crate::{check_restricted_guild_channel, utility::components::messages, Context, Error};
 
@@ -47,10 +46,7 @@ pub async fn roll(
     };
 
     let reply = messages::reply(format!("<@{user_id}> rolled {number} point(s)."), false);
-    if let Err(why) = ctx.send(reply).await {
-        error!("Couldn't send reply: {why:?}");
-        return Err(why.into());
-    }
+    ctx.send(reply).await?;
 
     Ok(())
 }

@@ -56,10 +56,7 @@ pub async fn warnings(
             "Sorry, but bots and system users cannot have warnings.",
             true,
         );
-        if let Err(why) = ctx.send(reply).await {
-            error!("Couldn't send reply: {why:?}");
-            return Err(why.into());
-        }
+        ctx.send(reply).await?;
 
         return Ok(());
     }
@@ -80,10 +77,7 @@ pub async fn warnings(
     let warning_count = warnings.len();
     if warning_count < 1 {
         let reply = messages::info_reply(format!("<@{user_id}> doesn't have any warnings."), true);
-        if let Err(why) = ctx.send(reply).await {
-            error!("Couldn't send reply: {why:?}");
-            return Err(why.into());
-        }
+        ctx.send(reply).await?;
 
         return Ok(());
     }
@@ -106,10 +100,7 @@ pub async fn warnings(
     let embed = embeds::warnings_command_embed(&user, uuids, moderator_ids, reasons);
 
     let reply = replies::reply_embed(embed, true);
-    if let Err(why) = ctx.send(reply).await {
-        error!("Couldn't send reply: {why:?}");
-        return Err(why.into());
-    }
+    ctx.send(reply).await?;
 
     Ok(())
 }

@@ -53,10 +53,7 @@ pub async fn set(
             format!("Nickname must be between `1` and `32` characters long."),
             true,
         );
-        if let Err(why) = ctx.send(reply).await {
-            error!("Couldn't send reply: {why:?}");
-            return Err(why.into());
-        }
+        ctx.send(reply).await?;
 
         return Ok(());
     }
@@ -69,7 +66,7 @@ pub async fn set(
     let mut member = models::members::member(ctx, guild_id, user_id).await?;
     let member_builder = EditMember::default().nickname(&nickname);
 
-    let result = match member.edit(&ctx, member_builder).await {
+    let result = match member.edit(ctx, member_builder).await {
         Ok(_) => {
             let moderator_name = models::author_name(ctx)?;
 
@@ -90,10 +87,7 @@ pub async fn set(
         Ok(message) => messages::ok_reply(message, true),
         Err(message) => messages::error_reply(message, true),
     };
-    if let Err(why) = ctx.send(reply).await {
-        error!("Couldn't send reply: {why:?}");
-        return Err(why.into());
-    }
+    ctx.send(reply).await?;
 
     Ok(())
 }

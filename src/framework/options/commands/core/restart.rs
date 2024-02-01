@@ -16,7 +16,7 @@
 use std::sync::Arc;
 
 use serenity::all::ShardId;
-use tracing::{error, info};
+use tracing::info;
 
 use crate::{utility::components::messages, Context, Error};
 
@@ -32,10 +32,7 @@ use crate::{utility::components::messages, Context, Error};
 /// Restart yours truly to her former glory.
 pub async fn restart(ctx: Context<'_>) -> Result<(), Error> {
     let reply = messages::reply("Restarting...", true);
-    if let Err(why) = ctx.send(reply).await {
-        error!("Couldn't send reply: {why:?}");
-        return Err(why.into());
-    }
+    ctx.send(reply).await?;
 
     let manager = Arc::new(ctx.framework().shard_manager);
 

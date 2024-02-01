@@ -14,7 +14,7 @@
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
 use serenity::all::{ChannelType, GuildChannel};
-use tracing::{error, info};
+use tracing::info;
 
 use crate::{
     database::{guilds, restricted_guild_channels},
@@ -51,10 +51,7 @@ pub async fn channel(
             format!("Sorry, but I can't allow usage within <#{channel_id}>."),
             true,
         );
-        if let Err(why) = ctx.send(reply).await {
-            error!("Couldn't send reply: {why:?}");
-            return Err(why.into());
-        }
+        ctx.send(reply).await?;
 
         return Ok(());
     }
@@ -86,10 +83,7 @@ pub async fn channel(
         Ok(message) => messages::ok_reply(message, true),
         Err(message) => messages::error_reply(message, true),
     };
-    if let Err(why) = ctx.send(reply).await {
-        error!("Couldn't send reply: {why:?}");
-        return Err(why.into());
-    }
+    ctx.send(reply).await?;
 
     Ok(())
 }

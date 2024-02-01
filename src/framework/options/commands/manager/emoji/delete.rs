@@ -52,10 +52,7 @@ pub async fn delete(
             format!("Name of the emoji must be between `2` and `32` characters long."),
             true,
         );
-        if let Err(why) = ctx.send(reply).await {
-            error!("Couldn't send reply: {why:?}");
-            return Err(why.into());
-        }
+        ctx.send(reply).await?;
 
         return Ok(());
     }
@@ -72,10 +69,7 @@ pub async fn delete(
                 format!("Sorry, but I couldn't find an emoji called `{name}`."),
                 true,
             );
-            if let Err(why) = ctx.send(reply).await {
-                error!("Couldn't send reply: {why:?}");
-                return Err(why.into());
-            }
+            ctx.send(reply).await?;
 
             return Ok(());
         }
@@ -84,7 +78,7 @@ pub async fn delete(
     let emoji = components::emojis::emoji(ctx, emoji_id).await.unwrap();
     let emoji_name = &emoji.name;
 
-    let result = match guild.delete_emoji(&ctx, emoji_id).await {
+    let result = match guild.delete_emoji(ctx, emoji_id).await {
         Ok(_) => {
             let user_name = models::author_name(ctx)?;
 
@@ -103,10 +97,7 @@ pub async fn delete(
         Ok(message) => messages::ok_reply(message, true),
         Err(message) => messages::error_reply(message, true),
     };
-    if let Err(why) = ctx.send(reply).await {
-        error!("Couldn't send reply: {why:?}");
-        return Err(why.into());
-    }
+    ctx.send(reply).await?;
 
     Ok(())
 }

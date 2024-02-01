@@ -16,7 +16,6 @@
 use std::{cmp::Reverse, fmt::Write};
 
 use serenity::model::Colour;
-use tracing::error;
 
 use crate::{
     check_restricted_guild_channel,
@@ -72,10 +71,7 @@ pub async fn list(ctx: Context<'_>) -> Result<(), Error> {
     let embed = embeds::roles_command_embed(&guild, embed_fields);
 
     let reply = replies::reply_embed(embed, true);
-    if let Err(why) = ctx.send(reply).await {
-        error!("Couldn't send reply: {why:?}");
-        return Err(why.into());
-    }
+    ctx.send(reply).await?;
 
     Ok(())
 }

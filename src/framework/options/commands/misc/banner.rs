@@ -64,10 +64,7 @@ pub async fn banner(
                     format!("Sorry, but I couldn't find <@{user_id}>'s banner."),
                     true,
                 );
-                if let Err(why) = ctx.send(reply).await {
-                    error!("Couldn't send reply: {why:?}");
-                    return Err(why.into());
-                }
+                ctx.send(reply).await?;
 
                 return Ok(());
             }
@@ -77,10 +74,7 @@ pub async fn banner(
     let embed = embeds::banned_command_embed(user_name, user_avatar_url, user_banner_url);
 
     let reply = replies::reply_embed(embed, false);
-    if let Err(why) = ctx.send(reply).await {
-        error!("Couldn't send reply: {why:?}");
-        return Err(why.into());
-    }
+    ctx.send(reply).await?;
 
     Ok(())
 }

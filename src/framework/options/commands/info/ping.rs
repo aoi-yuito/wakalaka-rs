@@ -16,7 +16,6 @@
 use std::sync::Arc;
 
 use tokio::time::Instant;
-use tracing::error;
 
 use crate::{
     check_restricted_guild_channel,
@@ -62,9 +61,6 @@ pub async fn ping(ctx: Context<'_>) -> Result<(), Error> {
         embeds::ping_command_embed(elapsed_time, shard_ids, shard_stages, shard_latencies);
 
     let reply = replies::reply_embed(ping_embed, true);
-    if let Err(why) = ctx.send(reply).await {
-        error!("Couldn't send reply: {why:?}");
-        return Err(why.into());
-    }
+    ctx.send(reply).await?;
     Ok(())
 }

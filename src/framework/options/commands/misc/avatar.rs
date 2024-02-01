@@ -14,10 +14,10 @@
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
 use serenity::all::User;
-use tracing::error;
 
 use crate::{
-    check_restricted_guild_channel, utility::components::{embeds, replies},
+    check_restricted_guild_channel,
+    utility::components::{embeds, replies},
     Context, Error,
 };
 
@@ -47,10 +47,7 @@ pub async fn avatar(
     let embed = embeds::avatar_command_embed(user_name, user_avatar_url);
 
     let reply = replies::reply_embed(embed, false);
-    if let Err(why) = ctx.send(reply).await {
-        error!("Couldn't send reply: {why:?}");
-        return Err(why.into());
-    }
+    ctx.send(reply).await?;
 
     Ok(())
 }

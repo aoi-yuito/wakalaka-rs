@@ -14,7 +14,6 @@
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
 use regex::Regex;
-use tracing::error;
 
 use crate::{
     check_restricted_guild_channel,
@@ -55,10 +54,7 @@ pub async fn hex(
     if !hex_regex.is_match(&colour) {
         let reply =
             messages::error_reply("Sorry, but that's not a valid hexadecimal colour.", true);
-        if let Err(why) = ctx.send(reply).await {
-            error!("Couldn't send reply: {why:?}");
-            return Err(why.into());
-        }
+        ctx.send(reply).await?;
 
         return Ok(());
     }
@@ -81,10 +77,7 @@ pub async fn hex(
     let embed = embeds::colour_command_embed(colour, &colour_url, &res_json);
 
     let reply = replies::reply_embed(embed, false);
-    if let Err(why) = ctx.send(reply).await {
-        error!("Couldn't send reply: {why:?}");
-        return Err(why.into());
-    }
+    ctx.send(reply).await?;
 
     Ok(())
 }

@@ -51,10 +51,7 @@ pub async fn add(
             format!("Name of the emoji must be between `2` and `32` characters long."),
             true,
         );
-        if let Err(why) = ctx.send(reply).await {
-            error!("Couldn't send reply: {why:?}");
-            return Err(why.into());
-        }
+        ctx.send(reply).await?;
 
         return Ok(());
     }
@@ -78,10 +75,7 @@ pub async fn add(
     if image_width != 128 || image_height != 128 {
         let reply =
             messages::info_reply("Width and height of the image must be `128` pixels.", true);
-        if let Err(why) = ctx.send(reply).await {
-            error!("Couldn't send reply: {why:?}");
-            return Err(why.into());
-        }
+        ctx.send(reply).await?;
 
         return Ok(());
     }
@@ -100,7 +94,7 @@ pub async fn add(
     let guild = models::guilds::guild(ctx)?;
     let guild_name = &guild.name;
 
-    let result = match guild.create_emoji(&ctx, &name, &encoded_attachment).await {
+    let result = match guild.create_emoji(ctx, &name, &encoded_attachment).await {
         Ok(_) => {
             let user_name = models::author_name(ctx)?;
 
@@ -119,10 +113,7 @@ pub async fn add(
         Ok(message) => messages::ok_reply(message, true),
         Err(message) => messages::error_reply(message, true),
     };
-    if let Err(why) = ctx.send(reply).await {
-        error!("Couldn't send reply: {why:?}");
-        return Err(why.into());
-    }
+    ctx.send(reply).await?;
 
     Ok(())
 }

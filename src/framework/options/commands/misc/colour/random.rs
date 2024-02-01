@@ -13,8 +13,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-use tracing::error;
-
 use crate::{
     check_restricted_guild_channel,
     utility::{
@@ -56,10 +54,7 @@ pub async fn random(ctx: Context<'_>) -> Result<(), Error> {
     let embed = embeds::colour_command_embed(colour, &colour_url, &res_json);
 
     let reply = replies::reply_embed(embed, false);
-    if let Err(why) = ctx.send(reply).await {
-        error!("Couldn't send reply: {why:?}");
-        return Err(why.into());
-    }
+    ctx.send(reply).await?;
 
     Ok(())
 }

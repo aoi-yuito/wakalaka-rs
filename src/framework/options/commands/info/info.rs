@@ -62,10 +62,7 @@ pub async fn info(ctx: Context<'_>) -> Result<(), Error> {
     let info_embed = embeds::info_command_embed(&bot_avatar_url, constants);
 
     let reply = replies::reply_embed(info_embed, true);
-    if let Err(why) = ctx.send(reply).await {
-        error!("Couldn't send reply: {why:?}");
-        return Err(why.into());
-    }
+    ctx.send(reply).await?;
 
     Ok(())
 }
