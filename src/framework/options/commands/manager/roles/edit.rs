@@ -58,10 +58,7 @@ pub async fn edit(
                 format!("Name of the role must be between `1` and `100` characters long."),
                 true,
             );
-            if let Err(why) = ctx.send(reply).await {
-                error!("Couldn't send reply: {why:?}");
-                return Err(why.into());
-            }
+            ctx.send(reply).await?;
 
             return Ok(());
         }
@@ -70,7 +67,7 @@ pub async fn edit(
     let result = {
         let role_name = models::roles::role_name(&role).clone();
 
-        let guild = models::guilds::guild(ctx).await;
+        let guild = models::guilds::guild(ctx)?;
         let guild_name = &guild.name;
 
         let role_builder = if let Some(colour) = colour {
@@ -106,10 +103,7 @@ pub async fn edit(
         Ok(message) => messages::ok_reply(message, true),
         Err(message) => messages::error_reply(message, true),
     };
-    if let Err(why) = ctx.send(reply).await {
-        error!("Couldn't send reply: {why:?}");
-        return Err(why.into());
-    }
+    ctx.send(reply).await?;
 
     Ok(())
 }

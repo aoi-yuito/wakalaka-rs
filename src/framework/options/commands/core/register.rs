@@ -37,7 +37,7 @@ pub async fn register(
     #[flag]
     global: bool,
 ) -> Result<(), Error> {
-    let guild_id = models::guilds::guild_id(ctx).await;
+    let guild_id = models::guilds::guild_id(ctx)?;
 
     let commands = &ctx.framework().options().commands;
     let commands_builder = create_application_commands(&commands);

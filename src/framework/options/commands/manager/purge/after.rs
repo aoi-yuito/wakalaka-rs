@@ -45,10 +45,7 @@ pub async fn after(
             "Amount to delete must be between `1` and `100` messages.",
             true,
         );
-        if let Err(why) = ctx.send(reply).await {
-            error!("Couldn't send reply: {why:?}");
-            return Err(why.into());
-        }
+        ctx.send(reply).await?;
 
         return Ok(());
     }

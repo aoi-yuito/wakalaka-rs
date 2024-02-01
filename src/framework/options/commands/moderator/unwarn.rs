@@ -14,7 +14,7 @@
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
 use serenity::all::UserId;
-use tracing::{error, info};
+use tracing::info;
 
 use crate::{
     check_restricted_guild_channel,
@@ -45,7 +45,7 @@ pub async fn unwarn(
     #[min_length = 36]
     #[max_length = 36]
     uuid: String,
-    #[description = "The reason for unwarning, if any."]
+    #[description = "The reason for deleting warning, if any."]
     #[min_length = 6]
     #[max_length = 80]
     reason: Option<String>,
@@ -57,14 +57,23 @@ pub async fn unwarn(
 
     let pool = &ctx.data().pool;
 
-    let user = models::users::user(ctx, user_id).await;
+    let user = models::users::user(ctx, user_id).await?;
+    let user_name = &user.name;
+
+    let moderator = models::author(ctx)?;
+    let moderator_id = moderator.id;
+    let moderator_name = &moderator.name;
+
     if user.bot || user.system {
         let reply =
             messages::error_reply("Sorry, but bots and system users cannot be unwarned.", true);
-        if let Err(why) = ctx.send(reply).await {
-            error!("Couldn't send reply: {why:?}");
-            return Err(why.into());
-        }
+        ctx.send(reply).await?;
+
+        return Ok(());
+    }
+    if user_id == moderator_id {
+        let reply = messages::error_reply("Sorry, but you cannot unwarn yourself.", true);
+        ctx.send(reply).await?;
 
         return Ok(());
     }
@@ -72,29 +81,18 @@ pub async fn unwarn(
     let uuid_char_count = uuid.chars().count();
     if uuid_char_count != 36 {
         let reply = messages::info_reply("UUID must be exactly `36` characters long.", true);
-        if let Err(why) = ctx.send(reply).await {
-            error!("Couldn't send reply: {why:?}");
-            return Err(why.into());
-        }
+        ctx.send(reply).await?;
 
         return Ok(());
     }
 
-    let user_name = &user.name;
-
-    let moderator = ctx.author();
-    let moderator_name = &moderator.name;
-
-    let guild_id = models::guilds::guild_id(ctx).await;
+    let guild_id = models::guilds::guild_id(ctx)?;
 
     let mut user_infractions = users::select_infractions_from_users(&user_id, pool).await?;
     if user_infractions < 1 {
         let reply =
             messages::info_reply(format!("<@{user_id}> hasn't been punished before."), true);
-        if let Err(why) = ctx.send(reply).await {
-            error!("Couldn't send reply: {why:?}");
-            return Err(why.into());
-        }
+        ctx.send(reply).await?;
 
         return Ok(());
     }
@@ -112,10 +110,7 @@ pub async fn unwarn(
                     "Reason must be between `6` and `80` characters long.",
                     true,
                 );
-                if let Err(why) = ctx.send(reply).await {
-                    error!("Couldn't send reply: {why:?}");
-                    return Err(why.into());
-                }
+                ctx.send(reply).await?;
 
                 return Ok(());
             }
@@ -135,10 +130,7 @@ pub async fn unwarn(
         users::update_users_set_infractions(&user_id, user_infractions, pool).await?;
 
         let reply = messages::ok_reply(format!("I've removed a warning from <@{user_id}>."), true);
-        if let Err(why) = ctx.send(reply).await {
-            error!("Couldn't send reply: {why:?}");
-            return Err(why.into());
-        }
+        ctx.send(reply).await?;
     }
 
     Ok(())

@@ -59,27 +59,32 @@ pub async fn timeout(
 
     let pool = &ctx.data().pool;
 
-    let user = models::users::user(ctx, user_id).await;
+    let user = models::users::user(ctx, user_id).await?;
+
+    let moderator = models::author(ctx)?;
+    let moderator_id = moderator.id;
+
     if user.bot || user.system {
         let reply = messages::error_reply(
             "Sorry, but bots and system users cannot be timed out.",
             true,
         );
-        if let Err(why) = ctx.send(reply).await {
-            error!("Couldn't send reply: {why:?}");
-            return Err(why.into());
-        }
+        ctx.send(reply).await?;
+
+        return Ok(());
+    }
+    if user_id == moderator_id {
+        let reply = messages::error_reply("Sorry, but you cannot time yourself out.", true);
+        ctx.send(reply).await?;
 
         return Ok(());
     }
 
     let reason_char_count = reason.chars().count();
     if reason_char_count < 6 || reason_char_count > 80 {
-        let reply = messages::info_reply("Reason must be between `6` and `80` characters long.", true);
-        if let Err(why) = ctx.send(reply).await {
-            error!("Couldn't send reply: {why:?}");
-            return Err(why.into());
-        }
+        let reply =
+            messages::info_reply("Reason must be between `6` and `80` characters long.", true);
+        ctx.send(reply).await?;
 
         return Ok(());
     }
@@ -87,81 +92,80 @@ pub async fn timeout(
     let duration = duration.unwrap_or(1);
     if duration < 1 || duration > 28 {
         let reply = messages::info_reply("Duration must be between `1` and `28` day(s).", true);
-        if let Err(why) = ctx.send(reply).await {
-            error!("Couldn't send reply: {why:?}");
-            return Err(why.into());
-        }
+        ctx.send(reply).await?;
 
         return Ok(());
     }
 
-    let user_name = &user.name;
+    let result = {
+        let user_name = &user.name;
 
-    let moderator = ctx.author();
-    let (moderator_id, moderator_name) = (moderator.id, &moderator.name);
+        let moderator_name = &moderator.name;
 
-    let (guild_id, guild_name) = (
-        models::guilds::guild_id(ctx).await,
-        models::guilds::guild_name(ctx).await,
-    );
-
-    let created_at = Utc::now().naive_utc();
-
-    let mut user_infractions = users::select_infractions_from_users(&user_id, pool).await?;
-
-    let mut member = models::members::member(ctx, guild_id, user_id).await;
-
-    let message = messages::info_message(format!(
-        "You've been timed out in {guild_name} by <@{moderator_id}> for {reason}.",
-    ));
-    if let Err(why) = user.direct_message(&ctx, message).await {
-        error!("Couldn't send reply: {why:?}");
-        return Err(why.into());
-    }
-
-    let time = Timestamp::from(Utc::now() + Duration::days(duration));
-    let disabled_until = time.to_rfc3339().expect("Couldn't convert time to RFC3339");
-
-    if let Err(why) = member.disable_communication_until_datetime(ctx, time).await {
-        error!("Couldn't put @{user_name} on a time-out: {why:?}");
-
-        let reply = messages::error_reply(
-            format!("Sorry, but I couldn't put <@{user_id}> on a time-out."),
-            true,
+        let (guild_id, guild_name) = (
+            models::guilds::guild_id(ctx)?,
+            models::guilds::guild_name(ctx)?,
         );
-        if let Err(why) = ctx.send(reply).await {
-            error!("Couldn't send reply: {why:?}");
-            return Err(why.into());
+
+        let created_at = Utc::now().naive_utc();
+
+        let mut user_infractions = users::select_infractions_from_users(&user_id, pool).await?;
+
+        let mut member = models::members::member(ctx, guild_id, user_id).await?;
+
+        let message = messages::info_message(format!(
+            "You've been timed out in {guild_name} by <@{moderator_id}> for {reason}.",
+        ));
+        if let Err(why) = user.direct_message(ctx, message).await {
+            return Err(format!("Couldn't send reply: {why:?}").into());
         }
 
-        return Err(why.into());
-    }
+        let time = Timestamp::from(Utc::now() + Duration::days(duration));
+        let disabled_until = time.to_rfc3339().expect("Couldn't convert time to RFC3339");
 
-    guild_members::update_guilds_members_set_timeout(&user_id, true, Some(disabled_until), pool)
-        .await?;
+        match member.disable_communication_until_datetime(ctx, time).await {
+            Ok(_) => {
+                guild_members::update_guilds_members_set_timeout(
+                    &user_id,
+                    true,
+                    Some(disabled_until),
+                    pool,
+                )
+                .await?;
 
-    info!("@{moderator_name} timed out @{user_name} from {guild_name}: {reason}");
+                info!("@{moderator_name} timed out @{user_name} from {guild_name}: {reason}");
 
-    infractions::insert_into_infractions(
-        InfractionType::Timeout,
-        &user_id,
-        &moderator_id,
-        &reason,
-        created_at,
-        &guild_id,
-        pool,
-    )
-    .await?;
+                infractions::insert_into_infractions(
+                    InfractionType::Timeout,
+                    &user_id,
+                    &moderator_id,
+                    &reason,
+                    created_at,
+                    &guild_id,
+                    pool,
+                )
+                .await?;
 
-    user_infractions += 1;
+                user_infractions += 1;
 
-    users::update_users_set_infractions(&user_id, user_infractions, pool).await?;
+                users::update_users_set_infractions(&user_id, user_infractions, pool).await?;
 
-    let reply = messages::ok_reply(format!("<@{user_id}> has been timed out."), true);
-    if let Err(why) = ctx.send(reply).await {
-        error!("Couldn't send reply: {why:?}");
-        return Err(why.into());
-    }
+                Ok(format!("<@{user_id}> has been timed out."))
+            }
+            Err(why) => {
+                error!("Couldn't put @{user_name} on a time-out: {why:?}");
+                Err(format!(
+                    "Sorry, but I couldn't put <@{user_id}> on a time-out."
+                ))
+            }
+        }
+    };
+
+    let reply = match result {
+        Ok(message) => messages::ok_reply(message, true),
+        Err(message) => messages::error_reply(message, true),
+    };
+    ctx.send(reply).await?;
 
     Ok(())
 }

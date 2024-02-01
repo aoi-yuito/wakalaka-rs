@@ -13,7 +13,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-pub(super) mod guild_create;
-pub(super) mod guild_delete;
-pub(super) mod guild_member_addition;
-pub(super) mod guild_member_removal;
+pub mod guild_create;
+pub mod guild_delete;
+pub mod guild_member_addition;
+pub mod guild_member_removal;

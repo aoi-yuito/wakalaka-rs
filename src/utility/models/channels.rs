@@ -13,10 +13,13 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-use serenity::all::{ChannelId, GuildChannel};
+use serenity::{
+    all::{ChannelId, GuildChannel},
+    model::ModelError,
+};
 use tracing::error;
 
-use crate::{Context, Error};
+use crate::Context;
 
 use super::guilds;
 
@@ -24,23 +27,23 @@ pub fn channel_id(ctx: Context<'_>) -> ChannelId {
     ctx.channel_id()
 }
 
-pub async fn channels_raw(ctx: &crate::serenity::Context) -> Result<Vec<GuildChannel>, Error> {
-    let channels = match guilds::guild_raw(ctx).await.channels(&ctx).await {
+pub async fn channels_raw(ctx: &crate::serenity::Context) -> Result<Vec<GuildChannel>, ModelError> {
+    let channels = match guilds::guild_raw(ctx).await?.channels(&ctx).await {
         Ok(channels) => channels.values().cloned().collect::<Vec<GuildChannel>>(),
         Err(why) => {
             error!("Couldn't get channels: {why:?}");
-            return Err(why.into());
+            return Err(ModelError::ChannelNotFound);
         }
     };
     Ok(channels)
 }
 
-pub async fn channels(ctx: Context<'_>) -> Result<Vec<GuildChannel>, Error> {
-    let channels = match guilds::guild(ctx).await.channels(&ctx).await {
+pub async fn channels(ctx: Context<'_>) -> Result<Vec<GuildChannel>, ModelError> {
+    let channels = match guilds::guild(ctx)?.channels(ctx).await {
         Ok(channels) => channels.values().cloned().collect::<Vec<GuildChannel>>(),
         Err(why) => {
             error!("Couldn't get channels: {why:?}");
-            return Err(why.into());
+            return Err(ModelError::ChannelNotFound);
         }
     };
     Ok(channels)

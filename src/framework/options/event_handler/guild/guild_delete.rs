@@ -30,8 +30,6 @@ pub async fn handle(
 
     let pool = &data.pool;
 
-    let app_name = models::current_application_name_raw(&ctx).await;
-
     let unavailable_guild_id = unavailable_guild.id;
 
     let guild = guild.as_ref().expect("Couldn't get guild");
@@ -43,6 +41,8 @@ pub async fn handle(
         if let Err(why) = guilds::delete_from_guilds(&combined_guild_id, pool).await {
             error!("Couldn't delete guild(s): {why:?}");
         } else {
+            let app_name = models::current_application_name_raw(&ctx).await.unwrap();
+
             info!("@{app_name} left from {guild_name}");
         }
     }

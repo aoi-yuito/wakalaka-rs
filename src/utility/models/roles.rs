@@ -13,7 +13,11 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-use serenity::all::{Role, RoleId};
+use serenity::{
+    all::{Role, RoleId},
+    model::ModelError,
+};
+use tracing::error;
 
 use crate::Context;
 
@@ -24,14 +28,23 @@ pub fn role_name(role: &Role) -> &String {
 }
 
 pub async fn role_ids(roles: Vec<Role>) -> Vec<RoleId> {
-    roles.iter().map(|role| role.id).collect::<Vec<RoleId>>()
+    roles.iter().map(|role| role.id).collect::<Vec<_>>()
 }
 
-pub async fn roles(ctx: Context<'_>) -> Vec<Role> {
-    let guild = guilds::guild(ctx).await;
-    guild
+pub fn roles(ctx: Context<'_>) -> Result<Vec<Role>, ModelError> {
+    let guild = guilds::guild(ctx)?;
+
+    let roles = guild
         .roles
         .into_iter()
         .map(|(_, role)| role)
-        .collect::<Vec<Role>>()
+        .collect::<Vec<_>>();
+
+    let role_count = roles.len();
+    if role_count != 0 {
+        Ok(roles)
+    } else {
+        error!("Couldn't get roles");
+        Err(ModelError::RoleNotFound)
+    }
 }

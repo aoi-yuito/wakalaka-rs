@@ -39,13 +39,6 @@ pub async fn handle(
         }
     };
     let channel_id = channel.id();
-    let channel_name = match channel_id.name(&ctx.http).await {
-        Ok(value) => value,
-        Err(why) => {
-            error!("Couldn't get channel name: {why:?}");
-            return;
-        }
-    };
 
     let guild_id = match guild_id {
         Some(value) => value,
@@ -55,11 +48,11 @@ pub async fn handle(
         }
     };
 
-    let suggestions_channel_id = guilds::select_suggestions_channel_id_from_guilds(guild_id, pool).await;
+    let suggestions_channel_id =
+        guilds::select_suggestions_channel_id_from_guilds(guild_id, pool).await;
     if suggestions_channel_id.is_some() {
         let suggestions_channel_id = suggestions_channel_id.unwrap();
         if channel_id != suggestions_channel_id {
-            error!("Couldn't delete message in #{channel_name}");
             return;
         }
 

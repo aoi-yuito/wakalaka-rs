@@ -54,41 +54,39 @@ pub async fn warn(
 
     let pool = &ctx.data().pool;
 
-    let user = models::users::user(ctx, user_id).await;
+    let user = models::users::user(ctx, user_id).await?;
+    let user_name = &user.name;
+
+    let moderator = models::author(ctx)?;
+    let moderator_id = moderator.id;
+    let moderator_name = &moderator.name;
+
     if user.bot || user.system {
         let reply =
             messages::error_reply("Sorry, but bots and system users cannot be warned.", true);
-        if let Err(why) = ctx.send(reply).await {
-            error!("Couldn't send reply: {why:?}");
-            return Err(why.into());
-        }
+        ctx.send(reply).await?;
+
+        return Ok(());
+    }
+    if user_id == moderator_id {
+        let reply = messages::error_reply("Sorry, but you cannot warn yourself.", true);
+        ctx.send(reply).await?;
 
         return Ok(());
     }
 
     let reason_char_count = reason.chars().count();
     if reason_char_count < 6 || reason_char_count > 80 {
-        let reply = messages::info_reply(
-            "Reason must be between `6` and `80` characters long.",
-            true,
-        );
-        if let Err(why) = ctx.send(reply).await {
-            error!("Couldn't send reply: {why:?}");
-            return Err(why.into());
-        }
+        let reply =
+            messages::info_reply("Reason must be between `6` and `80` characters long.", true);
+        ctx.send(reply).await?;
 
         return Ok(());
     }
 
-    let user_name = &user.name;
-
-    let moderator = ctx.author();
-    let moderator_id = moderator.id;
-    let moderator_name = &moderator.name;
-
     let (guild_id, guild_name) = (
-        models::guilds::guild_id(ctx).await,
-        models::guilds::guild_name(ctx).await,
+        models::guilds::guild_id(ctx)?,
+        models::guilds::guild_name(ctx)?,
     );
 
     let created_at = Utc::now().naive_utc();
@@ -107,10 +105,7 @@ pub async fn warn(
         ),
             true,
         );
-        if let Err(why) = ctx.send(reply).await {
-            error!("Couldn't send reply: {why:?}");
-            return Err(why.into());
-        }
+        ctx.send(reply).await?;
 
         return Ok(());
     }
@@ -118,7 +113,7 @@ pub async fn warn(
     let message = messages::info_message(format!(
         "You've been warned by <@{moderator_id}> in {guild_name} for {reason}.",
     ));
-    if let Err(why) = user.direct_message(&ctx, message).await {
+    if let Err(why) = user.direct_message(ctx, message).await {
         error!("Couldn't send reply: {why:?}");
         return Err(why.into());
     }
@@ -141,10 +136,7 @@ pub async fn warn(
     users::update_users_set_infractions(&user_id, user_infractions, pool).await?;
 
     let reply = messages::ok_reply(format!("<@{user_id}> has been warned."), true);
-    if let Err(why) = ctx.send(reply).await {
-        error!("Couldn't send reply: {why:?}");
-        return Err(why.into());
-    }
+    ctx.send(reply).await?;
 
     Ok(())
 }

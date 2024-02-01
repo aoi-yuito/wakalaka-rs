@@ -54,25 +54,30 @@ pub async fn unban(
 
     let pool = &ctx.data().pool;
 
-    let user = models::users::user(ctx, user_id).await;
+    let user = models::users::user(ctx, user_id).await?;
     let user_name = &user.name;
 
-    let moderator = ctx.author();
+    let moderator = models::author(ctx)?;
+    let moderator_id = moderator.id;
     let moderator_name = &moderator.name;
 
+    if user_id == moderator_id {
+        let reply = messages::error_reply("Sorry, but you cannot unban yourself.", true);
+        ctx.send(reply).await?;
+
+        return Ok(());
+    }
+
     let (guild_id, guild_name) = (
-        models::guilds::guild_id(ctx).await,
-        models::guilds::guild_name(ctx).await,
+        models::guilds::guild_id(ctx)?,
+        models::guilds::guild_name(ctx)?,
     );
 
     let mut user_infractions = users::select_infractions_from_users(&user_id, pool).await?;
     if user_infractions < 1 {
         let reply =
             messages::info_reply(format!("<@{user_id}> hasn't been punished before."), true);
-        if let Err(why) = ctx.send(reply).await {
-            error!("Couldn't send reply: {why:?}");
-            return Err(why.into());
-        }
+        ctx.send(reply).await?;
 
         return Ok(());
     }
@@ -82,15 +87,12 @@ pub async fn unban(
     for ban in bans {
         let uuid = ban.0;
 
-        if let Err(why) = guild_id.unban(&ctx, user_id).await {
+        if let Err(why) = guild_id.unban(ctx, user_id).await {
             error!("Couldn't unban @{user_name}: {why:?}");
 
             let reply =
                 messages::error_reply(format!("Sorry, but I couldn't unban <@{user_id}>."), true);
-            if let Err(why) = ctx.send(reply).await {
-                error!("Couldn't send reply: {why:?}");
-                return Err(why.into());
-            }
+            ctx.send(reply).await?;
 
             return Err(why.into());
         }
@@ -104,10 +106,7 @@ pub async fn unban(
                     "Reason must be between `6` and `80` characters long.",
                     true,
                 );
-                if let Err(why) = ctx.send(reply).await {
-                    error!("Couldn't send reply: {why:?}");
-                    return Err(why.into());
-                }
+                ctx.send(reply).await?;
 
                 return Ok(());
             }
@@ -127,10 +126,7 @@ pub async fn unban(
         users::update_users_set_infractions(&user_id, user_infractions, pool).await?;
 
         let reply = messages::ok_reply(format!("<@{user_id}> has been unbanned."), true);
-        if let Err(why) = ctx.send(reply).await {
-            error!("Couldn't send reply: {why:?}");
-            return Err(why.into());
-        }
+        ctx.send(reply).await?;
     }
 
     Ok(())

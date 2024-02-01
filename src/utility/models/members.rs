@@ -13,37 +13,47 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-use serenity::all::{GuildId, Member, UserId};
+use serenity::{
+    all::{GuildId, Member, UserId},
+    model::ModelError,
+};
 use tracing::error;
 
 use crate::Context;
 
-pub async fn member(ctx: Context<'_>, guild_id: GuildId, user_id: UserId) -> Member {
+pub async fn members_raw(
+    ctx: &crate::serenity::Context,
+    guild_id: &GuildId,
+) -> Result<Vec<Member>, ModelError> {
+    match guild_id.members(&ctx, None, None).await {
+        Ok(members) => Ok(members),
+        Err(why) => {
+            error!("Couldn't get members: {why:?}");
+            return Err(ModelError::MemberNotFound);
+        }
+    }
+}
+
+pub async fn members(ctx: Context<'_>, guild_id: GuildId) -> Result<Vec<Member>, ModelError> {
+    match guild_id.members(ctx, None, None).await {
+        Ok(members) => Ok(members),
+        Err(why) => {
+            error!("Couldn't get members: {why:?}");
+            return Err(ModelError::MemberNotFound);
+        }
+    }
+}
+
+pub async fn member(
+    ctx: Context<'_>,
+    guild_id: GuildId,
+    user_id: UserId,
+) -> Result<Member, ModelError> {
     match guild_id.member(&ctx, user_id).await {
-        Ok(member) => member,
+        Ok(member) => Ok(member),
         Err(why) => {
             error!("Couldn't get member: {why:?}");
-            return Member::default();
-        }
-    }
-}
-
-pub async fn members_raw(ctx: &crate::serenity::Context, guild_id: &GuildId) -> Vec<Member> {
-    match guild_id.members(&ctx, None, None).await {
-        Ok(users) => users,
-        Err(why) => {
-            error!("Couldn't get members: {why:?}");
-            return Vec::new();
-        }
-    }
-}
-
-pub async fn members(ctx: Context<'_>, guild_id: GuildId) -> Vec<Member> {
-    match guild_id.members(&ctx, None, None).await {
-        Ok(users) => users,
-        Err(why) => {
-            error!("Couldn't get members: {why:?}");
-            return Vec::new();
+            return Err(ModelError::MemberNotFound);
         }
     }
 }

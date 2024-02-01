@@ -13,15 +13,15 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-pub(super) mod ban;
-pub(super) mod deafen;
-pub(super) mod kick;
-pub(super) mod mute;
-pub(super) mod timeout;
-pub(super) mod unban;
-pub(super) mod undeafen;
-pub(super) mod unmute;
-pub(super) mod untimeout;
-pub(super) mod unwarn;
-pub(super) mod warn;
-pub(super) mod warnings;
+pub mod ban;
+pub mod deafen;
+pub mod kick;
+pub mod mute;
+pub mod timeout;
+pub mod unban;
+pub mod undeafen;
+pub mod unmute;
+pub mod untimeout;
+pub mod unwarn;
+pub mod warn;
+pub mod warnings;

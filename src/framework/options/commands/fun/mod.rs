@@ -13,6 +13,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-pub(super) mod hug;
-pub(super) mod roll;
-pub(super) mod flip;
+pub mod hug;
+pub mod roll;
+pub mod flip;

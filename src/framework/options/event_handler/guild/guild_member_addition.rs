@@ -27,13 +27,18 @@ pub async fn handle(new_member: &Member, ctx: &Context, data: &Data) {
     let guild_id = new_member.guild_id;
     let guild_name = models::guilds::guild_name_from_guild_id_raw(ctx, guild_id);
 
-    let members = models::members::members_raw(&ctx, &guild_id).await;
+    let members = match models::members::members_raw(&ctx, &guild_id).await {
+        Ok(members) => members,
+        Err(_) => {
+            return;
+        }
+    };
+
     if let Err(why) = users::insert_into_users(&members, pool).await {
         error!("Couldn't insert into Users: {why:?}");
     } else {
         let user = &new_member.user;
-        let user_name = &user.name;
-        let user_mention = user.mention();
+        let (user_name, user_mention) = (&user.name, user.mention());
 
         info!("@{user_name} joined {guild_name}");
 

@@ -54,35 +54,39 @@ pub async fn untimeout(
 
     let pool = &ctx.data().pool;
 
-    let user = models::users::user(ctx, user_id).await;
+    let user = models::users::user(ctx, user_id).await?;
+    let user_name = &user.name;
+
+    let moderator = models::author(ctx)?;
+    let moderator_id = moderator.id;
+    let moderator_name = &moderator.name;
+
     if user.bot || user.system {
         let reply = messages::error_reply(
-            "Sorry, but bots and system users cannot be timed out.",
+            "Sorry, but bots and system users cannot be taken out of a time-out.",
             true,
         );
-        if let Err(why) = ctx.send(reply).await {
-            error!("Couldn't send reply: {why:?}");
-            return Err(why.into());
-        }
+        ctx.send(reply).await?;
+
+        return Ok(());
+    }
+    if user_id == moderator_id {
+        let reply = messages::error_reply(
+            "Sorry, but you cannot get yourself out of a time-out.",
+            true,
+        );
+        ctx.send(reply).await?;
 
         return Ok(());
     }
 
-    let user_name = &user.name;
-
-    let moderator = ctx.author();
-    let moderator_name = &moderator.name;
-
-    let guild_id = models::guilds::guild_id(ctx).await;
+    let guild_id = models::guilds::guild_id(ctx)?;
 
     let mut user_infractions = users::select_infractions_from_users(&user_id, pool).await?;
     if user_infractions < 1 {
         let reply =
             messages::info_reply(format!("<@{user_id}> hasn't been punished before."), true);
-        if let Err(why) = ctx.send(reply).await {
-            error!("Couldn't send reply: {why:?}");
-            return Err(why.into());
-        }
+        ctx.send(reply).await?;
 
         return Ok(());
     }
@@ -93,7 +97,7 @@ pub async fn untimeout(
     for timeout in timeouts {
         let uuid = timeout.0;
 
-        let mut member = models::members::member(ctx, guild_id, user_id).await;
+        let mut member = models::members::member(ctx, guild_id, user_id).await?;
 
         if let Err(why) = member.enable_communication(ctx).await {
             error!("Couldn't get member out of time-out: {why:?}");
@@ -102,10 +106,7 @@ pub async fn untimeout(
                 format!("Sorry, but I couldn't get <@{user_id} out of a time-out."),
                 true,
             );
-            if let Err(why) = ctx.send(reply).await {
-                error!("Couldn't send reply: {why:?}");
-                return Err(why.into());
-            }
+            ctx.send(reply).await?;
 
             return Ok(());
         }
@@ -119,10 +120,7 @@ pub async fn untimeout(
                     "Reason must be between `6` and `80` characters long.",
                     true,
                 );
-                if let Err(why) = ctx.send(reply).await {
-                    error!("Couldn't send reply: {why:?}");
-                    return Err(why.into());
-                }
+                ctx.send(reply).await?;
 
                 return Ok(());
             }
@@ -145,10 +143,7 @@ pub async fn untimeout(
             format!("<@{user_id}> has been released from a time-out."),
             true,
         );
-        if let Err(why) = ctx.send(reply).await {
-            error!("Couldn't send reply: {why:?}");
-            return Err(why.into());
-        }
+        ctx.send(reply).await?;
     }
 
     Ok(())

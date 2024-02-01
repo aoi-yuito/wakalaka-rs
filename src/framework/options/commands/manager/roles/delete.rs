@@ -44,7 +44,7 @@ pub async fn delete(
     let result = {
         let role_name = models::roles::role_name(&role).clone();
 
-        let guild = models::guilds::guild(ctx).await;
+        let guild = models::guilds::guild(ctx)?;
         let guild_name = &guild.name;
 
         match role.delete(ctx).await {
@@ -65,10 +65,7 @@ pub async fn delete(
         Ok(message) => messages::ok_reply(message, true),
         Err(message) => messages::error_reply(message, true),
     };
-    if let Err(why) = ctx.send(reply).await {
-        error!("Couldn't send reply: {why:?}");
-        return Err(why.into());
-    }
+    ctx.send(reply).await?;
 
     Ok(())
 }

@@ -28,7 +28,12 @@ pub async fn handle(guild: &Guild, is_new: bool, ctx: &Context, data: &Data) {
     let pool = &data.pool;
 
     let guild_id = guild.id;
-    let guild_members = models::members::members_raw(&ctx, &guild_id).await;
+    let guild_members = match models::members::members_raw(&ctx, &guild_id).await {
+        Ok(members) => members,
+        Err(_) => {
+            return;
+        }
+    };
 
     let restricted_guild = check_restricted_guild!(&pool, &guild_id);
     if restricted_guild || !is_new {

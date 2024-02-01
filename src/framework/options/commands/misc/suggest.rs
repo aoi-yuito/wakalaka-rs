@@ -56,17 +56,14 @@ pub async fn suggest(
             "Suggestion must be between `32` and `1024` characters long.",
             true,
         );
-        if let Err(why) = ctx.send(reply).await {
-            error!("Couldn't send reply: {why:?}");
-            return Err(why.into());
-        }
+        ctx.send(reply).await?;
 
         return Ok(());
     }
 
     let (guild_id, guild_name) = (
-        models::guilds::guild_id(ctx).await,
-        models::guilds::guild_name(ctx).await,
+        models::guilds::guild_id(ctx)?,
+        models::guilds::guild_name(ctx)?,
     );
 
     let suggestion_channel =
@@ -80,10 +77,7 @@ pub async fn suggest(
             ),
             true,
         );
-        if let Err(why) = ctx.send(reply).await {
-            error!("Couldn't send reply: {why:?}");
-            return Err(why.into());
-        }
+        ctx.send(reply).await?;
     } else {
         let suggestion_channel = suggestion_channel.unwrap();
         let (suggestion_channel_id, suggestion_channel_name) =
@@ -96,7 +90,7 @@ pub async fn suggest(
             kind: PermissionOverwriteType::Member(bot_id),
         };
         if let Err(why) = suggestion_channel_id
-            .create_permission(&ctx.http(), bot_permissions)
+            .create_permission(ctx, bot_permissions)
             .await
         {
             error!("Couldn't create permission overwrite for #{suggestion_channel_name}: {why:?}");
@@ -104,12 +98,12 @@ pub async fn suggest(
         }
 
         let (user_name, user_avatar_url) = (
-            &ctx.author().name,
+            models::author_name(ctx)?,
             ctx.author()
                 .avatar_url()
                 .unwrap_or(ctx.author().default_avatar_url()),
         );
-        let (user_id, moderator_id) = (ctx.author().id, models::guilds::owner_id(ctx).await);
+        let (user_id, moderator_id) = (ctx.author().id, models::guilds::owner_id(ctx)?);
 
         let created_at = Utc::now().naive_utc();
 
@@ -126,7 +120,7 @@ pub async fn suggest(
             .components(vec![components]);
 
         let message = match suggestion_channel_id
-            .send_message(&ctx.http(), message_builder)
+            .send_message(ctx, message_builder)
             .await
         {
             Ok(value) => value,
@@ -160,10 +154,7 @@ pub async fn suggest(
 
                 let reply =
                     messages::ok_reply(format!("I've sent your suggestion in for review."), true);
-                if let Err(why) = ctx.send(reply).await {
-                    error!("Couldn't send reply: {why:?}");
-                    return Err(why.into());
-                }
+                ctx.send(reply).await?;
             }
             Err(why) => {
                 error!("Couldn't insert into Suggestions: {why:?}");

@@ -16,7 +16,6 @@
 use std::sync::Arc;
 
 use tokio::time::Duration;
-use tracing::error;
 
 use crate::{utility::components::messages, Context, Error};
 
@@ -39,19 +38,13 @@ pub async fn shutdown(
 ) -> Result<(), Error> {
     if duration < 1 || duration > 5 {
         let reply = messages::info_reply("Duration must be between `1` and `5` seconds.", true);
-        if let Err(why) = ctx.send(reply).await {
-            error!("Couldn't send reply: {why:?}");
-            return Err(why.into());
-        }
+        ctx.send(reply).await?;
 
         return Ok(());
     }
 
     let reply = messages::reply(format!("Shutting down in {duration}s..."), true);
-    if let Err(why) = ctx.send(reply).await {
-        error!("Couldn't send reply: {why:?}");
-        return Err(why.into());
-    }
+    ctx.send(reply).await?;
 
     let manager = Arc::new(ctx.framework().shard_manager);
     manager.shutdown_all().await;

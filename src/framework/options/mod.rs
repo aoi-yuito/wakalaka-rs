@@ -13,6 +13,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-pub(super) mod commands;
-pub(super) mod event_handler;
-pub(super) mod post_command;
+pub mod commands;
+pub mod event_handler;
+pub mod post_command;

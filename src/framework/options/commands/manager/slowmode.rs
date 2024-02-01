@@ -52,10 +52,7 @@ pub async fn slowmode(
             if delay > 60 {
                 let reply =
                     messages::info_reply(format!("Delay must be up to `60` seconds."), true);
-                if let Err(why) = ctx.send(reply).await {
-                    error!("Couldn't send reply: {why:?}");
-                    return Err(why.into());
-                }
+                ctx.send(reply).await?;
 
                 return Ok(());
             }
@@ -67,10 +64,7 @@ pub async fn slowmode(
         None => {
             let reply =
                 messages::info_reply(format!("You must specify a channel to slow down."), true);
-            if let Err(why) = ctx.send(reply).await {
-                error!("Couldn't send reply: {why:?}");
-                return Err(why.into());
-            }
+            ctx.send(reply).await?;
 
             return Ok(());
         }
@@ -80,9 +74,9 @@ pub async fn slowmode(
         None => 0,
     };
 
-    let user_name = &ctx.author().name;
+    let user_name = models::author_name(ctx)?;
 
-    let guild = models::guilds::guild(ctx).await;
+    let guild = models::guilds::guild(ctx)?;
     let (guild_name, guild_channels) = (guild.name, models::channels::channels(ctx).await?);
 
     for mut guild_channel in guild_channels {
@@ -95,7 +89,7 @@ pub async fn slowmode(
 
         let channel_builder = EditChannel::default().rate_limit_per_user(delay);
 
-        let result = match guild_channel.edit(&ctx, channel_builder).await {
+        let result = match guild_channel.edit(ctx, channel_builder).await {
             Ok(_) => {
                 info!("@{user_name} slowed #{guild_channel_name} down to {delay} second(s) in {guild_name}");
                 Ok(format!(
@@ -114,10 +108,7 @@ pub async fn slowmode(
             Ok(message) => messages::ok_reply(message, true),
             Err(message) => messages::error_reply(message, true),
         };
-        if let Err(why) = ctx.send(reply).await {
-            error!("Couldn't send reply: {why:?}");
-            return Err(why.into());
-        }
+        ctx.send(reply).await?;
     }
 
     Ok(())

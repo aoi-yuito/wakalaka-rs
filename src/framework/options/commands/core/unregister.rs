@@ -36,7 +36,7 @@ pub async fn unregister(
     #[flag]
     global: bool,
 ) -> Result<(), Error> {
-    let guild_id = models::guilds::guild_id(ctx).await;
+    let guild_id = models::guilds::guild_id(ctx)?;
 
     if global {
         let mut reply = messages::reply("Unregistering command(s) globally...", true);

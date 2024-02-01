@@ -40,7 +40,7 @@ pub async fn welcome(
 ) -> Result<(), Error> {
     let pool = &ctx.data().pool;
 
-    let guild_id = models::guilds::guild_id(ctx).await;
+    let guild_id = models::guilds::guild_id(ctx)?;
 
     let guild_channels = models::channels::channels(ctx).await?;
     for guild_channel in guild_channels {
@@ -71,10 +71,7 @@ pub async fn welcome(
             Ok(message) => messages::ok_reply(message, true),
             Err(message) => messages::error_reply(message, true),
         };
-        if let Err(why) = ctx.send(reply).await {
-            error!("Couldn't send reply: {why:?}");
-            return Err(why.into());
-        }
+        ctx.send(reply).await?;
     }
 
     Ok(())

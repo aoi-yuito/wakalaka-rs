@@ -14,7 +14,6 @@
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
 use serenity::all::{Mentionable, UserId};
-use tracing::error;
 
 use crate::{check_restricted_guild_channel, utility::models, Context, Error};
 
@@ -37,16 +36,13 @@ pub async fn hug(
         return Ok(());
     }
 
-    let user = models::users::user(ctx, user_id).await;
+    let user = models::users::user(ctx, user_id).await?;
 
     let user_mention = ctx.author().mention();
     let other_mention = user.mention();
 
     let message = format!("{user_mention} 🫂 {other_mention}");
-    if let Err(why) = ctx.say(message).await {
-        error!("Couldn't say message: {why:?}");
-        return Err(why.into());
-    }
+    ctx.say(message).await?;
 
     Ok(())
 }

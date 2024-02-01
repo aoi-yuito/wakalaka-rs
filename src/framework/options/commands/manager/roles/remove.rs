@@ -47,14 +47,14 @@ pub async fn remove(
     let result = {
         let role_ids = models::roles::role_ids(roles).await;
 
-        let user_name = models::users::user_name(ctx, user_id).await;
+        let user_name = models::users::user_name(ctx, user_id).await?;
 
-        let guild = models::guilds::guild(ctx).await;
+        let guild = models::guilds::guild(ctx)?;
         let (guild_id, guild_name) = (guild.id, &guild.name);
 
-        let member = models::members::member(ctx, guild_id, user_id).await;
+        let member = models::members::member(ctx, guild_id, user_id).await?;
 
-        match member.remove_roles(&ctx, &role_ids).await {
+        match member.remove_roles(ctx, &role_ids).await {
             Ok(_) => {
                 info!("Removed role(s) from @{user_name} in {guild_name}");
                 Ok(format!("I've removed role(s) from <@{user_id}>."))
@@ -72,10 +72,7 @@ pub async fn remove(
         Ok(message) => messages::ok_reply(message, true),
         Err(message) => messages::error_reply(message, true),
     };
-    if let Err(why) = ctx.send(reply).await {
-        error!("Couldn't send reply: {why:?}");
-        return Err(why.into());
-    }
+    ctx.send(reply).await?;
 
     Ok(())
 }

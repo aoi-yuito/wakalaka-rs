@@ -14,7 +14,7 @@
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
 use serenity::all::GuildId;
-use tracing::{error, info};
+use tracing::info;
 
 use crate::{
     database::{guilds, restricted_guilds},
@@ -68,10 +68,7 @@ pub async fn server(
         Ok(message) => messages::ok_reply(message, true),
         Err(message) => messages::error_reply(message, true),
     };
-    if let Err(why) = ctx.send(reply).await {
-        error!("Couldn't send reply: {why:?}");
-        return Err(why.into());
-    }
+    ctx.send(reply).await?;
 
     Ok(())
 }

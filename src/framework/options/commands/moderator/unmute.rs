@@ -54,33 +54,27 @@ pub async fn unmute(
 
     let pool = &ctx.data().pool;
 
-    let user = models::users::user(ctx, user_id).await;
-    if user.bot || user.system {
-        let reply =
-            messages::error_reply("Sorry, but bots and system users cannot be unmuted.", true);
-        if let Err(why) = ctx.send(reply).await {
-            error!("Couldn't send reply: {why:?}");
-            return Err(why.into());
-        }
+    let user = models::users::user(ctx, user_id).await?;
+    let user_name = &user.name;
+
+    let moderator = models::author(ctx)?;
+    let moderator_id = moderator.id;
+    let moderator_name = &moderator.name;
+
+    if user_id == moderator_id {
+        let reply = messages::error_reply("Sorry, but you cannot unmute yourself.", true);
+        ctx.send(reply).await?;
 
         return Ok(());
     }
 
-    let user_name = &user.name;
-
-    let moderator = ctx.author();
-    let moderator_name = &moderator.name;
-
-    let guild_id = models::guilds::guild_id(ctx).await;
+    let guild_id = models::guilds::guild_id(ctx)?;
 
     let mut user_infractions = users::select_infractions_from_users(&user_id, pool).await?;
     if user_infractions < 1 {
         let reply =
             messages::info_reply(format!("<@{user_id}> hasn't been punished before."), true);
-        if let Err(why) = ctx.send(reply).await {
-            error!("Couldn't send reply: {why:?}");
-            return Err(why.into());
-        }
+        ctx.send(reply).await?;
 
         return Ok(());
     }
@@ -91,18 +85,15 @@ pub async fn unmute(
     for mute in mutes {
         let uuid = mute.0;
 
-        let mut member = models::members::member(ctx, guild_id, user_id).await;
+        let mut member = models::members::member(ctx, guild_id, user_id).await?;
         let member_builder = EditMember::default().mute(false);
 
-        if let Err(why) = member.edit(&ctx, member_builder).await {
+        if let Err(why) = member.edit(ctx, member_builder).await {
             error!("Couldn't unmute @{user_name}: {why:?}");
 
             let reply =
                 messages::error_reply(format!("Sorry, but I couldn't unmute <@{user_id}>."), true);
-            if let Err(why) = ctx.send(reply).await {
-                error!("Couldn't send reply: {why:?}");
-                return Err(why.into());
-            }
+            ctx.send(reply).await?;
 
             return Err(why.into());
         }
@@ -116,10 +107,7 @@ pub async fn unmute(
                     "Reason must be between `6` and `80` characters long.",
                     true,
                 );
-                if let Err(why) = ctx.send(reply).await {
-                    error!("Couldn't send reply: {why:?}");
-                    return Err(why.into());
-                }
+                ctx.send(reply).await?;
 
                 return Ok(());
             }
@@ -139,10 +127,7 @@ pub async fn unmute(
         users::update_users_set_infractions(&user_id, user_infractions, pool).await?;
 
         let reply = messages::ok_reply(format!("<@{user_id}> has been unmuted."), true);
-        if let Err(why) = ctx.send(reply).await {
-            error!("Couldn't send reply: {why:?}");
-            return Err(why.into());
-        }
+        ctx.send(reply).await?;
     }
 
     Ok(())

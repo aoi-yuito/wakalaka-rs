@@ -13,8 +13,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-use tracing::error;
-
 use crate::{
     check_restricted_guild_channel, framework::options::commands::info::BOT_INVITE_URL, Context,
     Error,
@@ -36,10 +34,7 @@ pub async fn invite(ctx: Context<'_>) -> Result<(), Error> {
     }
 
     let message = format!("{BOT_INVITE_URL}");
-    if let Err(why) = ctx.say(message).await {
-        error!("Couldn't say message: {why:?}");
-        return Err(why.into());
-    }
+    ctx.say(message).await?;
 
     Ok(())
 }
