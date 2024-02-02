@@ -68,10 +68,14 @@ async fn handle_suggestion_message(
     );
 
     if user_id != moderator_id {
-        let response =
-            messages::error_response("Only moderators can accept or reject suggestions.", true)
-                .await;
-        let _ = component.create_response(&ctx, response).await;
+        let response = messages::error_response(
+            "Sorry, but only moderators can accept or reject suggestions.",
+            true,
+        )
+        .await;
+        if let Err(why) = component.create_response(&ctx, response).await {
+            error!("Couldn't create response: {why:?}");
+        }
 
         return;
     }
