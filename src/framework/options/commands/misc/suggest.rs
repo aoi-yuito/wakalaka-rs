@@ -103,7 +103,10 @@ pub async fn suggest(
                 .avatar_url()
                 .unwrap_or(ctx.author().default_avatar_url()),
         );
-        let (user_id, moderator_id) = (ctx.author().id, models::guilds::owner_id(ctx)?);
+        let (user_id, moderator_id) = (
+            models::users::author_id(ctx)?,
+            models::guilds::owner_id(ctx)?,
+        );
 
         let created_at = Utc::now().naive_utc();
 
@@ -135,7 +138,7 @@ pub async fn suggest(
 
         match suggestions::insert_into_suggestions(
             &uuid,
-            i64::from(user_id),
+            i64::from(*user_id),
             i64::from(moderator_id),
             created_at,
             None,
