@@ -22,10 +22,10 @@ mod ready;
 
 use poise::FrameworkContext;
 
-use crate::{serenity::Context, serenity::FullEvent, Data, Error};
+use crate::{serenity::FullEvent, Data, Error};
 
 pub async fn handle(
-    ctx: &Context,
+    ctx: &crate::serenity::Context,
     event: &FullEvent,
     _framework: FrameworkContext<'_, Data, Error>,
     data: &Data,
