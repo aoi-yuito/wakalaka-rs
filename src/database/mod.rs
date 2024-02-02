@@ -29,7 +29,10 @@ pub mod suggestions;
 pub mod users;
 
 use lazy_static::lazy_static;
-use sqlx::{sqlite::SqlitePoolOptions, SqlitePool};
+use sqlx::{
+    sqlite::{SqliteConnectOptions, SqlitePoolOptions},
+    SqlitePool,
+};
 use tokio::time::Instant;
 use tracing::{debug, error, info};
 
@@ -51,13 +54,13 @@ pub async fn initialise() -> SqlitePool {
     match migrate(&pool).await {
         Ok(_) => (),
         Err(why) => {
-            error!("Couldn't migrate database: {why:?}");
+            error!("Couldn't migrate SQLite database: {why:?}");
             panic!("{why:?}")
         }
     }
 
     let elapsed_time = start_time.elapsed();
-    debug!("Initialised database in {elapsed_time:.2?}");
+    debug!("Initialised SQLite database in {elapsed_time:.2?}");
 
     pool
 }
@@ -68,14 +71,20 @@ async fn migrate(pool: &SqlitePool) -> Result<(), sqlx::Error> {
     match sqlx::migrate!("./migrations").run(pool).await {
         Ok(_) => {
             let elapsed_time = start_time.elapsed();
-            debug!("Migrated database in {elapsed_time:.2?}");
+            debug!("Migrated SQLite database in {elapsed_time:.2?}");
             Ok(())
         }
         Err(why) => {
-            error!("Couldn't migrate database: {why:?}");
+            error!("Couldn't migrate SQLite database: {why:?}");
             Err(why.into())
         }
     }
+}
+
+fn initialise_connect_options() -> SqliteConnectOptions {
+    SqliteConnectOptions::new()
+        .filename(&*DB_URL.replace("sqlite://", ""))
+        .create_if_missing(true)
 }
 
 async fn connect() -> Result<SqlitePool, sqlx::Error> {
@@ -83,16 +92,16 @@ async fn connect() -> Result<SqlitePool, sqlx::Error> {
 
     match SqlitePoolOptions::new()
         .max_connections(5)
-        .connect(&DB_URL)
+        .connect_with(initialise_connect_options())
         .await
     {
         Ok(pool) => {
             let elapsed_time = start_time.elapsed();
-            info!("Connected to database in {elapsed_time:.2?}");
+            info!("Connected to SQLite database in {elapsed_time:.2?}");
             Ok(pool)
         }
         Err(why) => {
-            error!("Couldn't connect to database: {why:?}");
+            error!("Couldn't connect to SQLite database: {why:?}");
             Err(why)
         }
     }
