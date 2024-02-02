@@ -13,13 +13,27 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
+use serenity::all::Mentionable;
 use tracing::error;
 
-use crate::{utility::components::messages, Context};
+use crate::{
+    utility::{components::messages, models},
+    Context,
+};
 
 pub(crate) async fn handle(ctx: Context<'_>) {
-    let reply = messages::error_reply("Sorry, but I can only execute this command if invoked by 👑.", true);
-    if let Err(why) = ctx.send(reply).await {
-        error!("Couldn't send reply: {:?}", why);
+    let owner = models::owner(ctx.serenity_context()).await;
+    if let Some(owner) = owner {
+        let owner_mention = owner.mention();
+
+        let reply = messages::error_reply(
+            format!("Sorry, but only {owner_mention} can execute this command."),
+            true,
+        );
+        if let Err(why) = ctx.send(reply).await {
+            error!("Couldn't send reply: {:?}", why);
+        }
+
+        return;
     }
 }
