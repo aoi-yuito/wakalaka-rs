@@ -19,8 +19,18 @@ pub mod members;
 pub mod roles;
 pub mod users;
 
-use serenity::all::CurrentApplicationInfo;
+use serenity::all::{CurrentApplicationInfo, User};
 use tracing::{error, warn};
+
+pub async fn owner(ctx: &crate::serenity::Context) -> Option<User> {
+    match current_application_info_raw(ctx).await {
+        Some(app_info) => app_info.owner,
+        None => {
+            warn!("Couldn't get owner from current application");
+            None
+        }
+    }
+}
 
 pub async fn current_application_name_raw(ctx: &crate::serenity::Context) -> Option<String> {
     match current_application_info_raw(ctx).await {
