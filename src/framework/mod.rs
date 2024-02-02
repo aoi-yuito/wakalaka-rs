@@ -29,6 +29,7 @@ pub async fn initialise_framework_options() -> FrameworkOptions<Data, Error> {
 
     let framework_options = FrameworkOptions {
         commands: commands::guild_commands().await,
+        on_error: |error| Box::pin(options::on_error::handle(error)),
         prefix_options: PrefixFrameworkOptions {
             prefix: Some(format!("?")),
             ..Default::default()
