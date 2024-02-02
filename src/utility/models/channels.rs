@@ -23,6 +23,23 @@ use crate::Context;
 
 use super::guilds;
 
+pub async fn channel_name_raw(ctx: &crate::serenity::Context) -> Result<String, ModelError> {
+    Ok(channel_raw(ctx).await?.name)
+}
+
+pub async fn channel_name(ctx: Context<'_>) -> Result<String, ModelError> {
+    Ok(channel(ctx).await?.name)
+}
+
+pub async fn channel_id_raw(ctx: &crate::serenity::Context) -> Result<ChannelId, ModelError> {
+    let channels = channels_raw(ctx).await?;
+    for channel in channels {
+        return Ok(channel.id);
+    }
+
+    Err(ModelError::ChannelNotFound)
+}
+
 pub fn channel_id(ctx: Context<'_>) -> ChannelId {
     ctx.channel_id()
 }
@@ -47,4 +64,26 @@ pub async fn channels(ctx: Context<'_>) -> Result<Vec<GuildChannel>, ModelError>
         }
     };
     Ok(channels)
+}
+
+pub async fn channel_raw(ctx: &crate::serenity::Context) -> Result<GuildChannel, ModelError> {
+    let channel = match channel_id_raw(ctx).await?.to_channel(ctx).await {
+        Ok(channel) => channel.guild().ok_or(ModelError::ChannelNotFound)?,
+        Err(why) => {
+            error!("Couldn't get channel: {why:?}");
+            return Err(ModelError::ChannelNotFound);
+        }
+    };
+    Ok(channel)
+}
+
+pub async fn channel(ctx: Context<'_>) -> Result<GuildChannel, ModelError> {
+    let channel = match channel_id(ctx).to_channel(ctx).await {
+        Ok(channel) => channel.guild().ok_or(ModelError::ChannelNotFound)?,
+        Err(why) => {
+            error!("Couldn't get channel: {why:?}");
+            return Err(ModelError::ChannelNotFound);
+        }
+    };
+    Ok(channel)
 }
