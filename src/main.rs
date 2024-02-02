@@ -33,6 +33,7 @@ pub struct Data {
 }
 
 type Error = Box<dyn std::error::Error + Send + Sync>;
+type FrameworkError<'a> = poise::FrameworkError<'a, Data, Error>;
 type Context<'a> = poise::Context<'a, Data, Error>;
 
 #[tokio::main]
