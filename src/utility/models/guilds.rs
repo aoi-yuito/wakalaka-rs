@@ -14,12 +14,25 @@
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
 use serenity::{
-    all::{Guild, GuildId, UserId},
+    all::{ComponentInteraction, Guild, GuildId, UserId},
     model::ModelError,
 };
 use tracing::{error, warn};
 
 use crate::Context;
+
+pub fn owner_id_from_guild_id_raw(
+    ctx: &crate::serenity::Context,
+    guild_id: GuildId,
+) -> Result<UserId, ModelError> {
+    match guild_id.to_guild_cached(ctx) {
+        Some(guild) => Ok(guild.owner_id),
+        None => {
+            warn!("Couldn't get guild owner ID");
+            return Err(ModelError::GuildNotFound);
+        }
+    }
+}
 
 pub fn owner_id(ctx: Context<'_>) -> Result<UserId, ModelError> {
     Ok(guild(ctx)?.owner_id)
@@ -49,6 +62,18 @@ pub async fn guild_name_raw(ctx: &crate::serenity::Context) -> Result<String, Mo
 
 pub fn guild_name(ctx: Context<'_>) -> Result<String, ModelError> {
     Ok(guild(ctx)?.name)
+}
+
+pub fn guild_id_from_component_raw(
+    component: &ComponentInteraction,
+) -> Result<GuildId, ModelError> {
+    match component.guild_id {
+        Some(guild_id) => Ok(guild_id),
+        None => {
+            warn!("Couldn't get guild ID from component");
+            return Err(ModelError::GuildNotFound);
+        }
+    }
 }
 
 pub async fn guild_id_raw(ctx: &crate::serenity::Context) -> GuildId {
