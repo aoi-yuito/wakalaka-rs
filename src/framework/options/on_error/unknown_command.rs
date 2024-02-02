@@ -13,18 +13,18 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
+use serenity::all::Message;
 use tracing::error;
 
-use crate::utility::{components::messages, models};
+use crate::utility::components::messages;
 
-pub(crate) async fn handle(ctx: &crate::serenity::Context, msg_content: String) {
-    let channel_id = models::channels::channel_id_raw(ctx).await;
-    if let Ok(channel_id) = channel_id {
-        let message = messages::error_message(format!(
-            "Sorry, but `{msg_content}` is not a valid command."
-        ));
-        if let Err(why) = channel_id.send_message(ctx, message).await {
-            error!("Couldn't send message: {why:?}");
-        }
+pub(crate) async fn handle(ctx: &crate::serenity::Context, msg: &Message, msg_content: String) {
+    let channel_id = msg.channel_id;
+
+    let message = messages::error_message(format!(
+        "Sorry, but `{msg_content}` is not a valid command."
+    ));
+    if let Err(why) = channel_id.send_message(&ctx, message).await {
+        error!("Couldn't send message: {why:?}");
     }
 }
