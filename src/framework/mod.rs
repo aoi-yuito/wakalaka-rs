@@ -30,13 +30,13 @@ pub async fn initialise_framework_options() -> FrameworkOptions<Data, Error> {
     let framework_options = FrameworkOptions {
         commands: commands::guild_commands().await,
         on_error: |error| Box::pin(options::on_error::handle(error)),
-        prefix_options: PrefixFrameworkOptions {
-            prefix: Some(format!("?")),
-            ..Default::default()
-        },
         post_command: |ctx| Box::pin(options::post_command::handle(ctx)),
         event_handler: |ctx, event, framework, data| {
             Box::pin(options::event_handler::handle(ctx, event, framework, data))
+        },
+        prefix_options: PrefixFrameworkOptions {
+            prefix: Some(format!("?")),
+            ..Default::default()
         },
         ..Default::default()
     };
