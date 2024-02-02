@@ -19,9 +19,14 @@ use serenity::{
     builder::EditMessage,
 };
 use sqlx::SqlitePool;
-use tracing::{error, warn};
+use tracing::error;
 
-use crate::{database::suggestions, serenity::Context, utility::components::messages, Data};
+use crate::{
+    database::suggestions,
+    serenity::Context,
+    utility::{components::messages, models},
+    Data,
+};
 
 pub async fn handle(interaction: &Interaction, ctx: &Context, data: &Data) {
     let pool = &data.pool;
@@ -48,82 +53,75 @@ async fn handle_suggestion_message(
     ctx: &Context,
     pool: &SqlitePool,
 ) {
-    let guild_id = match component.guild_id {
-        Some(value) => value,
-        None => {
-            warn!("Couldn't get guild ID");
-            return;
-        }
-    };
-    let (moderator_id, user_id, channel_id) = (
-        match guild_id.to_guild_cached(&ctx) {
-            Some(value) => value.owner_id,
-            None => {
-                warn!("Couldn't get guild owner ID");
+    let guild_id = models::guilds::guild_id_from_component_raw(component);
+    if let Ok(guild_id) = guild_id {
+        let (moderator_id, user_id, channel_id) = (
+            models::guilds::owner_id_from_guild_id_raw(ctx, guild_id),
+            component.user.id,
+            component.channel_id,
+        );
+
+        if let Ok(moderator_id) = moderator_id {
+            if user_id != moderator_id {
+                let response = messages::error_response(
+                    "Sorry, but only 👑 can accept or reject suggestions.",
+                    true,
+                )
+                .await;
+                if let Err(why) = component.create_response(&ctx, response).await {
+                    error!("Couldn't create response: {why:?}");
+                    return;
+                }
+
                 return;
             }
-        },
-        component.user.id,
-        component.channel_id,
-    );
 
-    if user_id != moderator_id {
-        let response = messages::error_response(
-            "Sorry, but only moderators can accept or reject suggestions.",
-            true,
-        )
-        .await;
-        if let Err(why) = component.create_response(&ctx, response).await {
-            error!("Couldn't create response: {why:?}");
+            let mut message = match channel_id.message(&ctx, message_id).await {
+                Ok(message) => message,
+                Err(why) => {
+                    error!("Couldn't get message: {why:?}");
+                    return;
+                }
+            };
+
+            let now = Utc::now().naive_utc();
+
+            if custom_id == "accept_suggest" {
+                let accept = suggestions::update_suggestions(
+                    i64::from(moderator_id),
+                    i64::from(message_id),
+                    i64::from(guild_id),
+                    Some(now),
+                    None,
+                    pool,
+                )
+                .await;
+                if let Err(why) = accept {
+                    error!("Couldn't accept suggestion: {why:?}");
+                    return;
+                }
+            } else if custom_id == "reject_suggest" {
+                let deny = suggestions::update_suggestions(
+                    i64::from(moderator_id),
+                    i64::from(message_id),
+                    i64::from(guild_id),
+                    None,
+                    Some(now),
+                    pool,
+                )
+                .await;
+                if let Err(why) = deny {
+                    error!("Couldn't deny suggestion: {why:?}");
+                    return;
+                }
+            }
+
+            let member_builder = EditMessage::default().components(Vec::new());
+
+            if let Err(why) = message.edit(&ctx, member_builder).await {
+                error!("Couldn't edit message: {why:?}");
+                return;
+            }
         }
-
-        return;
-    }
-
-    let mut message = match channel_id.message(&ctx, message_id).await {
-        Ok(message) => message,
-        Err(why) => {
-            error!("Couldn't get message: {why:?}");
-            return;
-        }
-    };
-
-    let now = Utc::now().naive_utc();
-
-    if custom_id == "accept_suggest" {
-        let accept = suggestions::update_suggestions(
-            i64::from(moderator_id),
-            i64::from(message_id),
-            i64::from(guild_id),
-            Some(now),
-            None,
-            pool,
-        )
-        .await;
-        if let Err(why) = accept {
-            error!("Couldn't accept suggestion: {why:?}");
-            return;
-        }
-    } else if custom_id == "reject_suggest" {
-        let deny = suggestions::update_suggestions(
-            i64::from(moderator_id),
-            i64::from(message_id),
-            i64::from(guild_id),
-            None,
-            Some(now),
-            pool,
-        )
-        .await;
-        if let Err(why) = deny {
-            error!("Couldn't deny suggestion: {why:?}");
-            return;
-        }
-    }
-
-    let member_builder = EditMessage::default().components(Vec::new());
-
-    if let Err(why) = message.edit(&ctx, member_builder).await {
-        error!("Couldn't edit message: {why:?}");
-        return;
     }
 }
