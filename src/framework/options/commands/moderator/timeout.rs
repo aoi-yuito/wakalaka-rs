@@ -118,9 +118,7 @@ pub async fn timeout(
         let message = messages::info_message(format!(
             "You've been timed out in {guild_name} by {moderator_mention} for {reason}.",
         ));
-        if let Err(why) = user.direct_message(ctx, message).await {
-            return Err(format!("Couldn't send direct message: {why:?}").into());
-        }
+        user.direct_message(ctx, message).await?;
 
         let time = Timestamp::from(Utc::now() + Duration::days(duration));
         let disabled_until = time.to_rfc3339().expect("Couldn't convert time to RFC3339");

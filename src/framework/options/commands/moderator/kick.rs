@@ -86,9 +86,7 @@ pub async fn kick(
         let message = messages::info_message(format!(
             "You've been kicked from {guild_name} by {moderator_mention} for {reason}.",
         ));
-        if let Err(why) = user.direct_message(ctx, message).await {
-            return Err(format!("Couldn't send direct message: {why:?}").into());
-        }
+        user.direct_message(ctx, message).await?;
 
         match member.kick_with_reason(ctx, &reason).await {
             Ok(_) => {

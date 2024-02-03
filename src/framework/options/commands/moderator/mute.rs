@@ -105,9 +105,7 @@ pub async fn mute(
         let message = messages::info_message(format!(
             "You've been muted by {moderator_mention} in {guild_name} for {reason}.",
         ));
-        if let Err(why) = user.direct_message(ctx, message).await {
-            return Err(format!("Couldn't send direct message: {why:?}").into());
-        }
+        user.direct_message(ctx, message).await?;
 
         match member.edit(ctx, member_builder).await {
             Ok(_) => {

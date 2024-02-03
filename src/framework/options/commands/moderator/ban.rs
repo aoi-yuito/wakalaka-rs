@@ -102,9 +102,7 @@ pub async fn ban(
         let message = messages::info_message(format!(
             "You've been banned from {guild_name} by {moderator_mention} for {reason}.",
         ));
-        if let Err(why) = user.direct_message(ctx, message).await {
-            return Err(format!("Couldn't send direct message: {why:?}").into());
-        }
+        user.direct_message(ctx, message).await?;
 
         match guild_id.ban_with_reason(ctx, user_id, 0, &reason).await {
             Ok(_) => {

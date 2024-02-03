@@ -15,7 +15,7 @@
 
 use chrono::Utc;
 use serenity::all::UserId;
-use tracing::{error, info};
+use tracing::info;
 
 use crate::{
     check_restricted_guild_channel,
@@ -116,10 +116,7 @@ pub async fn warn(
     let message = messages::info_message(format!(
         "You've been warned by {moderator_mention} in {guild_name} for {reason}.",
     ));
-    if let Err(why) = user.direct_message(ctx, message).await {
-        error!("Couldn't send reply: {why:?}");
-        return Err(why.into());
-    }
+    user.direct_message(ctx, message).await?;
 
     info!("@{user_name} warned by @{moderator_name}: {reason}");
 
