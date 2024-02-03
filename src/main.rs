@@ -21,15 +21,17 @@ use std::sync::Arc;
 
 use poise::serenity_prelude as serenity;
 
-use ::serenity::all::GatewayIntents;
+use ::serenity::all::{GatewayIntents, UserId};
+use dashmap::DashMap;
 use poise::Framework;
 use sqlx::SqlitePool;
-use tokio::time::Instant;
+use tokio::{sync::Mutex, time::Instant};
 use tracing::{debug, error, level_filters::LevelFilter, subscriber, warn};
 use tracing_subscriber::{fmt::Subscriber, EnvFilter};
 
 pub struct Data {
     pub pool: Arc<SqlitePool>,
+    pub amount_of_messages: Arc<Mutex<DashMap<UserId, (u32, Instant)>>>,
 }
 
 type Error = Box<dyn std::error::Error + Send + Sync>;
@@ -44,6 +46,7 @@ async fn main() -> Result<(), Error> {
 
     let data = Data {
         pool: Arc::new(pool),
+        amount_of_messages: Arc::new(Mutex::new(DashMap::new())),
     };
 
     let token = initialise_token()?;
