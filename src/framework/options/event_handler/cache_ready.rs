@@ -22,7 +22,9 @@ pub async fn handle(guild_ids: &Vec<GuildId>, ctx: &Context, data: &Data) {
     let pool = &data.pool;
 
     for guild_id in guild_ids {
-        let guild_name = models::guilds::guild_name_from_guild_id_raw(ctx, *guild_id);
+        let guild_name = models::guilds::guild_name_from_guild_id_raw(ctx, *guild_id)
+            .await
+            .unwrap();
 
         let restricted_guild = check_restricted_guild!(&pool, &guild_id);
         if restricted_guild {

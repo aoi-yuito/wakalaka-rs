@@ -21,15 +21,15 @@ use tracing::{error, warn};
 
 use crate::Context;
 
-pub fn owner_id_from_guild_id_raw(
+pub async fn owner_id_from_guild_id_raw(
     ctx: &crate::serenity::Context,
     guild_id: GuildId,
 ) -> Result<UserId, ModelError> {
-    match guild_id.to_guild_cached(ctx) {
-        Some(guild) => Ok(guild.owner_id),
-        None => {
-            warn!("Couldn't get guild owner ID");
-            return Err(ModelError::GuildNotFound);
+    match ctx.http.get_guild(guild_id).await {
+        Ok(guild) => Ok(guild.owner_id),
+        Err(why) => {
+            error!("Couldn't get guild owner ID from guild ID: {why:?}");
+            return Err(ModelError::MemberNotFound);
         }
     }
 }
@@ -38,12 +38,16 @@ pub fn owner_id(ctx: Context<'_>) -> Result<UserId, ModelError> {
     Ok(guild(ctx)?.owner_id)
 }
 
-pub fn guild_name_from_guild_id_raw(ctx: &crate::serenity::Context, guild_id: GuildId) -> String {
-    if let Some(guild_name) = guild_id.name(ctx) {
-        guild_name
-    } else {
-        warn!("Couldn't get guild name, using guild ID instead");
-        format!("'{guild_id}'")
+pub async fn guild_name_from_guild_id_raw(
+    ctx: &crate::serenity::Context,
+    guild_id: GuildId,
+) -> Option<String> {
+    match ctx.http.get_guild(guild_id).await {
+        Ok(guild) => Some(guild.name),
+        Err(why) => {
+            error!("Couldn't get guild name from guild ID: {why:?}");
+            Some(format!("'{guild_id}'"))
+        }
     }
 }
 
@@ -51,13 +55,9 @@ pub fn guild_name_from_guild_id(ctx: Context<'_>, guild_id: GuildId) -> String {
     if let Some(guild_name) = guild_id.name(ctx) {
         guild_name
     } else {
-        warn!("Couldn't get guild name, using guild ID instead");
+        warn!("Couldn't get guild name from guild ID, using guild ID instead");
         format!("'{guild_id}'")
     }
-}
-
-pub async fn guild_name_raw(ctx: &crate::serenity::Context) -> Result<String, ModelError> {
-    Ok(guild_raw(ctx).await?.name)
 }
 
 pub fn guild_name(ctx: Context<'_>) -> Result<String, ModelError> {
@@ -76,26 +76,8 @@ pub fn guild_id_from_component_raw(
     }
 }
 
-pub async fn guild_id_raw(ctx: &crate::serenity::Context) -> GuildId {
-    super::current_application_info_raw(ctx)
-        .await
-        .expect("Couldn't get current application info")
-        .guild_id
-        .expect("Couldn't find guild ID in current application")
-}
-
 pub fn guild_id(ctx: Context<'_>) -> Result<GuildId, ModelError> {
     Ok(guild(ctx)?.id)
-}
-
-pub async fn guild_raw(ctx: &crate::serenity::Context) -> Result<Guild, ModelError> {
-    match guild_id_raw(ctx).await.to_guild_cached(ctx) {
-        Some(guild) => Ok(guild.clone()),
-        None => {
-            error!("Couldn't get guild");
-            return Err(ModelError::GuildNotFound);
-        }
-    }
 }
 
 pub fn guild(ctx: Context<'_>) -> Result<Guild, ModelError> {

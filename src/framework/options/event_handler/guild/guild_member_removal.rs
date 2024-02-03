@@ -19,7 +19,9 @@ use tracing::info;
 use crate::{serenity::Context, utility::models};
 
 pub async fn handle(guild_id: &GuildId, user: &User, member: &Option<Member>, ctx: &Context) {
-    let guild_name = models::guilds::guild_name_from_guild_id_raw(ctx, *guild_id);
+    let guild_name = models::guilds::guild_name_from_guild_id_raw(ctx, *guild_id)
+        .await
+        .unwrap();
 
     if let Some(member) = member {
         let member_name = &member.user.name;

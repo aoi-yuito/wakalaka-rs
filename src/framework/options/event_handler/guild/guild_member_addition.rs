@@ -25,7 +25,9 @@ pub async fn handle(new_member: &Member, ctx: &Context, data: &Data) {
     let pool = &data.pool;
 
     let guild_id = new_member.guild_id;
-    let guild_name = models::guilds::guild_name_from_guild_id_raw(ctx, guild_id);
+    let guild_name = models::guilds::guild_name_from_guild_id_raw(ctx, guild_id)
+        .await
+        .unwrap();
 
     let members = match models::members::members_raw(&ctx, &guild_id).await {
         Ok(members) => members,
