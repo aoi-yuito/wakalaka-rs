@@ -69,7 +69,7 @@ pub async fn handle(
                 .await;
         }
         FullEvent::InteractionCreate { interaction, .. } => {
-            interaction::interaction_create::handle(interaction, ctx, data).await;
+            interaction::interaction_create::handle(interaction, ctx, data).await?;
         }
         _ => {}
     }
