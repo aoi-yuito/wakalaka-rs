@@ -10,6 +10,7 @@ repository = "https://github.com/Kawaxte/wakalaka-rs"
 license-file = "LICENSE"
 
 [dependencies]
+dashmap = "5.5.3"
 dotenvy = "0.15.7"
 lazy_static = "1.4.0"
 sysinfo = "0.30.5"
