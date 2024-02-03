@@ -42,6 +42,20 @@ pub async fn channels(ctx: Context<'_>) -> Result<Vec<GuildChannel>, ModelError>
     Ok(channels)
 }
 
+pub async fn channel_from_channel_id_raw(
+    ctx: &crate::serenity::Context,
+    channel_id: &ChannelId,
+) -> Result<GuildChannel, ModelError> {
+    let channel = match channel_id.to_channel(ctx).await {
+        Ok(channel) => channel.guild().ok_or(ModelError::ChannelNotFound)?,
+        Err(why) => {
+            error!("Couldn't get channel: {why:?}");
+            return Err(ModelError::ChannelNotFound);
+        }
+    };
+    Ok(channel)
+}
+
 pub async fn channel(ctx: Context<'_>) -> Result<GuildChannel, ModelError> {
     let channel = match channel_id(ctx).to_channel(ctx).await {
         Ok(channel) => channel.guild().ok_or(ModelError::ChannelNotFound)?,
