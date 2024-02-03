@@ -13,6 +13,7 @@ build = "build.rs"
 [dependencies]
 dotenvy = "0.15.7"
 lazy_static = "1.4.0"
+sysinfo = "0.30.5"
 
 [dependencies.serde_json]
 version = "1.0.113"

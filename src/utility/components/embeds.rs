@@ -143,39 +143,41 @@ pub fn ping_command_embed(
     ids: Vec<&ShardId>,
     stages: Vec<ConnectionStage>,
     latencies: Vec<Option<Duration>>,
+    memory: (f64, f64),
 ) -> CreateEmbed {
-    //  | Pong!                             |
-    //  | Shard    | State      | Latency   |
-    //  |----------|------------|-----------|
-    //  | <id1>    | <@{state1> | {ms1}     |
-    //  | <id2>    | <@{state2> | {ms2}     |
-    //  | Response |                        |
-    //  |----------|                        |
-    //  | {response_latency}                |
+    //  | Pong!                                       |
+    //  | Shard    | State           | Latency        |
+    //  |----------|-----------------|----------------|
+    //  | <id1>    | <@{state1>      | {ms1}          |
+    //  | <id2>    | <@{state2>      | {ms2}          |
+    //  | {response_latency} | {used} MB / {total} MB |
 
     let mut id_field = String::new();
     let mut stage_field = String::new();
     let mut latency_field = String::new();
 
     for ((id, stage), latency) in ids.iter().zip(stages.iter()).zip(latencies.iter()) {
-        writeln!(id_field, "{id}").unwrap();
-        writeln!(stage_field, "{stage}").unwrap();
+        writeln!(id_field, "{id}").expect("Couldn't write to 'id_field'");
+        writeln!(stage_field, "{stage}").expect("Couldn't write to 'stage_field'");
 
         if latency.is_some() {
             let latency = latency.unwrap_or_default();
 
-            writeln!(latency_field, "{latency:.2?}").unwrap();
+            writeln!(latency_field, "{latency:.2?}").expect("Couldn't write to 'latency_field'");
         } else {
-            writeln!(latency_field, "N/A").unwrap();
+            writeln!(latency_field, "N/A").expect("Couldn't write to 'latency_field'");
         }
     }
 
     let embed_fields = vec![
-        ("Shard", id_field, true),
-        ("State", stage_field, true),
-        ("Latency", latency_field, true),
+        ("💎Shard", id_field, true),
+        ("📶State", stage_field, true),
+        ("🕓Latency", latency_field, true),
     ];
-    let embed_footer = CreateEmbedFooter::new(format!("{elapsed_time:.2?}"));
+    let embed_footer = CreateEmbedFooter::new(format!(
+        "🕓{elapsed_time:.2?} - 🖥️{:.2} MB / {:.2} MB",
+        memory.0, memory.1
+    ));
 
     CreateEmbed::default()
         .title("Pong!")
