@@ -16,12 +16,12 @@
 use serenity::all::{Guild, UnavailableGuild};
 use tracing::{error, info};
 
-use crate::{database::guilds, serenity::Context, utility::models, Data};
+use crate::{database::guilds, utility::models, Data};
 
 pub async fn handle(
     unavailable_guild: &UnavailableGuild,
     guild: &Option<Guild>,
-    ctx: &Context,
+    ctx: &crate::serenity::Context,
     data: &Data,
 ) {
     if unavailable_guild.unavailable {

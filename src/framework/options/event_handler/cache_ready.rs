@@ -16,9 +16,9 @@
 use serenity::all::GuildId;
 use tracing::{error, info};
 
-use crate::{check_restricted_guild, serenity::Context, utility::models, Data};
+use crate::{check_restricted_guild, utility::models, Data};
 
-pub async fn handle(guild_ids: &Vec<GuildId>, ctx: &Context, data: &Data) {
+pub async fn handle(guild_ids: &Vec<GuildId>, ctx: &crate::serenity::Context, data: &Data) {
     let pool = &data.pool;
 
     for guild_id in guild_ids {
