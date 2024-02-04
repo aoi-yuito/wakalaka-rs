@@ -27,7 +27,7 @@ pub async fn handle(
     data: &Data,
 ) -> Result<(), Error> {
     let _pool = &data.pool;
-    
+
     let start_time = Instant::now();
 
     let member = msg.member(&ctx).await?;
@@ -48,8 +48,6 @@ pub async fn handle(
     protect_from_mention_spam(msg, ctx).await?;
     protect_from_embed_spam(msg, ctx).await?;
     protect_from_attachment_spam(msg, ctx).await?;
-
-    protect_from_duplicates(&message_count, elapsed_time, msg, ctx).await?;
 
     protect_from_invite_links(msg, ctx).await?;
 
@@ -75,28 +73,6 @@ async fn protect_from_invite_links(
 
         let message = messages::warn_message("Hey! You're not allowed to advertise here!");
         user.direct_message(&ctx, message).await?;
-    }
-
-    Ok(())
-}
-
-async fn protect_from_duplicates(
-    message_count: &RefMut<'_, UserId, (u32, Instant)>,
-    elapsed_time: Duration,
-    msg: &Message,
-    ctx: &crate::serenity::Context,
-) -> Result<(), Error> {
-    let user = &msg.author;
-    if user.bot || user.system {
-        return Ok(());
-    }
-
-    if message_count.0 > 0 && elapsed_time < Duration::from_secs(30) {
-        let message =
-            messages::warn_message("Slow down! You're sending the same message too quickly!");
-        user.direct_message(&ctx, message).await?;
-
-        msg.delete(&ctx).await?;
     }
 
     Ok(())
@@ -192,8 +168,11 @@ async fn protect_from_spam(
         let message = messages::warn_message("Quiet down! You're sending messages too quickly!");
         user.direct_message(&ctx, message).await?;
     }
-    Ok(if elapsed_time >= Duration::from_secs(5) {
+
+    if elapsed_time >= Duration::from_secs(5) {
         message_count.0 = 0;
         message_count.1 = Instant::now();
-    })
+    }
+
+    Ok(())
 }
