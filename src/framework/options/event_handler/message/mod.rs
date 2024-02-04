@@ -15,7 +15,8 @@
 
 pub mod message_delete;
 
-use serenity::{all::Message, futures::StreamExt};
+use dashmap::mapref::one::RefMut;
+use serenity::{all::Message, all::UserId, futures::StreamExt};
 use tokio::time::{Duration, Instant};
 
 use crate::{utility::components::messages, Data, Error};
@@ -26,6 +27,8 @@ pub async fn handle(
     data: &Data,
 ) -> Result<(), Error> {
     let _pool = &data.pool;
+    
+    let start_time = Instant::now();
 
     let member = msg.member(&ctx).await?;
     if member.permissions(&ctx)?.administrator() {
@@ -34,8 +37,6 @@ pub async fn handle(
 
     let user_id = msg.author.id;
 
-    let start_time = Instant::now();
-
     let amount_of_messages = data.amount_of_messages.lock().await;
 
     let mut message_count = amount_of_messages.entry(user_id).or_insert((0, start_time));
@@ -43,19 +44,127 @@ pub async fn handle(
 
     let elapsed_time = message_count.1.elapsed();
 
-    if message_count.0 > 8 && elapsed_time < Duration::from_secs(5) {
-        limit_messages_per_user(msg, ctx).await?;
-    }
-    if elapsed_time >= Duration::from_secs(5) {
-        *message_count = (0, Instant::now());
-    }
+    protect_from_spam(&mut message_count, elapsed_time, msg, ctx).await?;
+    protect_from_mention_spam(msg, ctx).await?;
+    protect_from_embed_spam(msg, ctx).await?;
+    protect_from_attachment_spam(msg, ctx).await?;
 
-    remove_invite_links(msg, ctx).await?;
+    protect_from_duplicates(&message_count, elapsed_time, msg, ctx).await?;
+
+    protect_from_invite_links(msg, ctx).await?;
 
     Ok(())
 }
 
-async fn limit_messages_per_user(
+async fn protect_from_invite_links(
+    msg: &Message,
+    ctx: &crate::serenity::Context,
+) -> Result<(), Error> {
+    let user = &msg.author;
+    if user.bot || user.system {
+        return Ok(());
+    }
+
+    let message_content = msg.content_safe(&ctx);
+    if message_content.contains("discord.gg/")
+        || message_content.contains("discord.com/invite/")
+        // Legacy failsafe to prevent people from bypassing the filter.
+        || message_content.contains("discordapp.com/invite/")
+    {
+        msg.delete(&ctx).await?;
+
+        let message = messages::warn_message("Hey! You're not allowed to advertise here!");
+        user.direct_message(&ctx, message).await?;
+    }
+
+    Ok(())
+}
+
+async fn protect_from_duplicates(
+    message_count: &RefMut<'_, UserId, (u32, Instant)>,
+    elapsed_time: Duration,
+    msg: &Message,
+    ctx: &crate::serenity::Context,
+) -> Result<(), Error> {
+    let user = &msg.author;
+    if user.bot || user.system {
+        return Ok(());
+    }
+
+    if message_count.0 > 0 && elapsed_time < Duration::from_secs(30) {
+        let message =
+            messages::warn_message("Slow down! You're sending the same message too quickly!");
+        user.direct_message(&ctx, message).await?;
+
+        msg.delete(&ctx).await?;
+    }
+
+    Ok(())
+}
+
+async fn protect_from_attachment_spam(
+    msg: &Message,
+    ctx: &crate::serenity::Context,
+) -> Result<(), Error> {
+    let user = &msg.author;
+    if user.bot || user.system {
+        return Ok(());
+    }
+
+    let attachment_count = msg.attachments.len();
+    if attachment_count > 5 {
+        let message = messages::warn_message("Slow down! You're uploading too many attachments!");
+        user.direct_message(&ctx, message).await?;
+
+        msg.delete(&ctx).await?;
+    }
+
+    Ok(())
+}
+
+async fn protect_from_embed_spam(
+    msg: &Message,
+    ctx: &crate::serenity::Context,
+) -> Result<(), Error> {
+    let user = &msg.author;
+    if user.bot || user.system {
+        return Ok(());
+    }
+
+    let embed_count = msg.embeds.len();
+    if embed_count > 5 {
+        let message = messages::warn_message("Slow down! You're sending too many embeds!");
+        user.direct_message(&ctx, message).await?;
+
+        msg.delete(&ctx).await?;
+    }
+
+    Ok(())
+}
+
+async fn protect_from_mention_spam(
+    msg: &Message,
+    ctx: &crate::serenity::Context,
+) -> Result<(), Error> {
+    let user = &msg.author;
+    if user.bot || user.system {
+        return Ok(());
+    }
+
+    let mention_count = msg.mentions.len();
+    if mention_count > 5 {
+        let message = messages::warn_message("Slow down! You're mentioning too many people!");
+        user.direct_message(&ctx, message).await?;
+
+        msg.delete(&ctx).await?;
+    }
+
+    Ok(())
+}
+
+async fn protect_from_spam(
+    message_count: &mut RefMut<'_, UserId, (u32, Instant)>,
+    elapsed_time: Duration,
     msg: &Message,
     ctx: &crate::serenity::Context,
 ) -> Result<(), Error> {
@@ -66,43 +175,25 @@ async fn limit_messages_per_user(
 
     let channel_id = msg.channel_id;
 
-    let messages = channel_id.messages_iter(&ctx).filter_map(|message| async {
-        let message = message.ok()?;
+    if message_count.0 > 8 && elapsed_time < Duration::from_secs(5) {
+        let messages = channel_id.messages_iter(&ctx).filter_map(|message| async {
+            let message = message.ok()?;
 
-        if message.author.id == user.id {
-            Some(message)
-        } else {
-            None
+            if message.author.id == user.id {
+                Some(message)
+            } else {
+                None
+            }
+        });
+        for message in messages.take(8).collect::<Vec<Message>>().await {
+            message.delete(&ctx).await?;
         }
-    });
-    for message in messages.take(8).collect::<Vec<Message>>().await {
-        message.delete(&ctx).await?;
-    }
 
-    let message = messages::warn_message("Quiet down! You're sending messages too quickly!");
-    user.direct_message(&ctx, message).await?;
-
-    Ok(())
-}
-
-async fn remove_invite_links(msg: &Message, ctx: &crate::serenity::Context) -> Result<(), Error> {
-    let user = &msg.author;
-    if user.bot || user.system {
-        return Ok(());
-    }
-
-    let message_content = msg.content_safe(&ctx);
-
-    if message_content.contains("discord.gg/")
-        || message_content.contains("discord.com/invite/")
-        // Legacy failsafe to prevent people from bypassing the filter
-        || message_content.contains("discordapp.com/invite/")
-    {
-        msg.delete(&ctx).await?;
-
-        let message = messages::warn_message("Hey! You're not allowed to advertise here!");
+        let message = messages::warn_message("Quiet down! You're sending messages too quickly!");
         user.direct_message(&ctx, message).await?;
     }
-
-    Ok(())
+    Ok(if elapsed_time >= Duration::from_secs(5) {
+        message_count.0 = 0;
+        message_count.1 = Instant::now();
+    })
 }
