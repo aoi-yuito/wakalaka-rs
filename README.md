@@ -30,7 +30,7 @@ A work-in-progress, self-hostable Discord bot written purely in Rust, inspired b
 
 While in alpha development, I strongly suggest not using her in production. She's not ready yet. She has yet to cook. In the meantime, you _are_ welcome to try her out and report any issues you find. The more we get her tested, the closer she could get to beta, and then to release in the near future.
 
-To invite her to your server, click [here](https://discord.com/api/oauth2/authorize?client_id=1190718691055251548&permissions=63663762702326&scope=bot).
+To invite her to your server, click [here](https://discord.com/api/oauth2/authorize?client_id=1190718691055251548&permissions=9899241204854&scope=bot).
 
 ---
 
