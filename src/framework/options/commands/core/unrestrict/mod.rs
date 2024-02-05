@@ -26,6 +26,7 @@ use crate::{
     slash_command,
     subcommands("channel", "server"),
     category = "Core",
+    required_permissions = "ADMINISTRATOR",
     owners_only,
     guild_only,
     subcommand_required,

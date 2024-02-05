@@ -28,7 +28,7 @@ use crate::{
     prefix_command,
     slash_command,
     category = "Info",
-    guild_only,
+    required_bot_permissions = "SEND_MESSAGES",
     user_cooldown = 5,
     ephemeral
 )]

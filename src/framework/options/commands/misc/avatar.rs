@@ -26,8 +26,9 @@ use crate::{
     slash_command,
     context_menu_command = "Get Avatar",
     category = "Misc",
-    user_cooldown = 5,
-    guild_only
+    required_bot_permissions = "SEND_MESSAGES",
+    guild_only,
+    user_cooldown = 5
 )]
 /// Get a user's avatar.
 pub async fn avatar(

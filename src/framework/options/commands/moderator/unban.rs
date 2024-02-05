@@ -32,6 +32,7 @@ use crate::{
     slash_command,
     category = "Moderator",
     required_permissions = "BAN_MEMBERS",
+    required_bot_permissions = "BAN_MEMBERS | SEND_MESSAGES",
     guild_only,
     user_cooldown = 5,
     ephemeral

@@ -31,6 +31,7 @@ use crate::{
     slash_command,
     category = "Manager",
     required_permissions = "MANAGE_ROLES",
+    required_bot_permissions = "SEND_MESSAGES | MANAGE_ROLES",
     guild_only,
     user_cooldown = 5,
     ephemeral

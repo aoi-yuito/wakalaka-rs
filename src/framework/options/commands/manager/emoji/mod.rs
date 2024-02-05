@@ -26,7 +26,7 @@ use crate::{
     slash_command,
     subcommands("add", "delete"),
     category = "Manager",
-    required_permissions = "CREATE_GUILD_EXPRESSIONS",
+    required_permissions = "MANAGE_GUILD_EXPRESSIONS | CREATE_GUILD_EXPRESSIONS",
     guild_only,
     subcommand_required,
     ephemeral

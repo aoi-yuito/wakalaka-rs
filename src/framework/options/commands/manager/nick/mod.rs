@@ -27,6 +27,7 @@ use crate::{
     subcommands("edit", "reset", "set"),
     category = "Manager",
     required_permissions = "MANAGE_NICKNAMES",
+    required_bot_permissions = "MANAGE_NICKNAMES",
     guild_only,
     subcommand_required,
     ephemeral

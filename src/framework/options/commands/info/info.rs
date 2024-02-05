@@ -29,6 +29,7 @@ use super::{
     prefix_command,
     slash_command,
     category = "Info",
+    required_bot_permissions = "SEND_MESSAGES",
     user_cooldown = 5,
     ephemeral
 )]

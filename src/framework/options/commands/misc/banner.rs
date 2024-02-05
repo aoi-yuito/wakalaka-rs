@@ -30,6 +30,7 @@ use crate::{
     slash_command,
     context_menu_command = "Get Banner",
     category = "Misc",
+    required_bot_permissions = "SEND_MESSAGES",
     user_cooldown = 5,
     guild_only
 )]

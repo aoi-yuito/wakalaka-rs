@@ -24,8 +24,8 @@ use crate::{
 #[poise::command(
     prefix_command,
     category = "Core",
+    required_permissions = "ADMINISTRATOR",
     owners_only,
-    guild_only,
     user_cooldown = 5,
     ephemeral
 )]
