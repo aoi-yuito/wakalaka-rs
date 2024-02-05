@@ -14,49 +14,39 @@
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
 use serenity::all::{ChannelId, GuildId, MessageId};
-use tracing::{error, warn};
 
 use crate::{
     database::{guilds, suggestions},
-    serenity::Context,
-    Data,
+    utility::models,
+    Data, Error,
 };
 
 pub async fn handle(
     channel_id: &ChannelId,
     message_id: &MessageId,
     guild_id: &Option<GuildId>,
-    ctx: &Context,
+    ctx: &crate::serenity::Context,
     data: &Data,
-) {
+) -> Result<(), Error> {
     let pool = &data.pool;
 
-    let channel = match channel_id.to_channel(&ctx).await {
-        Ok(value) => value,
-        Err(why) => {
-            error!("Couldn't get channel: {why:?}");
-            return;
-        }
-    };
-    let channel_id = channel.id();
+    let channel = models::channels::channel_from_channel_id_raw(ctx, channel_id).await?;
+    let channel_id = channel.id;
 
-    let guild_id = match guild_id {
-        Some(value) => value,
-        None => {
-            warn!("Couldn't get guild ID");
-            return;
+    if let Some(guild_id) = guild_id {
+        let suggestions_channel_id =
+            guilds::select_suggestions_channel_id_from_guilds(&guild_id, pool).await;
+        if let Some(suggestions_channel_id) = suggestions_channel_id {
+            if channel_id == suggestions_channel_id {
+                suggestions::delete_from_suggestions(
+                    i64::from(*message_id),
+                    i64::from(*guild_id),
+                    pool,
+                )
+                .await;
+            }
         }
-    };
-
-    let suggestions_channel_id =
-        guilds::select_suggestions_channel_id_from_guilds(guild_id, pool).await;
-    if suggestions_channel_id.is_some() {
-        let suggestions_channel_id = suggestions_channel_id.unwrap();
-        if channel_id != suggestions_channel_id {
-            return;
-        }
-
-        suggestions::delete_from_suggestions(i64::from(*message_id), i64::from(*guild_id), pool)
-            .await;
     }
+
+    Ok(())
 }

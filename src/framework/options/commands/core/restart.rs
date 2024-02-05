@@ -24,8 +24,8 @@ use crate::{utility::components::messages, Context, Error};
     prefix_command,
     slash_command,
     category = "Core",
+    required_permissions = "ADMINISTRATOR",
     owners_only,
-    guild_only,
     user_cooldown = 5,
     ephemeral
 )]

@@ -33,6 +33,7 @@ use crate::{
     slash_command,
     category = "Moderator",
     required_permissions = "DEAFEN_MEMBERS",
+    required_bot_permissions = "SEND_MESSAGES | DEAFEN_MEMBERS",
     guild_only,
     user_cooldown = 5,
     ephemeral
@@ -57,7 +58,7 @@ pub async fn deafen(
 
     let user = models::users::user(ctx, user_id).await?;
 
-    let moderator = models::author(ctx)?;
+    let moderator = models::users::author(ctx)?;
     let moderator_id = moderator.id;
 
     if user.bot || user.system {
@@ -84,9 +85,11 @@ pub async fn deafen(
     }
 
     let result = {
-        let user_name = &user.name;
+        let (user_name, user_mention) =
+            (&user.name, models::users::user_mention(ctx, user_id).await?);
 
-        let moderator_name = &moderator.name;
+        let (moderator_name, moderator_mention) =
+            (&moderator.name, models::users::author_mention(ctx)?);
 
         let (guild_id, guild_name) = (
             models::guilds::guild_id(ctx)?,
@@ -101,11 +104,9 @@ pub async fn deafen(
         let member_builder = EditMember::default().deafen(true);
 
         let message = messages::info_message(format!(
-            "You've been deafened by <@{moderator_id}> in {guild_name} for {reason}.",
+            "You've been deafened by {moderator_mention} in {guild_name} for {reason}.",
         ));
-        if let Err(why) = user.direct_message(ctx, message).await {
-            return Err(format!("Couldn't send reply: {why:?}").into());
-        }
+        user.direct_message(ctx, message).await?;
 
         match member.edit(ctx, member_builder).await {
             Ok(_) => {
@@ -127,11 +128,11 @@ pub async fn deafen(
                 users::update_users_set_infractions(&user_id, user_infractions, pool).await?;
 
                 info!("@{moderator_name} deafened @{user_name} in {guild_name}: {reason}");
-                Ok(format!("<@{user_id}> has been deafened."))
+                Ok(format!("{user_mention} has been deafened."))
             }
             Err(why) => {
                 error!("Couldn't deafen @{user_name}: {why:?}");
-                Err(format!("Sorry, but I couldn't deafen <@{user_id}>."))
+                Err(format!("Sorry, but I couldn't deafen {user_mention}."))
             }
         }
     };

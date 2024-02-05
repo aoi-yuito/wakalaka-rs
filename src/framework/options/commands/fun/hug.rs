@@ -21,6 +21,7 @@ use crate::{check_restricted_guild_channel, utility::models, Context, Error};
     prefix_command,
     slash_command,
     category = "Fun",
+    required_bot_permissions = "SEND_MESSAGES",
     guild_only,
     user_cooldown = 5
 )]

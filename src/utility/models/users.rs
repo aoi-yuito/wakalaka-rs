@@ -14,12 +14,35 @@
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
 use serenity::{
-    all::{User, UserId},
+    all::{Mention, Mentionable, User, UserId},
     model::ModelError,
 };
 use tracing::error;
 
 use crate::Context;
+
+pub fn author_mention(ctx: Context<'_>) -> Result<Mention, ModelError> {
+    let author = author(ctx)?;
+    Ok(author.mention())
+}
+
+pub fn author_name(ctx: Context<'_>) -> Result<&String, ModelError> {
+    let author = author(ctx)?;
+    Ok(&author.name)
+}
+
+pub fn author_id(ctx: Context<'_>) -> Result<&UserId, ModelError> {
+    let author = author(ctx)?;
+    Ok(&author.id)
+}
+
+pub fn author(ctx: Context<'_>) -> Result<&User, ModelError> {
+    Ok(ctx.author())
+}
+
+pub async fn user_mention(ctx: Context<'_>, user_id: UserId) -> Result<Mention, ModelError> {
+    Ok(user(ctx, user_id).await?.mention())
+}
 
 pub async fn user_name(ctx: Context<'_>, user_id: UserId) -> Result<String, ModelError> {
     Ok(user(ctx, user_id).await?.name)

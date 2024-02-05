@@ -22,10 +22,10 @@ mod ready;
 
 use poise::FrameworkContext;
 
-use crate::{serenity::Context, serenity::FullEvent, Data, Error};
+use crate::{serenity::FullEvent, Data, Error};
 
 pub async fn handle(
-    ctx: &Context,
+    ctx: &crate::serenity::Context,
     event: &FullEvent,
     _framework: FrameworkContext<'_, Data, Error>,
     data: &Data,
@@ -58,7 +58,7 @@ pub async fn handle(
             ready::handle(data_about_bot, ctx, data).await;
         }
         FullEvent::Message { new_message, .. } => {
-            message::handle(new_message, ctx, data).await;
+            message::handle(new_message, ctx, data).await?;
         }
         FullEvent::MessageDelete {
             channel_id,
@@ -66,10 +66,10 @@ pub async fn handle(
             guild_id,
         } => {
             message::message_delete::handle(channel_id, deleted_message_id, guild_id, ctx, data)
-                .await;
+                .await?;
         }
         FullEvent::InteractionCreate { interaction, .. } => {
-            interaction::interaction_create::handle(interaction, ctx, data).await;
+            interaction::interaction_create::handle(interaction, ctx, data).await?;
         }
         _ => {}
     }

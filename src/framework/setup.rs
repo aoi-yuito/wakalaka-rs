@@ -13,8 +13,8 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-use crate::{serenity::Context, Data, Error};
+use crate::{Data, Error};
 
-pub async fn handle(_ctx: &Context, data: Data) -> Result<Data, Error> {
+pub async fn handle(_ctx: &crate::serenity::Context, data: Data) -> Result<Data, Error> {
     Ok(data)
 }

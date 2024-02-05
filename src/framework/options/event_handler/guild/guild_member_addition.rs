@@ -19,13 +19,15 @@ use serenity::{
 };
 use tracing::{error, info};
 
-use crate::{check_welcome_channel, database::users, serenity::Context, utility::models, Data};
+use crate::{check_welcome_channel, database::users, utility::models, Data};
 
-pub async fn handle(new_member: &Member, ctx: &Context, data: &Data) {
+pub async fn handle(new_member: &Member, ctx: &crate::serenity::Context, data: &Data) {
     let pool = &data.pool;
 
     let guild_id = new_member.guild_id;
-    let guild_name = models::guilds::guild_name_from_guild_id_raw(ctx, guild_id);
+    let guild_name = models::guilds::guild_name_from_guild_id_raw(ctx, guild_id)
+        .await
+        .unwrap();
 
     let members = match models::members::members_raw(&ctx, &guild_id).await {
         Ok(members) => members,

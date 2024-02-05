@@ -29,6 +29,7 @@ use crate::{
     slash_command,
     category = "Manager",
     required_permissions = "CREATE_GUILD_EXPRESSIONS",
+    required_bot_permissions = "SEND_MESSAGES | MANAGE_GUILD_EXPRESSIONS",
     guild_only,
     user_cooldown = 5,
     ephemeral
@@ -80,7 +81,7 @@ pub async fn delete(
 
     let result = match guild.delete_emoji(ctx, emoji_id).await {
         Ok(_) => {
-            let user_name = models::author_name(ctx)?;
+            let user_name = models::users::author_name(ctx)?;
 
             info!("@{user_name} deleted emoji called {emoji_name:?} from {guild_name}");
             Ok(format!("I've deleted an emoji called `{emoji_name}`."))

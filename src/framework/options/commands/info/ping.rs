@@ -15,6 +15,7 @@
 
 use std::sync::Arc;
 
+use sysinfo::System;
 use tokio::time::Instant;
 
 use crate::{
@@ -27,7 +28,7 @@ use crate::{
     prefix_command,
     slash_command,
     category = "Info",
-    guild_only,
+    required_bot_permissions = "SEND_MESSAGES",
     user_cooldown = 5,
     ephemeral
 )]
@@ -55,10 +56,22 @@ pub async fn ping(ctx: Context<'_>) -> Result<(), Error> {
         shard_latencies.push(latency);
     }
 
+    let sys = System::new_all();
+
+    let memory = (
+        sys.used_memory() as f64 / 1_048_576f64,  // MB
+        sys.total_memory() as f64 / 1_048_576f64, // MB
+    );
+
     let elapsed_time = start_time.elapsed();
 
-    let ping_embed =
-        embeds::ping_command_embed(elapsed_time, shard_ids, shard_stages, shard_latencies);
+    let ping_embed = embeds::ping_command_embed(
+        elapsed_time,
+        shard_ids,
+        shard_stages,
+        shard_latencies,
+        memory,
+    );
 
     let reply = replies::reply_embed(ping_embed, true);
     ctx.send(reply).await?;

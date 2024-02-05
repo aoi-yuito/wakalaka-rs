@@ -19,23 +19,17 @@ pub mod members;
 pub mod roles;
 pub mod users;
 
-use serenity::all::{CurrentApplicationInfo, User, UserId};
+use serenity::all::{CurrentApplicationInfo, User};
 use tracing::{error, warn};
 
-use crate::{Context, Error};
-
-pub fn author_name(ctx: Context<'_>) -> Result<&String, Error> {
-    let author = author(ctx)?;
-    Ok(&author.name)
-}
-
-pub fn author_id(ctx: Context<'_>) -> Result<&UserId, Error> {
-    let author = author(ctx)?;
-    Ok(&author.id)
-}
-
-pub fn author(ctx: Context<'_>) -> Result<&User, Error> {
-    Ok(ctx.author())
+pub async fn owner(ctx: &crate::serenity::Context) -> Option<User> {
+    match current_application_info_raw(ctx).await {
+        Some(app_info) => app_info.owner,
+        None => {
+            warn!("Couldn't get owner from current application");
+            None
+        }
+    }
 }
 
 pub async fn current_application_name_raw(ctx: &crate::serenity::Context) -> Option<String> {

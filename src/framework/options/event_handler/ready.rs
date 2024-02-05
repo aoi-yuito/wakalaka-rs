@@ -20,17 +20,19 @@ use tracing::{error, info};
 
 use crate::{
     check_restricted_guild,
-    serenity::{ActivityData, Context, Ready},
+    serenity::{ActivityData, Ready},
     utility::models,
     Data,
 };
 
-pub async fn handle(ready: &Ready, ctx: &Context, data: &Data) {
+pub async fn handle(ready: &Ready, ctx: &crate::serenity::Context, data: &Data) {
     let pool = &data.pool;
 
     let guild_ids = ctx.cache.guilds(); // Cannot have this as a utility function as it would refuse to find the IDs in cache.
     for guild_id in &guild_ids {
-        let guild_name = models::guilds::guild_name_from_guild_id_raw(ctx, *guild_id);
+        let guild_name = models::guilds::guild_name_from_guild_id_raw(ctx, *guild_id)
+            .await
+            .unwrap();
 
         let restricted_guild = check_restricted_guild!(&pool, &guild_id);
         if restricted_guild {
@@ -58,7 +60,7 @@ pub async fn handle(ready: &Ready, ctx: &Context, data: &Data) {
     });
 }
 
-async fn set_activity(ctx: &Context) {
+async fn set_activity(ctx: &crate::serenity::Context) {
     let guild_count = ctx.cache.guilds().len();
 
     let ytpmv = "Blue As You Are";

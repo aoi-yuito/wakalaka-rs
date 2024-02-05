@@ -26,6 +26,7 @@ use crate::{
     slash_command,
     category = "Moderator",
     required_permissions = "MANAGE_MESSAGES",
+    required_bot_permissions = "SEND_MESSAGES | MANAGE_MESSAGES",
     guild_only,
     user_cooldown = 5,
     ephemeral
@@ -52,7 +53,7 @@ pub async fn after(
 
     let http = ctx.serenity_context().http.clone();
     let channel_id = models::channels::channel_id(ctx);
-    let user_name = models::author_name(ctx)?.clone();
+    let user_name = models::users::author_name(ctx)?.clone();
 
     let handle = tokio::spawn(async move {
         let mut deleted_messages_count = 0;

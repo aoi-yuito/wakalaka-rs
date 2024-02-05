@@ -19,12 +19,11 @@ use tracing::error;
 use crate::{
     check_restricted_guild,
     database::{guild_members, guilds, users},
-    serenity::Context,
     utility::models,
     Data,
 };
 
-pub async fn handle(guild: &Guild, is_new: bool, ctx: &Context, data: &Data) {
+pub async fn handle(guild: &Guild, is_new: bool, ctx: &crate::serenity::Context, data: &Data) {
     let pool = &data.pool;
 
     let guild_id = guild.id;

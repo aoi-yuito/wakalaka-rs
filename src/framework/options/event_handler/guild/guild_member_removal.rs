@@ -16,10 +16,17 @@
 use serenity::all::{GuildId, Member, User};
 use tracing::info;
 
-use crate::{serenity::Context, utility::models};
+use crate::utility::models;
 
-pub async fn handle(guild_id: &GuildId, user: &User, member: &Option<Member>, ctx: &Context) {
-    let guild_name = models::guilds::guild_name_from_guild_id_raw(ctx, *guild_id);
+pub async fn handle(
+    guild_id: &GuildId,
+    user: &User,
+    member: &Option<Member>,
+    ctx: &crate::serenity::Context,
+) {
+    let guild_name = models::guilds::guild_name_from_guild_id_raw(ctx, *guild_id)
+        .await
+        .unwrap();
 
     if let Some(member) = member {
         let member_name = &member.user.name;

@@ -15,17 +15,14 @@
 
 use tracing::info;
 
-use crate::Context;
+use crate::{utility::models, Context};
 
 pub async fn handle(ctx: Context<'_>) {
     let (user_name, command_name, channel_name) = (
-        &ctx.author().name,
+        models::users::author_name(ctx).unwrap(),
         &ctx.command().qualified_name,
-        ctx.channel_id()
-            .name(ctx)
-            .await
-            .expect("No channel name found"),
+        models::channels::channel_name(ctx).await.unwrap(),
     );
-    
+
     info!("@{user_name} invoked {command_name:?} in #{channel_name}");
 }

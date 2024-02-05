@@ -26,7 +26,7 @@ use crate::{
     prefix_command,
     slash_command,
     category = "Core",
-    owners_only,
+    required_permissions = "ADMINISTRATOR",
     guild_only,
     user_cooldown = 5,
     ephemeral
@@ -39,6 +39,20 @@ pub async fn suggestions(
     channel_id: ChannelId,
 ) -> Result<(), Error> {
     let pool = &ctx.data().pool;
+
+    let (user_id, owner_id) = (
+        *models::users::author_id(ctx)?,
+        models::guilds::owner_id(ctx)?,
+    );
+    if user_id != owner_id {
+        let reply = messages::error_reply(
+            format!("Sorry, but only 👑 can allow usage within <#{channel_id}>."),
+            true,
+        );
+        ctx.send(reply).await?;
+
+        return Ok(());
+    }
 
     let guild_id = models::guilds::guild_id(ctx)?;
 

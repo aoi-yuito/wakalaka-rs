@@ -32,6 +32,7 @@ use crate::{
     slash_command,
     category = "Moderator",
     required_permissions = "MODERATE_MEMBERS",
+    required_bot_permissions = "SEND_MESSAGES | MODERATE_MEMBERS",
     guild_only,
     user_cooldown = 5,
     ephemeral
@@ -55,11 +56,10 @@ pub async fn untimeout(
     let pool = &ctx.data().pool;
 
     let user = models::users::user(ctx, user_id).await?;
-    let user_name = &user.name;
+    let (user_name, user_mention) = (&user.name, models::users::user_mention(ctx, user_id).await?);
 
-    let moderator = models::author(ctx)?;
-    let moderator_id = moderator.id;
-    let moderator_name = &moderator.name;
+    let moderator = models::users::author(ctx)?;
+    let (moderator_id, moderator_name) = (moderator.id, &moderator.name);
 
     if user.bot || user.system {
         let reply = messages::error_reply(
@@ -85,7 +85,7 @@ pub async fn untimeout(
     let mut user_infractions = users::select_infractions_from_users(&user_id, pool).await?;
     if user_infractions < 1 {
         let reply =
-            messages::info_reply(format!("<@{user_id}> hasn't been punished before."), true);
+            messages::info_reply(format!("{user_mention} hasn't been punished before."), true);
         ctx.send(reply).await?;
 
         return Ok(());
@@ -103,7 +103,7 @@ pub async fn untimeout(
             error!("Couldn't get member out of time-out: {why:?}");
 
             let reply = messages::error_reply(
-                format!("Sorry, but I couldn't get <@{user_id} out of a time-out."),
+                format!("Sorry, but I couldn't get {user_mention} out of a time-out."),
                 true,
             );
             ctx.send(reply).await?;
@@ -140,7 +140,7 @@ pub async fn untimeout(
         users::update_users_set_infractions(&user_id, user_infractions, pool).await?;
 
         let reply = messages::ok_reply(
-            format!("<@{user_id}> has been released from a time-out."),
+            format!("{user_mention} has been released from a time-out."),
             true,
         );
         ctx.send(reply).await?;

@@ -27,6 +27,7 @@ use crate::{
     slash_command,
     category = "Manager",
     required_permissions = "MANAGE_CHANNELS",
+    required_bot_permissions = "MANAGE_CHANNELS | SEND_MESSAGES",
     guild_only,
     user_cooldown = 5,
     ephemeral
@@ -74,7 +75,7 @@ pub async fn slowmode(
         None => 0,
     };
 
-    let user_name = models::author_name(ctx)?;
+    let user_name = models::users::author_name(ctx)?;
 
     let guild = models::guilds::guild(ctx)?;
     let (guild_name, guild_channels) = (guild.name, models::channels::channels(ctx).await?);

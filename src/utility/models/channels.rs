@@ -23,19 +23,12 @@ use crate::Context;
 
 use super::guilds;
 
-pub fn channel_id(ctx: Context<'_>) -> ChannelId {
-    ctx.channel_id()
+pub async fn channel_name(ctx: Context<'_>) -> Result<String, ModelError> {
+    Ok(channel(ctx).await?.name)
 }
 
-pub async fn channels_raw(ctx: &crate::serenity::Context) -> Result<Vec<GuildChannel>, ModelError> {
-    let channels = match guilds::guild_raw(ctx).await?.channels(&ctx).await {
-        Ok(channels) => channels.values().cloned().collect::<Vec<GuildChannel>>(),
-        Err(why) => {
-            error!("Couldn't get channels: {why:?}");
-            return Err(ModelError::ChannelNotFound);
-        }
-    };
-    Ok(channels)
+pub fn channel_id(ctx: Context<'_>) -> ChannelId {
+    ctx.channel_id()
 }
 
 pub async fn channels(ctx: Context<'_>) -> Result<Vec<GuildChannel>, ModelError> {
@@ -47,4 +40,29 @@ pub async fn channels(ctx: Context<'_>) -> Result<Vec<GuildChannel>, ModelError>
         }
     };
     Ok(channels)
+}
+
+pub async fn channel_from_channel_id_raw(
+    ctx: &crate::serenity::Context,
+    channel_id: &ChannelId,
+) -> Result<GuildChannel, ModelError> {
+    let channel = match channel_id.to_channel(ctx).await {
+        Ok(channel) => channel.guild().ok_or(ModelError::ChannelNotFound)?,
+        Err(why) => {
+            error!("Couldn't get channel: {why:?}");
+            return Err(ModelError::ChannelNotFound);
+        }
+    };
+    Ok(channel)
+}
+
+pub async fn channel(ctx: Context<'_>) -> Result<GuildChannel, ModelError> {
+    let channel = match channel_id(ctx).to_channel(ctx).await {
+        Ok(channel) => channel.guild().ok_or(ModelError::ChannelNotFound)?,
+        Err(why) => {
+            error!("Couldn't get channel: {why:?}");
+            return Err(ModelError::ChannelNotFound);
+        }
+    };
+    Ok(channel)
 }

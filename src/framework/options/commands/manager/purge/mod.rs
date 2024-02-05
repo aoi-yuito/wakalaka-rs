@@ -29,6 +29,7 @@ use crate::{
     subcommands("after", "any", "around", "before"),
     category = "Moderator",
     required_permissions = "MANAGE_MESSAGES",
+    required_bot_permissions = "MANAGE_MESSAGES",
     guild_only,
     subcommand_required,
     ephemeral

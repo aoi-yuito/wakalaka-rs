@@ -27,6 +27,7 @@ use crate::{
     slash_command,
     category = "Manager",
     required_permissions = "MANAGE_ROLES",
+    required_bot_permissions = "SEND_MESSAGES | MANAGE_ROLES",
     guild_only,
     user_cooldown = 5,
     ephemeral
@@ -47,7 +48,10 @@ pub async fn set(
     let result = {
         let role_ids = models::roles::role_ids(roles).await;
 
-        let user_name = models::users::user_name(ctx, user_id).await?;
+        let (user_name, user_mention) = (
+            models::users::user_name(ctx, user_id).await?,
+            models::users::user_mention(ctx, user_id).await?,
+        );
 
         let guild = models::guilds::guild(ctx)?;
         let (guild_id, guild_name) = (guild.id, &guild.name);
@@ -57,12 +61,12 @@ pub async fn set(
         match member.add_roles(ctx, &role_ids).await {
             Ok(_) => {
                 info!("Added role(s) to @{user_name} in {guild_name}");
-                Ok(format!("I've added role(s) to <@{user_id}>."))
+                Ok(format!("I've added role(s) to {user_mention}."))
             }
             Err(why) => {
                 error!("Couldn't add role(s) to @{user_name} in {guild_name}: {why:?}");
                 Err(format!(
-                    "Sorry, but I couldn't add role(s) to <@{user_id}>."
+                    "Sorry, but I couldn't add role(s) to {user_mention}."
                 ))
             }
         }

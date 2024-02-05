@@ -27,6 +27,7 @@ use crate::{
     slash_command,
     category = "Manager",
     required_permissions = "CREATE_GUILD_EXPRESSIONS",
+    required_bot_permissions = "SEND_MESSAGES | CREATE_GUILD_EXPRESSIONS",
     guild_only,
     user_cooldown = 5,
     ephemeral
@@ -96,7 +97,7 @@ pub async fn add(
 
     let result = match guild.create_emoji(ctx, &name, &encoded_attachment).await {
         Ok(_) => {
-            let user_name = models::author_name(ctx)?;
+            let user_name = models::users::author_name(ctx)?;
 
             info!("@{user_name} created emoji called {name:?} in {guild_name}");
             Ok(format!("I've created an emoji called `{name}`."))

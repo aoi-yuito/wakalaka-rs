@@ -30,6 +30,7 @@ use crate::{
     slash_command,
     subcommands("logs", "suggestions", "usage", "welcome"),
     category = "Core",
+    required_permissions = "ADMINISTRATOR",
     owners_only,
     guild_only,
     subcommand_required,

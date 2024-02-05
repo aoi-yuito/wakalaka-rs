@@ -14,11 +14,14 @@
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
 use serenity::all::User;
-use tracing::{error, warn};
+use tracing::warn;
 
 use crate::{
     check_restricted_guild_channel,
-    utility::components::{embeds, messages, replies},
+    utility::{
+        components::{embeds, messages, replies},
+        models,
+    },
     Context, Error,
 };
 
@@ -27,6 +30,7 @@ use crate::{
     slash_command,
     context_menu_command = "Get Banner",
     category = "Misc",
+    required_bot_permissions = "SEND_MESSAGES",
     user_cooldown = 5,
     guild_only
 )]
@@ -40,28 +44,18 @@ pub async fn banner(
         return Ok(());
     }
 
-    let http = ctx.http();
-
     let user_id = user.id;
+    let (user_name, user_mention) = (&user.name, models::users::user_mention(ctx, user_id).await?);
 
-    let user_raw = match http.get_user(user_id).await {
-        Ok(user) => user,
-        Err(why) => {
-            error!("Couldn't get user: {why:?}");
-            return Err(why.into());
-        }
-    };
-
-    let user_name = &user.name;
     let (user_avatar_url, user_banner_url) = (
-        user.avatar_url().unwrap_or(user_raw.default_avatar_url()),
-        match user_raw.banner_url() {
-            Some(url) => url,
+        user.avatar_url().unwrap_or(user.default_avatar_url()),
+        match user.banner_url() {
+            Some(banner_url) => banner_url,
             None => {
                 warn!("Couldn't find @{user_name}'s banner");
 
                 let reply = messages::error_reply(
-                    format!("Sorry, but I couldn't find <@{user_id}>'s banner."),
+                    format!("Sorry, but I couldn't find {user_mention}'s banner."),
                     true,
                 );
                 ctx.send(reply).await?;
@@ -71,7 +65,7 @@ pub async fn banner(
         },
     );
 
-    let embed = embeds::banned_command_embed(user_name, user_avatar_url, user_banner_url);
+    let embed = embeds::banner_command_embed(user_name, user_avatar_url, user_banner_url);
 
     let reply = replies::reply_embed(embed, false);
     ctx.send(reply).await?;

@@ -15,12 +15,17 @@
 
 use rand::{rngs::StdRng, Rng, SeedableRng};
 
-use crate::{check_restricted_guild_channel, utility::components::messages, Context, Error};
+use crate::{
+    check_restricted_guild_channel,
+    utility::{components::messages, models},
+    Context, Error,
+};
 
 #[poise::command(
     prefix_command,
     slash_command,
     category = "Misc",
+    required_bot_permissions = "SEND_MESSAGES",
     guild_only,
     user_cooldown = 5
 )]
@@ -38,14 +43,14 @@ pub async fn roll(
 
     let mut rng = StdRng::from_entropy();
 
-    let user_id = ctx.author().id;
+    let user_mention = models::users::author_mention(ctx)?;
 
     let number = match number {
         Some(number) => rng.gen_range(1..number),
         None => rng.gen_range(1..100),
     };
 
-    let reply = messages::reply(format!("<@{user_id}> rolled {number} point(s)."), false);
+    let reply = messages::reply(format!("{user_mention} rolled {number} point(s)."), false);
     ctx.send(reply).await?;
 
     Ok(())

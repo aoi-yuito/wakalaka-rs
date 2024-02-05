@@ -21,37 +21,35 @@ use std::sync::Arc;
 
 use poise::serenity_prelude as serenity;
 
-use ::serenity::all::GatewayIntents;
+use ::serenity::all::{GatewayIntents, UserId};
+use dashmap::DashMap;
 use poise::Framework;
 use sqlx::SqlitePool;
-use tokio::time::Instant;
+use tokio::{sync::Mutex, time::Instant};
 use tracing::{debug, error, level_filters::LevelFilter, subscriber, warn};
 use tracing_subscriber::{fmt::Subscriber, EnvFilter};
 
 pub struct Data {
     pub pool: Arc<SqlitePool>,
+    pub amount_of_messages: Arc<Mutex<DashMap<UserId, (u32, Instant)>>>,
 }
 
 type Error = Box<dyn std::error::Error + Send + Sync>;
+type FrameworkError<'a> = poise::FrameworkError<'a, Data, Error>;
 type Context<'a> = poise::Context<'a, Data, Error>;
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
-    initialise_subscriber();
+    initialise_subscriber()?;
 
     let pool = database::initialise().await;
 
     let data = Data {
         pool: Arc::new(pool),
+        amount_of_messages: Arc::new(Mutex::new(DashMap::new())),
     };
 
-    let token = match dotenvy::var("DISCORD_TOKEN") {
-        Ok(token) => token,
-        Err(why) => {
-            error!("Couldn't find 'DISCORD_TOKEN' in environment: {why:?}");
-            return Err(why.into());
-        }
-    };
+    let token = initialise_token()?;
     let intents = framework::initialise_intents();
     let framework = framework::initialise_framework(data).await;
 
@@ -89,21 +87,31 @@ async fn initialise_client(
     client
 }
 
-fn initialise_subscriber() {
+fn initialise_token() -> Result<String, Error> {
+    match dotenvy::var("DISCORD_TOKEN") {
+        Ok(token) => Ok(token),
+        Err(why) => {
+            error!("Couldn't find 'DISCORD_TOKEN' in environment: {why:?}");
+            return Err(why.into());
+        }
+    }
+}
+
+fn initialise_subscriber() -> Result<(), Error> {
     let start_time = Instant::now();
 
     let rust_log = match dotenvy::var("RUST_LOG") {
         Ok(level) => level,
         Err(why) => {
             error!("Couldn't find 'RUST_LOG' in environment: {why:?}");
-            panic!("{why:?}");
+            return Err(why.into());
         }
     };
 
     let filter = match EnvFilter::try_new(format!("wakalaka_rs={rust_log}")) {
         Ok(filter) => filter,
         Err(_) => {
-            error!("Couldn't get filter from environment, setting default...");
+            warn!("Couldn't get filter from environment, using default");
             EnvFilter::default()
         }
     };
@@ -114,12 +122,17 @@ fn initialise_subscriber() {
         .compact()
         .finish();
     if let Err(_) = subscriber::set_global_default(subscriber) {
-        warn!("Couldn't set custom subscriber, setting default...");
+        warn!("Couldn't set custom subscriber, using default");
 
         let default_subscriber = Subscriber::default();
-        let _ = subscriber::set_global_default(default_subscriber);
+        if let Err(why) = subscriber::set_global_default(default_subscriber) {
+            error!("Couldn't set default subscriber: {why:?}");
+            return Err(why.into());
+        }
     }
 
     let elapsed_time = start_time.elapsed();
     debug!("Initialised logger in {elapsed_time:.2?}");
+
+    Ok(())
 }

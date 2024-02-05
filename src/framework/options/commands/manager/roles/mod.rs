@@ -33,6 +33,7 @@ use crate::{
     subcommands("add", "delete", "edit", "list", "remove", "set"),
     category = "Manager",
     required_permissions = "MANAGE_ROLES",
+    required_bot_permissions = "MANAGE_ROLES",
     guild_only,
     subcommand_required,
     ephemeral
