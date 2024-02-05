@@ -25,4 +25,4 @@ const CARGO_RUST_VERSION: &str = env!("CARGO_PKG_RUST_VERSION");
 
 const GITHUB_URL: &str = "https://github.com/Kawaxte";
 
-const BOT_INVITE_URL: &str = "https://discord.com/api/oauth2/authorize?client_id=1190718691055251548&permissions=63663762702326&scope=bot";
+const BOT_INVITE_URL: &str = "https://discord.com/api/oauth2/authorize?client_id=1190718691055251548&permissions=9899241204854&scope=bot";
