@@ -13,17 +13,25 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-pub mod info;
-pub mod invite;
-pub mod lookup;
-pub mod ping;
+mod server;
+mod user;
 
-const CARGO_VERSION: &str = env!("CARGO_PKG_VERSION");
-const CARGO_NAME: &str = env!("CARGO_PKG_NAME");
-const CARGO_AUTHORS: &str = env!("CARGO_PKG_AUTHORS");
-const CARGO_DESCRIPTION: &str = env!("CARGO_PKG_DESCRIPTION");
-const CARGO_RUST_VERSION: &str = env!("CARGO_PKG_RUST_VERSION");
+use crate::{
+    framework::commands::info::lookup::{server::server, user::user},
+    Context, Error,
+};
 
-const GITHUB_URL: &str = "https://github.com/Kawaxte";
-
-const BOT_INVITE_URL: &str = "https://discord.com/api/oauth2/authorize?client_id=1190718691055251548&permissions=9899241204854&scope=bot";
+#[poise::command(
+    prefix_command,
+    slash_command,
+    subcommands("server", "user"),
+    category = "Core",
+    required_bot_permissions = "SEND_MESSAGES",
+    owners_only,
+    guild_only,
+    subcommand_required,
+    ephemeral
+)]
+pub async fn lookup(_: Context<'_>) -> Result<(), Error> {
+    Ok(())
+}
