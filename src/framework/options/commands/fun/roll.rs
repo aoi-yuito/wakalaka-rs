@@ -43,13 +43,12 @@ pub async fn roll(
         Some(number) => rng.gen_range(1..number),
         None => rng.gen_range(1..100),
     };
-    if number == 1 {
-        let reply = messages::reply(format!("{user_mention} rolled {number} point."), false);
-        ctx.send(reply).await?;
-        return Ok(());
-    }
 
-    let reply = messages::reply(format!("{user_mention} rolled {number} points."), false);
+    let reply = if number == 1 {
+        messages::reply(format!("{user_mention} rolled {number} point."), false)
+    } else {
+        messages::reply(format!("{user_mention} rolled {number} points."), false)
+    };
     ctx.send(reply).await?;
 
     Ok(())
