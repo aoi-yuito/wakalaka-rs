@@ -13,43 +13,30 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-use serenity::all::{ChannelId, GuildChannel};
+use serenity::all::{ChannelId, GuildChannel, GuildId};
 use sqlx::{Row, SqlitePool};
 use tokio::time::Instant;
 use tracing::{debug, error};
 
-#[macro_export]
-macro_rules! check_restricted_guild_channel {
-    ($ctx:expr) => {{
-        let (pool, channel_id) = (
-            &$ctx.data().pool,
-            crate::utility::models::channels::channel_id($ctx),
-        );
+use crate::{utility::components::messages, Context};
 
-        match crate::database::restricted_guild_channels::select_channel_id_from_restricted_guild_channels(
-            &channel_id,
-            pool,
-        )
-        .await
-        {
-            Ok(true) => {
-                let reply = $crate::utility::components::messages::warn_reply(
-                    format!("I'm afraid <#{channel_id}> is restricted."),
-                    true,
-                );
-                if let Err(why) = $ctx.send(reply).await {
-                    tracing::error!("Couldn't send reply: {why:?}");
-                    return Err(why.into());
-                }
+pub async fn check_restricted_guild_channel(ctx: Context<'_>) -> bool {
+    let (pool, channel_id) = (
+        &ctx.data().pool,
+        crate::utility::models::channels::channel_id(ctx),
+    );
 
-                true
-            },
-            Ok(false) => false,
-            Err(_) => {
-                false
-            }
+    match select_channel_id_from_restricted_guild_channels(&channel_id, pool).await {
+        Ok(true) => {
+            let reply =
+                messages::warn_reply(format!("I'm afraid <#{channel_id}> is restricted."), true);
+            ctx.send(reply).await.unwrap();
+
+            true
         }
-    }};
+        Ok(false) => false,
+        Err(_) => false,
+    }
 }
 
 pub async fn select_channel_id_from_restricted_guild_channels(
@@ -103,6 +90,7 @@ pub async fn delete_from_restricted_guild_channels(
 
 pub async fn insert_into_restricted_guild_channels(
     channel: &GuildChannel,
+    guild_id: &GuildId,
     pool: &SqlitePool,
 ) -> Result<(), sqlx::Error> {
     let start_time = Instant::now();
@@ -111,13 +99,15 @@ pub async fn insert_into_restricted_guild_channels(
 
     let query = sqlx::query(
         "INSERT INTO restricted_guild_channels (
-            channel_id
-        ) VALUES (?)",
+            channel_id,
+            guild_id
+        ) VALUES (?, ?)",
     )
-    .bind(i64::from(channel_id));
+    .bind(i64::from(channel_id))
+    .bind(i64::from(*guild_id));
     if let Err(why) = query.execute(pool).await {
         if why.to_string().contains("1555") {
-            // UNIQUE constraint failed: guild_channels.channel_id
+            // UNIQUE constraint failed
             return Ok(());
         }
 
