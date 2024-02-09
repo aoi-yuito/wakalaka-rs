@@ -86,7 +86,7 @@ pub async fn timeout(
 
     let duration = duration.unwrap_or(1);
     if duration < 1 || duration > 28 {
-        let reply = messages::info_reply("Duration must be between `1` and `28` day(s).", true);
+        let reply = messages::info_reply("Duration must be between `1` and `28` days.", true);
         ctx.send(reply).await?;
 
         return Ok(());
