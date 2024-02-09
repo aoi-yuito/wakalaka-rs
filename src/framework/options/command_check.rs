@@ -13,8 +13,19 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-pub mod command_check;
-pub mod commands;
-pub mod event_handler;
-pub mod on_error;
-pub mod post_command;
+use crate::{
+    database::{restricted_guild_channels, restricted_users},
+    Context, Error,
+};
+
+pub async fn handle(ctx: Context<'_>) -> Result<bool, Error> {
+    let (restricted_user, restricted_guild_channel) = (
+        restricted_users::check_restricted_user(ctx).await,
+        restricted_guild_channels::check_restricted_guild_channel(ctx).await,
+    );
+    if restricted_user || restricted_guild_channel {
+        Ok(false)
+    } else {
+        Ok(true)
+    }
+}
