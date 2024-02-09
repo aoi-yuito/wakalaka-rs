@@ -27,7 +27,6 @@ use crate::{
     subcommands("server", "user"),
     category = "Core",
     required_bot_permissions = "SEND_MESSAGES",
-    owners_only,
     guild_only,
     subcommand_required,
     ephemeral
