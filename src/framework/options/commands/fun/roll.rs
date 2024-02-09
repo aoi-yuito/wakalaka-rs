@@ -28,7 +28,7 @@ use crate::{
     guild_only,
     user_cooldown = 5
 )]
-/// Roll a number of point(s).
+/// Roll a number of points.
 pub async fn roll(
     ctx: Context<'_>,
     #[description = "The number between point(s), if any."]
