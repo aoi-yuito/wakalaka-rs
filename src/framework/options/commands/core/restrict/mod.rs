@@ -15,20 +15,20 @@
 
 mod channel;
 mod server;
+mod user;
 
 use crate::{
-    framework::commands::core::restrict::{channel::channel, server::server},
+    framework::commands::core::restrict::{channel::channel, server::server, user::user},
     Context, Error,
 };
 
 #[poise::command(
     prefix_command,
     slash_command,
-    subcommands("channel", "server"),
+    subcommands("channel", "server", "user"),
     category = "Core",
     required_permissions = "ADMINISTRATOR",
     owners_only,
-    guild_only,
     subcommand_required,
     ephemeral
 )]
