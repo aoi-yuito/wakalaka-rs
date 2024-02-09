@@ -17,7 +17,6 @@ use serenity::{all::UserId, builder::EditMember};
 use tracing::{error, info};
 
 use crate::{
-    check_restricted_guild_channel,
     utility::{components::messages, models},
     Context, Error,
 };
@@ -39,11 +38,6 @@ pub async fn reset(
     #[rename = "user"]
     user_id: UserId,
 ) -> Result<(), Error> {
-    let restricted_guild_channel = check_restricted_guild_channel!(ctx);
-    if restricted_guild_channel {
-        return Ok(());
-    }
-
     let guild_id = models::guilds::guild_id(ctx)?;
 
     let user = models::users::user(ctx, user_id).await?;

@@ -13,10 +13,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-use crate::{
-    check_restricted_guild_channel, framework::options::commands::info::BOT_INVITE_URL, Context,
-    Error,
-};
+use crate::{framework::options::commands::info::BOT_INVITE_URL, Context, Error};
 
 #[poise::command(
     prefix_command,
@@ -28,11 +25,6 @@ use crate::{
 )]
 /// Get an invitation from yours truly.
 pub async fn invite(ctx: Context<'_>) -> Result<(), Error> {
-    let restricted_guild_channel = check_restricted_guild_channel!(ctx);
-    if restricted_guild_channel {
-        return Ok(());
-    }
-
     let message = format!("{BOT_INVITE_URL}");
     ctx.say(message).await?;
 

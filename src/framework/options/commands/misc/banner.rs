@@ -17,7 +17,6 @@ use serenity::all::User;
 use tracing::warn;
 
 use crate::{
-    check_restricted_guild_channel,
     utility::{
         components::{embeds, messages, replies},
         models,
@@ -39,11 +38,6 @@ pub async fn banner(
     ctx: Context<'_>,
     #[description = "The user to get the banner from."] user: User,
 ) -> Result<(), Error> {
-    let restricted_guild_channel = check_restricted_guild_channel!(ctx);
-    if restricted_guild_channel {
-        return Ok(());
-    }
-
     let user_id = user.id;
     let (user_name, user_mention) = (&user.name, models::users::user_mention(ctx, user_id).await?);
 

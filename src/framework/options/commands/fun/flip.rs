@@ -15,7 +15,7 @@
 
 use serenity::all::Mentionable;
 
-use crate::{check_restricted_guild_channel, utility::components::messages, Context, Error};
+use crate::{utility::components::messages, Context, Error};
 
 #[poise::command(
     prefix_command,
@@ -27,11 +27,6 @@ use crate::{check_restricted_guild_channel, utility::components::messages, Conte
 )]
 /// Flip a coin.
 pub async fn flip(ctx: Context<'_>) -> Result<(), Error> {
-    let restricted_guild_channel = check_restricted_guild_channel!(ctx);
-    if restricted_guild_channel {
-        return Ok(());
-    }
-
     let random = rand::random::<bool>();
 
     let user_mention = ctx.author().mention();

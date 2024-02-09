@@ -17,7 +17,6 @@ use serenity::all::{Role, UserId};
 use tracing::{error, info};
 
 use crate::{
-    check_restricted_guild_channel,
     utility::{components::messages, models},
     Context, Error,
 };
@@ -40,11 +39,6 @@ pub async fn remove(
     #[rename = "user"]
     user_id: UserId,
 ) -> Result<(), Error> {
-    let restricted_guild_channel = check_restricted_guild_channel!(ctx);
-    if restricted_guild_channel {
-        return Ok(());
-    }
-
     let result = {
         let role_ids = models::roles::role_ids(roles).await;
 

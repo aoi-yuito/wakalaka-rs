@@ -14,7 +14,6 @@
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
 use crate::{
-    check_restricted_guild_channel,
     utility::{
         self,
         components::{embeds, replies},
@@ -32,11 +31,6 @@ use crate::{
 )]
 /// Get information for a random colour.
 pub async fn random(ctx: Context<'_>) -> Result<(), Error> {
-    let restricted_guild_channel = check_restricted_guild_channel!(ctx);
-    if restricted_guild_channel {
-        return Ok(());
-    }
-
     let client = reqwest::Client::new();
 
     let res = client

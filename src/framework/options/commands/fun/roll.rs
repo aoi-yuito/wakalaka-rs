@@ -16,7 +16,6 @@
 use rand::{rngs::StdRng, Rng, SeedableRng};
 
 use crate::{
-    check_restricted_guild_channel,
     utility::{components::messages, models},
     Context, Error,
 };
@@ -36,11 +35,6 @@ pub async fn roll(
     #[min = 1]
     number: Option<u32>,
 ) -> Result<(), Error> {
-    let restricted_guild_channel = check_restricted_guild_channel!(ctx);
-    if restricted_guild_channel {
-        return Ok(());
-    }
-
     let mut rng = StdRng::from_entropy();
 
     let user_mention = models::users::author_mention(ctx)?;

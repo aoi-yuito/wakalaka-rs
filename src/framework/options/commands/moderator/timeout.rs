@@ -18,7 +18,6 @@ use serenity::{all::UserId, model::Timestamp};
 use tracing::{error, info};
 
 use crate::{
-    check_restricted_guild_channel,
     database::{
         guild_members,
         infractions::{self, InfractionType},
@@ -53,11 +52,6 @@ pub async fn timeout(
     #[max = 28]
     duration: Option<i64>,
 ) -> Result<(), Error> {
-    let restricted_guild_channel = check_restricted_guild_channel!(ctx);
-    if restricted_guild_channel {
-        return Ok(());
-    }
-
     let pool = &ctx.data().pool;
 
     let user = models::users::user(ctx, user_id).await?;

@@ -15,7 +15,7 @@
 
 use serenity::all::{Mentionable, UserId};
 
-use crate::{check_restricted_guild_channel, utility::models, Context, Error};
+use crate::{utility::models, Context, Error};
 
 #[poise::command(
     prefix_command,
@@ -32,11 +32,6 @@ pub async fn hug(
     #[rename = "user"]
     user_id: UserId,
 ) -> Result<(), Error> {
-    let restricted_guild_channel = check_restricted_guild_channel!(ctx);
-    if restricted_guild_channel {
-        return Ok(());
-    }
-
     let user = models::users::user(ctx, user_id).await?;
 
     let user_mention = ctx.author().mention();

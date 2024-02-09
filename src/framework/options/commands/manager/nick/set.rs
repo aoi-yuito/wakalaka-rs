@@ -17,7 +17,6 @@ use serenity::{all::UserId, builder::EditMember};
 use tracing::{error, info};
 
 use crate::{
-    check_restricted_guild_channel,
     utility::{components::messages, models},
     Context, Error,
 };
@@ -43,11 +42,6 @@ pub async fn set(
     #[max_length = 32]
     nickname: String,
 ) -> Result<(), Error> {
-    let restricted_guild_channel = check_restricted_guild_channel!(ctx);
-    if restricted_guild_channel {
-        return Ok(());
-    }
-
     let nickname_char_count = nickname.chars().count();
     if nickname_char_count < 1 || nickname_char_count > 32 {
         let reply = messages::info_reply(
