@@ -29,7 +29,7 @@ pub async fn select_infractions_from_users(
     let row = match query.fetch_one(pool).await {
         Ok(infractions) => infractions,
         Err(why) => {
-            error!("Couldn't select infractions for user(s) from database: {why:?}");
+            error!("Couldn't select infractions from Users: {why:?}");
             return Err(why);
         }
     };
@@ -43,9 +43,36 @@ pub async fn select_infractions_from_users(
     };
 
     let elapsed_time = start_time.elapsed();
-    debug!("Selected infractions for user(s) from database in {elapsed_time:.2?}");
+    debug!("Selected infractions from Users in {elapsed_time:.2?}");
 
     Ok(infractions)
+}
+
+pub async fn select_user_id_from_users(user_id: &UserId, pool: &SqlitePool) -> Option<UserId> {
+    let start_time = Instant::now();
+
+    let query =
+        sqlx::query("SELECT user_id FROM users WHERE user_id = ?").bind(i64::from(*user_id));
+    let row = match query.fetch_one(pool).await {
+        Ok(user_id) => user_id,
+        Err(why) => {
+            error!("Couldn't select 'userId' from Users: {why:?}");
+            return None;
+        }
+    };
+
+    let user_id = match row.try_get::<i64, _>("user_id") {
+        Ok(user_id) => user_id,
+        Err(why) => {
+            error!("Couldn't get 'userId' from Users: {why:?}");
+            return None;
+        }
+    };
+
+    let elapsed_time = start_time.elapsed();
+    debug!("Selected 'userId' from Users in {elapsed_time:.2?}");
+
+    Some(UserId::from(user_id as u64))
 }
 
 pub async fn update_users_set_infractions(
@@ -59,12 +86,12 @@ pub async fn update_users_set_infractions(
         .bind(infractions)
         .bind(i64::from(*user_id));
     if let Err(why) = query.execute(pool).await {
-        error!("Couldn't update infractions for user(s) in database: {why:?}");
+        error!("Couldn't update infractions for user(s) in Users: {why:?}");
         return Err(why);
     }
 
     let elapsed_time = start_time.elapsed();
-    debug!("Updated infractions for user(s) in database in {elapsed_time:.2?}");
+    debug!("Updated infractions for user(s) within Users in {elapsed_time:.2?}");
 
     Ok(())
 }
@@ -99,7 +126,7 @@ pub async fn insert_into_users(
             _insert_into_ok = false;
 
             if why.to_string().contains("1555") {
-                // UNIQUE constraint failed: users.user_id
+                // UNIQUE constraint failed
                 continue;
             }
 
