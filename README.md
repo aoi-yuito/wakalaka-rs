@@ -28,7 +28,7 @@
 
 A work-in-progress, self-hostable Discord bot written purely in Rust, inspired by [Red](https://github.com/Cog-Creators/Red-DiscordBot) and [Dyno](https://dyno.gg).
 
-While in alpha development, I strongly suggest not using her in production. She's not ready yet. She has yet to cook. In the meantime, you _are_ welcome to try her out and report any issues you find. The more we get her tested, the closer she could get to beta, and then to release in the near future.
+_Wakalaka is currently in a Beta stage, and I highly suggest you to not use her in a production environment. However, you can try her out and test her all you want. Report any issues you find, and suggest any features you'd like to see. The more feedback I get, the closer I can get her to Release Candidate stage._
 
 To invite her to your server, click [here](https://discord.com/api/oauth2/authorize?client_id=1190718691055251548&permissions=9899241204854&scope=bot).
 
