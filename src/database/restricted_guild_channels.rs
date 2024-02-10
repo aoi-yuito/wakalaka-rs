@@ -29,7 +29,7 @@ pub async fn check_restricted_guild_channel(ctx: Context<'_>) -> bool {
     match select_channel_id_from_restricted_guild_channels(&channel_id, pool).await {
         Ok(true) => {
             let reply =
-                messages::warn_reply(format!("I'm afraid <#{channel_id}> is restricted."), true);
+                messages::error_reply(format!("Sorry, but I've been forbidden from responding to commands in <#{channel_id}>."), true);
             ctx.send(reply).await.unwrap();
 
             true
