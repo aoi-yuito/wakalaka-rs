@@ -64,7 +64,7 @@ pub async fn server(
                     }
                     restricted_guilds::insert_into_restricted_guilds(&other_guild_id, pool).await?;
                     Ok(format!(
-                        "I've denied myself from being able to join {other_guild_name}."
+                        "Denied myself from being able to join {other_guild_name}."
                     ))
                 }
                 _ => Err(format!("I'm already unable to join {other_guild_name}.")),

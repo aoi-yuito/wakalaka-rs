@@ -73,7 +73,7 @@ pub async fn channel(
     let failsafe_query = guilds::select_usage_channel_id_from_guilds(&guild_id, &pool).await;
     let result = match failsafe_query {
         Some(usage_channel_id) if usage_channel_id == channel_id => {
-            Err(format!("I've been configured to be primarily used in <#{usage_channel_id}>."))
+            Err(format!("I've already been configured to be primarily used in <#{usage_channel_id}>."))
         }
         None => {
             Err(format!(
@@ -86,7 +86,7 @@ pub async fn channel(
                 Ok(_) => {
                     info!("Allowed usage within #{channel_name} in {guild_name}");
                     restricted_guild_channels::delete_from_restricted_guild_channels(&channel, &pool).await?;
-                    Ok(format!("I've allowed myself to be used within <#{channel_id}>."))
+                    Ok(format!("Allowed myself to be used within <#{channel_id}>."))
                 }
                 _ => Err(format!("My usage is already allowed within <#{channel_id}>."))
             }

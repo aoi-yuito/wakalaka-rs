@@ -70,7 +70,7 @@ pub async fn welcome(
                 Ok(_) => {
                     info!("Configured #{guild_channel_name} for welcoming users");
                     Ok(format!(
-                        "I've set <#{guild_channel_id}> for welcoming users."
+                        "Set <#{guild_channel_id}> for welcoming users."
                     ))
                 }
                 Err(why) => {

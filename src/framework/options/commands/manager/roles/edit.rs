@@ -35,11 +35,11 @@ use crate::{
 pub async fn edit(
     ctx: Context<'_>,
     #[description = "The role to customise."] mut role: Role,
-    #[description = "The name for the role, if any."]
+    #[description = "The name for the role."]
     #[min_length = 1]
     #[max_length = 100]
     name: Option<String>,
-    #[description = "The colour of the role in hexadecimal, if any."]
+    #[description = "The colour of the role in hexadecimal."]
     #[min = 3]
     #[max = 11]
     colour: Option<String>,
@@ -83,7 +83,7 @@ pub async fn edit(
         match role.edit(ctx, role_builder).await {
             Ok(_) => {
                 info!("Altered @{role_name} role in {guild_name}");
-                Ok(format!("I've altered a role called `{role_name}`."))
+                Ok(format!("Altered a role called `{role_name}`."))
             }
             Err(why) => {
                 error!("Couldn't alter @{role_name} role in {guild_name}: {why:?}");

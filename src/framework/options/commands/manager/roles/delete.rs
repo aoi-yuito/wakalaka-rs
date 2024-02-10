@@ -45,7 +45,7 @@ pub async fn delete(
         match role.delete(ctx).await {
             Ok(_) => {
                 info!("Deleted role called @{role_name} from {guild_name}");
-                Ok(format!("I've deleted a role called `{role_name}`."))
+                Ok(format!("Deleted a role called `{role_name}`."))
             }
             Err(why) => {
                 error!("Couldn't delete role called @{role_name} from {guild_name}: {why:?}");

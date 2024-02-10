@@ -55,15 +55,6 @@ pub async fn kick(
         return Ok(());
     }
 
-    let reason_char_count = reason.chars().count();
-    if reason_char_count < 6 || reason_char_count > 80 {
-        let reply =
-            messages::info_reply("Reason must be between `6` and `80` characters long.", true);
-        ctx.send(reply).await?;
-
-        return Ok(());
-    }
-
     let result = {
         let (user_name, user_mention) =
             (&user.name, models::users::user_mention(ctx, user_id).await?);

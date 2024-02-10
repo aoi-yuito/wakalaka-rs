@@ -40,17 +40,6 @@ pub async fn add(
     name: String,
     #[description = "The image used for the emoji."] image: Attachment,
 ) -> Result<(), Error> {
-    let name_char_count = name.chars().count();
-    if name_char_count < 2 || name_char_count > 32 {
-        let reply = messages::info_reply(
-            format!("Name of the emoji must be between `2` and `32` characters long."),
-            true,
-        );
-        ctx.send(reply).await?;
-
-        return Ok(());
-    }
-
     let (image_width, image_height) = (
         match image.width {
             Some(width) => width,
@@ -93,11 +82,11 @@ pub async fn add(
         Ok(_) => {
             let user_name = models::users::author_name(ctx)?;
 
-            info!("@{user_name} created emoji called {name:?} in {guild_name}");
-            Ok(format!("I've created an emoji called `{name}`."))
+            info!("@{user_name} created {name:?} emoji in {guild_name}");
+            Ok(format!("Created an emoji called `{name}`."))
         }
         Err(why) => {
-            error!("Couldn't create emoji called{name:?} in {guild_name}: {why:?}");
+            error!("Couldn't create {name:?} emoji in {guild_name}: {why:?}");
             Err(format!(
                 "Sorry, but I couldn't create an emoji called `{name}`."
             ))

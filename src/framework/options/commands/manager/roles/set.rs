@@ -35,7 +35,7 @@ use crate::{
 pub async fn set(
     ctx: Context<'_>,
     #[description = "The role(s) to give."] roles: Vec<Role>,
-    #[description = "The user to give the role(s) for."]
+    #[description = "The user to give the role(s) to."]
     #[rename = "user"]
     user_id: UserId,
 ) -> Result<(), Error> {
@@ -55,7 +55,7 @@ pub async fn set(
         match member.add_roles(ctx, &role_ids).await {
             Ok(_) => {
                 info!("Added role(s) to @{user_name} in {guild_name}");
-                Ok(format!("I've added role(s) to {user_mention}."))
+                Ok(format!("Added role(s) to {user_mention}."))
             }
             Err(why) => {
                 error!("Couldn't add role(s) to @{user_name} in {guild_name}: {why:?}");

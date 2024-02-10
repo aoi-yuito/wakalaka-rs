@@ -56,7 +56,7 @@ pub async fn register(
         }
 
         reply = messages::ok_reply(
-            format!("I've registered {command_count} global command(s)."),
+            format!("Registered {command_count} global command(s)."),
             true,
         );
         reply_handle.edit(ctx, reply).await?;
@@ -73,7 +73,7 @@ pub async fn register(
         return Err(why.into());
     }
 
-    reply = messages::ok_reply(format!("I've registered {command_count} command(s)."), true);
+    reply = messages::ok_reply(format!("Registered {command_count} command(s)."), true);
     reply_handle.edit(ctx, reply).await?;
 
     Ok(())

@@ -64,7 +64,7 @@ pub async fn user(
                 Err(_) => {
                     info!("Denied usage for {user_name}.");
                     restricted_users::insert_into_restricted_users(&other_user_id, &pool).await?;
-                    Ok(format!("I've denied {user_name} from using me."))
+                    Ok(format!("Denied {user_name} from using me."))
                 }
                 _ => Err(format!("Usage for {user_name} is already denied.")),
             }

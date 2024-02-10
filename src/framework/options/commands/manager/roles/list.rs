@@ -35,7 +35,7 @@ use crate::{
     user_cooldown = 5,
     ephemeral
 )]
-/// Get a list of roles in a server.
+/// Get a list of roles in your server.
 pub async fn list(ctx: Context<'_>) -> Result<(), Error> {
     let guild = models::guilds::guild(ctx)?;
 

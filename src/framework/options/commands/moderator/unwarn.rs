@@ -41,12 +41,13 @@ pub async fn unwarn(
     #[description = "The user to unwarn."]
     #[rename = "user"]
     user_id: UserId,
-    #[description = "UUID of the warning to delete."]
+    #[description = "The UUID of the warning to delete."]
     #[min_length = 36]
     #[max_length = 36]
-    uuid: String,
+    #[rename = "uuid"]
+    other_uuid: String,
     #[description = "The reason for deleting warning, if any."]
-    #[min_length = 6]
+    #[min_length = 3]
     #[max_length = 80]
     reason: Option<String>,
 ) -> Result<(), Error> {
@@ -72,14 +73,6 @@ pub async fn unwarn(
         return Ok(());
     }
 
-    let uuid_char_count = uuid.chars().count();
-    if uuid_char_count != 36 {
-        let reply = messages::info_reply("UUID must be exactly `36` characters long.", true);
-        ctx.send(reply).await?;
-
-        return Ok(());
-    }
-
     let guild_id = models::guilds::guild_id(ctx)?;
 
     let mut user_infractions = users::select_infractions_from_users(&user_id, pool).await?;
@@ -95,20 +88,21 @@ pub async fn unwarn(
         infractions::select_from_infractions(InfractionType::Warn, &user_id, &guild_id, pool)
             .await?;
     for warning in warnings {
-        let uuid = warning.0;
+        let uuid = if warning.0 == other_uuid {
+            warning.0
+        } else {
+            let reply = messages::error_reply(
+                format!(
+                    "Sorry, but {user_mention} doesn't have a warning with UUID `{other_uuid}`."
+                ),
+                true,
+            );
+            ctx.send(reply).await?;
+
+            return Ok(());
+        };
 
         if let Some(ref reason) = reason {
-            let reason_char_count = reason.chars().count();
-            if reason_char_count < 6 || reason_char_count > 80 {
-                let reply = messages::info_reply(
-                    "Reason must be between `6` and `80` characters long.",
-                    true,
-                );
-                ctx.send(reply).await?;
-
-                return Ok(());
-            }
-
             info!("@{user_name} unwarned by @{moderator_name}: {reason}");
         } else {
             info!("@{user_name} unwarned by @{moderator_name}");
@@ -123,8 +117,7 @@ pub async fn unwarn(
 
         users::update_users_set_infractions(&user_id, user_infractions, pool).await?;
 
-        let reply =
-            messages::ok_reply(format!("I've removed a warning from {user_mention}."), true);
+        let reply = messages::ok_reply(format!("Removed a warning from {user_mention}."), true);
         ctx.send(reply).await?;
     }
 

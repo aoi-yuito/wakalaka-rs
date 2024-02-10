@@ -67,7 +67,7 @@ pub async fn user(
                 Ok(_) => {
                     info!("Allowed usage for {user_name}.");
                     restricted_users::delete_from_restricted_users(&other_user_id, &pool).await?;
-                    Ok(format!("I've allowed {user_name} to use me."))
+                    Ok(format!("Allowed {user_name} to use me."))
                 }
                 _ => Err(format!("I'm already able to be used by {user_name}.")),
             }

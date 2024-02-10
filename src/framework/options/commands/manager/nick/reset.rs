@@ -55,7 +55,7 @@ pub async fn reset(
             let moderator_name = models::users::author_name(ctx)?;
 
             info!("@{moderator_name} removed @{user_name}'s nickname");
-            Ok(format!("I've removed {user_mention}'s nickname."))
+            Ok(format!("Removed {user_mention}'s nickname."))
         }
         Err(why) => {
             error!("Couldn't remove @{user_name}'s nickname: {why:?}");

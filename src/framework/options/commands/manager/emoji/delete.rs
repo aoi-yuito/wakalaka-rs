@@ -41,17 +41,6 @@ pub async fn delete(
     #[max_length = 32]
     name: String,
 ) -> Result<(), Error> {
-    let name_char_count = name.chars().count();
-    if name_char_count < 2 || name_char_count > 32 {
-        let reply = messages::info_reply(
-            format!("Name of the emoji must be between `2` and `32` characters long."),
-            true,
-        );
-        ctx.send(reply).await?;
-
-        return Ok(());
-    }
-
     let guild = models::guilds::guild(ctx)?;
     let guild_name = &guild.name;
 
@@ -77,8 +66,8 @@ pub async fn delete(
         Ok(_) => {
             let user_name = models::users::author_name(ctx)?;
 
-            info!("@{user_name} deleted emoji called {emoji_name:?} from {guild_name}");
-            Ok(format!("I've deleted an emoji called `{emoji_name}`."))
+            info!("@{user_name} deleted {emoji_name:?} emoji from {guild_name}");
+            Ok(format!("Deleted an emoji called `{emoji_name}`."))
         }
         Err(why) => {
             error!("Couldn't delete {emoji_name:?} emoji from {guild_name}: {why:?}");

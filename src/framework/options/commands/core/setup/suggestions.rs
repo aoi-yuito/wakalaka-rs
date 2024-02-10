@@ -73,7 +73,7 @@ pub async fn suggestions(
             Ok(_) => {
                 info!("Configured #{guild_channel_name} for suggestions");
                 Ok(format!(
-                    "I've set <#{guild_channel_id}> to be for suggestions."
+                    "Set <#{guild_channel_id}> to be for suggestions."
                 ))
             }
             Err(why) => {

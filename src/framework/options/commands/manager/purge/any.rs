@@ -16,7 +16,10 @@
 use serenity::builder::GetMessages;
 use tracing::{error, info};
 
-use crate::{utility::{components::messages, models}, Context, Error};
+use crate::{
+    utility::{components::messages, models},
+    Context, Error,
+};
 
 #[poise::command(
     prefix_command,
@@ -31,44 +34,32 @@ use crate::{utility::{components::messages, models}, Context, Error};
 /// Delete a given amount of messages.
 pub async fn any(
     ctx: Context<'_>,
-    #[description = "The amount to delete."]
+    #[description = "The amount of messages to delete."]
     #[min = 1]
     #[max = 100]
     count: Option<u8>,
 ) -> Result<(), Error> {
-    let count = count.unwrap_or(1);
-    if count < 1 || count > 100 {
-        let reply = messages::info_reply(
-            "Amount to delete must be between `1` and `100` messages.",
-            true,
-        );
-        ctx.send(reply).await?;
-
-        return Ok(());
-    }
+    let count = count.unwrap_or(50);
 
     let http = ctx.serenity_context().http.clone();
-    let channel_id = ctx.channel_id();
+
     let user_name = models::users::author_name(ctx)?.clone();
 
+    let (channel_id, channel_name) = (
+        models::channels::channel_id(ctx),
+        models::channels::channel_name(ctx).await?,
+    );
+
     let handle = tokio::spawn(async move {
-        let mut deleted_messages_count = 0;
+        let mut deleted_message_count = 0;
 
-        let channel_name = match channel_id.name(&http).await {
-            Ok(channel_name) => channel_name,
-            Err(why) => {
-                error!("Couldn't get channel name: {why:?}");
-                return deleted_messages_count;
-            }
-        };
+        let messages_builder = GetMessages::default().limit(count);
 
-        let messages_any = GetMessages::default().limit(count);
-
-        let messages = match channel_id.messages(&http, messages_any).await {
+        let messages = match channel_id.messages(&http, messages_builder).await {
             Ok(messages) => messages,
             Err(why) => {
                 error!("Couldn't get messages: {why:?}");
-                return deleted_messages_count;
+                return deleted_message_count;
             }
         };
         for message in messages {
@@ -77,24 +68,22 @@ pub async fn any(
                 continue;
             }
 
-            deleted_messages_count += 1;
+            deleted_message_count += 1;
         }
 
-        info!("@{user_name} deleted {deleted_messages_count} message(s) in #{channel_name}");
+        info!("@{user_name} deleted {deleted_message_count} message(s) in #{channel_name}");
 
-        deleted_messages_count
+        deleted_message_count
     });
 
     let reply_before = messages::reply("Deleting message(s)...", true);
-    let reply = ctx.send(reply_before).await?;
 
-    let deleted_messages_count = handle.await.unwrap_or(0);
+    let reply_handle = ctx.send(reply_before).await?;
 
-    let reply_after = messages::ok_reply(
-        format!("Deleted {deleted_messages_count} message(s)."),
-        true,
-    );
-    reply.edit(ctx, reply_after).await?;
+    let message_count = handle.await.unwrap_or(0);
+
+    let reply_after = messages::ok_reply(format!("Deleted {message_count} message(s)."), true);
+    reply_handle.edit(ctx, reply_after).await?;
 
     Ok(())
 }

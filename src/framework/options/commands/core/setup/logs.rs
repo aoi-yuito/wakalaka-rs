@@ -68,7 +68,7 @@ pub async fn logs(
             {
                 Ok(_) => {
                     info!("Configured #{guild_channel_name} for logging");
-                    Ok(format!("I've set <#{guild_channel_id}> for logging."))
+                    Ok(format!("Set <#{guild_channel_id}> for logging."))
                 }
                 Err(why) => {
                     error!("Couldn't configure #{guild_channel_name} for logging: {why:?}");

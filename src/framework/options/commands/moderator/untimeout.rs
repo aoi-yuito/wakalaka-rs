@@ -43,7 +43,7 @@ pub async fn untimeout(
     #[rename = "user"]
     user_id: UserId,
     #[description = "The reason for getting out of a time-out, if any."]
-    #[min_length = 6]
+    #[min_length = 3]
     #[max_length = 80]
     reason: Option<String>,
 ) -> Result<(), Error> {
@@ -108,17 +108,6 @@ pub async fn untimeout(
         guild_members::update_guilds_members_set_timeout(&user_id, false, None, pool).await?;
 
         if let Some(ref reason) = reason {
-            let reason_char_count = reason.chars().count();
-            if reason_char_count < 6 || reason_char_count > 80 {
-                let reply = messages::info_reply(
-                    "Reason must be between `6` and `80` characters long.",
-                    true,
-                );
-                ctx.send(reply).await?;
-
-                return Ok(());
-            }
-
             info!("@{user_name} got @{moderator_name} out of time-out: {reason}");
         } else {
             info!("@{user_name} got @{moderator_name} out of time-out")
@@ -133,10 +122,7 @@ pub async fn untimeout(
 
         users::update_users_set_infractions(&user_id, user_infractions, pool).await?;
 
-        let reply = messages::ok_reply(
-            format!("{user_mention} has been released from a time-out."),
-            true,
-        );
+        let reply = messages::ok_reply(format!("Got {user_mention} out of a time-out."), true);
         ctx.send(reply).await?;
     }
 

@@ -55,7 +55,7 @@ pub async fn remove(
         match member.remove_roles(ctx, &role_ids).await {
             Ok(_) => {
                 info!("Removed role(s) from @{user_name} in {guild_name}");
-                Ok(format!("I've removed role(s) from {user_mention}."))
+                Ok(format!("Removed role(s) from {user_mention}."))
             }
             Err(why) => {
                 error!("Couldn't remove role(s) from @{user_name} in {guild_name}: {why:?}");

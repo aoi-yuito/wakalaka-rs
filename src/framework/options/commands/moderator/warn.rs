@@ -43,7 +43,7 @@ pub async fn warn(
     #[rename = "user"]
     user_id: UserId,
     #[description = "The reason for warning."]
-    #[min_length = 6]
+    #[min_length = 3]
     #[max_length = 80]
     reason: String,
 ) -> Result<(), Error> {
@@ -68,15 +68,6 @@ pub async fn warn(
     }
     if user_id == moderator_id {
         let reply = messages::error_reply("Sorry, but you cannot warn yourself.", true);
-        ctx.send(reply).await?;
-
-        return Ok(());
-    }
-
-    let reason_char_count = reason.chars().count();
-    if reason_char_count < 6 || reason_char_count > 80 {
-        let reply =
-            messages::info_reply("Reason must be between `6` and `80` characters long.", true);
         ctx.send(reply).await?;
 
         return Ok(());

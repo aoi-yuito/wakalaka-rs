@@ -45,17 +45,6 @@ pub async fn suggest(
 ) -> Result<(), Error> {
     let pool = &ctx.data().pool;
 
-    let message_char_count = message.chars().count();
-    if message_char_count < 32 || message_char_count > 1024 {
-        let reply = messages::info_reply(
-            "Suggestion must be between `32` and `1024` characters long.",
-            true,
-        );
-        ctx.send(reply).await?;
-
-        return Ok(());
-    }
-
     let (guild_id, guild_name) = (
         models::guilds::guild_id(ctx)?,
         models::guilds::guild_name(ctx)?,
@@ -126,7 +115,7 @@ pub async fn suggest(
 
         let uuid = Uuid::new_v4().to_string();
 
-        match suggestions::insert_into_suggestions(
+        suggestions::insert_into_suggestions(
             &uuid,
             i64::from(*user_id),
             i64::from(moderator_id),
@@ -138,22 +127,15 @@ pub async fn suggest(
             i64::from(guild_id),
             pool,
         )
-        .await
-        {
-            Ok(_) => {
-                info!(
-                    "@{user_name} sent a suggestion to #{suggestion_channel_name} in {guild_name}"
-                );
+        .await?;
 
-                let reply =
-                    messages::ok_reply(format!("I've sent your suggestion in for review."), true);
-                ctx.send(reply).await?;
-            }
-            Err(why) => {
-                error!("Couldn't insert into Suggestions: {why:?}");
-                return Err(why.into());
-            }
-        }
+        info!("@{user_name} sent suggestion to #{suggestion_channel_name} in {guild_name}");
+
+        let reply = messages::ok_reply(
+            format!("Your suggestion has been sent in for review."),
+            true,
+        );
+        ctx.send(reply).await?;
     }
 
     Ok(())

@@ -73,7 +73,7 @@ pub async fn usage(
             Ok(_) => {
                 info!("Configured #{guild_channel_name} for primary usage");
                 Ok(format!(
-                    "I've set <#{guild_channel_id}> to be for primary usage."
+                    "Set <#{guild_channel_id}> to be for primary usage."
                 ))
             }
             Err(why) => {

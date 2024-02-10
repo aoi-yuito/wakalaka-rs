@@ -42,17 +42,6 @@ pub async fn edit(
     #[max_length = 32]
     nickname: String,
 ) -> Result<(), Error> {
-    let nickname_char_count = nickname.chars().count();
-    if nickname_char_count < 1 || nickname_char_count > 32 {
-        let reply = messages::info_reply(
-            format!("Nickname must be between `1` and `32` characters long."),
-            true,
-        );
-        ctx.send(reply).await?;
-
-        return Ok(());
-    }
-
     let guild_id = models::guilds::guild_id(ctx)?;
 
     let user = models::users::user(ctx, user_id).await?;
@@ -71,7 +60,7 @@ pub async fn edit(
 
             info!("@{moderator_name} changed @{user_name}'s nickname to {nickname:?}");
             Ok(format!(
-                "I've changed {user_mention}'s nickname to `{nickname}`."
+                "Changed {user_mention}'s nickname to `{nickname}`."
             ))
         }
         Err(why) => {

@@ -38,7 +38,7 @@ pub async fn add(
     #[min_length = 1]
     #[max_length = 100]
     name: String,
-    #[description = "The colour of the role in hexadecimal, if any."]
+    #[description = "The colour of the role in hexadecimal."]
     #[min = 3]
     #[max = 11]
     colour: Option<String>,
@@ -78,7 +78,7 @@ pub async fn add(
         match guild.create_role(ctx, role_builder).await {
             Ok(_) => {
                 info!("Created role called @{name} in {guild_name}");
-                Ok(format!("I've created a role called `{name}`."))
+                Ok(format!("Created a role called `{name}`."))
             }
             Err(why) => {
                 error!("Couldn't create role called @{name} in {guild_name}: {why:?}");

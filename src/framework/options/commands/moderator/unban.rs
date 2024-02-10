@@ -43,7 +43,7 @@ pub async fn unban(
     #[rename = "user"]
     user_id: UserId,
     #[description = "The reason for unbanning, if any."]
-    #[min_length = 6]
+    #[min_length = 3]
     #[max_length = 80]
     reason: Option<String>,
 ) -> Result<(), Error> {
@@ -94,17 +94,6 @@ pub async fn unban(
         guild_members::update_guilds_members_set_ban(&user_id, false, pool).await?;
 
         if let Some(ref reason) = reason {
-            let reason_char_count = reason.chars().count();
-            if reason_char_count < 6 || reason_char_count > 80 {
-                let reply = messages::info_reply(
-                    "Reason must be between `6` and `80` characters long.",
-                    true,
-                );
-                ctx.send(reply).await?;
-
-                return Ok(());
-            }
-
             info!("@{user_name} unbanned from {guild_name} by @{moderator_name}: {reason}");
         } else {
             info!("@{user_name} unbanned from {guild_name} by @{moderator_name}")

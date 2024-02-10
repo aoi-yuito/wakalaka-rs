@@ -31,29 +31,17 @@ use crate::{
     user_cooldown = 5,
     ephemeral
 )]
-/// Reduce the rate of messages in a channel.
+/// Apply a rate limit to a given channel.
 pub async fn slowmode(
     ctx: Context<'_>,
-    #[description = "The channel to slow down, if any."]
+    #[description = "The channel to slow down."]
     #[rename = "channel"]
     channel_id: Option<ChannelId>,
-    #[description = "Time between messages. (seconds)"]
+    #[description = "The amount of seconds to wait between each message."]
     #[min = 0]
-    #[max = 60]
+    #[max = 21600]
     delay: Option<u16>,
 ) -> Result<(), Error> {
-    if delay.is_some() {
-        if let Some(delay) = delay {
-            if delay > 60 {
-                let reply =
-                    messages::info_reply(format!("Delay must be up to `60` seconds."), true);
-                ctx.send(reply).await?;
-
-                return Ok(());
-            }
-        }
-    }
-
     let channel_id = match channel_id {
         Some(channel_id) => channel_id,
         None => {
@@ -76,25 +64,41 @@ pub async fn slowmode(
 
     for mut guild_channel in guild_channels {
         let guild_channel_id = guild_channel.id;
-        if channel_id != guild_channel_id {
+        if guild_channel_id != channel_id {
             continue;
         }
 
-        let guild_channel_name = guild_channel.name.clone();
+        let (guild_channel_name, guild_channel_mention) = (
+            models::channels::channel_name_from_channel_id(ctx, guild_channel_id).await?,
+            models::channels::channel_mention_from_channel_id(guild_channel_id).await?,
+        );
 
         let channel_builder = EditChannel::default().rate_limit_per_user(delay);
 
         let result = match guild_channel.edit(ctx, channel_builder).await {
             Ok(_) => {
-                info!("@{user_name} slowed #{guild_channel_name} down to {delay} second(s) in {guild_name}");
-                Ok(format!(
-                    "I've slowed <#{guild_channel_id}> down to `{delay}` second(s)."
-                ))
+                info!(
+                    "@{user_name} applied {delay}s limit to #{guild_channel_name} in {guild_name}"
+                );
+
+                if delay == 1 {
+                    Ok(format!(
+                        "You'll now need to wait `{delay}` second between each message in {guild_channel_mention}."
+                    ))
+                } else if delay > 1 {
+                    Ok(format!(
+                        "You'll now need to wait `{delay}` seconds between each message in {guild_channel_mention}."
+                    ))
+                } else {
+                    Ok(format!(
+                        "You'll now be able to send messages without any delay in {guild_channel_mention}."
+                    ))
+                }
             }
             Err(why) => {
-                error!("Couldn't slow #{guild_channel_name} down for {delay} second(s) in {guild_name}: {why:?}");
+                error!("Couldn't apply {delay}s limit to #{guild_channel_name} in {guild_name}: {why:?}");
                 Err(format!(
-                    "Sorry, but I couldn't slow <#{guild_channel_id}> down."
+                    "Sorry, but I couldn't apply rate limit to {guild_channel_mention}."
                 ))
             }
         };

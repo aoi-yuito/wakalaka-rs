@@ -37,17 +37,17 @@ use crate::{
     user_cooldown = 5,
     ephemeral
 )]
-/// Put a user on a time-out for a while.
+/// Give user a time-out.
 pub async fn timeout(
     ctx: Context<'_>,
-    #[description = "The user to timeout."]
+    #[description = "The user to time out."]
     #[rename = "user"]
     user_id: UserId,
     #[description = "The reason for timing out."]
-    #[min_length = 6]
+    #[min_length = 3]
     #[max_length = 80]
     reason: String,
-    #[description = "The duration of the timeout. (days)"]
+    #[description = "The amount of days to time out for."]
     #[min = 1]
     #[max = 28]
     duration: Option<i64>,
@@ -75,22 +75,7 @@ pub async fn timeout(
         return Ok(());
     }
 
-    let reason_char_count = reason.chars().count();
-    if reason_char_count < 6 || reason_char_count > 80 {
-        let reply =
-            messages::info_reply("Reason must be between `6` and `80` characters long.", true);
-        ctx.send(reply).await?;
-
-        return Ok(());
-    }
-
     let duration = duration.unwrap_or(1);
-    if duration < 1 || duration > 28 {
-        let reply = messages::info_reply("Duration must be between `1` and `28` days.", true);
-        ctx.send(reply).await?;
-
-        return Ok(());
-    }
 
     let result = {
         let (user_name, user_mention) =
