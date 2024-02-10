@@ -14,7 +14,7 @@
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
 use serenity::{
-    all::{Mention, Mentionable, User, UserId},
+    all::{CurrentUser, Mention, Mentionable, User, UserId},
     model::ModelError,
 };
 use tracing::error;
@@ -53,6 +53,16 @@ pub async fn user(ctx: Context<'_>, user_id: UserId) -> Result<User, ModelError>
         Ok(user) => Ok(user),
         Err(why) => {
             error!("Couldn't get user: {why:?}");
+            return Err(ModelError::MemberNotFound);
+        }
+    }
+}
+
+pub async fn bot(ctx: Context<'_>) -> Result<CurrentUser, ModelError> {
+    match ctx.http().get_current_user().await {
+        Ok(current_user) => Ok(current_user),
+        Err(why) => {
+            error!("Couldn't get current user: {why:?}");
             return Err(ModelError::MemberNotFound);
         }
     }
