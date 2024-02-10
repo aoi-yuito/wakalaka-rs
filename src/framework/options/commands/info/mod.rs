@@ -15,6 +15,7 @@
 
 pub mod info;
 pub mod invite;
+pub mod lookup;
 pub mod ping;
 
 const CARGO_VERSION: &str = env!("CARGO_PKG_VERSION");

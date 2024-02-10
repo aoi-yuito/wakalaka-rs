@@ -17,7 +17,6 @@ use serenity::all::User;
 use tracing::{error, info};
 
 use crate::{
-    check_restricted_guild_channel,
     utility::{components::messages, models},
     Context, Error,
 };
@@ -38,11 +37,6 @@ pub async fn kick(
     #[description = "The user to kick."] user: User,
     #[description = "The reason for kicking."] reason: String,
 ) -> Result<(), Error> {
-    let restricted_guild_channel = check_restricted_guild_channel!(ctx);
-    if restricted_guild_channel {
-        return Ok(());
-    }
-
     let user_id = user.id;
 
     let moderator = models::users::author(ctx)?;

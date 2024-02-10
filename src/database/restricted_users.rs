@@ -13,23 +13,23 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-use serenity::all::{ChannelId, GuildChannel, GuildId};
+use serenity::all::UserId;
 use sqlx::{Row, SqlitePool};
 use tokio::time::Instant;
 use tracing::{debug, error};
 
 use crate::{utility::components::messages, Context};
 
-pub async fn check_restricted_guild_channel(ctx: Context<'_>) -> bool {
-    let (pool, channel_id) = (
+pub async fn check_restricted_user(ctx: Context<'_>) -> bool {
+    let (pool, user_id) = (
         &ctx.data().pool,
-        crate::utility::models::channels::channel_id(ctx),
+        crate::utility::models::users::author_id(ctx).unwrap(),
     );
 
-    match select_channel_id_from_restricted_guild_channels(&channel_id, pool).await {
+    match select_user_id_from_restricted_users(&user_id, pool).await {
         Ok(true) => {
-            let reply =
-                messages::error_reply(format!("Sorry, but I've been forbidden from responding to commands in <#{channel_id}>."), true);
+            let reply = messages::error_reply(
+                format!("Sorry, but you can't use me anymore.\n\nIf you think this is a mistake, contact the [developer](https://github.com/Kawaxte) on GitHub, or swing by the [support server](https://discord.gg/jUZVWk7q2q) for help.\n\nIn the meantime, take a moment to think about what went down, because this can't be undone."), true);
             ctx.send(reply).await.unwrap();
 
             true
@@ -39,18 +39,15 @@ pub async fn check_restricted_guild_channel(ctx: Context<'_>) -> bool {
     }
 }
 
-pub async fn select_channel_id_from_restricted_guild_channels(
-    channel_id: &ChannelId,
+pub async fn select_user_id_from_restricted_users(
+    user_id: &UserId,
     pool: &SqlitePool,
 ) -> Result<bool, sqlx::Error> {
     let start_time = Instant::now();
 
-    let query = sqlx::query(
-        "SELECT channel_id
-        FROM restricted_guild_channels
-        WHERE channel_id = ?",
-    )
-    .bind(i64::from(*channel_id));
+    let query = sqlx::query("SELECT user_id FROM restricted_users WHERE user_id = ?")
+        .bind(i64::from(*user_id));
+
     let row = match query.fetch_one(pool).await {
         Ok(row) => row,
         Err(why) => {
@@ -59,64 +56,50 @@ pub async fn select_channel_id_from_restricted_guild_channels(
     };
 
     let elapsed_time = start_time.elapsed();
-    debug!("Selected from RestrictedGuildChannels in {elapsed_time:.2?}",);
+    debug!("Selected from RestrictedUsers in {elapsed_time:.2?}",);
 
-    Ok(row.get::<i64, _>(0) as u64 == u64::from(*channel_id))
+    Ok(row.get::<i64, _>(0) as u64 == u64::from(*user_id))
 }
 
-pub async fn delete_from_restricted_guild_channels(
-    channel: &GuildChannel,
+pub async fn delete_from_restricted_users(
+    user_id: &UserId,
     pool: &SqlitePool,
 ) -> Result<(), sqlx::Error> {
     let start_time = Instant::now();
 
-    let channel_id = channel.id;
-
-    let query = sqlx::query(
-        "DELETE FROM restricted_guild_channels
-        WHERE channel_id = ?",
-    )
-    .bind(i64::from(channel_id));
+    let query =
+        sqlx::query("DELETE FROM restricted_users WHERE user_id = ?").bind(i64::from(*user_id));
     if let Err(why) = query.execute(pool).await {
-        error!("Couldn't delete from RestrictedGuildChannels: {why:?}");
+        error!("Couldn't delete from RestrictedUsers: {why:?}");
         return Err(why);
     }
 
     let elapsed_time = start_time.elapsed();
-    debug!("Deleted from RestrictedGuildChannels in {elapsed_time:.2?}");
+    debug!("Deleted from RestrictedUsers in {elapsed_time:.2?}");
 
     Ok(())
 }
 
-pub async fn insert_into_restricted_guild_channels(
-    channel: &GuildChannel,
-    guild_id: &GuildId,
+pub async fn insert_into_restricted_users(
+    user_id: &UserId,
     pool: &SqlitePool,
 ) -> Result<(), sqlx::Error> {
     let start_time = Instant::now();
 
-    let channel_id = channel.id;
-
-    let query = sqlx::query(
-        "INSERT INTO restricted_guild_channels (
-            channel_id,
-            guild_id
-        ) VALUES (?, ?)",
-    )
-    .bind(i64::from(channel_id))
-    .bind(i64::from(*guild_id));
+    let query =
+        sqlx::query("INSERT INTO restricted_users (user_id) VALUES (?)").bind(i64::from(*user_id));
     if let Err(why) = query.execute(pool).await {
         if why.to_string().contains("1555") {
             // UNIQUE constraint failed
             return Ok(());
         }
 
-        error!("Couldn't insert into RestrictedGuildChannels: {why:?}");
+        error!("Couldn't insert into RestrictedUsers: {why:?}");
         return Err(why);
     }
 
     let elapsed_time = start_time.elapsed();
-    debug!("Inserted into RestrictedGuildChannels in {elapsed_time:.2?}");
+    debug!("Inserted into RestrictedUsers in {elapsed_time:.2?}");
 
     Ok(())
 }

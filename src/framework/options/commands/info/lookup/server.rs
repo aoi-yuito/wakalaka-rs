@@ -13,32 +13,39 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-use serenity::all::{Mentionable, UserId};
+use serenity::all::Guild;
 
-use crate::{utility::models, Context, Error};
+use crate::{
+    utility::{
+        components::{embeds, replies},
+        models,
+    },
+    Context, Error,
+};
 
 #[poise::command(
     prefix_command,
     slash_command,
-    category = "Fun",
+    category = "Core",
     required_bot_permissions = "SEND_MESSAGES",
     guild_only,
-    user_cooldown = 5
+    user_cooldown = 5,
+    ephemeral
 )]
-/// Comfort one of your pals.
-pub async fn hug(
+/// Get information about a server.
+pub async fn server(
     ctx: Context<'_>,
-    #[description = "The user to comfort."]
-    #[rename = "user"]
-    user_id: UserId,
+    #[description = "The server to get information of."]
+    #[rename = "server"]
+    guild: Guild,
 ) -> Result<(), Error> {
-    let user = models::users::user(ctx, user_id).await?;
+    let owner_id = guild.owner_id;
+    let owner = models::users::user(ctx, owner_id).await?;
 
-    let user_mention = ctx.author().mention();
-    let other_mention = user.mention();
+    let embed = embeds::lookup_server_command_embed(&guild, &owner);
 
-    let message = format!("{user_mention} 🫂 {other_mention}");
-    ctx.say(message).await?;
+    let reply = replies::reply_embed(embed, true);
+    ctx.send(reply).await?;
 
     Ok(())
 }

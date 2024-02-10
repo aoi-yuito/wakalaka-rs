@@ -18,7 +18,6 @@ use std::{cmp::Reverse, fmt::Write};
 use serenity::model::Colour;
 
 use crate::{
-    check_restricted_guild_channel,
     utility::{
         components::{embeds, replies},
         models,
@@ -38,11 +37,6 @@ use crate::{
 )]
 /// Get a list of roles in a server.
 pub async fn list(ctx: Context<'_>) -> Result<(), Error> {
-    let restricted_guild_channel = check_restricted_guild_channel!(ctx);
-    if restricted_guild_channel {
-        return Ok(());
-    }
-
     let guild = models::guilds::guild(ctx)?;
 
     let mut roles = models::roles::roles(ctx)?;

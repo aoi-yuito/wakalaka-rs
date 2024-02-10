@@ -19,7 +19,11 @@ use serenity::{
 };
 use tracing::{error, info};
 
-use crate::{check_welcome_channel, database::users, utility::models, Data};
+use crate::{
+    database::{guilds, users},
+    utility::models,
+    Data,
+};
 
 pub async fn handle(new_member: &Member, ctx: &crate::serenity::Context, data: &Data) {
     let pool = &data.pool;
@@ -44,8 +48,8 @@ pub async fn handle(new_member: &Member, ctx: &crate::serenity::Context, data: &
 
         info!("@{user_name} joined {guild_name}");
 
-        let logs_channel_id = check_welcome_channel!(&guild_id, pool);
-        if let Some(channel_id) = logs_channel_id {
+        let welcome_channel_id = guilds::check_welcome_channel(&guild_id, pool).await;
+        if let Some(channel_id) = welcome_channel_id {
             let message_builder = CreateMessage::default()
                 .content(format!("Welcome to **{guild_name}**, {user_mention}!"));
             let message = channel_id.send_message(&ctx, message_builder).await;

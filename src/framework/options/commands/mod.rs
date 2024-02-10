@@ -40,6 +40,7 @@ pub async fn guild_commands() -> Vec<Command<Data, Error>> {
         fun::flip::flip(),
         fun::hug::hug(),
         fun::roll::roll(),
+        info::lookup::lookup(),
         info::info::info(),
         info::invite::invite(),
         info::ping::ping(),

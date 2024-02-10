@@ -22,7 +22,6 @@ use tracing::{error, info};
 use uuid::Uuid;
 
 use crate::{
-    check_restricted_guild_channel,
     database::{guilds, suggestions},
     utility::{components::buttons, components::embeds, components::messages, models},
     Context, Error,
@@ -44,11 +43,6 @@ pub async fn suggest(
     #[max_length = 1024]
     message: String,
 ) -> Result<(), Error> {
-    let restricted_guild_channel = check_restricted_guild_channel!(ctx);
-    if restricted_guild_channel {
-        return Ok(());
-    }
-
     let pool = &ctx.data().pool;
 
     let message_char_count = message.chars().count();

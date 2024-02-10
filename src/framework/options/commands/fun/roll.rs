@@ -16,7 +16,6 @@
 use rand::{rngs::StdRng, Rng, SeedableRng};
 
 use crate::{
-    check_restricted_guild_channel,
     utility::{components::messages, models},
     Context, Error,
 };
@@ -29,28 +28,42 @@ use crate::{
     guild_only,
     user_cooldown = 5
 )]
-/// Roll a number of point(s).
+/// Roll a number of points.
 pub async fn roll(
     ctx: Context<'_>,
     #[description = "The number between point(s), if any."]
     #[min = 1]
     number: Option<u32>,
 ) -> Result<(), Error> {
-    let restricted_guild_channel = check_restricted_guild_channel!(ctx);
-    if restricted_guild_channel {
-        return Ok(());
+    if let Some(number) = number {
+        if number < 2 {
+            let reply = messages::info_reply("Number must be greater than `1`.", true);
+            ctx.send(reply).await?;
+
+            return Ok(());
+        }
     }
 
     let mut rng = StdRng::from_entropy();
 
-    let user_mention = models::users::author_mention(ctx)?;
-
-    let number = match number {
+    let generated_number = match number {
         Some(number) => rng.gen_range(1..number),
         None => rng.gen_range(1..100),
     };
 
-    let reply = messages::reply(format!("{user_mention} rolled {number} point(s)."), false);
+    let user_mention = models::users::author_mention(ctx)?;
+
+    let reply = if generated_number == 1 {
+        messages::reply(
+            format!("{user_mention} rolled {generated_number} point."),
+            false,
+        )
+    } else {
+        messages::reply(
+            format!("{user_mention} rolled {generated_number} points."),
+            false,
+        )
+    };
     ctx.send(reply).await?;
 
     Ok(())

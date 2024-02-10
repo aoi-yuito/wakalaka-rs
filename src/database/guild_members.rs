@@ -165,7 +165,7 @@ pub async fn insert_into_guild_members(
             _insert_into_ok = false;
 
             if why.to_string().contains("1555") {
-                // UNIQUE constraint failed: guild_members.user_id
+                // UNIQUE constraint failed
                 continue;
             }
 

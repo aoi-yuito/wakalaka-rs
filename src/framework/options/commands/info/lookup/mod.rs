@@ -13,32 +13,24 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-use serenity::all::{Mentionable, UserId};
+mod server;
+mod user;
 
-use crate::{utility::models, Context, Error};
+use crate::{
+    framework::commands::info::lookup::{server::server, user::user},
+    Context, Error,
+};
 
 #[poise::command(
     prefix_command,
     slash_command,
-    category = "Fun",
+    subcommands("server", "user"),
+    category = "Core",
     required_bot_permissions = "SEND_MESSAGES",
     guild_only,
-    user_cooldown = 5
+    subcommand_required,
+    ephemeral
 )]
-/// Comfort one of your pals.
-pub async fn hug(
-    ctx: Context<'_>,
-    #[description = "The user to comfort."]
-    #[rename = "user"]
-    user_id: UserId,
-) -> Result<(), Error> {
-    let user = models::users::user(ctx, user_id).await?;
-
-    let user_mention = ctx.author().mention();
-    let other_mention = user.mention();
-
-    let message = format!("{user_mention} 🫂 {other_mention}");
-    ctx.say(message).await?;
-
+pub async fn lookup(_: Context<'_>) -> Result<(), Error> {
     Ok(())
 }

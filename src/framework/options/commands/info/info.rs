@@ -16,7 +16,6 @@
 use tracing::error;
 
 use crate::{
-    check_restricted_guild_channel,
     utility::components::{embeds, replies},
     Context, Error,
 };
@@ -35,11 +34,6 @@ use super::{
 )]
 /// Get basic information about yours truly.
 pub async fn info(ctx: Context<'_>) -> Result<(), Error> {
-    let restricted_guild_channel = check_restricted_guild_channel!(ctx);
-    if restricted_guild_channel {
-        return Ok(());
-    }
-
     let http = ctx.http();
 
     let bot_raw = match http.get_current_user().await {

@@ -17,7 +17,6 @@ use serenity::all::UserId;
 use tracing::error;
 
 use crate::{
-    check_restricted_guild_channel,
     database::infractions::{self, InfractionType},
     utility::{
         components::embeds,
@@ -44,11 +43,6 @@ pub async fn warnings(
     #[rename = "user"]
     user_id: UserId,
 ) -> Result<(), Error> {
-    let restricted_guild_channel = check_restricted_guild_channel!(ctx);
-    if restricted_guild_channel {
-        return Ok(());
-    }
-
     let pool = &ctx.data().pool;
 
     let user = models::users::user(ctx, user_id).await?;

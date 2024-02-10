@@ -15,10 +15,13 @@
 
 use chrono::{NaiveDateTime, TimeZone, Utc};
 use serenity::{
-    all::{colours::branding, Guild, ShardId, User},
+    all::{
+        colours::{branding, css},
+        Guild, ShardId, User, UserId,
+    },
     builder::{CreateEmbed, CreateEmbedAuthor, CreateEmbedFooter},
     gateway::ConnectionStage,
-    model::Timestamp,
+    model::{Colour, Timestamp},
 };
 use std::fmt::Write;
 use tokio::time::Duration;
@@ -116,6 +119,7 @@ pub fn avatar_command_embed(name: &String, avatar_url: String) -> CreateEmbed {
     CreateEmbed::default()
         .author(embed_author)
         .image(avatar_url)
+        .colour(branding::BLURPLE)
 }
 
 pub fn banner_command_embed(name: &String, avatar_url: String, banner_url: String) -> CreateEmbed {
@@ -124,6 +128,7 @@ pub fn banner_command_embed(name: &String, avatar_url: String, banner_url: Strin
     CreateEmbed::default()
         .author(embed_author)
         .image(banner_url)
+        .colour(branding::BLURPLE)
 }
 
 pub fn roles_command_embed(guild: &Guild, fields: Vec<(&str, String, bool)>) -> CreateEmbed {
@@ -136,6 +141,7 @@ pub fn roles_command_embed(guild: &Guild, fields: Vec<(&str, String, bool)>) -> 
         .title("Roles")
         .author(embed_author)
         .fields(fields)
+        .colour(branding::BLURPLE)
 }
 
 pub fn ping_command_embed(
@@ -170,9 +176,9 @@ pub fn ping_command_embed(
     }
 
     let embed_fields = vec![
-        ("💎Shard", id_field, true),
-        ("📶State", stage_field, true),
-        ("🕓Latency", latency_field, true),
+        ("💎 Shard", id_field, true),
+        ("📶 State", stage_field, true),
+        ("🕓 Latency", latency_field, true),
     ];
     let embed_footer = CreateEmbedFooter::new(format!(
         "🕓{elapsed_time:.2?} - 🖥️{:.2} MB / {:.2} MB",
@@ -183,6 +189,7 @@ pub fn ping_command_embed(
         .title("Pong!")
         .fields(embed_fields)
         .footer(embed_footer)
+        .colour(branding::BLURPLE)
 }
 
 pub fn info_command_embed(icon_url: &String, constants: [&str; 6]) -> CreateEmbed {
@@ -201,30 +208,131 @@ pub fn info_command_embed(icon_url: &String, constants: [&str; 6]) -> CreateEmbe
         .description(constants[3])
         .url(format!("{}/{}", constants[4], constants[0]))
         .footer(embed_footer)
+        .colour(branding::BLURPLE)
+}
+
+/// If you're ever going to add an Economy system or something, you should modify this embed to contain this kind of information.
+pub fn lookup_user_command_embed(
+    id: &UserId,
+    name: &String,
+    icon_url: &String,
+    accent_colour: &Option<Colour>,
+) -> CreateEmbed {
+    let (embed_author, embed_colour, embed_footer) = (
+        CreateEmbedAuthor::new(name).icon_url(icon_url),
+        match accent_colour {
+            Some(colour) => *colour,
+            None => branding::BLURPLE,
+        },
+        CreateEmbedFooter::new(id.to_string()),
+    );
+
+    CreateEmbed::default()
+        .author(embed_author)
+        .colour(embed_colour)
+        .footer(embed_footer)
+}
+
+pub fn lookup_server_command_embed(guild: &Guild, owner: &User) -> CreateEmbed {
+    // |(SPFP) {server_name}              |
+    // | Roles          | Emojis          |
+    // |----------------| ----------------|
+    // | {role_count}   | {emoji_count}   |
+    // |                                  |
+    // | Members        | Channels        |
+    // |----------------| ----------------|
+    // | {member_count} | {channel_count} |
+
+    let guild_id = guild.id;
+    let guild_created_at = guild_id.created_at();
+
+    let (
+        guild_name,
+        guild_icon_url,
+        guild_banner_url,
+        guild_description,
+        guild_role_count,
+        guild_emoji_count,
+        guild_member_count,
+        guild_channel_count,
+    ) = (
+        &guild.name,
+        guild.icon_url().unwrap_or_default(),
+        guild.banner_url().unwrap_or_default(),
+        &guild.description,
+        guild.roles.len(),
+        guild.emojis.len(),
+        guild.member_count,
+        guild.channels.len(),
+    );
+
+    let (owner_name, owner_avatar_url) = (
+        &owner.name,
+        owner.avatar_url().unwrap_or(owner.default_avatar_url()),
+    );
+
+    let embed_author = CreateEmbedAuthor::new(guild_name).icon_url(guild_icon_url);
+
+    let mut guild_roles_field = String::new();
+    let mut guild_emojis_field = String::new();
+    let mut guild_members_field = String::new();
+    let mut guild_channels_field = String::new();
+    writeln!(guild_roles_field, "{guild_role_count}").unwrap();
+    writeln!(guild_emojis_field, "{guild_emoji_count}").unwrap();
+    writeln!(guild_members_field, "{guild_member_count}").unwrap();
+    writeln!(guild_channels_field, "{guild_channel_count}").unwrap();
+
+    let embed_fields = vec![
+        ("Roles", guild_roles_field, true),
+        ("Emojis", guild_emojis_field, true),
+        ("Members", guild_members_field, true),
+        ("Channels", guild_channels_field, true),
+    ];
+
+    let embed_footer = CreateEmbedFooter::new(owner_name).icon_url(owner_avatar_url);
+
+    if let Some(guild_description) = guild_description {
+        CreateEmbed::default()
+            .author(embed_author)
+            .description(guild_description)
+            .fields(embed_fields)
+            .image(guild_banner_url)
+            .footer(embed_footer)
+            .timestamp(guild_created_at)
+            .colour(branding::BLURPLE)
+    } else {
+        CreateEmbed::default()
+            .author(embed_author)
+            .fields(embed_fields)
+            .image(guild_banner_url)
+            .footer(embed_footer)
+            .timestamp(guild_created_at)
+            .colour(branding::BLURPLE)
+    }
 }
 
 pub fn error_message_embed(message: &String) -> CreateEmbed {
     CreateEmbed::default()
-        .description(format!("❌ {message}"))
-        .colour(branding::RED)
+        .description(format!("{message}"))
+        .colour(css::DANGER)
 }
 
 pub fn warn_message_embed(message: &String) -> CreateEmbed {
     CreateEmbed::default()
-        .description(format!("⚠️ {message}"))
-        .colour(branding::YELLOW)
+        .description(format!("{message}"))
+        .colour(css::WARNING)
 }
 
 pub fn ok_message_embed(message: &String) -> CreateEmbed {
     CreateEmbed::default()
-        .description(format!("✅ {message}"))
-        .colour(branding::GREEN)
+        .description(format!("{message}"))
+        .colour(css::POSITIVE)
 }
 
 pub fn info_message_embed(message: &String) -> CreateEmbed {
     CreateEmbed::default()
-        .description(format!(":information_source: {message}"))
-        .colour(branding::BLURPLE)
+        .description(format!("{message}"))
+        .colour(Colour::BLUE)
 }
 
 pub fn message_embed(message: &String) -> CreateEmbed {

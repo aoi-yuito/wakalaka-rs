@@ -17,7 +17,6 @@ use serenity::all::Role;
 use tracing::{error, info};
 
 use crate::{
-    check_restricted_guild_channel,
     utility::{components::messages, models},
     Context, Error,
 };
@@ -37,11 +36,6 @@ pub async fn delete(
     ctx: Context<'_>,
     #[description = "The role to delete."] mut role: Role,
 ) -> Result<(), Error> {
-    let restricted_guild_channel = check_restricted_guild_channel!(ctx);
-    if restricted_guild_channel {
-        return Ok(());
-    }
-
     let result = {
         let role_name = models::roles::role_name(&role).clone();
 

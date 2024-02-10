@@ -85,7 +85,7 @@ pub async fn channel(
             match previous_query {
                 Err(_) => {
                     info!("Denied usage within #{channel_name} in {guild_name}");
-                    restricted_guild_channels::insert_into_restricted_guild_channels(&channel, &pool).await?;
+                    restricted_guild_channels::insert_into_restricted_guild_channels(&channel, &guild_id, &pool).await?;
                     Ok(format!("I've denied myself from being used within <#{channel_id}>."))
                 }
                 _ => Err(format!("My usage is already denied within <#{channel_id}>.")),

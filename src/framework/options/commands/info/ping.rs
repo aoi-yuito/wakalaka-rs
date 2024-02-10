@@ -19,7 +19,6 @@ use sysinfo::System;
 use tokio::time::Instant;
 
 use crate::{
-    check_restricted_guild_channel,
     utility::components::{embeds, replies},
     Context, Error,
 };
@@ -34,11 +33,6 @@ use crate::{
 )]
 /// Check if yours truly is alive and well.
 pub async fn ping(ctx: Context<'_>) -> Result<(), Error> {
-    let restricted_guild_channel = check_restricted_guild_channel!(ctx);
-    if restricted_guild_channel {
-        return Ok(());
-    }
-
     let start_time = Instant::now();
 
     let manager = Arc::new(ctx.framework().shard_manager);

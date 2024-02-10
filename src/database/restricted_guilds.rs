@@ -97,7 +97,7 @@ pub async fn insert_into_restricted_guilds(
     .bind(i64::from(*guild_id));
     if let Err(why) = query.execute(pool).await {
         if why.to_string().contains("1555") {
-            // UNIQUE constraint failed: guilds.guild_id
+            // UNIQUE constraint failed
             return Ok(());
         }
 

@@ -18,18 +18,12 @@ use sqlx::{Row, SqlitePool};
 use tokio::time::Instant;
 use tracing::{debug, error};
 
-#[macro_export]
-macro_rules! check_logs_channel {
-    ($guild_id:expr, $pool:expr) => {
-        crate::database::guilds::select_logs_channel_id_from_guilds($guild_id, $pool).await
-    };
+pub async fn check_logs_channel(guild_id: &GuildId, pool: &SqlitePool) -> Option<ChannelId> {
+    select_logs_channel_id_from_guilds(guild_id, pool).await
 }
 
-#[macro_export]
-macro_rules! check_welcome_channel {
-    ($guild_id:expr, $pool:expr) => {
-        crate::database::guilds::select_welcome_channel_id_from_guilds($guild_id, $pool).await
-    };
+pub async fn check_welcome_channel(guild_id: &GuildId, pool: &SqlitePool) -> Option<ChannelId> {
+    select_welcome_channel_id_from_guilds(guild_id, pool).await
 }
 
 pub async fn select_logs_channel_id_from_guilds(
@@ -155,35 +149,6 @@ pub async fn select_usage_channel_id_from_guilds(
         debug!("Selected 'usageChannelId' from Guilds in {elapsed_time:.2?}");
 
         return Some(ChannelId::from(usage_channel_id as u64));
-    }
-
-    None
-}
-
-pub async fn select_owner_id_from_guilds(guild_id: &GuildId, pool: &SqlitePool) -> Option<GuildId> {
-    let start_time = Instant::now();
-
-    let query =
-        sqlx::query("SELECT owner_id FROM guilds WHERE guild_id = ?").bind(i64::from(*guild_id));
-    let row = match query.fetch_one(pool).await {
-        Ok(row) => row,
-        Err(_) => {
-            return None;
-        }
-    };
-
-    let owner_id = match row.try_get::<i64, _>("owner_id") {
-        Ok(owner_id) => owner_id,
-        Err(why) => {
-            error!("Couldn't get 'ownerId' from Guilds: {why:?}");
-            return None;
-        }
-    };
-    if owner_id != 0 {
-        let elapsed_time = start_time.elapsed();
-        debug!("Selected 'ownerId' from Guilds in {elapsed_time:.2?}");
-
-        return Some(GuildId::from(owner_id as u64));
     }
 
     None
@@ -396,7 +361,7 @@ pub async fn insert_into_guilds(guild: &Guild, pool: &SqlitePool) -> Result<(), 
         _insert_into_ok = false;
 
         if why.to_string().contains("1555") {
-            // UNIQUE constraint failed: guilds.guild_id
+            // UNIQUE constraint failed
             return Ok(());
         }
 

@@ -13,32 +13,19 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-use serenity::all::{Mentionable, UserId};
+use crate::{
+    database::{restricted_guild_channels, restricted_users},
+    Context, Error,
+};
 
-use crate::{utility::models, Context, Error};
-
-#[poise::command(
-    prefix_command,
-    slash_command,
-    category = "Fun",
-    required_bot_permissions = "SEND_MESSAGES",
-    guild_only,
-    user_cooldown = 5
-)]
-/// Comfort one of your pals.
-pub async fn hug(
-    ctx: Context<'_>,
-    #[description = "The user to comfort."]
-    #[rename = "user"]
-    user_id: UserId,
-) -> Result<(), Error> {
-    let user = models::users::user(ctx, user_id).await?;
-
-    let user_mention = ctx.author().mention();
-    let other_mention = user.mention();
-
-    let message = format!("{user_mention} 🫂 {other_mention}");
-    ctx.say(message).await?;
-
-    Ok(())
+pub async fn handle(ctx: Context<'_>) -> Result<bool, Error> {
+    let (restricted_user, restricted_guild_channel) = (
+        restricted_users::check_restricted_user(ctx).await,
+        restricted_guild_channels::check_restricted_guild_channel(ctx).await,
+    );
+    if restricted_user || restricted_guild_channel {
+        Ok(false)
+    } else {
+        Ok(true)
+    }
 }

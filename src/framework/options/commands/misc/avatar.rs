@@ -16,7 +16,6 @@
 use serenity::all::User;
 
 use crate::{
-    check_restricted_guild_channel,
     utility::components::{embeds, replies},
     Context, Error,
 };
@@ -35,11 +34,6 @@ pub async fn avatar(
     ctx: Context<'_>,
     #[description = "The user to get the avatar from."] user: User,
 ) -> Result<(), Error> {
-    let restricted_guild_channel = check_restricted_guild_channel!(ctx);
-    if restricted_guild_channel {
-        return Ok(());
-    }
-
     let (user_name, user_avatar_url) = (
         &user.name,
         user.avatar_url().unwrap_or(user.default_avatar_url()),

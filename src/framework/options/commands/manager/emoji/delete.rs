@@ -16,7 +16,6 @@
 use tracing::{error, info, warn};
 
 use crate::{
-    check_restricted_guild_channel,
     utility::{
         components::{self, messages},
         models,
@@ -42,11 +41,6 @@ pub async fn delete(
     #[max_length = 32]
     name: String,
 ) -> Result<(), Error> {
-    let restricted_guild_channel = check_restricted_guild_channel!(ctx);
-    if restricted_guild_channel {
-        return Ok(());
-    }
-
     let name_char_count = name.chars().count();
     if name_char_count < 2 || name_char_count > 32 {
         let reply = messages::info_reply(
