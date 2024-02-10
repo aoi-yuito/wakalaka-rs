@@ -14,14 +14,25 @@
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
 use serenity::{
-    all::{ChannelId, GuildChannel},
+    all::{ChannelId, GuildChannel, Mention, Mentionable},
     model::ModelError,
 };
 use tracing::error;
 
-use crate::Context;
+use crate::{Context, Error};
 
 use super::guilds;
+
+pub async fn channel_mention_from_channel_id(channel_id: ChannelId) -> Result<Mention, Error> {
+    Ok(channel_id.mention())
+}
+
+pub async fn channel_name_from_channel_id(
+    ctx: Context<'_>,
+    channel_id: ChannelId,
+) -> Result<String, Error> {
+    Ok(channel_id.name(ctx).await?)
+}
 
 pub async fn channel_name(ctx: Context<'_>) -> Result<String, ModelError> {
     Ok(channel(ctx).await?.name)
