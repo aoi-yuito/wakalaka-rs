@@ -34,15 +34,11 @@ pub async fn user(
     ctx: Context<'_>,
     #[description = "The user to get information of."] user: User,
 ) -> Result<(), Error> {
-    let (user_id, user_name, user_avatar_url, user_accent_colour) = (
-        &user.id,
-        &user.name,
-        &user.avatar_url().unwrap_or(user.default_avatar_url()),
-        &user.accent_colour,
-    );
+    let (user_id, user_name, user_face, user_accent_colour) =
+        (&user.id, &user.name, &user.face(), &user.accent_colour);
 
     let embed =
-        embeds::lookup_user_command_embed(user_id, user_name, user_avatar_url, user_accent_colour);
+        embeds::lookup_user_command_embed(user_id, user_name, user_face, user_accent_colour);
 
     let reply = replies::reply_embed(embed, true);
     ctx.send(reply).await?;

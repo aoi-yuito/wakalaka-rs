@@ -41,8 +41,8 @@ pub async fn banner(
     let user_id = user.id;
     let (user_name, user_mention) = (&user.name, models::users::user_mention(ctx, user_id).await?);
 
-    let (user_avatar_url, user_banner_url) = (
-        user.avatar_url().unwrap_or(user.default_avatar_url()),
+    let (user_face, user_banner_url) = (
+        user.face(),
         match user.banner_url() {
             Some(banner_url) => banner_url,
             None => {
@@ -59,7 +59,7 @@ pub async fn banner(
         },
     );
 
-    let embed = embeds::banner_command_embed(user_name, user_avatar_url, user_banner_url);
+    let embed = embeds::banner_command_embed(user_name, user_face, user_banner_url);
 
     let reply = replies::reply_embed(embed, false);
     ctx.send(reply).await?;

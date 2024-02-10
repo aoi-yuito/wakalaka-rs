@@ -16,7 +16,10 @@
 use tracing::error;
 
 use crate::{
-    utility::components::{embeds, replies},
+    utility::{
+        components::{embeds, replies},
+        models,
+    },
     Context, Error,
 };
 
@@ -34,16 +37,8 @@ use super::{
 )]
 /// Get basic information about yours truly.
 pub async fn info(ctx: Context<'_>) -> Result<(), Error> {
-    let http = ctx.http();
-
-    let bot_raw = match http.get_current_user().await {
-        Ok(value) => value,
-        Err(why) => {
-            error!("Couldn't get current user: {why:?}");
-            return Err(why.into());
-        }
-    };
-    let bot_avatar_url = bot_raw.avatar_url().unwrap_or(bot_raw.default_avatar_url());
+    let bot = models::users::bot(ctx).await?;
+    let bot_face = bot.face();
 
     let constants = [
         CARGO_NAME,         // 0
@@ -54,7 +49,7 @@ pub async fn info(ctx: Context<'_>) -> Result<(), Error> {
         CARGO_RUST_VERSION, // 5
     ];
 
-    let info_embed = embeds::info_command_embed(&bot_avatar_url, constants);
+    let info_embed = embeds::info_command_embed(&bot_face, constants);
 
     let reply = replies::reply_embed(info_embed, true);
     ctx.send(reply).await?;

@@ -39,12 +39,9 @@ pub fn warnings_command_embed(
     //  | <uuid2> | <@{id2}>  | {reason2} |
     //  | <uuid3> | <@{id3}>  | {reason3} |
 
-    let (user_name, user_avatar_url) = (
-        &user.name,
-        user.avatar_url().unwrap_or(user.default_avatar_url()),
-    );
+    let (user_name, user_face) = (&user.name, user.face());
 
-    let embed_author = CreateEmbedAuthor::new(user_name).icon_url(user_avatar_url);
+    let embed_author = CreateEmbedAuthor::new(user_name).icon_url(user_face);
 
     let mut id_field = String::new();
     let mut moderator_field = String::new();
@@ -67,12 +64,12 @@ pub fn warnings_command_embed(
 }
 
 pub fn suggest_command_embed(
-    name: &String,
-    avatar_url: String,
+    author_name: &String,
+    author_icon: String,
     description: &String,
     created_at: NaiveDateTime,
 ) -> CreateEmbed {
-    let embed_author = CreateEmbedAuthor::new(name).icon_url(avatar_url);
+    let embed_author = CreateEmbedAuthor::new(author_name).icon_url(author_icon);
 
     let now = Timestamp::from(Utc.from_utc_datetime(&created_at));
 
@@ -113,21 +110,25 @@ pub fn colour_command_embed(colour: u32, url: &String, json: &serde_json::Value)
         .colour(colour)
 }
 
-pub fn avatar_command_embed(name: &String, avatar_url: String) -> CreateEmbed {
-    let embed_author = CreateEmbedAuthor::new(name).icon_url(&avatar_url);
+pub fn avatar_command_embed(author_name: &String, author_icon: String) -> CreateEmbed {
+    let embed_author = CreateEmbedAuthor::new(author_name).icon_url(&author_icon);
 
     CreateEmbed::default()
         .author(embed_author)
-        .image(avatar_url)
+        .image(author_icon)
         .colour(branding::BLURPLE)
 }
 
-pub fn banner_command_embed(name: &String, avatar_url: String, banner_url: String) -> CreateEmbed {
-    let embed_author = CreateEmbedAuthor::new(name).icon_url(&avatar_url);
+pub fn banner_command_embed(
+    author_name: &String,
+    author_icon: String,
+    image: String,
+) -> CreateEmbed {
+    let embed_author = CreateEmbedAuthor::new(author_name).icon_url(&author_icon);
 
     CreateEmbed::default()
         .author(embed_author)
-        .image(banner_url)
+        .image(image)
         .colour(branding::BLURPLE)
 }
 
@@ -266,10 +267,7 @@ pub fn lookup_server_command_embed(guild: &Guild, owner: &User) -> CreateEmbed {
         guild.channels.len(),
     );
 
-    let (owner_name, owner_avatar_url) = (
-        &owner.name,
-        owner.avatar_url().unwrap_or(owner.default_avatar_url()),
-    );
+    let (owner_name, owner_face) = (&owner.name, owner.face());
 
     let embed_author = CreateEmbedAuthor::new(guild_name).icon_url(guild_icon_url);
 
@@ -289,7 +287,7 @@ pub fn lookup_server_command_embed(guild: &Guild, owner: &User) -> CreateEmbed {
         ("Channels", guild_channels_field, true),
     ];
 
-    let embed_footer = CreateEmbedFooter::new(owner_name).icon_url(owner_avatar_url);
+    let embed_footer = CreateEmbedFooter::new(owner_name).icon_url(owner_face);
 
     if let Some(guild_description) = guild_description {
         CreateEmbed::default()

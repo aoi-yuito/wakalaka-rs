@@ -34,12 +34,9 @@ pub async fn avatar(
     ctx: Context<'_>,
     #[description = "The user to get the avatar from."] user: User,
 ) -> Result<(), Error> {
-    let (user_name, user_avatar_url) = (
-        &user.name,
-        user.avatar_url().unwrap_or(user.default_avatar_url()),
-    );
+    let (user_name, user_face) = (&user.name, user.face());
 
-    let embed = embeds::avatar_command_embed(user_name, user_avatar_url);
+    let embed = embeds::avatar_command_embed(user_name, user_face);
 
     let reply = replies::reply_embed(embed, false);
     ctx.send(reply).await?;

@@ -92,12 +92,7 @@ pub async fn suggest(
             return Err(why.into());
         }
 
-        let (user_name, user_avatar_url) = (
-            models::users::author_name(ctx)?,
-            ctx.author()
-                .avatar_url()
-                .unwrap_or(ctx.author().default_avatar_url()),
-        );
+        let (user_name, user_face) = (models::users::author_name(ctx)?, ctx.author().face());
         let (user_id, moderator_id) = (
             models::users::author_id(ctx)?,
             models::guilds::owner_id(ctx)?,
@@ -110,7 +105,7 @@ pub async fn suggest(
             buttons::reject_suggest_button(),
         );
 
-        let embed = embeds::suggest_command_embed(user_name, user_avatar_url, &message, created_at);
+        let embed = embeds::suggest_command_embed(user_name, user_face, &message, created_at);
         let components = CreateActionRow::Buttons(vec![accept_suggest, reject_suggest]);
 
         let message_builder = CreateMessage::default()
