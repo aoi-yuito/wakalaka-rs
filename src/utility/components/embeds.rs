@@ -15,7 +15,10 @@
 
 use chrono::{NaiveDateTime, TimeZone, Utc};
 use serenity::{
-    all::{colours::branding, Guild, ShardId, User, UserId},
+    all::{
+        colours::{branding, css},
+        Guild, ShardId, User, UserId,
+    },
     builder::{CreateEmbed, CreateEmbedAuthor, CreateEmbedFooter},
     gateway::ConnectionStage,
     model::{Colour, Timestamp},
@@ -116,6 +119,7 @@ pub fn avatar_command_embed(name: &String, avatar_url: String) -> CreateEmbed {
     CreateEmbed::default()
         .author(embed_author)
         .image(avatar_url)
+        .colour(branding::BLURPLE)
 }
 
 pub fn banner_command_embed(name: &String, avatar_url: String, banner_url: String) -> CreateEmbed {
@@ -124,6 +128,7 @@ pub fn banner_command_embed(name: &String, avatar_url: String, banner_url: Strin
     CreateEmbed::default()
         .author(embed_author)
         .image(banner_url)
+        .colour(branding::BLURPLE)
 }
 
 pub fn roles_command_embed(guild: &Guild, fields: Vec<(&str, String, bool)>) -> CreateEmbed {
@@ -136,6 +141,7 @@ pub fn roles_command_embed(guild: &Guild, fields: Vec<(&str, String, bool)>) -> 
         .title("Roles")
         .author(embed_author)
         .fields(fields)
+        .colour(branding::BLURPLE)
 }
 
 pub fn ping_command_embed(
@@ -170,9 +176,9 @@ pub fn ping_command_embed(
     }
 
     let embed_fields = vec![
-        ("💎Shard", id_field, true),
-        ("📶State", stage_field, true),
-        ("🕓Latency", latency_field, true),
+        ("💎 Shard", id_field, true),
+        ("📶 State", stage_field, true),
+        ("🕓 Latency", latency_field, true),
     ];
     let embed_footer = CreateEmbedFooter::new(format!(
         "🕓{elapsed_time:.2?} - 🖥️{:.2} MB / {:.2} MB",
@@ -183,6 +189,7 @@ pub fn ping_command_embed(
         .title("Pong!")
         .fields(embed_fields)
         .footer(embed_footer)
+        .colour(branding::BLURPLE)
 }
 
 pub fn info_command_embed(icon_url: &String, constants: [&str; 6]) -> CreateEmbed {
@@ -201,6 +208,7 @@ pub fn info_command_embed(icon_url: &String, constants: [&str; 6]) -> CreateEmbe
         .description(constants[3])
         .url(format!("{}/{}", constants[4], constants[0]))
         .footer(embed_footer)
+        .colour(branding::BLURPLE)
 }
 
 /// If you're ever going to add an Economy system or something, you should modify this embed to contain this kind of information.
@@ -291,6 +299,7 @@ pub fn lookup_server_command_embed(guild: &Guild, owner: &User) -> CreateEmbed {
             .image(guild_banner_url)
             .footer(embed_footer)
             .timestamp(guild_created_at)
+            .colour(branding::BLURPLE)
     } else {
         CreateEmbed::default()
             .author(embed_author)
@@ -298,31 +307,32 @@ pub fn lookup_server_command_embed(guild: &Guild, owner: &User) -> CreateEmbed {
             .image(guild_banner_url)
             .footer(embed_footer)
             .timestamp(guild_created_at)
+            .colour(branding::BLURPLE)
     }
 }
 
 pub fn error_message_embed(message: &String) -> CreateEmbed {
     CreateEmbed::default()
-        .description(format!("❌ {message}"))
-        .colour(branding::RED)
+        .description(format!("{message}"))
+        .colour(css::DANGER)
 }
 
 pub fn warn_message_embed(message: &String) -> CreateEmbed {
     CreateEmbed::default()
-        .description(format!("⚠️ {message}"))
-        .colour(branding::YELLOW)
+        .description(format!("{message}"))
+        .colour(css::WARNING)
 }
 
 pub fn ok_message_embed(message: &String) -> CreateEmbed {
     CreateEmbed::default()
-        .description(format!("✅ {message}"))
-        .colour(branding::GREEN)
+        .description(format!("{message}"))
+        .colour(css::POSITIVE)
 }
 
 pub fn info_message_embed(message: &String) -> CreateEmbed {
     CreateEmbed::default()
-        .description(format!(":information_source: {message}"))
-        .colour(branding::BLURPLE)
+        .description(format!("{message}"))
+        .colour(Colour::BLUE)
 }
 
 pub fn message_embed(message: &String) -> CreateEmbed {
