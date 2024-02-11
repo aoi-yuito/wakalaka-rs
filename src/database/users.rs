@@ -121,13 +121,17 @@ pub async fn insert_into_users(
 
         let user_id = member.user.id;
 
-        let query = sqlx::query("INSERT INTO users (user_id) VALUES (?)").bind(i64::from(user_id));
+        let query = sqlx::query(
+            "INSERT INTO users (user_id) VALUES (?) ON CONFLICT(user_id) DO UPDATE SET user_id = ?",
+        )
+        .bind(i64::from(user_id))
+        .bind(i64::from(user_id));
         if let Err(why) = query.execute(pool).await {
             _insert_into_ok = false;
 
             if why.to_string().contains("1555") {
                 // UNIQUE constraint failed
-                continue;
+                return Ok(());
             }
 
             error!("Failed to insert into Users: {why:?}");
