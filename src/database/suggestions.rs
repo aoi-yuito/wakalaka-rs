@@ -27,11 +27,11 @@ pub async fn delete_from_suggestions(message_id: i64, guild_id: i64, pool: &Sqli
             .bind(guild_id);
 
     if let Err(why) = suggest_query.execute(pool).await {
-        error!("Failed to delete suggestion from database: {why:?}");
+        error!("Failed to delete from Suggestions: {why:?}");
         return;
     } else {
         let elapsed_time = start_time.elapsed();
-        info!("Deleted suggestion from database in {elapsed_time:.2?}");
+        info!("Deleted from Suggestions in {elapsed_time:.2?}");
     }
 }
 
@@ -54,12 +54,12 @@ pub async fn update_suggestions(
     .bind(message_id)
     .bind(guild_id);
     if let Err(why) = query.execute(pool).await {
-        error!("Failed to update suggestion in database: {why:?}");
+        error!("Failed to update Suggestions: {why:?}");
         return Err(why);
     }
 
     let elapsed_time = start_time.elapsed();
-    info!("Updated suggestion in database in {elapsed_time:.2?}");
+    info!("Updated Suggestions in {elapsed_time:.2?}");
 
     Ok(())
 }
