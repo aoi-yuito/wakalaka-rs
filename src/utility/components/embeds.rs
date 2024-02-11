@@ -225,7 +225,7 @@ pub fn lookup_user_command_embed(
             Some(colour) => *colour,
             None => branding::BLURPLE,
         },
-        CreateEmbedFooter::new(id.to_string()),
+        CreateEmbedFooter::new(format!("{id}")),
     );
 
     CreateEmbed::default()
@@ -309,30 +309,101 @@ pub fn lookup_server_command_embed(guild: &Guild, owner: &User) -> CreateEmbed {
     }
 }
 
-pub fn error_message_embed(message: &String) -> CreateEmbed {
+pub fn sql_validate_command_embed(
+    query: &String,
+    message: &String,
+    token: &String,
+    line: &u64,
+    column: &u64,
+) -> CreateEmbed {
+    let start = query.find('(').unwrap_or_default();
+    let end = query.find(");").unwrap_or_default();
+
+    let formatted_query = query
+        .chars()
+        .enumerate()
+        .map(|(i, c)| match (i, c) {
+            (i, _) if i == start => format!("{c}\n"), // (
+            (_, '\t') => format!("  "),
+            (_, ',') => format!("{c}\n"),
+            (i, _) if i == end => format!("\n{c}"), // );
+            (_, _) => format!("{c}"),
+        })
+        .collect::<String>();
+
+    let code_block = format!("```sql\n{formatted_query}\n```");
+
+    let embed_fields = vec![
+        ("Token", format!("{token}"), true),
+        ("Line", format!("`{line}`"), true),
+        ("Column", format!("`{column}`"), true),
+    ];
+
     CreateEmbed::default()
-        .description(format!("{message}"))
+        .title(message)
+        .description(code_block)
+        .fields(embed_fields)
         .colour(css::DANGER)
 }
 
-pub fn warn_message_embed(message: &String) -> CreateEmbed {
-    CreateEmbed::default()
-        .description(format!("{message}"))
-        .colour(css::WARNING)
+pub fn error_message_embed(title: &Option<String>, message: &String) -> CreateEmbed {
+    if let Some(title) = title {
+        CreateEmbed::default()
+            .title(title)
+            .description(format!("{message}"))
+            .colour(css::DANGER)
+    } else {
+        CreateEmbed::default()
+            .description(format!("{message}"))
+            .colour(css::DANGER)
+    }
 }
 
-pub fn ok_message_embed(message: &String) -> CreateEmbed {
-    CreateEmbed::default()
-        .description(format!("{message}"))
-        .colour(css::POSITIVE)
+pub fn warn_message_embed(title: &Option<String>, message: &String) -> CreateEmbed {
+    if let Some(title) = title {
+        CreateEmbed::default()
+            .title(title)
+            .description(format!("{message}"))
+            .colour(css::WARNING)
+    } else {
+        CreateEmbed::default()
+            .description(format!("{message}"))
+            .colour(css::WARNING)
+    }
 }
 
-pub fn info_message_embed(message: &String) -> CreateEmbed {
-    CreateEmbed::default()
-        .description(format!("{message}"))
-        .colour(Colour::BLUE)
+pub fn ok_message_embed(title: &Option<String>, message: &String) -> CreateEmbed {
+    if let Some(title) = title {
+        CreateEmbed::default()
+            .title(title)
+            .description(format!("{message}"))
+            .colour(css::POSITIVE)
+    } else {
+        CreateEmbed::default()
+            .description(format!("{message}"))
+            .colour(css::POSITIVE)
+    }
 }
 
-pub fn message_embed(message: &String) -> CreateEmbed {
-    CreateEmbed::default().description(format!("{message}"))
+pub fn info_message_embed(title: &Option<String>, message: &String) -> CreateEmbed {
+    if let Some(title) = title {
+        CreateEmbed::default()
+            .title(title)
+            .description(format!("{message}"))
+            .colour(Colour::BLUE)
+    } else {
+        CreateEmbed::default()
+            .description(format!("{message}"))
+            .colour(Colour::BLUE)
+    }
+}
+
+pub fn message_embed(title: &Option<String>, message: &String) -> CreateEmbed {
+    if let Some(title) = title {
+        CreateEmbed::default()
+            .title(title)
+            .description(format!("{message}"))
+    } else {
+        CreateEmbed::default().description(format!("{message}"))
+    }
 }
