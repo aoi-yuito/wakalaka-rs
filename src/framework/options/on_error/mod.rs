@@ -74,9 +74,12 @@ pub async fn handle(error: FrameworkError<'_>) {
         }
         FrameworkError::CommandCheckFailed { .. } | FrameworkError::DynamicPrefix { .. } => {}
         FrameworkError::UnknownCommand {
-            ctx, msg, msg_content, ..
+            ctx,
+            msg,
+            msg_content,
+            ..
         } => {
-            unknown_command::handle(&ctx, msg, msg_content.to_string()).await;
+            unknown_command::handle(&ctx, msg, format!("{msg_content}")).await;
         }
         FrameworkError::UnknownInteraction { .. } => {}
         FrameworkError::__NonExhaustive(_) => unreachable!(),
