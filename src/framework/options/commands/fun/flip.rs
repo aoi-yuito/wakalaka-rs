@@ -32,12 +32,12 @@ pub async fn flip(ctx: Context<'_>) -> Result<(), Error> {
     let user_mention = ctx.author().mention();
 
     let reply = if random {
-        messages::reply(
+        messages::reply(None, 
             format!("{user_mention} flipped a coin and got **heads**!"),
             false,
         )
     } else {
-        messages::reply(
+        messages::reply(None, 
             format!("{user_mention} flipped a coin and got **tails**!"),
             false,
         )

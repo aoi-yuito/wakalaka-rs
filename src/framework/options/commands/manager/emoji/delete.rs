@@ -50,7 +50,7 @@ pub async fn delete(
             warn!("Couldn't find {name:?} emoji in {guild_name}");
 
             let reply =
-                messages::warn_reply(format!("Emoji called `{name}`. doesn't exist!"), true);
+                messages::warn_reply(None, format!("Emoji called `{name}`. doesn't exist!"), true);
             ctx.send(reply).await?;
 
             return Ok(());
@@ -76,8 +76,8 @@ pub async fn delete(
     };
 
     let reply = match result {
-        Ok(message) => messages::ok_reply(message, true),
-        Err(message) => messages::error_reply(message, true),
+        Ok(message) => messages::ok_reply(None, message, true),
+        Err(message) => messages::error_reply(None, message, true),
     };
     ctx.send(reply).await?;
 

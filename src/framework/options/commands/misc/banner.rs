@@ -46,7 +46,7 @@ pub async fn banner(
                 warn!("Couldn't find @{user_name}'s banner");
 
                 let reply =
-                    messages::warn_reply(format!("{user_mention} doesn't have a banner!"), true);
+                    messages::warn_reply(None, format!("{user_mention} doesn't have a banner!"), true);
                 ctx.send(reply).await?;
 
                 return Ok(());

@@ -18,7 +18,7 @@ use tracing::error;
 use crate::{utility::components::messages, Context};
 
 pub(crate) async fn handle(ctx: Context<'_>) {
-    let reply = messages::error_reply("You need to provide a sub-command first!", true);
+    let reply = messages::error_reply(None, "You need to provide a sub-command first!", true);
     if let Err(why) = ctx.send(reply).await {
         error!("Failed to send reply: {why:?}");
     }

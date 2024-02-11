@@ -35,7 +35,7 @@ pub async fn roll(
 ) -> Result<(), Error> {
     if let Some(number) = number {
         if number < 2 {
-            let reply = messages::error_reply("Number must be greater than `1`!", true);
+            let reply = messages::error_reply(None, "Number must be greater than `1`!", true);
             ctx.send(reply).await?;
 
             return Ok(());
@@ -52,12 +52,12 @@ pub async fn roll(
     let user_mention = ctx.author().mention();
 
     let reply = if generated_number == 1 {
-        messages::reply(
+        messages::reply(None, 
             format!("{user_mention} rolled {generated_number} point!"),
             false,
         )
     } else {
-        messages::reply(
+        messages::reply(None, 
             format!("{user_mention} rolled {generated_number} points!"),
             false,
         )

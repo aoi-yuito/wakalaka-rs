@@ -43,7 +43,7 @@ pub async fn warnings(
     let pool = &ctx.data().pool;
 
     if user.bot || user.system {
-        let reply = messages::error_reply("Cannot warn bots and system users!", true);
+        let reply = messages::error_reply(None, "Cannot warn bots and system users!", true);
         ctx.send(reply).await?;
 
         return Ok(());
@@ -60,7 +60,7 @@ pub async fn warnings(
     let warning_count = warnings.len();
     if warning_count < 1 {
         let reply =
-            messages::warn_reply(format!("{user_mention} doesn't have any warnings!"), true);
+            messages::warn_reply(None, format!("{user_mention} doesn't have any warnings!"), true);
         ctx.send(reply).await?;
 
         return Ok(());

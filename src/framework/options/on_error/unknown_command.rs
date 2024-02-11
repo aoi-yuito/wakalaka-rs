@@ -21,7 +21,7 @@ use crate::utility::components::messages;
 pub(crate) async fn handle(ctx: &crate::serenity::Context, msg: &Message, msg_content: String) {
     let channel_id = msg.channel_id;
 
-    let message = messages::error_message(format!("`{msg_content}` isn't a valid command."));
+    let message = messages::error_message(None, format!("`{msg_content}` isn't a valid command."));
     if let Err(why) = channel_id.send_message(&ctx, message).await {
         error!("Failed to send message: {why:?}");
     }

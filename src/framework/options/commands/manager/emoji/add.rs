@@ -58,7 +58,7 @@ pub async fn add(
     );
     if image_width != 128 || image_height != 128 {
         let reply =
-            messages::error_reply("Width and height of the image must be `128` pixels!", true);
+            messages::error_reply(None, "Width and height of the image must be `128` pixels!", true);
         ctx.send(reply).await?;
 
         return Ok(());
@@ -94,8 +94,8 @@ pub async fn add(
     };
 
     let reply = match result {
-        Ok(message) => messages::ok_reply(message, true),
-        Err(message) => messages::error_reply(message, true),
+        Ok(message) => messages::ok_reply(None, message, true),
+        Err(message) => messages::error_reply(None, message, true),
     };
     ctx.send(reply).await?;
 

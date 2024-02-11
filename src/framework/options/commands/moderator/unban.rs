@@ -48,7 +48,7 @@ pub async fn unban(
     let pool = &ctx.data().pool;
 
     if user.system {
-        let reply = messages::error_reply("Cannot unban system users!", true);
+        let reply = messages::error_reply(None, "Cannot unban system users!", true);
         ctx.send(reply).await?;
 
         return Ok(());
@@ -60,7 +60,7 @@ pub async fn unban(
     let (moderator_id, moderator_name) = (moderator.id, &moderator.name);
 
     if user_id == moderator_id {
-        let reply = messages::error_reply("Cannot unban yourself!", true);
+        let reply = messages::error_reply(None, "Cannot unban yourself!", true);
         ctx.send(reply).await?;
 
         return Ok(());
@@ -71,7 +71,7 @@ pub async fn unban(
 
     let mut user_infractions = users::select_infractions_from_users(&user_id, pool).await?;
     if user_infractions < 1 {
-        let reply = messages::warn_reply(
+        let reply = messages::warn_reply(None, 
             format!("{user_mention} doesn't have any infractions!"),
             true,
         );
@@ -88,7 +88,7 @@ pub async fn unban(
         if let Err(why) = guild_id.unban(ctx, user_id).await {
             error!("Failed to unban @{user_name}: {why:?}");
 
-            let reply = messages::error_reply(
+            let reply = messages::error_reply(None, 
                 format!("An error occurred whilst unbanning {user_mention}."),
                 true,
             );
@@ -114,7 +114,7 @@ pub async fn unban(
 
         users::update_users_set_infractions(&user_id, user_infractions, pool).await?;
 
-        let reply = messages::ok_reply(format!("{user_mention} has been unbanned."), true);
+        let reply = messages::ok_reply(None, format!("{user_mention} has been unbanned."), true);
         ctx.send(reply).await?;
     }
 

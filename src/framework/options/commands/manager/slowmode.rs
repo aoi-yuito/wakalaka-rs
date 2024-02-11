@@ -49,7 +49,7 @@ pub async fn slowmode(
         Some(channel_id) => channel_id,
         None => {
             let reply =
-                messages::error_reply(format!("You must specify a channel to slow down!"), true);
+                messages::error_reply(None, format!("You must specify a channel to slow down!"), true);
             ctx.send(reply).await?;
 
             return Ok(());
@@ -103,8 +103,8 @@ pub async fn slowmode(
         };
 
         let reply = match result {
-            Ok(message) => messages::ok_reply(message, true),
-            Err(message) => messages::error_reply(message, true),
+            Ok(message) => messages::ok_reply(None, message, true),
+            Err(message) => messages::error_reply(None, message, true),
         };
         ctx.send(reply).await?;
     }

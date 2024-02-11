@@ -52,7 +52,7 @@ pub async fn mute(
     let pool = &ctx.data().pool;
 
     if user.system {
-        let reply = messages::error_reply("Cannot mute system users!", true);
+        let reply = messages::error_reply(None, "Cannot mute system users!", true);
         ctx.send(reply).await?;
 
         return Ok(());
@@ -63,7 +63,7 @@ pub async fn mute(
     let moderator = ctx.author();
     let moderator_id = moderator.id;
     if moderator_id == user_id {
-        let reply = messages::error_reply("Cannot mute yourself!", true);
+        let reply = messages::error_reply(None, "Cannot mute yourself!", true);
         ctx.send(reply).await?;
 
         return Ok(());
@@ -84,7 +84,7 @@ pub async fn mute(
         let mut member = guild_id.member(&ctx, user_id).await?;
         let member_builder = EditMember::default().mute(true);
 
-        let message = messages::info_message(format!(
+        let message = messages::info_message(None, format!(
             "You've been muted by {moderator_mention} in {guild_name} for {reason}.",
         ));
         user.direct_message(ctx, message).await?;
@@ -120,8 +120,8 @@ pub async fn mute(
     };
 
     let reply = match result {
-        Ok(message) => messages::ok_reply(message, true),
-        Err(message) => messages::error_reply(message, true),
+        Ok(message) => messages::ok_reply(None, message, true),
+        Err(message) => messages::error_reply(None, message, true),
     };
     ctx.send(reply).await?;
 

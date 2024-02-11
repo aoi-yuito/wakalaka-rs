@@ -26,7 +26,7 @@ use crate::{utility::components::messages, Context, Error};
     guild_only,
     user_cooldown = 5
 )]
-// Ask the Magic 8 Ball a question.
+/// Ask the Magic 8 Ball a question.
 pub async fn eightball(
     ctx: Context<'_>,
     #[description = "The question to ask."]
@@ -43,7 +43,7 @@ pub async fn eightball(
         || !lc_question.contains("where")
         || !lc_question.contains("why")
     {
-        let reply = messages::error_reply(
+        let reply = messages::error_reply(None, 
             "Magic 8 Ball can only answer `yes` or `no` questions!",
             false,
         );
@@ -58,7 +58,7 @@ pub async fn eightball(
         .choose(&mut rng)
         .and_then(|answers| answers.choose(&mut rng))
         .expect("Failed to find an answer.");
-    let reply = messages::reply(format!("🎱 {answer}"), false);
+    let reply = messages::reply(None, format!("🎱 {answer}"), false);
     ctx.send(reply).await?;
 
     Ok(())

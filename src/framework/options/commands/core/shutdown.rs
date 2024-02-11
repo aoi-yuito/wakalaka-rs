@@ -37,9 +37,9 @@ pub async fn shutdown(
     duration: u64,
 ) -> Result<(), Error> {
     let reply = if duration == 1 {
-        messages::reply(format!("Going to sleep in {duration} second..."), true)
+        messages::reply(None, format!("Going to sleep in {duration} second..."), true)
     } else {
-        messages::reply(format!("Going to sleep in {duration} seconds..."), true)
+        messages::reply(None, format!("Going to sleep in {duration} seconds..."), true)
     };
     ctx.send(reply).await?;
 

@@ -53,7 +53,7 @@ pub async fn suggest(
     if suggestion_channel_id.is_none() {
         warn!("Couldn't find suggestion channel in {guild_name}");
 
-        let reply = messages::warn_reply(
+        let reply = messages::warn_reply(None, 
             format!(
                 "Yours truly must be configured before suggestions could be made. Please use `/setup suggestions` to configure yours truly."
             ),
@@ -101,7 +101,7 @@ pub async fn suggest(
             .await?;
         let message_id = message.id;
 
-        let uuid = Uuid::new_v4().to_string();
+        let uuid = format!("{}", Uuid::new_v4());
 
         suggestions::insert_into_suggestions(
             &uuid,
@@ -119,7 +119,7 @@ pub async fn suggest(
 
         info!("@{user_name} made suggestion in {guild_name}");
 
-        let reply = messages::ok_reply(
+        let reply = messages::ok_reply(None, 
             format!("Your suggestion has been sent in for review."),
             true,
         );

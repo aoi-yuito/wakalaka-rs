@@ -47,7 +47,7 @@ pub async fn hex(
 
     let hex_regex = Regex::new(r"^[0-9a-fA-F]{3}$|^[0-9a-fA-F]{6}$").unwrap();
     if !hex_regex.is_match(&colour) {
-        let reply = messages::error_reply("Colour must be in hexadecimal format!", true);
+        let reply = messages::error_reply(None, "Colour must be in hexadecimal format!", true);
         ctx.send(reply).await?;
 
         return Ok(());

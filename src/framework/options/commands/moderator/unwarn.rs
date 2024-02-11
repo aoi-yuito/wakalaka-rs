@@ -52,7 +52,7 @@ pub async fn unwarn(
     let pool = &ctx.data().pool;
 
     if user.bot || user.system {
-        let reply = messages::error_reply(
+        let reply = messages::error_reply(None, 
             "Cannot remove warnings from bots and system users!",
             true,
         );
@@ -66,7 +66,7 @@ pub async fn unwarn(
     let moderator = ctx.author();
     let (moderator_id, moderator_name) = (moderator.id, &moderator.name);
     if moderator_id == user_id {
-        let reply = messages::error_reply("Cannot unwarn yourself!", true);
+        let reply = messages::error_reply(None, "Cannot unwarn yourself!", true);
         ctx.send(reply).await?;
 
         return Ok(());
@@ -77,7 +77,7 @@ pub async fn unwarn(
 
     let mut user_infractions = users::select_infractions_from_users(&user_id, pool).await?;
     if user_infractions < 1 {
-        let reply = messages::warn_reply(
+        let reply = messages::warn_reply(None, 
             format!("{user_mention} doesn't have any infractions!"),
             true,
         );
@@ -93,7 +93,7 @@ pub async fn unwarn(
         let uuid = if warning.0 == other_uuid {
             warning.0
         } else {
-            let reply = messages::warn_reply(
+            let reply = messages::warn_reply(None, 
                 format!("{user_mention} doesn't have the following warning: `{other_uuid}`"),
                 true,
             );
@@ -117,7 +117,7 @@ pub async fn unwarn(
 
         users::update_users_set_infractions(&user_id, user_infractions, pool).await?;
 
-        let reply = messages::ok_reply(format!("Removed a warning from {user_mention}."), true);
+        let reply = messages::ok_reply(None, format!("Removed a warning from {user_mention}."), true);
         ctx.send(reply).await?;
     }
 

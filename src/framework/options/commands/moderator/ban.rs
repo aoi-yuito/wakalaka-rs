@@ -49,7 +49,7 @@ pub async fn ban(
     let pool = &ctx.data().pool;
 
     if user.system {
-        let reply = messages::error_reply("Cannot ban system users!", true);
+        let reply = messages::error_reply(None, "Cannot ban system users!", true);
         ctx.send(reply).await?;
 
         return Ok(());
@@ -60,7 +60,7 @@ pub async fn ban(
     let moderator = ctx.author();
     let moderator_id = moderator.id;
     if moderator_id == user_id {
-        let reply = messages::error_reply("Cannot ban yourself!", true);
+        let reply = messages::error_reply(None, "Cannot ban yourself!", true);
         ctx.send(reply).await?;
 
         return Ok(());
@@ -78,9 +78,10 @@ pub async fn ban(
 
         let mut user_infractions = users::select_infractions_from_users(&user_id, pool).await?;
 
-        let message = messages::info_message(format!(
-            "You've been banned from {guild_name} by {moderator_mention} for {reason}.",
-        ));
+        let message = messages::info_message(
+            None,
+            format!("You've been banned from {guild_name} by {moderator_mention} for {reason}.",),
+        );
         user.direct_message(ctx, message).await?;
 
         match guild_id.ban_with_reason(ctx, user_id, 0, &reason).await {
@@ -113,8 +114,8 @@ pub async fn ban(
     };
 
     let reply = match result {
-        Ok(message) => messages::ok_reply(message, true),
-        Err(message) => messages::error_reply(message, true),
+        Ok(message) => messages::ok_reply(None, message, true),
+        Err(message) => messages::error_reply(None, message, true),
     };
     ctx.send(reply).await?;
 

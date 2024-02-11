@@ -23,12 +23,12 @@ pub(crate) async fn handle(remaining_cooldown: Duration, ctx: Context<'_>) {
     let remaining_seconds = remaining_cooldown.as_secs();
 
     let reply = if remaining_seconds == 1 {
-        messages::warn_reply(
+        messages::warn_reply(None, 
             "You're too fast! Please wait `1` second before trying again.",
             true,
         )
     } else {
-        messages::warn_reply(
+        messages::warn_reply(None, 
             format!(
                 "You're too fast! Please wait `{remaining_seconds}` seconds before trying again."
             ),

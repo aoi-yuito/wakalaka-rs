@@ -49,6 +49,7 @@ pub async fn channel(
     let (user_id, owner_id) = (ctx.author().id, models::guilds::owner_id(ctx)?);
     if user_id != owner_id {
         let reply = messages::info_reply(
+            None,
             format!("Only 👑 can deny usage within {channel_mention}!"),
             true,
         );
@@ -60,6 +61,7 @@ pub async fn channel(
     let channel_type = channel.kind;
     if channel_type == ChannelType::Category || channel_type == ChannelType::Directory {
         let reply = messages::error_reply(
+            None,
             format!("{channel_mention} cannot be a `Category` or `Directory`!"),
             true,
         );
@@ -93,8 +95,8 @@ pub async fn channel(
     };
 
     let reply = match result {
-        Ok(message) => messages::ok_reply(message, true),
-        Err(message) => messages::error_reply(message, true),
+        Ok(message) => messages::ok_reply(None, message, true),
+        Err(message) => messages::error_reply(None, message, true),
     };
     ctx.send(reply).await?;
 

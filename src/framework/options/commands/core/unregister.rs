@@ -39,7 +39,7 @@ pub async fn unregister(
     let guild_id = models::guilds::guild_id(ctx)?;
 
     if global {
-        let mut reply = messages::reply("Unregistering command(s) globally...", true);
+        let mut reply = messages::reply(None, "Unregistering command(s) globally...", true);
         let reply_handle = ctx.send(reply).await?;
 
         let global_commands = Command::set_global_commands(ctx, vec![]).await;
@@ -48,13 +48,13 @@ pub async fn unregister(
             return Err(why.into());
         }
 
-        reply = messages::ok_reply("Unregistered every global command.", true);
+        reply = messages::ok_reply(None, "Unregistered every global command.", true);
         reply_handle.edit(ctx, reply).await?;
 
         return Ok(());
     }
 
-    let mut reply = messages::reply("Unregistering command(s)...", true);
+    let mut reply = messages::reply(None, "Unregistering command(s)...", true);
     let reply_handle = ctx.send(reply).await?;
 
     let commands = guild_id.set_commands(ctx, vec![]).await;
@@ -63,7 +63,7 @@ pub async fn unregister(
         return Err(why.into());
     }
 
-    reply = messages::ok_reply("Unregistered every command.", true);
+    reply = messages::ok_reply(None, "Unregistered every command.", true);
     reply_handle.edit(ctx, reply).await?;
 
     Ok(())

@@ -50,7 +50,7 @@ pub async fn warn(
     let pool = &ctx.data().pool;
 
     if user.bot || user.system {
-        let reply = messages::error_reply("Cannot warn bots and system users!", true);
+        let reply = messages::error_reply(None, "Cannot warn bots and system users!", true);
         ctx.send(reply).await?;
 
         return Ok(());
@@ -62,7 +62,7 @@ pub async fn warn(
     let (moderator_id, moderator_name, moderator_mention) =
         (moderator.id, &moderator.name, moderator.mention());
     if moderator_id == user_id {
-        let reply = messages::error_reply("Cannot warn yourself!", true);
+        let reply = messages::error_reply(None, "Cannot warn yourself!", true);
         ctx.send(reply).await?;
 
         return Ok(());
@@ -81,7 +81,7 @@ pub async fn warn(
 
     let warning_count = warnings.len();
     if warning_count >= 3 {
-        let reply = messages::warn_reply(
+        let reply = messages::warn_reply(None, 
             format!(
             "{user_mention} has reached a maximum number of warnings. Take further action manually.",
         ),
@@ -92,7 +92,7 @@ pub async fn warn(
         return Ok(());
     }
 
-    let message = messages::info_message(format!(
+    let message = messages::info_message(None, format!(
         "You've been warned by {moderator_mention} in {guild_name} for {reason}.",
     ));
     user.direct_message(ctx, message).await?;
@@ -114,7 +114,7 @@ pub async fn warn(
 
     users::update_users_set_infractions(&user_id, user_infractions, pool).await?;
 
-    let reply = messages::ok_reply(format!("{user_mention} has been warned."), true);
+    let reply = messages::ok_reply(None, format!("{user_mention} has been warned."), true);
     ctx.send(reply).await?;
 
     Ok(())

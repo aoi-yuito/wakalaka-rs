@@ -67,7 +67,8 @@ async fn handle_suggestion_message(
         );
 
         if user_id != moderator_id {
-            let response = messages::error_response("Only 👑 can manage suggestions!", true).await;
+            let response =
+                messages::error_response(None, "Only 👑 can manage suggestions!", true).await;
             if let Err(why) = component.create_response(&ctx, response).await {
                 error!("Failed to create response: {why:?}");
                 return Err(why.into());

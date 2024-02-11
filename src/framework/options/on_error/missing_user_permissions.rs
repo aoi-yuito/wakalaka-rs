@@ -22,11 +22,12 @@ pub(crate) async fn handle(missing_permissions: Option<Permissions>, ctx: Contex
     if let Some(permissions) = missing_permissions {
         let permissions = permissions
             .iter()
-            .map(|permission| permission.to_string())
+            .map(|permission| format!("{permission}"))
             .collect::<Vec<String>>()
             .join(", ");
 
         let reply = messages::error_reply(
+            None,
             format!("You're missing the following permission(s): `{permissions}`"),
             true,
         );
@@ -35,6 +36,7 @@ pub(crate) async fn handle(missing_permissions: Option<Permissions>, ctx: Contex
         }
     } else {
         let reply = messages::error_reply(
+            None,
             "Yours truly couldn't find the permission(s) you're missing.",
             true,
         );

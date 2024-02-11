@@ -79,13 +79,13 @@ pub async fn around(
         deleted_message_count
     });
 
-    let reply_before = messages::reply("Deleting message(s)...", true);
+    let reply_before = messages::reply(None, "Deleting message(s)...", true);
 
     let reply_handle = ctx.send(reply_before).await?;
 
     let message_count = handle.await.unwrap_or(0);
 
-    let reply_after = messages::ok_reply(format!("Deleted {message_count} message(s)."), true);
+    let reply_after = messages::ok_reply(None, format!("Deleted {message_count} message(s)."), true);
     reply_handle.edit(ctx, reply_after).await?;
 
     Ok(())

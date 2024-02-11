@@ -44,7 +44,7 @@ pub async fn user(
     let owner_id = models::guilds::owner_id(ctx)?;
     if owner_id == other_user_id {
         let reply =
-            messages::error_reply(format!("Cannot restrict 👑 from using yours truly!"), true);
+            messages::error_reply(None, format!("Cannot restrict 👑 from using yours truly!"), true);
         ctx.send(reply).await?;
 
         return Ok(());
@@ -70,8 +70,8 @@ pub async fn user(
     };
 
     let reply = match result {
-        Ok(message) => messages::ok_reply(message, true),
-        Err(message) => messages::error_reply(message, true),
+        Ok(message) => messages::ok_reply(None, message, true),
+        Err(message) => messages::error_reply(None, message, true),
     };
     ctx.send(reply).await?;
 

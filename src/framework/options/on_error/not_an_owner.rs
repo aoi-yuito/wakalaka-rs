@@ -26,7 +26,7 @@ pub(crate) async fn handle(ctx: Context<'_>) {
     if let Some(owner) = owner {
         let owner_mention = owner.mention();
 
-        let reply = messages::info_reply(
+        let reply = messages::info_reply(None, 
             format!("Only {owner_mention} can invoke the following command!"),
             true,
         );

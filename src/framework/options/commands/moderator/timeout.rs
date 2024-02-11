@@ -56,7 +56,7 @@ pub async fn timeout(
     let pool = &ctx.data().pool;
 
     if user.bot || user.system {
-        let reply = messages::error_reply("Cannot time out bots and system users!", true);
+        let reply = messages::error_reply(None, "Cannot time out bots and system users!", true);
         ctx.send(reply).await?;
 
         return Ok(());
@@ -67,7 +67,7 @@ pub async fn timeout(
     let moderator = ctx.author();
     let moderator_id = moderator.id;
     if moderator_id == user_id {
-        let reply = messages::error_reply("Cannot time yourself out!", true);
+        let reply = messages::error_reply(None, "Cannot time yourself out!", true);
         ctx.send(reply).await?;
 
         return Ok(());
@@ -89,7 +89,7 @@ pub async fn timeout(
 
         let mut member = guild_id.member(&ctx, user_id).await?;
 
-        let message = messages::info_message(format!(
+        let message = messages::info_message(None, format!(
             "You've been timed out in {guild_name} by {moderator_mention} for {reason}.",
         ));
         user.direct_message(ctx, message).await?;
@@ -138,8 +138,8 @@ pub async fn timeout(
     };
 
     let reply = match result {
-        Ok(message) => messages::ok_reply(message, true),
-        Err(message) => messages::error_reply(message, true),
+        Ok(message) => messages::ok_reply(None, message, true),
+        Err(message) => messages::error_reply(None, message, true),
     };
     ctx.send(reply).await?;
 

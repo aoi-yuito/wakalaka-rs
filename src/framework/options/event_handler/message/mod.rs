@@ -71,7 +71,7 @@ async fn protect_from_invite_links(
     {
         msg.delete(&ctx).await?;
 
-        let message = messages::warn_message("Hey! You're not allowed to advertise here!");
+        let message = messages::warn_message(None, "Hey! You're not allowed to advertise here!");
         user.direct_message(&ctx, message).await?;
     }
 
@@ -89,7 +89,8 @@ async fn protect_from_attachment_spam(
 
     let attachment_count = msg.attachments.len();
     if attachment_count > 5 {
-        let message = messages::warn_message("Slow down! You're uploading too many attachments!");
+        let message =
+            messages::warn_message(None, "Slow down! You're uploading too many attachments!");
         user.direct_message(&ctx, message).await?;
 
         msg.delete(&ctx).await?;
@@ -109,7 +110,7 @@ async fn protect_from_embed_spam(
 
     let embed_count = msg.embeds.len();
     if embed_count > 5 {
-        let message = messages::warn_message("Slow down! You're sending too many embeds!");
+        let message = messages::warn_message(None, "Slow down! You're sending too many embeds!");
         user.direct_message(&ctx, message).await?;
 
         msg.delete(&ctx).await?;
@@ -129,7 +130,7 @@ async fn protect_from_mention_spam(
 
     let mention_count = msg.mentions.len();
     if mention_count > 5 {
-        let message = messages::warn_message("Slow down! You're mentioning too many people!");
+        let message = messages::warn_message(None, "Slow down! You're mentioning too many people!");
         user.direct_message(&ctx, message).await?;
 
         msg.delete(&ctx).await?;
@@ -165,7 +166,8 @@ async fn protect_from_spam(
             message.delete(&ctx).await?;
         }
 
-        let message = messages::warn_message("Quiet down! You're sending messages too quickly!");
+        let message =
+            messages::warn_message(None, "Slow down! You're sending messages too quickly!");
         user.direct_message(&ctx, message).await?;
     }
 

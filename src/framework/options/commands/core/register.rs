@@ -47,9 +47,9 @@ pub async fn register(
 
     if global {
         let mut reply = if command_count == 1 {
-            messages::reply("Registering global command...", true)
+            messages::reply(None, "Registering global command...", true)
         } else {
-            messages::reply(format!("Registering global commands..."), true)
+            messages::reply(None, format!("Registering global commands..."), true)
         };
 
         let reply_handle = ctx.send(reply).await?;
@@ -61,9 +61,10 @@ pub async fn register(
         }
 
         reply = if command_count == 1 {
-            messages::ok_reply("Registered `1` global command.", true)
+            messages::ok_reply(None, "Registered `1` global command.", true)
         } else {
             messages::ok_reply(
+                None,
                 format!("Registered `{command_count}` global commands."),
                 true,
             )
@@ -74,9 +75,9 @@ pub async fn register(
     }
 
     let mut reply = if command_count == 1 {
-        messages::reply("Registering command...", true)
+        messages::reply(None, "Registering command...", true)
     } else {
-        messages::reply(format!("Registering commands..."), true)
+        messages::reply(None, format!("Registering commands..."), true)
     };
 
     let reply_handle = ctx.send(reply).await?;
@@ -88,9 +89,13 @@ pub async fn register(
     }
 
     reply = if command_count == 1 {
-        messages::ok_reply("Registered `1` command.", true)
+        messages::ok_reply(None, "Registered `1` command.", true)
     } else {
-        messages::ok_reply(format!("Registered `{command_count}` commands."), true)
+        messages::ok_reply(
+            None,
+            format!("Registered `{command_count}` commands."),
+            true,
+        )
     };
     reply_handle.edit(ctx, reply).await?;
 

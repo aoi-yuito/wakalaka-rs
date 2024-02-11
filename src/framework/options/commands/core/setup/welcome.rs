@@ -42,7 +42,7 @@ pub async fn welcome(
 
     let (user_id, owner_id) = (ctx.author().id, models::guilds::owner_id(ctx)?);
     if user_id != owner_id {
-        let reply = messages::info_reply(format!("Only 👑 can configure {channel_mention}."), true);
+        let reply = messages::info_reply(None, format!("Only 👑 can configure {channel_mention}."), true);
         ctx.send(reply).await?;
 
         return Ok(());
@@ -80,8 +80,8 @@ pub async fn welcome(
             };
 
         let reply = match result {
-            Ok(message) => messages::ok_reply(message, true),
-            Err(message) => messages::error_reply(message, true),
+            Ok(message) => messages::ok_reply(None, message, true),
+            Err(message) => messages::error_reply(None, message, true),
         };
         ctx.send(reply).await?;
     }

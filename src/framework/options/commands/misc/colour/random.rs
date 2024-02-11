@@ -40,7 +40,7 @@ pub async fn random(ctx: Context<'_>) -> Result<(), Error> {
     let res_text = res.text().await?;
     let res_json: serde_json::Value = serde_json::from_str(&res_text)?;
 
-    let hex = res_json["hex"]["clean"].to_string();
+    let hex = format!("{}", res_json["hex"]["clean"]);
 
     let colour = utility::hex_to_u32(&hex);
     let hex_colour = format!("{:06X}", colour);

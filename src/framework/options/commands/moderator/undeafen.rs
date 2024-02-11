@@ -51,7 +51,7 @@ pub async fn undeafen(
     let pool = &ctx.data().pool;
 
     if user.system {
-        let reply = messages::error_reply("Cannot undeafen system users!", true);
+        let reply = messages::error_reply(None, "Cannot undeafen system users!", true);
         ctx.send(reply).await?;
 
         return Ok(());
@@ -62,7 +62,7 @@ pub async fn undeafen(
     let moderator = ctx.author();
     let (moderator_id, moderator_name) = (moderator.id, &moderator.name);
     if moderator_id == user_id {
-        let reply = messages::error_reply("Cannot undeafen yourself!", true);
+        let reply = messages::error_reply(None, "Cannot undeafen yourself!", true);
         ctx.send(reply).await?;
 
         return Ok(());
@@ -73,7 +73,7 @@ pub async fn undeafen(
 
     let mut user_infractions = users::select_infractions_from_users(&user_id, pool).await?;
     if user_infractions < 1 {
-        let reply = messages::warn_reply(
+        let reply = messages::warn_reply(None, 
             format!("{user_mention} doesn't have any infractions!"),
             true,
         );
@@ -94,7 +94,7 @@ pub async fn undeafen(
         if let Err(why) = member.edit(ctx, member_builder).await {
             error!("Failed to undeafen @{user_name}: {why:?}");
 
-            let reply = messages::error_reply(
+            let reply = messages::error_reply(None, 
                 format!("An error occurred whilst undeafening {user_mention}."),
                 true,
             );
@@ -120,7 +120,7 @@ pub async fn undeafen(
 
         users::update_users_set_infractions(&user_id, user_infractions, pool).await?;
 
-        let reply = messages::ok_reply(format!("{user_mention} has been undeafened."), true);
+        let reply = messages::ok_reply(None, format!("{user_mention} has been undeafened."), true);
         ctx.send(reply).await?;
     }
 

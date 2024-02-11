@@ -30,7 +30,7 @@ use crate::{utility::components::messages, Context, Error};
 )]
 /// Restart yours truly to her former glory.
 pub async fn restart(ctx: Context<'_>) -> Result<(), Error> {
-    let reply = messages::reply("Restarting...", true);
+    let reply = messages::reply(None, "Restarting...", true);
     ctx.send(reply).await?;
 
     let manager = Arc::new(ctx.framework().shard_manager);
