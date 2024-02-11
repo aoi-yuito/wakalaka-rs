@@ -8,4 +8,3 @@ CREATE TABLE IF NOT EXISTS guild_members (
     guild_id BIGINT NOT NULL,
     FOREIGN KEY (guild_id) REFERENCES guilds(guild_id) ON DELETE CASCADE
 );
-PRAGMA foreign_keys = ON;
