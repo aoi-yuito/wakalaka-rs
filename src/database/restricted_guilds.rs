@@ -46,12 +46,8 @@ pub async fn select_guild_id_from_restricted_guilds(
     .bind(i64::from(*guild_id));
     let row = match query.fetch_one(pool).await {
         Ok(row) => row,
-        Err(why) => {
-            if why.to_string().contains("no such table") {
-                return Ok(false);
-            }
-
-            return Err(why);
+        Err(_) => {
+            return Ok(false)
         }
     };
 
