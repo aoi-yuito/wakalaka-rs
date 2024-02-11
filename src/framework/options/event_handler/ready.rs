@@ -16,51 +16,39 @@
 use std::sync::Arc;
 
 use tokio::time::Duration;
-use tracing::{error, info};
+use tracing::info;
 
 use crate::{
-    check_restricted_guild,
     serenity::{ActivityData, Ready},
-    utility::models,
-    Data,
+    Error,
 };
 
-pub async fn handle(ready: &Ready, ctx: &crate::serenity::Context, data: &Data) {
-    let pool = &data.pool;
-
+pub async fn handle(ready: &Ready, ctx: &crate::serenity::Context) -> Result<(), Error> {
     let guild_ids = ctx.cache.guilds();
-    for guild_id in &guild_ids {
-        let guild_name = models::guilds::guild_name_raw(ctx, *guild_id).await;
-
-        let restricted_guild = check_restricted_guild!(&pool, &guild_id);
-        if restricted_guild {
-            if let Err(why) = guild_id.leave(ctx).await {
-                error!("Failed to leave {guild_name}: {why:?}");
-            }
-
-            return;
-        }
-    }
 
     let guild_count = guild_ids.len();
 
     let user_name = &ready.user.name;
 
-    info!("Connected to {guild_count} guild(s) as @{user_name}");
+    if guild_count == 1 {
+        info!("Connected to {guild_count} guild as @{user_name}");
+    } else {
+        info!("Connected to {guild_count} guilds as @{user_name}");
+    }
 
     let ctx = Arc::new(ctx.clone());
     tokio::spawn(async move {
         loop {
-            set_activity(&ctx).await;
+            set_activity(&ctx, &guild_count).await;
 
             tokio::time::sleep(Duration::from_secs(30)).await;
         }
     });
+
+    Ok(())
 }
 
-async fn set_activity(ctx: &crate::serenity::Context) {
-    let guild_count = ctx.cache.guilds().len();
-
+async fn set_activity(ctx: &crate::serenity::Context, guild_count: &usize) {
     let ytpmv = "Blue As You Are";
 
     let activity = format!("{ytpmv:?} in {guild_count} guild(s)");
