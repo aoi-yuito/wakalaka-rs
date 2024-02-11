@@ -18,19 +18,12 @@ use sqlx::{Row, SqlitePool};
 use tokio::time::Instant;
 use tracing::{debug, error};
 
-#[macro_export]
-macro_rules! check_restricted_guild {
-    (&$pool:expr, &$guild_id:expr) => {{
-        match crate::database::restricted_guilds::select_guild_id_from_restricted_guilds(
-            &$guild_id, &$pool,
-        )
-        .await
-        {
-            Ok(true) => true,
-            Ok(false) => false,
-            Err(_) => false,
-        }
-    }};
+pub async fn check_restricted_guild(pool: &SqlitePool, guild_id: &GuildId) -> bool {
+    match select_guild_id_from_restricted_guilds(guild_id, pool).await {
+        Ok(true) => true,
+        Ok(false) => false,
+        Err(_) => false,
+    }
 }
 
 pub async fn select_guild_id_from_restricted_guilds(
@@ -46,9 +39,7 @@ pub async fn select_guild_id_from_restricted_guilds(
     .bind(i64::from(*guild_id));
     let row = match query.fetch_one(pool).await {
         Ok(row) => row,
-        Err(_) => {
-            return Ok(false)
-        }
+        Err(_) => return Ok(false),
     };
 
     let elapsed_time = start_time.elapsed();
