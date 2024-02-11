@@ -16,15 +16,15 @@
 use serenity::all::{GuildId, Member, User};
 use tracing::info;
 
-use crate::utility::models;
+use crate::{utility::models, Error};
 
 pub async fn handle(
     guild_id: &GuildId,
     user: &User,
     member: &Option<Member>,
     ctx: &crate::serenity::Context,
-) {
-    let guild_name = models::guilds::guild_name_raw(ctx, *guild_id).await;
+) -> Result<(), Error> {
+    let guild_name = &models::guilds::guild_name_raw(&ctx, *guild_id);
 
     if let Some(member) = member {
         let member_name = &member.user.name;
@@ -35,4 +35,6 @@ pub async fn handle(
 
         info!("@{user_name} left from {guild_name}")
     }
+
+    Ok(())
 }

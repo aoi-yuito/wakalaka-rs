@@ -15,9 +15,9 @@
 
 use serenity::all::GuildChannel;
 
-use crate::{database::restricted_guild_channels, Data};
+use crate::{database::restricted_guild_channels, Data, Error};
 
-pub async fn handle(channel: &GuildChannel, data: &Data) {
+pub async fn handle(channel: &GuildChannel, data: &Data) -> Result<(), Error> {
     let pool = &data.pool;
 
     let channel_id = channel.id;
@@ -29,10 +29,10 @@ pub async fn handle(channel: &GuildChannel, data: &Data) {
         )
         .await;
     if let Ok(_) = previous_query {
-        restricted_guild_channels::delete_from_restricted_guild_channels(&channel, &pool)
-            .await
-            .unwrap();
+        restricted_guild_channels::delete_from_restricted_guild_channels(&channel, &pool).await?;
 
-        return;
+        return Ok(());
     }
+
+    Ok(())
 }

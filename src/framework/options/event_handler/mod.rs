@@ -32,19 +32,19 @@ pub async fn handle(
 ) -> Result<(), Error> {
     match event {
         FullEvent::CacheReady { guilds, .. } => {
-            cache_ready::handle(guilds, ctx, data).await;
+            cache_ready::handle(guilds, ctx).await?;
         }
         FullEvent::ChannelDelete { channel, .. } => {
-            channel::channel_delete::handle(channel, data).await;
+            channel::channel_delete::handle(channel, data).await?;
         }
         FullEvent::GuildCreate { guild, is_new } => {
-            guild::guild_create::handle(guild, is_new.is_some(), ctx, data).await;
+            guild::guild_create::handle(guild, is_new.is_some(), ctx, data).await?;
         }
         FullEvent::GuildDelete { incomplete, full } => {
-            guild::guild_delete::handle(incomplete, full, ctx, data).await;
+            guild::guild_delete::handle(incomplete, full, ctx, data).await?;
         }
         FullEvent::GuildMemberAddition { new_member, .. } => {
-            guild::guild_member_addition::handle(new_member, ctx, data).await;
+            guild::guild_member_addition::handle(new_member, ctx, data).await?;
         }
         FullEvent::GuildMemberRemoval {
             guild_id,
@@ -52,10 +52,10 @@ pub async fn handle(
             member_data_if_available,
         } => {
             guild::guild_member_removal::handle(guild_id, user, member_data_if_available, ctx)
-                .await;
+                .await?;
         }
         FullEvent::Ready { data_about_bot, .. } => {
-            ready::handle(data_about_bot, ctx, data).await;
+            ready::handle(data_about_bot, ctx).await?;
         }
         FullEvent::Message { new_message, .. } => {
             message::handle(new_message, ctx, data).await?;

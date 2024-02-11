@@ -22,38 +22,48 @@ use tracing::{error, info};
 use crate::{
     database::{guilds, users},
     utility::models,
-    Data,
+    Data, Error,
 };
 
-pub async fn handle(new_member: &Member, ctx: &crate::serenity::Context, data: &Data) {
+pub async fn handle(
+    new_member: &Member,
+    ctx: &crate::serenity::Context,
+    data: &Data,
+) -> Result<(), Error> {
     let pool = &data.pool;
 
     let guild_id = new_member.guild_id;
-    let guild_name = models::guilds::guild_name_raw(ctx, guild_id).await;
+    let guild_name = &models::guilds::guild_name_raw(&ctx, guild_id);
 
     let members = match models::members::members_raw(&ctx, &guild_id).await {
         Ok(members) => members,
-        Err(_) => {
-            return;
+        Err(why) => {
+            error!("Failed to get members for {guild_name}: {why:?}");
+            return Err(why.into());
         }
     };
 
     if let Err(why) = users::insert_into_users(&members, pool).await {
         error!("Failed to insert into Users: {why:?}");
-    } else {
-        let user = &new_member.user;
-        let (user_name, user_mention) = (&user.name, user.mention());
+        return Err(why.into());
+    }
 
-        info!("@{user_name} joined {guild_name}");
+    let user = &new_member.user;
+    let (user_name, user_mention) = (&user.name, user.mention());
 
-        let welcome_channel_id = guilds::check_welcome_channel(&guild_id, pool).await;
-        if let Some(channel_id) = welcome_channel_id {
-            let message_builder = CreateMessage::default()
-                .content(format!("Welcome to **{guild_name}**, {user_mention}!"));
-            let message = channel_id.send_message(&ctx, message_builder).await;
-            if let Err(why) = message {
-                error!("Failed to send message: {why:?}");
-            }
+    info!("@{user_name} joined {guild_name}");
+
+    let welcome_channel_id = guilds::check_welcome_channel(&guild_id, pool).await;
+    if let Some(channel_id) = welcome_channel_id {
+        let message_builder = CreateMessage::default()
+            .content(format!("Welcome to **{guild_name}**, {user_mention}!"));
+
+        let message = channel_id.send_message(&ctx, message_builder).await;
+        if let Err(why) = message {
+            error!("Failed to send message: {why:?}");
+            return Err(why.into());
         }
     }
+
+    Ok(())
 }
