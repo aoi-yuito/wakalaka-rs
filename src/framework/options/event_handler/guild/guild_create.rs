@@ -14,41 +14,59 @@
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
 use serenity::all::Guild;
+use tracing::error;
 
 use crate::{
-    check_restricted_guild,
-    database::{guild_members, guilds, users},
+    database::{guild_members, guilds, restricted_guilds, users},
     utility::models,
-    Data,
+    Data, Error,
 };
 
-pub async fn handle(guild: &Guild, is_new: bool, ctx: &crate::serenity::Context, data: &Data) {
+pub async fn handle(
+    guild: &Guild,
+    is_new: bool,
+    ctx: &crate::serenity::Context,
+    data: &Data,
+) -> Result<(), Error> {
     let pool = &data.pool;
 
+    if !is_new {
+        return Ok(());
+    }
+
     let guild_id = guild.id;
+    let guild_name = &guild.name;
     let guild_members = match models::members::members_raw(&ctx, &guild_id).await {
         Ok(members) => members,
-        Err(_) => {
-            return;
+        Err(why) => {
+            error!("Failed to get members for {guild_name}: {why:?}");
+            return Err(why.into());
         }
     };
 
-    let restricted_guild = check_restricted_guild!(&pool, &guild_id);
-    if restricted_guild || !is_new {
-        return;
+    let restricted_guild = restricted_guilds::check_restricted_guild(&pool, &guild_id).await;
+    if restricted_guild {
+        if let Err(why) = guild.leave(ctx).await {
+            error!("Failed to leave {guild_name}: {why:?}");
+            return Err(why.into());
+        }
+
+        return Ok(());
     }
 
     if users::insert_into_users(&guild_members, pool)
         .await
         .is_err()
     {
-        return;
+        return Ok(());
     } else if guilds::insert_into_guilds(guild, pool).await.is_err() {
-        return;
+        return Ok(());
     } else if guild_members::insert_into_guild_members(&guild_members, pool)
         .await
         .is_err()
     {
-        return;
+        return Ok(());
     }
+
+    Ok(())
 }
