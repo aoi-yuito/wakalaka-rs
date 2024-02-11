@@ -14,29 +14,19 @@
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
 use serenity::all::GuildId;
-use tracing::{error, info};
+use tracing::info;
 
-use crate::{check_restricted_guild, utility::models, Data};
+use crate::Error;
 
-pub async fn handle(guild_ids: &Vec<GuildId>, ctx: &crate::serenity::Context, data: &Data) {
-    let pool = &data.pool;
-
-    for guild_id in guild_ids {
-        let guild_name = models::guilds::guild_name_raw(ctx, *guild_id).await;
-
-        let restricted_guild = check_restricted_guild!(&pool, &guild_id);
-        if restricted_guild {
-            if let Err(why) = guild_id.leave(ctx).await {
-                error!("Failed to leave {guild_name}: {why:?}");
-            }
-
-            return;
-        }
-    }
-
-    let bot_name = models::current_application_name_raw(ctx).await.unwrap();
+pub async fn handle(guild_ids: &Vec<GuildId>, ctx: &crate::serenity::Context) -> Result<(), Error> {
+    let bot_name = &ctx.cache.current_user().name;
 
     let guild_count = guild_ids.len();
+    if guild_count == 1 {
+        info!("Prepared {guild_count} guild for @{bot_name}");
+    } else {
+        info!("Prepared {guild_count} guilds for @{bot_name}");
+    }
 
-    info!("Prepared {guild_count} guild(s) for @{bot_name}");
+    Ok(())
 }
