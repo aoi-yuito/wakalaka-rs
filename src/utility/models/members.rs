@@ -25,21 +25,49 @@ pub async fn members_raw(
     ctx: &crate::serenity::Context,
     guild_id: &GuildId,
 ) -> Result<Vec<Member>, ModelError> {
-    match guild_id.members(&ctx, None, None).await {
-        Ok(members) => Ok(members),
-        Err(why) => {
-            error!("Failed to get members: {why:?}");
-            return Err(ModelError::MemberNotFound);
+    let mut members = Vec::new();
+
+    let mut after = None;
+
+    loop {
+        match guild_id.members(ctx, Some(1000), after).await {
+            Ok(mut new_members) => {
+                if new_members.is_empty() {
+                    return Ok(members);
+                }
+
+                after = new_members.last().map(|m| m.user.id);
+
+                members.append(&mut new_members);
+            }
+            Err(why) => {
+                error!("Failed to get members: {why:?}");
+                return Err(ModelError::MemberNotFound);
+            }
         }
     }
 }
 
 pub async fn members(ctx: Context<'_>, guild_id: GuildId) -> Result<Vec<Member>, ModelError> {
-    match guild_id.members(ctx, None, None).await {
-        Ok(members) => Ok(members),
-        Err(why) => {
-            error!("Failed to get members: {why:?}");
-            return Err(ModelError::MemberNotFound);
+    let mut members = Vec::new();
+
+    let mut after = None;
+
+    loop {
+        match guild_id.members(ctx, Some(1000), after).await {
+            Ok(mut new_members) => {
+                if new_members.is_empty() {
+                    return Ok(members);
+                }
+
+                after = new_members.last().map(|m| m.user.id);
+
+                members.append(&mut new_members);
+            }
+            Err(why) => {
+                error!("Failed to get members: {why:?}");
+                return Err(ModelError::MemberNotFound);
+            }
         }
     }
 }
