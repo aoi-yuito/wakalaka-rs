@@ -24,35 +24,19 @@ use poise::Command;
 
 use crate::{Data, Error};
 
-// pub async fn global_commands() -> Vec<Command<Data, Error>> {
-//     vec![]
-// }
+pub async fn commands() -> Vec<Command<Data, Error>> {
+    let mut commands = vec![];
+    commands.append(&mut core_commands());
+    commands.append(&mut fun_commands());
+    commands.append(&mut info_commands());
+    commands.append(&mut manager_commands());
+    commands.append(&mut misc_commands());
+    commands.append(&mut moderator_commands());
+    commands
+}
 
-pub async fn guild_commands() -> Vec<Command<Data, Error>> {
+fn moderator_commands() -> Vec<Command<Data, Error>> {
     vec![
-        core::restrict::restrict(),
-        core::setup::setup(),
-        core::unrestrict::unrestrict(),
-        core::register::register(),
-        core::restart::restart(),
-        core::shutdown::shutdown(),
-        core::unregister::unregister(),
-        fun::flip::flip(),
-        fun::hug::hug(),
-        fun::roll::roll(),
-        info::lookup::lookup(),
-        info::info::info(),
-        info::invite::invite(),
-        info::ping::ping(),
-        manager::emoji::emoji(),
-        manager::nick::nick(),
-        manager::purge::purge(),
-        manager::roles::roles(),
-        manager::slowmode::slowmode(),
-        misc::colour::colour(),
-        misc::avatar::avatar(),
-        misc::banner::banner(),
-        misc::suggest::suggest(),
         moderator::deafen::deafen(),
         moderator::ban::ban(),
         moderator::kick::kick(),
@@ -65,5 +49,49 @@ pub async fn guild_commands() -> Vec<Command<Data, Error>> {
         moderator::unwarn::unwarn(),
         moderator::warn::warn(),
         moderator::warnings::warnings(),
+    ]
+}
+
+fn fun_commands() -> Vec<Command<Data, Error>> {
+    vec![fun::flip::flip(), fun::hug::hug(), fun::roll::roll()]
+}
+
+fn misc_commands() -> Vec<Command<Data, Error>> {
+    vec![
+        misc::colour::colour(),
+        misc::avatar::avatar(),
+        misc::banner::banner(),
+        misc::suggest::suggest(),
+    ]
+}
+
+fn manager_commands() -> Vec<Command<Data, Error>> {
+    vec![
+        manager::emoji::emoji(),
+        manager::nick::nick(),
+        manager::purge::purge(),
+        manager::roles::roles(),
+        manager::slowmode::slowmode(),
+    ]
+}
+
+fn info_commands() -> Vec<Command<Data, Error>> {
+    vec![
+        info::lookup::lookup(),
+        info::info::info(),
+        info::invite::invite(),
+        info::ping::ping(),
+    ]
+}
+
+fn core_commands() -> Vec<Command<Data, Error>> {
+    vec![
+        core::restrict::restrict(),
+        core::setup::setup(),
+        core::unrestrict::unrestrict(),
+        core::register::register(),
+        core::restart::restart(),
+        core::shutdown::shutdown(),
+        core::unregister::unregister(),
     ]
 }
