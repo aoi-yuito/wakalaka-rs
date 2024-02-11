@@ -10,3 +10,4 @@ CREATE TABLE IF NOT EXISTS infractions (
     FOREIGN KEY (moderator_id) REFERENCES users(user_id),
     FOREIGN KEY (user_id) REFERENCES users(user_id)
 );
+PRAGMA foreign_keys = ON;

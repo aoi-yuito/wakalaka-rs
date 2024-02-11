@@ -7,3 +7,4 @@ CREATE TABLE IF NOT EXISTS guilds (
     welcome_channel_id BIGINT,
     FOREIGN KEY (owner_id) REFERENCES users(user_id)
 );
+PRAGMA foreign_keys = ON;

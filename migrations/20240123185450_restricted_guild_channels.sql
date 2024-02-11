@@ -3,3 +3,4 @@ CREATE TABLE IF NOT EXISTS restricted_guild_channels (
     guild_id BIGINT NOT NULL,
     FOREIGN KEY (guild_id) REFERENCES guilds(guild_id) ON DELETE CASCADE
 );
+PRAGMA foreign_keys = ON;

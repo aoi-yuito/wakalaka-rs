@@ -6,6 +6,6 @@ CREATE TABLE IF NOT EXISTS guild_members (
     ban BOOLEAN NOT NULL DEFAULT FALSE,
     communication_disabled_until TIMESTAMP,
     guild_id BIGINT NOT NULL,
-    FOREIGN KEY (guild_id) REFERENCES guilds(guild_id) ON DELETE CASCADE,
-    FOREIGN KEY (user_id) REFERENCES users(user_id)
+    FOREIGN KEY (guild_id) REFERENCES guilds(guild_id) ON DELETE CASCADE
 );
+PRAGMA foreign_keys = ON;
