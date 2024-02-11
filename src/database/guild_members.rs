@@ -166,7 +166,7 @@ pub async fn insert_into_guild_members(
 
             if why.to_string().contains("1555") {
                 // UNIQUE constraint failed
-                continue;
+                return Err(why);
             }
 
             error!("Failed to insert into GuildMembers: {why:?}");
