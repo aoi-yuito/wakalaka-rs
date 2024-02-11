@@ -32,16 +32,6 @@ pub async fn owner_raw(ctx: &crate::serenity::Context) -> Option<User> {
     }
 }
 
-pub async fn current_application_name_raw(ctx: &crate::serenity::Context) -> Option<String> {
-    match current_application_info_raw(ctx).await {
-        Some(app_info) => Some(app_info.name),
-        None => {
-            warn!("Couldn't get current application name");
-            None
-        }
-    }
-}
-
 pub async fn current_application_info_raw(
     ctx: &crate::serenity::Context,
 ) -> Option<CurrentApplicationInfo> {
