@@ -79,7 +79,7 @@ pub async fn select_from_infractions(
             user_id,
             moderator_id,
             reason,
-            created_at.to_string(),
+            format!("{created_at}"),
             guild_id,
         ));
     }
@@ -122,7 +122,7 @@ pub async fn insert_into_infractions(
 ) -> Result<(), sqlx::Error> {
     let start_time = Instant::now();
 
-    let uuid = Uuid::new_v4().to_string();
+    let uuid = format!("{}", Uuid::new_v4());
 
     let query = sqlx::query(
         "INSERT INTO infractions (uuid, type, user_id, moderator_id, reason, created_at, guild_id) VALUES (?, ?, ?, ?, ?, ?, ?)",

@@ -21,11 +21,12 @@ use crate::{utility::components::messages, Context};
 pub(crate) async fn handle(missing_permissions: Permissions, ctx: Context<'_>) {
     let permissions = missing_permissions
         .iter()
-        .map(|permission| permission.to_string())
+        .map(|permission| format!("{permission}"))
         .collect::<Vec<String>>()
         .join(", ");
 
     let reply = messages::error_reply(
+        None,
         format!("Yours truly is missing the following permission(s): `{permissions}`"),
         true,
     );

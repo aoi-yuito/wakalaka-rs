@@ -29,6 +29,7 @@ pub async fn check_restricted_guild_channel(ctx: Context<'_>) -> bool {
     match select_channel_id_from_restricted_guild_channels(&channel_id, pool).await {
         Ok(true) => {
             let reply = messages::error_reply(
+                None,
                 format!(
                     "Sorry, but yours truly's forbidden from being used within {channel_mention}."
                 ),
@@ -110,7 +111,8 @@ pub async fn insert_into_restricted_guild_channels(
     .bind(i64::from(channel_id))
     .bind(i64::from(*guild_id));
     if let Err(why) = query.execute(pool).await {
-        if why.to_string().contains("1555") {
+        let error = format!("{why}");
+        if error.contains("1555") {
             // UNIQUE constraint failed
             return Ok(());
         }

@@ -360,7 +360,8 @@ pub async fn insert_into_guilds(guild: &Guild, pool: &SqlitePool) -> Result<(), 
     if let Err(why) = query.execute(pool).await {
         _insert_into_ok = false;
 
-        if why.to_string().contains("1555") {
+        let error = format!("{why}");
+        if error.contains("1555") {
             // UNIQUE constraint failed
             return Ok(());
         }

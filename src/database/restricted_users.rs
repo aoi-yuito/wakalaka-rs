@@ -25,7 +25,7 @@ pub async fn check_restricted_user(ctx: Context<'_>) -> bool {
 
     match select_user_id_from_restricted_users(&user_id, pool).await {
         Ok(true) => {
-            let reply = messages::error_reply(
+            let reply = messages::error_reply(None, 
                 format!("Sorry, but you can't use yours truly anymore.\n\nIf you think this is a mistake, contact the [developer](https://github.com/Kawaxte) on GitHub, or swing by the [support server](https://discord.gg/jUZVWk7q2q) for help.\n\nIn the meantime, take a moment to think about what went down, because this can't be undone."), true);
             ctx.send(reply).await.unwrap();
 
@@ -86,7 +86,8 @@ pub async fn insert_into_restricted_users(
     let query =
         sqlx::query("INSERT INTO restricted_users (user_id) VALUES (?)").bind(i64::from(*user_id));
     if let Err(why) = query.execute(pool).await {
-        if why.to_string().contains("1555") {
+        let error = format!("{why}");
+if error.contains("1555") {
             // UNIQUE constraint failed
             return Ok(());
         }
