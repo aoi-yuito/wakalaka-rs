@@ -30,7 +30,7 @@ use crate::{
 /// Check SQL query for syntax errors.
 pub async fn validate(
     ctx: Context<'_>,
-    #[description = "The query to validate."] mut query: String,
+    #[description = "The query to validate."] query: String,
 ) -> Result<(), Error> {
     let client = reqwest::Client::new();
 
