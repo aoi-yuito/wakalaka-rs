@@ -38,15 +38,17 @@ pub async fn handle(guild: &Guild, is_new: bool, ctx: &crate::serenity::Context,
         return;
     }
 
-    // This looks so fucking dumb.
-    match users::insert_into_users(&guild_members, pool).await {
-        Err(why) => panic!("{why:?}"),
-        Ok(()) => match guilds::insert_into_guilds(guild, pool).await {
-            Err(why) => panic!("{why:?}"),
-            Ok(()) => match guild_members::insert_into_guild_members(&guild_members, pool).await {
-                Err(why) => panic!("{why:?}"),
-                Ok(()) => (),
-            },
-        },
+    if users::insert_into_users(&guild_members, pool)
+        .await
+        .is_err()
+    {
+        return;
+    } else if guilds::insert_into_guilds(guild, pool).await.is_err() {
+        return;
+    } else if guild_members::insert_into_guild_members(&guild_members, pool)
+        .await
+        .is_err()
+    {
+        return;
     }
 }
