@@ -16,3 +16,4 @@
 pub mod hug;
 pub mod roll;
 pub mod flip;
+pub mod eightball;

@@ -53,7 +53,12 @@ fn moderator_commands() -> Vec<Command<Data, Error>> {
 }
 
 fn fun_commands() -> Vec<Command<Data, Error>> {
-    vec![fun::flip::flip(), fun::hug::hug(), fun::roll::roll()]
+    vec![
+        fun::eightball::eightball(),
+        fun::flip::flip(),
+        fun::hug::hug(),
+        fun::roll::roll(),
+    ]
 }
 
 fn misc_commands() -> Vec<Command<Data, Error>> {
