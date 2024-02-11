@@ -54,6 +54,9 @@ pub async fn handle(
             guild::guild_member_removal::handle(guild_id, user, member_data_if_available, ctx)
                 .await?;
         }
+        FullEvent::GuildUpdate { old_data_if_available, new_data } => {
+            guild::guild_update::handle(old_data_if_available, new_data, ctx, data).await?;
+        }
         FullEvent::Ready { data_about_bot, .. } => {
             ready::handle(data_about_bot, ctx).await?;
         }
