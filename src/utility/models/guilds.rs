@@ -38,7 +38,7 @@ pub fn owner_id(ctx: Context<'_>) -> Result<UserId, ModelError> {
     Ok(guild(ctx)?.owner_id)
 }
 
-pub async fn guild_name_raw(ctx: &crate::serenity::Context, guild_id: GuildId) -> String {
+pub fn guild_name_raw(ctx: &crate::serenity::Context, guild_id: GuildId) -> String {
     guild_id.name(ctx).map_or_else(
         || {
             warn!("Couldn't get guild name, using guild ID instead");
