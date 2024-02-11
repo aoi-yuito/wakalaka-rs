@@ -16,7 +16,7 @@
 use poise::{Framework, FrameworkOptions, PrefixFrameworkOptions};
 use serenity::all::GatewayIntents;
 use tokio::time::Instant;
-use tracing::debug;
+use tracing::info;
 
 use crate::framework::options::commands;
 use crate::{Data, Error};
@@ -28,7 +28,7 @@ pub async fn initialise_framework_options() -> FrameworkOptions<Data, Error> {
     let start_time = Instant::now();
 
     let framework_options = FrameworkOptions {
-        commands: commands::guild_commands().await,
+        commands: commands::commands().await,
         on_error: |error| Box::pin(options::on_error::handle(error)),
         post_command: |ctx| Box::pin(options::post_command::handle(ctx)),
         command_check: Some(|ctx| Box::pin(options::command_check::handle(ctx))),
@@ -43,7 +43,7 @@ pub async fn initialise_framework_options() -> FrameworkOptions<Data, Error> {
     };
 
     let elapsed_time = start_time.elapsed();
-    debug!("Initialised framework options in {elapsed_time:.2?}");
+    info!("Initialised framework options in {elapsed_time:.2?}");
 
     framework_options
 }
@@ -57,7 +57,7 @@ pub async fn initialise_framework(data: Data) -> Framework<Data, Error> {
         .build();
 
     let elapsed_time = start_time.elapsed();
-    debug!("Initialised framework in {elapsed_time:.2?}");
+    info!("Initialised framework in {elapsed_time:.2?}");
 
     framework
 }
@@ -74,7 +74,7 @@ pub fn initialise_intents() -> GatewayIntents {
         | GatewayIntents::MESSAGE_CONTENT;
 
     let elapsed_time = start_time.elapsed();
-    debug!("Initialised intents in {elapsed_time:.2?}");
+    info!("Initialised intents in {elapsed_time:.2?}");
 
     intents
 }

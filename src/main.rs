@@ -26,7 +26,7 @@ use dashmap::DashMap;
 use poise::Framework;
 use sqlx::SqlitePool;
 use tokio::{sync::Mutex, time::Instant};
-use tracing::{debug, error, level_filters::LevelFilter, subscriber, warn};
+use tracing::{error, info, level_filters::LevelFilter, subscriber, warn};
 use tracing_subscriber::{fmt::Subscriber, EnvFilter};
 
 pub struct Data {
@@ -82,7 +82,7 @@ async fn initialise_client(
     };
 
     let elapsed_time = start_time.elapsed();
-    debug!("Initialised client in {elapsed_time:.2?}");
+    info!("Initialised client in {elapsed_time:.2?}");
 
     Ok(client)
 }
@@ -132,7 +132,7 @@ fn initialise_subscriber() -> Result<(), Error> {
     }
 
     let elapsed_time = start_time.elapsed();
-    debug!("Initialised logger in {elapsed_time:.2?}");
+    info!("Initialised logger in {elapsed_time:.2?}");
 
     Ok(())
 }

@@ -28,7 +28,7 @@ use sqlx::{
     SqlitePool,
 };
 use tokio::time::Instant;
-use tracing::{debug, error, info};
+use tracing::{error, info};
 
 lazy_static! {
     pub static ref DB_URL: String = match dotenvy::var("DATABASE_URL") {
@@ -54,7 +54,7 @@ pub async fn initialise() -> SqlitePool {
     }
 
     let elapsed_time = start_time.elapsed();
-    debug!("Initialised SQLite database in {elapsed_time:.2?}");
+    info!("Initialised SQLite database in {elapsed_time:.2?}");
 
     pool
 }
@@ -65,7 +65,7 @@ async fn migrate(pool: &SqlitePool) -> Result<(), sqlx::Error> {
     match sqlx::migrate!("./migrations").run(pool).await {
         Ok(_) => {
             let elapsed_time = start_time.elapsed();
-            debug!("Migrated SQLite database in {elapsed_time:.2?}");
+            info!("Migrated SQLite database in {elapsed_time:.2?}");
             Ok(())
         }
         Err(why) => {
