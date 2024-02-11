@@ -52,7 +52,7 @@ pub async fn eightball(
         return Ok(());
     }
 
-    let answers = [negative_answers(), neutral_answers(), positive_answers()];
+    let answers = [positive_answers(), neutral_answers(), negative_answers()];
 
     let answer = answers
         .choose(&mut rng)
