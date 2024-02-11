@@ -14,6 +14,7 @@
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.\
 
 mod core;
+mod developer;
 mod fun;
 mod info;
 mod manager;
@@ -27,6 +28,7 @@ use crate::{Data, Error};
 pub async fn commands() -> Vec<Command<Data, Error>> {
     let mut commands = vec![];
     commands.append(&mut core_commands());
+    commands.append(&mut developer_commands());
     commands.append(&mut fun_commands());
     commands.append(&mut info_commands());
     commands.append(&mut manager_commands());
@@ -87,6 +89,10 @@ fn info_commands() -> Vec<Command<Data, Error>> {
         info::invite::invite(),
         info::ping::ping(),
     ]
+}
+
+fn developer_commands() -> Vec<Command<Data, Error>> {
+    vec![developer::sql::sql()]
 }
 
 fn core_commands() -> Vec<Command<Data, Error>> {
