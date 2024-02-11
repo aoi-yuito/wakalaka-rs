@@ -18,13 +18,13 @@ use tracing::error;
 use crate::{utility::components::messages, Context};
 
 pub(crate) async fn handle(ctx: Context<'_>) {
-    let reply = messages::error_reply("Oh no! There's a problem in executing this command.", true);
+    let reply = messages::error_reply("An error occurred whilst invoking a command.", true);
     if let Err(why) = ctx.send(reply).await {
         if why.to_string().contains("40060") {
             // Interaction has already been acknowledged.
             return;
         }
 
-        error!("Couldn't send reply: {why:?}");
+        error!("Failed to send reply: {why:?}");
     }
 }

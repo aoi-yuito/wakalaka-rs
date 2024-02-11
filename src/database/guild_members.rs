@@ -33,7 +33,7 @@ pub async fn update_guilds_members_set_deaf(
     .bind(deaf)
     .bind(i64::from(*user_id));
     if let Err(why) = query.execute(pool).await {
-        error!("Couldn't update 'deaf' from GuildMembers: {why:?}");
+        error!("Failed to update 'deaf' from GuildMembers: {why:?}");
         return Err(why);
     }
 
@@ -58,7 +58,7 @@ pub async fn update_guilds_members_set_mute(
     .bind(mute)
     .bind(i64::from(*user_id));
     if let Err(why) = query.execute(pool).await {
-        error!("Couldn't update 'mute' from GuildMembers: {why:?}");
+        error!("Failed to update 'mute' from GuildMembers: {why:?}");
         return Err(why);
     }
 
@@ -85,7 +85,7 @@ pub async fn update_guilds_members_set_timeout(
     .bind(communication_disabled_until)
     .bind(i64::from(*user_id));
     if let Err(why) = query.execute(pool).await {
-        error!("Couldn't update 'timeout' from GuildMembers: {why:?}");
+        error!("Failed to update 'timeout' from GuildMembers: {why:?}");
         return Err(why);
     }
 
@@ -110,7 +110,7 @@ pub async fn update_guilds_members_set_ban(
     .bind(ban)
     .bind(i64::from(*user_id));
     if let Err(why) = query.execute(pool).await {
-        error!("Couldn't update 'ban' from GuildMembers: {why:?}");
+        error!("Failed to update 'ban' from GuildMembers: {why:?}");
         return Err(why);
     }
 
@@ -131,7 +131,7 @@ pub async fn insert_into_guild_members(
     let transaction = match pool.begin().await {
         Ok(transaction) => transaction,
         Err(why) => {
-            error!("Couldn't begin transaction: {why:?}");
+            error!("Failed to begin transaction: {why:?}");
             return Err(why);
         }
     };
@@ -169,13 +169,13 @@ pub async fn insert_into_guild_members(
                 continue;
             }
 
-            error!("Couldn't insert into GuildMembers: {why:?}");
+            error!("Failed to insert into GuildMembers: {why:?}");
             return Err(why);
         }
     }
 
     if let Err(why) = transaction.commit().await {
-        error!("Couldn't commit transaction: {why:?}");
+        error!("Failed to commit transaction: {why:?}");
         return Err(why);
     }
 

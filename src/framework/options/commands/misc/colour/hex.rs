@@ -26,7 +26,7 @@ use crate::{
 #[poise::command(
     prefix_command,
     slash_command,
-    category = "Misc",
+    category = "Miscellaneous",
     required_bot_permissions = "SEND_MESSAGES",
     guild_only,
     user_cooldown = 5
@@ -47,8 +47,7 @@ pub async fn hex(
 
     let hex_regex = Regex::new(r"^[0-9a-fA-F]{3}$|^[0-9a-fA-F]{6}$").unwrap();
     if !hex_regex.is_match(&colour) {
-        let reply =
-            messages::error_reply("Sorry, but that's not a valid hexadecimal colour.", true);
+        let reply = messages::error_reply("Colour must be in hexadecimal format!", true);
         ctx.send(reply).await?;
 
         return Ok(());

@@ -14,7 +14,7 @@
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
 use chrono::Utc;
-use serenity::all::UserId;
+use serenity::all::{Mentionable, User};
 use tracing::info;
 
 use crate::{
@@ -41,7 +41,7 @@ pub async fn warn(
     ctx: Context<'_>,
     #[description = "The user to warn."]
     #[rename = "user"]
-    user_id: UserId,
+    user: User,
     #[description = "The reason for warning."]
     #[min_length = 3]
     #[max_length = 80]
@@ -49,34 +49,27 @@ pub async fn warn(
 ) -> Result<(), Error> {
     let pool = &ctx.data().pool;
 
-    let user = models::users::user(ctx, user_id).await?;
-    let (user_name, user_mention) = (&user.name, models::users::user_mention(ctx, user_id).await?);
-
-    let moderator = models::users::author(ctx)?;
-    let (moderator_id, moderator_name, moderator_mention) = (
-        moderator.id,
-        &moderator.name,
-        models::users::author_mention(ctx)?,
-    );
-
     if user.bot || user.system {
-        let reply =
-            messages::error_reply("Sorry, but bots and system users cannot be warned.", true);
-        ctx.send(reply).await?;
-
-        return Ok(());
-    }
-    if user_id == moderator_id {
-        let reply = messages::error_reply("Sorry, but you cannot warn yourself.", true);
+        let reply = messages::error_reply("Cannot warn bots and system users!", true);
         ctx.send(reply).await?;
 
         return Ok(());
     }
 
-    let (guild_id, guild_name) = (
-        models::guilds::guild_id(ctx)?,
-        models::guilds::guild_name(ctx)?,
-    );
+    let (user_id, user_name, user_mention) = (user.id, &user.name, user.mention());
+
+    let moderator = ctx.author();
+    let (moderator_id, moderator_name, moderator_mention) =
+        (moderator.id, &moderator.name, moderator.mention());
+    if moderator_id == user_id {
+        let reply = messages::error_reply("Cannot warn yourself!", true);
+        ctx.send(reply).await?;
+
+        return Ok(());
+    }
+
+    let guild_id = models::guilds::guild_id(ctx)?;
+    let guild_name = models::guilds::guild_name(ctx, guild_id);
 
     let created_at = Utc::now().naive_utc();
 
@@ -104,7 +97,7 @@ pub async fn warn(
     ));
     user.direct_message(ctx, message).await?;
 
-    info!("@{user_name} warned by @{moderator_name}: {reason}");
+    info!("@{user_name} warned by @{moderator_name} in {guild_name}: {reason}");
 
     infractions::insert_into_infractions(
         InfractionType::Warn,

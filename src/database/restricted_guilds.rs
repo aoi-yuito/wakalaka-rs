@@ -73,7 +73,7 @@ pub async fn delete_from_restricted_guilds(
     )
     .bind(i64::from(*guild_id));
     if let Err(why) = query.execute(pool).await {
-        error!("Couldn't delete from RestrictedGuilds: {why:?}");
+        error!("Failed to delete from RestrictedGuilds: {why:?}");
         return Err(why);
     }
 
@@ -101,7 +101,7 @@ pub async fn insert_into_restricted_guilds(
             return Ok(());
         }
 
-        error!("Couldn't insert into RestrictedGuilds: {why:?}");
+        error!("Failed to insert into RestrictedGuilds: {why:?}");
         return Err(why);
     }
 

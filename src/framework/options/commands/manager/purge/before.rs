@@ -44,10 +44,10 @@ pub async fn before(
 
     let http = ctx.serenity_context().http.clone();
 
-    let user_name = models::users::author_name(ctx)?.clone();
+    let user_name = ctx.author().name.clone();
 
     let (channel_id, channel_name) = (
-        models::channels::channel_id(ctx),
+        ctx.channel_id(),
         models::channels::channel_name(ctx).await?,
     );
 
@@ -61,13 +61,13 @@ pub async fn before(
         let messages = match channel_id.messages(&http, messages_builder).await {
             Ok(messages) => messages,
             Err(why) => {
-                error!("Couldn't get messages: {why:?}");
+                error!("Failed to get messages: {why:?}");
                 return deleted_message_count;
             }
         };
         for message in messages {
             if let Err(why) = message.delete(&http).await {
-                error!("Couldn't delete message: {why:?}");
+                error!("Failed to delete message: {why:?}");
                 continue;
             }
 

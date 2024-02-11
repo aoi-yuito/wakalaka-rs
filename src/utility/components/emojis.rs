@@ -35,7 +35,7 @@ pub async fn emoji(ctx: Context<'_>, id: EmojiId) -> Option<Emoji> {
     match guild.emoji(ctx, id).await {
         Ok(emoji) => Some(emoji),
         Err(why) => {
-            error!("Couldn't get emoji: {why:?}");
+            error!("Failed to get emoji: {why:?}");
             None
         }
     }
@@ -47,7 +47,7 @@ pub async fn emojis(ctx: Context<'_>) -> Option<Vec<Emoji>> {
     match guild.emojis(ctx).await {
         Ok(emojis) => Some(emojis),
         Err(why) => {
-            error!("Couldn't get emojis: {why:?}");
+            error!("Failed to get emojis: {why:?}");
             None
         }
     }

@@ -39,12 +39,12 @@ pub async fn user(
 ) -> Result<(), Error> {
     let pool = &ctx.data().pool;
 
-    let user_name = models::users::user_name(ctx, other_user_id).await?;
+    let user_name = other_user_id.to_user(&ctx).await?.name;
 
     let owner_id = models::guilds::owner_id(ctx)?;
-    if other_user_id == owner_id {
+    if owner_id == other_user_id {
         let reply = messages::error_reply(
-            format!("Sorry, but you can't unrestrict yourself from using me."),
+            format!("Cannot unrestrict 👑 from using yours truly!"),
             true,
         );
         ctx.send(reply).await?;
@@ -55,21 +55,19 @@ pub async fn user(
     let failsafe_query = users::select_user_id_from_users(&other_user_id, &pool).await;
     let result = match failsafe_query {
         Some(_) if other_user_id == owner_id => {
-            Err(format!("I'm already able to be used by {user_name}."))
+            Err(format!("👑 is already allowed to use yours truly."))
         }
-        None => Err(format!(
-            "Are you sure that the provided user is a part of me?"
-        )),
+        None => Err(format!("{user_name} isn't part of yours truly!")),
         _ => {
             let previous_query =
                 restricted_users::select_user_id_from_restricted_users(&other_user_id, &pool).await;
             match previous_query {
                 Ok(_) => {
-                    info!("Allowed usage for {user_name}.");
+                    info!("Allowed usage of yours truly for {user_name}.");
                     restricted_users::delete_from_restricted_users(&other_user_id, &pool).await?;
-                    Ok(format!("Allowed {user_name} to use me."))
+                    Ok(format!("Allowed {user_name} to use yours truly."))
                 }
-                _ => Err(format!("I'm already able to be used by {user_name}.")),
+                _ => Err(format!("Usage for {user_name} is already allowed!")),
             }
         }
     };

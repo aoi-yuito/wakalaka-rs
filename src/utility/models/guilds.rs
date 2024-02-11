@@ -21,15 +21,15 @@ use tracing::{error, warn};
 
 use crate::Context;
 
-pub async fn owner_id_from_guild_id_raw(
+pub async fn owner_id_raw(
     ctx: &crate::serenity::Context,
     guild_id: GuildId,
 ) -> Result<UserId, ModelError> {
-    match ctx.http.get_guild(guild_id).await {
+    match guild_id.to_partial_guild(ctx).await {
         Ok(guild) => Ok(guild.owner_id),
         Err(why) => {
-            error!("Couldn't get guild owner ID from guild ID: {why:?}");
-            return Err(ModelError::MemberNotFound);
+            error!("Failed to get owner ID from guild ID: {why:?}");
+            return Err(ModelError::GuildNotFound);
         }
     }
 }
@@ -38,30 +38,24 @@ pub fn owner_id(ctx: Context<'_>) -> Result<UserId, ModelError> {
     Ok(guild(ctx)?.owner_id)
 }
 
-pub async fn guild_name_from_guild_id_raw(
-    ctx: &crate::serenity::Context,
-    guild_id: GuildId,
-) -> Option<String> {
-    match ctx.http.get_guild(guild_id).await {
-        Ok(guild) => Some(guild.name),
-        Err(why) => {
-            error!("Couldn't get guild name from guild ID: {why:?}");
-            Some(format!("'{guild_id}'"))
-        }
-    }
+pub async fn guild_name_raw(ctx: &crate::serenity::Context, guild_id: GuildId) -> String {
+    guild_id.name(ctx).map_or_else(
+        || {
+            warn!("Couldn't get guild name, using guild ID instead");
+            format!("'{guild_id}'")
+        },
+        |guild_name| guild_name,
+    )
 }
 
-pub fn guild_name_from_guild_id(ctx: Context<'_>, guild_id: GuildId) -> String {
-    if let Some(guild_name) = guild_id.name(ctx) {
-        guild_name
-    } else {
-        warn!("Couldn't get guild name from guild ID, using guild ID instead");
-        format!("'{guild_id}'")
-    }
-}
-
-pub fn guild_name(ctx: Context<'_>) -> Result<String, ModelError> {
-    Ok(guild(ctx)?.name)
+pub fn guild_name(ctx: Context<'_>, guild_id: GuildId) -> String {
+    guild_id.name(ctx).map_or_else(
+        || {
+            warn!("Couldn't get guild name, using guild ID instead");
+            format!("'{guild_id}'")
+        },
+        |guild_name| guild_name,
+    )
 }
 
 pub fn guild_id_from_component_raw(
@@ -70,7 +64,7 @@ pub fn guild_id_from_component_raw(
     match component.guild_id {
         Some(guild_id) => Ok(guild_id),
         None => {
-            warn!("Couldn't get guild ID from component");
+            error!("Failed to get guild ID from component");
             return Err(ModelError::GuildNotFound);
         }
     }
@@ -84,7 +78,7 @@ pub fn guild(ctx: Context<'_>) -> Result<Guild, ModelError> {
     match ctx.guild() {
         Some(guild) => Ok(guild.clone()),
         None => {
-            error!("Couldn't get guild");
+            error!("Failed to get guild");
             return Err(ModelError::GuildNotFound);
         }
     }

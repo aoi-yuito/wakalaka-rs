@@ -13,7 +13,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-use serenity::all::User;
+use serenity::all::{Mentionable, User};
 use tracing::{error, info};
 
 use crate::{
@@ -35,39 +35,38 @@ use crate::{
 pub async fn kick(
     ctx: Context<'_>,
     #[description = "The user to kick."] user: User,
-    #[description = "The reason for kicking."] reason: String,
+    #[description = "The reason for kicking."]
+    #[min_length = 3]
+    #[max_length = 80]
+    reason: String,
 ) -> Result<(), Error> {
-    let user_id = user.id;
-
-    let moderator = models::users::author(ctx)?;
-    let moderator_id = moderator.id;
-
     if user.system {
-        let reply = messages::error_reply("Sorry, but system users cannot be kicked.", true);
+        let reply = messages::error_reply("Cannot kick system users!", true);
         ctx.send(reply).await?;
 
         return Ok(());
     }
-    if user_id == moderator_id {
-        let reply = messages::error_reply("Sorry, but you cannot ban yourself.", true);
+
+    let user_id = user.id;
+
+    let moderator = ctx.author();
+    let moderator_id = moderator.id;
+    if moderator_id == user_id {
+        let reply = messages::error_reply("Cannot kick yourself!", true);
         ctx.send(reply).await?;
 
         return Ok(());
     }
 
     let result = {
-        let (user_name, user_mention) =
-            (&user.name, models::users::user_mention(ctx, user_id).await?);
+        let (user_name, user_mention) = (&user.name, user.mention());
 
-        let (moderator_name, moderator_mention) =
-            (&moderator.name, models::users::author_mention(ctx)?);
+        let (moderator_name, moderator_mention) = (&moderator.name, moderator.mention());
 
-        let (guild_id, guild_name) = (
-            models::guilds::guild_id(ctx)?,
-            models::guilds::guild_name(ctx)?,
-        );
+        let guild_id = models::guilds::guild_id(ctx)?;
+        let guild_name = models::guilds::guild_name(ctx, guild_id);
 
-        let member = models::members::member(ctx, guild_id, user_id).await?;
+        let member = guild_id.member(&ctx, user_id).await?;
 
         let message = messages::info_message(format!(
             "You've been kicked from {guild_name} by {moderator_mention} for {reason}.",
@@ -80,8 +79,8 @@ pub async fn kick(
                 Ok(format!("{user_mention} has been kicked."))
             }
             Err(why) => {
-                error!("Couldn't kick @{user_name}: {why:?}");
-                Err(format!("Sorry, but I couldn't kick {user_mention}."))
+                error!("Failed to kick @{user_name}: {why:?}");
+                Err(format!("An error occurred whilst kicking {user_mention}."))
             }
         }
     };

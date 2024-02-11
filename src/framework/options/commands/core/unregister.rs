@@ -29,10 +29,10 @@ use crate::{
     user_cooldown = 5,
     ephemeral
 )]
-/// Unegister command(s) for yours truly.
+/// Unregister commands for yours truly.
 pub async fn unregister(
     ctx: Context<'_>,
-    #[description = "Whether or not the command(s) should be global."]
+    #[description = "Whether or not the commands should be global."]
     #[flag]
     global: bool,
 ) -> Result<(), Error> {
@@ -44,7 +44,7 @@ pub async fn unregister(
 
         let global_commands = Command::set_global_commands(ctx, vec![]).await;
         if let Err(why) = global_commands {
-            error!("Couldn't set global commands: {why:?}");
+            error!("Failed to set global commands: {why:?}");
             return Err(why.into());
         }
 
@@ -59,7 +59,7 @@ pub async fn unregister(
 
     let commands = guild_id.set_commands(ctx, vec![]).await;
     if let Err(why) = commands {
-        error!("Couldn't set commands: {why:?}");
+        error!("Failed to set commands: {why:?}");
         return Err(why.into());
     }
 

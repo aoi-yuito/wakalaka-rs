@@ -13,7 +13,10 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-use serenity::{all::UserId, builder::EditMember};
+use serenity::{
+    all::{Mentionable, User},
+    builder::EditMember,
+};
 use tracing::{error, info};
 
 use crate::{
@@ -39,9 +42,7 @@ use crate::{
 /// Allow a user to interact in voice channels.
 pub async fn undeafen(
     ctx: Context<'_>,
-    #[description = "The user to undeafen."]
-    #[rename = "user"]
-    user_id: UserId,
+    #[description = "The user to undeafen."] user: User,
     #[description = "The reason for undeafening, if any."]
     #[min_length = 3]
     #[max_length = 80]
@@ -49,25 +50,33 @@ pub async fn undeafen(
 ) -> Result<(), Error> {
     let pool = &ctx.data().pool;
 
-    let user = models::users::user(ctx, user_id).await?;
-    let (user_name, user_mention) = (&user.name, models::users::user_mention(ctx, user_id).await?);
+    if user.system {
+        let reply = messages::error_reply("Cannot undeafen system users!", true);
+        ctx.send(reply).await?;
 
-    let moderator = models::users::author(ctx)?;
+        return Ok(());
+    }
+
+    let (user_id, user_name, user_mention) = (user.id, &user.name, user.mention());
+
+    let moderator = ctx.author();
     let (moderator_id, moderator_name) = (moderator.id, &moderator.name);
-
-    if user_id == moderator_id {
-        let reply = messages::error_reply("Sorry, but you cannot undeafen yourself.", true);
+    if moderator_id == user_id {
+        let reply = messages::error_reply("Cannot undeafen yourself!", true);
         ctx.send(reply).await?;
 
         return Ok(());
     }
 
     let guild_id = models::guilds::guild_id(ctx)?;
+    let guild_name = models::guilds::guild_name(ctx, guild_id);
 
     let mut user_infractions = users::select_infractions_from_users(&user_id, pool).await?;
     if user_infractions < 1 {
-        let reply =
-            messages::info_reply(format!("{user_mention} hasn't been punished before."), true);
+        let reply = messages::warn_reply(
+            format!("{user_mention} doesn't have any infractions!"),
+            true,
+        );
         ctx.send(reply).await?;
 
         return Ok(());
@@ -79,14 +88,14 @@ pub async fn undeafen(
     for deafen in deafens {
         let uuid = deafen.0;
 
-        let mut member = models::members::member(ctx, guild_id, user_id).await?;
+        let mut member = guild_id.member(&ctx, user_id).await?;
         let member_builder = EditMember::default().deafen(false);
 
         if let Err(why) = member.edit(ctx, member_builder).await {
-            error!("Couldn't undeafen @{user_name}: {why:?}");
+            error!("Failed to undeafen @{user_name}: {why:?}");
 
             let reply = messages::error_reply(
-                format!("Sorry, but I couldn't undeafen {user_mention}."),
+                format!("An error occurred whilst undeafening {user_mention}."),
                 true,
             );
             ctx.send(reply).await?;
@@ -97,9 +106,9 @@ pub async fn undeafen(
         guild_members::update_guilds_members_set_deaf(&user_id, false, pool).await?;
 
         if let Some(ref reason) = reason {
-            info!("@{user_name} undeafened by @{moderator_name}: {reason}");
+            info!("@{moderator_name} undeafened @{user_name} from {guild_name}: {reason}");
         } else {
-            info!("@{user_name} undeafened by @{moderator_name}")
+            info!("@{moderator_name} undeafened @{user_name} from {guild_name}")
         }
 
         infractions::delete_from_infractions(&uuid, &guild_id, pool).await?;

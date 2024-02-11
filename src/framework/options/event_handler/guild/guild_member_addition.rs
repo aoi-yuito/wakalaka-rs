@@ -29,9 +29,7 @@ pub async fn handle(new_member: &Member, ctx: &crate::serenity::Context, data: &
     let pool = &data.pool;
 
     let guild_id = new_member.guild_id;
-    let guild_name = models::guilds::guild_name_from_guild_id_raw(ctx, guild_id)
-        .await
-        .unwrap();
+    let guild_name = models::guilds::guild_name_raw(ctx, guild_id).await;
 
     let members = match models::members::members_raw(&ctx, &guild_id).await {
         Ok(members) => members,
@@ -41,7 +39,7 @@ pub async fn handle(new_member: &Member, ctx: &crate::serenity::Context, data: &
     };
 
     if let Err(why) = users::insert_into_users(&members, pool).await {
-        error!("Couldn't insert into Users: {why:?}");
+        error!("Failed to insert into Users: {why:?}");
     } else {
         let user = &new_member.user;
         let (user_name, user_mention) = (&user.name, user.mention());
@@ -54,7 +52,7 @@ pub async fn handle(new_member: &Member, ctx: &crate::serenity::Context, data: &
                 .content(format!("Welcome to **{guild_name}**, {user_mention}!"));
             let message = channel_id.send_message(&ctx, message_builder).await;
             if let Err(why) = message {
-                error!("Couldn't send message: {why:?}");
+                error!("Failed to send message: {why:?}");
             }
         }
     }

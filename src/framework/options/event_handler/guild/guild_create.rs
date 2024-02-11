@@ -14,7 +14,6 @@
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
 use serenity::all::Guild;
-use tracing::error;
 
 use crate::{
     check_restricted_guild,
@@ -39,12 +38,13 @@ pub async fn handle(guild: &Guild, is_new: bool, ctx: &crate::serenity::Context,
         return;
     }
 
+    // This looks so fucking dumb.
     match users::insert_into_users(&guild_members, pool).await {
-        Err(why) => error!("Couldn't insert into Users: {why:?}"),
+        Err(why) => panic!("{why:?}"),
         Ok(()) => match guilds::insert_into_guilds(guild, pool).await {
-            Err(why) => error!("Couldn't insert into Guilds: {why:?}"),
+            Err(why) => panic!("{why:?}"),
             Ok(()) => match guild_members::insert_into_guild_members(&guild_members, pool).await {
-                Err(why) => error!("Couldn't insert into GuildMembers: {why:?}"),
+                Err(why) => panic!("{why:?}"),
                 Ok(()) => (),
             },
         },

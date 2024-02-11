@@ -18,11 +18,8 @@ use tracing::error;
 use crate::{utility::components::messages, Context};
 
 pub(crate) async fn handle(ctx: Context<'_>) {
-    let reply = messages::error_reply(
-        "Sorry, but I can only execute this command in a Direct Message.",
-        true,
-    );
+    let reply = messages::error_reply("You can only use this command in a DM!", true);
     if let Err(why) = ctx.send(reply).await {
-        error!("Couldn't send reply: {:?}", why);
+        error!("Failed to send reply: {why:?}");
     }
 }

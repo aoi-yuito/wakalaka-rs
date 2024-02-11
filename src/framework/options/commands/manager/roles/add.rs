@@ -45,17 +45,6 @@ pub async fn add(
     #[description = "Whether the role should be pinned above lesser roles."] hoist: Option<bool>,
     #[description = "Whether the role should be mentionable."] mentionable: Option<bool>,
 ) -> Result<(), Error> {
-    let name_char_count = name.chars().count();
-    if name_char_count < 1 || name_char_count > 100 {
-        let reply = messages::info_reply(
-            format!("Name of the role must be between `1` and `100` characters long."),
-            true,
-        );
-        ctx.send(reply).await?;
-
-        return Ok(());
-    }
-
     let result = {
         let guild = models::guilds::guild(ctx)?;
         let guild_name = &guild.name;
@@ -77,13 +66,13 @@ pub async fn add(
 
         match guild.create_role(ctx, role_builder).await {
             Ok(_) => {
-                info!("Created role called @{name} in {guild_name}");
+                info!("Created @{name} role in {guild_name}");
                 Ok(format!("Created a role called `{name}`."))
             }
             Err(why) => {
-                error!("Couldn't create role called @{name} in {guild_name}: {why:?}");
+                error!("Failed to create @{name} role in {guild_name}: {why:?}");
                 Err(format!(
-                    "Sorry, but I couldn't create a role called `{name}`."
+                    "An error occurred whilst creating a role called `{name}`."
                 ))
             }
         }

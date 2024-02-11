@@ -53,10 +53,10 @@ async fn main() -> Result<(), Error> {
     let intents = framework::initialise_intents();
     let framework = framework::initialise_framework(data).await;
 
-    let mut client = initialise_client(token, intents, framework).await;
+    let mut client = initialise_client(token, intents, framework).await?;
 
     if let Err(why) = client.start_autosharded().await {
-        error!("Couldn't start client with automatic sharding: {why:?}");
+        error!("Failed to start client: {why:?}");
         return Err(why.into());
     }
 
@@ -67,7 +67,7 @@ async fn initialise_client(
     token: String,
     intents: GatewayIntents,
     framework: Framework<Data, Error>,
-) -> serenity::Client {
+) -> Result<serenity::Client, Error> {
     let start_time = Instant::now();
 
     let client = match serenity::Client::builder(token, intents)
@@ -76,22 +76,22 @@ async fn initialise_client(
     {
         Ok(client) => client,
         Err(why) => {
-            error!("Couldn't initialise client: {why:?}");
-            panic!("{why:?}");
+            error!("Failed to initialise client: {why:?}");
+            return Err(why.into());
         }
     };
 
     let elapsed_time = start_time.elapsed();
     debug!("Initialised client in {elapsed_time:.2?}");
 
-    client
+    Ok(client)
 }
 
 fn initialise_token() -> Result<String, Error> {
     match dotenvy::var("DISCORD_TOKEN") {
         Ok(token) => Ok(token),
         Err(why) => {
-            error!("Couldn't find 'DISCORD_TOKEN' in environment: {why:?}");
+            error!("Failed to find 'DISCORD_TOKEN' in environment: {why:?}");
             return Err(why.into());
         }
     }
@@ -103,7 +103,7 @@ fn initialise_subscriber() -> Result<(), Error> {
     let rust_log = match dotenvy::var("RUST_LOG") {
         Ok(level) => level,
         Err(why) => {
-            error!("Couldn't find 'RUST_LOG' in environment: {why:?}");
+            error!("Failed to find 'RUST_LOG' in environment: {why:?}");
             return Err(why.into());
         }
     };
@@ -126,7 +126,7 @@ fn initialise_subscriber() -> Result<(), Error> {
 
         let default_subscriber = Subscriber::default();
         if let Err(why) = subscriber::set_global_default(default_subscriber) {
-            error!("Couldn't set default subscriber: {why:?}");
+            error!("Failed to set default subscriber: {why:?}");
             return Err(why.into());
         }
     }

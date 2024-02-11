@@ -29,7 +29,7 @@ pub async fn select_infractions_from_users(
     let row = match query.fetch_one(pool).await {
         Ok(infractions) => infractions,
         Err(why) => {
-            error!("Couldn't select infractions from Users: {why:?}");
+            error!("Failed to select infractions from Users: {why:?}");
             return Err(why);
         }
     };
@@ -37,7 +37,7 @@ pub async fn select_infractions_from_users(
     let infractions = match row.try_get::<i32, _>("infractions") {
         Ok(infractions) => infractions,
         Err(why) => {
-            error!("Couldn't get infractions: {why:?}");
+            error!("Failed to get infractions: {why:?}");
             return Err(why);
         }
     };
@@ -56,7 +56,7 @@ pub async fn select_user_id_from_users(user_id: &UserId, pool: &SqlitePool) -> O
     let row = match query.fetch_one(pool).await {
         Ok(user_id) => user_id,
         Err(why) => {
-            error!("Couldn't select 'userId' from Users: {why:?}");
+            error!("Failed to select 'userId' from Users: {why:?}");
             return None;
         }
     };
@@ -64,7 +64,7 @@ pub async fn select_user_id_from_users(user_id: &UserId, pool: &SqlitePool) -> O
     let user_id = match row.try_get::<i64, _>("user_id") {
         Ok(user_id) => user_id,
         Err(why) => {
-            error!("Couldn't get 'userId' from Users: {why:?}");
+            error!("Failed to get 'userId' from Users: {why:?}");
             return None;
         }
     };
@@ -86,7 +86,7 @@ pub async fn update_users_set_infractions(
         .bind(infractions)
         .bind(i64::from(*user_id));
     if let Err(why) = query.execute(pool).await {
-        error!("Couldn't update infractions for user(s) in Users: {why:?}");
+        error!("Failed to update infractions for user(s) in Users: {why:?}");
         return Err(why);
     }
 
@@ -107,7 +107,7 @@ pub async fn insert_into_users(
     let transaction = match pool.begin().await {
         Ok(transaction) => transaction,
         Err(why) => {
-            error!("Couldn't begin transaction: {why:?}");
+            error!("Failed to begin transaction: {why:?}");
             return Err(why);
         }
     };
@@ -130,13 +130,13 @@ pub async fn insert_into_users(
                 continue;
             }
 
-            error!("Couldn't insert into Users: {why:?}");
+            error!("Failed to insert into Users: {why:?}");
             return Err(why);
         }
     }
 
     if let Err(why) = transaction.commit().await {
-        error!("Couldn't commit transaction: {why:?}");
+        error!("Failed to commit transaction: {why:?}");
         return Err(why);
     }
 

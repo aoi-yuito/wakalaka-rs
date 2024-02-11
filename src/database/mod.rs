@@ -34,7 +34,7 @@ lazy_static! {
     pub static ref DB_URL: String = match dotenvy::var("DATABASE_URL") {
         Ok(url) => url,
         Err(why) => {
-            error!("Couldn't find 'DATABASE_URL' in environment: {why:?}");
+            error!("Failed to find 'DATABASE_URL' in environment: {why:?}");
             panic!("{why:?}")
         }
     };
@@ -48,7 +48,7 @@ pub async fn initialise() -> SqlitePool {
     match migrate(&pool).await {
         Ok(_) => (),
         Err(why) => {
-            error!("Couldn't migrate SQLite database: {why:?}");
+            error!("Failed to migrate SQLite database: {why:?}");
             panic!("{why:?}")
         }
     }
@@ -69,7 +69,7 @@ async fn migrate(pool: &SqlitePool) -> Result<(), sqlx::Error> {
             Ok(())
         }
         Err(why) => {
-            error!("Couldn't migrate SQLite database: {why:?}");
+            error!("Failed to migrate SQLite database: {why:?}");
             Err(why.into())
         }
     }
@@ -95,7 +95,7 @@ async fn connect() -> Result<SqlitePool, sqlx::Error> {
             Ok(pool)
         }
         Err(why) => {
-            error!("Couldn't connect to SQLite database: {why:?}");
+            error!("Failed to connect to SQLite database: {why:?}");
             Err(why)
         }
     }

@@ -13,7 +13,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-use serenity::all::{Role, UserId};
+use serenity::all::{Mentionable, Role, User};
 use tracing::{error, info};
 
 use crate::{
@@ -35,22 +35,17 @@ use crate::{
 pub async fn remove(
     ctx: Context<'_>,
     #[description = "The role(s) to take."] roles: Vec<Role>,
-    #[description = "The user to take the role(s) from."]
-    #[rename = "user"]
-    user_id: UserId,
+    #[description = "The user to take the role(s) from."] user: User,
 ) -> Result<(), Error> {
     let result = {
         let role_ids = models::roles::role_ids(roles).await;
 
-        let (user_name, user_mention) = (
-            models::users::user_name(ctx, user_id).await?,
-            models::users::user_mention(ctx, user_id).await?,
-        );
+        let (user_id, user_name, user_mention) = (user.id, &user.name, user.mention());
 
         let guild = models::guilds::guild(ctx)?;
         let (guild_id, guild_name) = (guild.id, &guild.name);
 
-        let member = models::members::member(ctx, guild_id, user_id).await?;
+        let member = guild_id.member(&ctx, user_id).await?;
 
         match member.remove_roles(ctx, &role_ids).await {
             Ok(_) => {
@@ -58,9 +53,9 @@ pub async fn remove(
                 Ok(format!("Removed role(s) from {user_mention}."))
             }
             Err(why) => {
-                error!("Couldn't remove role(s) from @{user_name} in {guild_name}: {why:?}");
+                error!("Failed to remove role(s) from @{user_name} in {guild_name}: {why:?}");
                 Err(format!(
-                    "Sorry, but I couldn't remove role(s) from {user_mention}."
+                    "An error occurred whilst removing role(s) from {user_mention}."
                 ))
             }
         }

@@ -41,12 +41,12 @@ pub async fn server(
 ) -> Result<(), Error> {
     let pool = &ctx.data().pool;
 
-    let other_guild_name = models::guilds::guild_name_from_guild_id(ctx, other_guild_id);
+    let other_guild_name = models::guilds::guild_name(ctx, other_guild_id);
 
     let failsafe_query = guilds::select_guild_id_from_guilds(&other_guild_id, &pool).await;
     let result = match failsafe_query {
         Some(guild_id) if guild_id == other_guild_id => Err(format!(
-            "I've already been allowed to join {other_guild_name}."
+            "{other_guild_name} is already allowed to invite yours truly."
         )),
         _ => {
             let previous_query =
@@ -54,13 +54,15 @@ pub async fn server(
                     .await;
             match previous_query {
                 Ok(_) => {
-                    info!("Allowed invitation to {other_guild_name}");
+                    info!("Allowed {other_guild_name} to invite yours truly");
                     restricted_guilds::delete_from_restricted_guilds(&other_guild_id, pool).await?;
                     Ok(format!(
-                        "I've allowed myself to be invited to {other_guild_name}."
+                        "Yours truly can now be invited to {other_guild_name}."
                     ))
                 }
-                _ => Err(format!("I'm already able to join {other_guild_name}.")),
+                _ => Err(format!(
+                    "Invitation to {other_guild_name} is already allowed!"
+                )),
             }
         }
     };

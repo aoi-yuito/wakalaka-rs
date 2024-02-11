@@ -18,11 +18,8 @@ use tracing::error;
 use crate::{utility::components::messages, Context};
 
 pub(crate) async fn handle(ctx: Context<'_>) {
-    let reply = messages::error_reply(
-        "Oh no! A panic occurred whilst executing this command.",
-        true,
-    );
+    let reply = messages::error_reply("A panic occurred whilst invoking a command.", true);
     if let Err(why) = ctx.send(reply).await {
-        error!("Couldn't send reply: {:?}", why);
+        error!("Failed to send reply: {why:?}");
     }
 }

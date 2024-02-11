@@ -13,14 +13,11 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-use serenity::all::User;
+use serenity::all::{Mentionable, User};
 use tracing::warn;
 
 use crate::{
-    utility::{
-        components::{embeds, messages, replies},
-        models,
-    },
+    utility::components::{embeds, messages, replies},
     Context, Error,
 };
 
@@ -28,7 +25,7 @@ use crate::{
     prefix_command,
     slash_command,
     context_menu_command = "Get Banner",
-    category = "Misc",
+    category = "Miscellaneous",
     required_bot_permissions = "SEND_MESSAGES",
     user_cooldown = 5,
     guild_only
@@ -39,7 +36,7 @@ pub async fn banner(
     #[description = "The user to get the banner from."] user: User,
 ) -> Result<(), Error> {
     let user_id = user.id;
-    let (user_name, user_mention) = (&user.name, models::users::user_mention(ctx, user_id).await?);
+    let (user_name, user_mention) = (&user_id.to_user(ctx).await?.name, user_id.mention());
 
     let (user_face, user_banner_url) = (
         user.face(),
@@ -48,10 +45,8 @@ pub async fn banner(
             None => {
                 warn!("Couldn't find @{user_name}'s banner");
 
-                let reply = messages::error_reply(
-                    format!("Sorry, but I couldn't find {user_mention}'s banner."),
-                    true,
-                );
+                let reply =
+                    messages::warn_reply(format!("{user_mention} doesn't have a banner!"), true);
                 ctx.send(reply).await?;
 
                 return Ok(());

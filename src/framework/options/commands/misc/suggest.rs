@@ -18,7 +18,7 @@ use serenity::{
     all::{PermissionOverwrite, PermissionOverwriteType, Permissions},
     builder::{CreateActionRow, CreateMessage},
 };
-use tracing::{error, info};
+use tracing::{error, info, warn};
 use uuid::Uuid;
 
 use crate::{
@@ -30,42 +30,40 @@ use crate::{
 #[poise::command(
     prefix_command,
     slash_command,
-    category = "Misc",
+    category = "Miscellaneous",
     required_bot_permissions = "SEND_MESSAGES",
     guild_only,
     user_cooldown = 5
 )]
-/// Send a suggestion to the management.
+/// Make a suggestion for the server.
 pub async fn suggest(
     ctx: Context<'_>,
     #[description = "The suggestion to send."]
-    #[min_length = 32]
+    #[min_length = 1]
     #[max_length = 1024]
     message: String,
 ) -> Result<(), Error> {
     let pool = &ctx.data().pool;
 
-    let (guild_id, guild_name) = (
-        models::guilds::guild_id(ctx)?,
-        models::guilds::guild_name(ctx)?,
-    );
+    let guild_id = models::guilds::guild_id(ctx)?;
+    let guild_name = models::guilds::guild_name(ctx, guild_id);
 
-    let suggestion_channel =
+    let suggestion_channel_id =
         guilds::select_suggestions_channel_id_from_guilds(&guild_id, pool).await;
-    if suggestion_channel.is_none() {
-        error!("Couldn't find suggestion channel in {guild_name}");
+    if suggestion_channel_id.is_none() {
+        warn!("Couldn't find suggestion channel in {guild_name}");
 
-        let reply = messages::info_reply(
+        let reply = messages::warn_reply(
             format!(
-                "I need to be configured before suggestions could be made. Please use `/setup suggestions` to configure me."
+                "Yours truly must be configured before suggestions could be made. Please use `/setup suggestions` to configure yours truly."
             ),
             true,
         );
         ctx.send(reply).await?;
     } else {
-        let suggestion_channel = suggestion_channel.unwrap();
-        let (suggestion_channel_id, suggestion_channel_name) =
-            (suggestion_channel, suggestion_channel.name(ctx).await?);
+        let suggestion_channel_id =
+            suggestion_channel_id.expect("Failed to get suggestions channel ID");
+        let suggestion_channel_name = suggestion_channel_id.name(ctx).await?;
 
         let bot_id = ctx.cache().current_user().id;
         let bot_permissions = PermissionOverwrite {
@@ -77,15 +75,12 @@ pub async fn suggest(
             .create_permission(ctx, bot_permissions)
             .await
         {
-            error!("Couldn't create permission overwrite for #{suggestion_channel_name}: {why:?}");
+            error!("Failed to create permission overwrite for #{suggestion_channel_name}: {why:?}");
             return Err(why.into());
         }
 
-        let (user_name, user_face) = (models::users::author_name(ctx)?, ctx.author().face());
-        let (user_id, moderator_id) = (
-            models::users::author_id(ctx)?,
-            models::guilds::owner_id(ctx)?,
-        );
+        let (user_name, user_face) = (&ctx.author().name, ctx.author().face());
+        let (user_id, moderator_id) = (ctx.author().id, models::guilds::owner_id(ctx)?);
 
         let created_at = Utc::now().naive_utc();
 
@@ -101,23 +96,16 @@ pub async fn suggest(
             .embed(embed)
             .components(vec![components]);
 
-        let message = match suggestion_channel_id
+        let message = suggestion_channel_id
             .send_message(ctx, message_builder)
-            .await
-        {
-            Ok(value) => value,
-            Err(why) => {
-                error!("Couldn't send message: {why:?}");
-                return Err(why.into());
-            }
-        };
+            .await?;
         let message_id = message.id;
 
         let uuid = Uuid::new_v4().to_string();
 
         suggestions::insert_into_suggestions(
             &uuid,
-            i64::from(*user_id),
+            i64::from(user_id),
             i64::from(moderator_id),
             created_at,
             None,
@@ -129,7 +117,7 @@ pub async fn suggest(
         )
         .await?;
 
-        info!("@{user_name} sent suggestion to #{suggestion_channel_name} in {guild_name}");
+        info!("@{user_name} made suggestion in {guild_name}");
 
         let reply = messages::ok_reply(
             format!("Your suggestion has been sent in for review."),

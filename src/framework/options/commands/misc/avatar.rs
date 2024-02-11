@@ -24,7 +24,7 @@ use crate::{
     prefix_command,
     slash_command,
     context_menu_command = "Get Avatar",
-    category = "Misc",
+    category = "Miscellaneous",
     required_bot_permissions = "SEND_MESSAGES",
     guild_only,
     user_cooldown = 5

@@ -31,10 +31,10 @@ use crate::{
     user_cooldown = 5,
     ephemeral
 )]
-/// Register command(s) for yours truly.
+/// Register commands for yours truly.
 pub async fn register(
     ctx: Context<'_>,
-    #[description = "Whether or not the command(s) should be global."]
+    #[description = "Whether or not the commands should be global."]
     #[flag]
     global: bool,
 ) -> Result<(), Error> {
@@ -46,34 +46,52 @@ pub async fn register(
     let command_count = commands_builder.len();
 
     if global {
-        let mut reply = messages::reply("Registering global command(s)...", true);
+        let mut reply = if command_count == 1 {
+            messages::reply("Registering global command...", true)
+        } else {
+            messages::reply(format!("Registering global commands..."), true)
+        };
+
         let reply_handle = ctx.send(reply).await?;
 
         let global_commands = Command::set_global_commands(ctx, commands_builder).await;
         if let Err(why) = global_commands {
-            error!("Couldn't set global commands: {why:?}");
+            error!("Failed to set global commands: {why:?}");
             return Err(why.into());
         }
 
-        reply = messages::ok_reply(
-            format!("Registered {command_count} global command(s)."),
-            true,
-        );
+        reply = if command_count == 1 {
+            messages::ok_reply("Registered `1` global command.", true)
+        } else {
+            messages::ok_reply(
+                format!("Registered `{command_count}` global commands."),
+                true,
+            )
+        };
         reply_handle.edit(ctx, reply).await?;
 
         return Ok(());
     }
 
-    let mut reply = messages::reply("Registering command(s)...", true);
+    let mut reply = if command_count == 1 {
+        messages::reply("Registering command...", true)
+    } else {
+        messages::reply(format!("Registering commands..."), true)
+    };
+
     let reply_handle = ctx.send(reply).await?;
 
     let commands = guild_id.set_commands(ctx, commands_builder).await;
     if let Err(why) = commands {
-        error!("Couldn't set commands: {why:?}");
+        error!("Failed to set commands: {why:?}");
         return Err(why.into());
     }
 
-    reply = messages::ok_reply(format!("Registered {command_count} command(s)."), true);
+    reply = if command_count == 1 {
+        messages::ok_reply("Registered `1` command.", true)
+    } else {
+        messages::ok_reply(format!("Registered `{command_count}` commands."), true)
+    };
     reply_handle.edit(ctx, reply).await?;
 
     Ok(())

@@ -21,15 +21,12 @@ use tracing::{debug, error};
 use crate::{utility::components::messages, Context};
 
 pub async fn check_restricted_user(ctx: Context<'_>) -> bool {
-    let (pool, user_id) = (
-        &ctx.data().pool,
-        crate::utility::models::users::author_id(ctx).unwrap(),
-    );
+    let (pool, user_id) = (&ctx.data().pool, ctx.author().id);
 
     match select_user_id_from_restricted_users(&user_id, pool).await {
         Ok(true) => {
             let reply = messages::error_reply(
-                format!("Sorry, but you can't use me anymore.\n\nIf you think this is a mistake, contact the [developer](https://github.com/Kawaxte) on GitHub, or swing by the [support server](https://discord.gg/jUZVWk7q2q) for help.\n\nIn the meantime, take a moment to think about what went down, because this can't be undone."), true);
+                format!("Sorry, but you can't use yours truly anymore.\n\nIf you think this is a mistake, contact the [developer](https://github.com/Kawaxte) on GitHub, or swing by the [support server](https://discord.gg/jUZVWk7q2q) for help.\n\nIn the meantime, take a moment to think about what went down, because this can't be undone."), true);
             ctx.send(reply).await.unwrap();
 
             true
@@ -70,7 +67,7 @@ pub async fn delete_from_restricted_users(
     let query =
         sqlx::query("DELETE FROM restricted_users WHERE user_id = ?").bind(i64::from(*user_id));
     if let Err(why) = query.execute(pool).await {
-        error!("Couldn't delete from RestrictedUsers: {why:?}");
+        error!("Failed to delete from RestrictedUsers: {why:?}");
         return Err(why);
     }
 
@@ -94,7 +91,7 @@ pub async fn insert_into_restricted_users(
             return Ok(());
         }
 
-        error!("Couldn't insert into RestrictedUsers: {why:?}");
+        error!("Failed to insert into RestrictedUsers: {why:?}");
         return Err(why);
     }
 

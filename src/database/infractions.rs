@@ -101,7 +101,7 @@ pub async fn delete_from_infractions(
         .bind(uuid)
         .bind(i64::from(*guild_id));
     if let Err(why) = query.execute(pool).await {
-        error!("Couldn't delete from Infractions: {why:?}");
+        error!("Failed to delete from Infractions: {why:?}");
         return Err(why);
     }
 
@@ -134,7 +134,7 @@ pub async fn insert_into_infractions(
     .bind(created_at)
     .bind(i64::from(*guild_id));
     if let Err(why) = query.execute(pool).await {
-        error!("Couldn't insert into Infractions: {why:?}");
+        error!("Failed to insert into Infractions: {why:?}");
         return Err(why);
     }
 

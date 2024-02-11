@@ -22,16 +22,16 @@ use crate::{
 };
 
 pub(crate) async fn handle(ctx: Context<'_>) {
-    let owner = models::owner(ctx.serenity_context()).await;
+    let owner = models::owner_raw(ctx.serenity_context()).await;
     if let Some(owner) = owner {
         let owner_mention = owner.mention();
 
-        let reply = messages::error_reply(
-            format!("Sorry, but only {owner_mention} can execute this command."),
+        let reply = messages::info_reply(
+            format!("Only {owner_mention} can invoke the following command!"),
             true,
         );
         if let Err(why) = ctx.send(reply).await {
-            error!("Couldn't send reply: {:?}", why);
+            error!("Failed to send reply: {why:?}");
         }
 
         return;

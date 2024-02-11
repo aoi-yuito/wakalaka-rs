@@ -14,7 +14,10 @@
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
 use chrono::{Duration, Utc};
-use serenity::{all::UserId, model::Timestamp};
+use serenity::{
+    all::{Mentionable, User},
+    model::Timestamp,
+};
 use tracing::{error, info};
 
 use crate::{
@@ -40,9 +43,7 @@ use crate::{
 /// Give user a time-out.
 pub async fn timeout(
     ctx: Context<'_>,
-    #[description = "The user to time out."]
-    #[rename = "user"]
-    user_id: UserId,
+    #[description = "The user to time out."] user: User,
     #[description = "The reason for timing out."]
     #[min_length = 3]
     #[max_length = 80]
@@ -54,22 +55,19 @@ pub async fn timeout(
 ) -> Result<(), Error> {
     let pool = &ctx.data().pool;
 
-    let user = models::users::user(ctx, user_id).await?;
-
-    let moderator = models::users::author(ctx)?;
-    let moderator_id = moderator.id;
-
     if user.bot || user.system {
-        let reply = messages::error_reply(
-            "Sorry, but bots and system users cannot be timed out.",
-            true,
-        );
+        let reply = messages::error_reply("Cannot time out bots and system users!", true);
         ctx.send(reply).await?;
 
         return Ok(());
     }
-    if user_id == moderator_id {
-        let reply = messages::error_reply("Sorry, but you cannot time yourself out.", true);
+
+    let user_id = user.id;
+
+    let moderator = ctx.author();
+    let moderator_id = moderator.id;
+    if moderator_id == user_id {
+        let reply = messages::error_reply("Cannot time yourself out!", true);
         ctx.send(reply).await?;
 
         return Ok(());
@@ -78,22 +76,18 @@ pub async fn timeout(
     let duration = duration.unwrap_or(1);
 
     let result = {
-        let (user_name, user_mention) =
-            (&user.name, models::users::user_mention(ctx, user_id).await?);
+        let (user_name, user_mention) = (&user.name, user.mention());
 
-        let (moderator_name, moderator_mention) =
-            (&moderator.name, models::users::author_mention(ctx)?);
+        let (moderator_name, moderator_mention) = (&moderator.name, moderator.mention());
 
-        let (guild_id, guild_name) = (
-            models::guilds::guild_id(ctx)?,
-            models::guilds::guild_name(ctx)?,
-        );
+        let guild_id = models::guilds::guild_id(ctx)?;
+        let guild_name = models::guilds::guild_name(ctx, guild_id);
 
         let created_at = Utc::now().naive_utc();
 
         let mut user_infractions = users::select_infractions_from_users(&user_id, pool).await?;
 
-        let mut member = models::members::member(ctx, guild_id, user_id).await?;
+        let mut member = guild_id.member(&ctx, user_id).await?;
 
         let message = messages::info_message(format!(
             "You've been timed out in {guild_name} by {moderator_mention} for {reason}.",
@@ -101,7 +95,9 @@ pub async fn timeout(
         user.direct_message(ctx, message).await?;
 
         let time = Timestamp::from(Utc::now() + Duration::days(duration));
-        let disabled_until = time.to_rfc3339().expect("Couldn't convert time to RFC3339");
+        let disabled_until = time
+            .to_rfc3339()
+            .expect("Failed to convert time to RFC3339");
 
         match member.disable_communication_until_datetime(ctx, time).await {
             Ok(_) => {
@@ -113,7 +109,7 @@ pub async fn timeout(
                 )
                 .await?;
 
-                info!("@{moderator_name} timed out @{user_name} from {guild_name}: {reason}");
+                info!("@{moderator_name} timed out @{user_name} in {guild_name}: {reason}");
 
                 infractions::insert_into_infractions(
                     InfractionType::Timeout,
@@ -133,9 +129,9 @@ pub async fn timeout(
                 Ok(format!("{user_mention} has been timed out."))
             }
             Err(why) => {
-                error!("Couldn't put @{user_name} on a time-out: {why:?}");
+                error!("Failed to time out @{user_name}: {why:?}");
                 Err(format!(
-                    "Sorry, but I couldn't put {user_mention} on a time-out."
+                    "An error occurred whilst timing out {user_mention}."
                 ))
             }
         }

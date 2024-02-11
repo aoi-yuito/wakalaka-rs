@@ -26,7 +26,7 @@ use crate::{
     prefix_command,
     slash_command,
     subcommands("hex", "random", "rgb"),
-    category = "Misc",
+    category = "Miscellaneous",
     guild_only,
     subcommand_required
 )]

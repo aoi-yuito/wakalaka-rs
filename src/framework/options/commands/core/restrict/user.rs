@@ -39,14 +39,12 @@ pub async fn user(
 ) -> Result<(), Error> {
     let pool = &ctx.data().pool;
 
-    let user_name = models::users::user_name(ctx, other_user_id).await?;
+    let user_name = other_user_id.to_user(&ctx).await?.name;
 
     let owner_id = models::guilds::owner_id(ctx)?;
-    if other_user_id == owner_id {
-        let reply = messages::error_reply(
-            format!("Sorry, but you can't restrict yourself from using me."),
-            true,
-        );
+    if owner_id == other_user_id {
+        let reply =
+            messages::error_reply(format!("Cannot restrict 👑 from using yours truly!"), true);
         ctx.send(reply).await?;
 
         return Ok(());
@@ -55,7 +53,7 @@ pub async fn user(
     let failsafe_query = users::select_user_id_from_users(&other_user_id, &pool).await;
     let result = match failsafe_query {
         Some(user_id) if user_id == owner_id => {
-            Err(format!("Sorry, but I can't deny usage for {user_name}."))
+            Err(format!("Cannoy deny 👑 from using yours truly."))
         }
         _ => {
             let previous_query =
@@ -64,9 +62,9 @@ pub async fn user(
                 Err(_) => {
                     info!("Denied usage for {user_name}.");
                     restricted_users::insert_into_restricted_users(&other_user_id, &pool).await?;
-                    Ok(format!("Denied {user_name} from using me."))
+                    Ok(format!("Denied {user_name} from using yours truly."))
                 }
-                _ => Err(format!("Usage for {user_name} is already denied.")),
+                _ => Err(format!("Usage for {user_name} is already denied!")),
             }
         }
     };

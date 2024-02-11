@@ -13,7 +13,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-use serenity::all::{ChannelId, GuildChannel, GuildId};
+use serenity::all::{ChannelId, GuildChannel, GuildId, Mentionable};
 use sqlx::{Row, SqlitePool};
 use tokio::time::Instant;
 use tracing::{debug, error};
@@ -21,15 +21,19 @@ use tracing::{debug, error};
 use crate::{utility::components::messages, Context};
 
 pub async fn check_restricted_guild_channel(ctx: Context<'_>) -> bool {
-    let (pool, channel_id) = (
-        &ctx.data().pool,
-        crate::utility::models::channels::channel_id(ctx),
-    );
+    let pool = &ctx.data().pool;
+
+    let channel_id = ctx.channel_id();
+    let channel_mention = channel_id.mention();
 
     match select_channel_id_from_restricted_guild_channels(&channel_id, pool).await {
         Ok(true) => {
-            let reply =
-                messages::error_reply(format!("Sorry, but I've been forbidden from responding to commands in <#{channel_id}>."), true);
+            let reply = messages::error_reply(
+                format!(
+                    "Sorry, but yours truly's forbidden from being used within {channel_mention}."
+                ),
+                true,
+            );
             ctx.send(reply).await.unwrap();
 
             true
@@ -78,7 +82,7 @@ pub async fn delete_from_restricted_guild_channels(
     )
     .bind(i64::from(channel_id));
     if let Err(why) = query.execute(pool).await {
-        error!("Couldn't delete from RestrictedGuildChannels: {why:?}");
+        error!("Failed to delete from RestrictedGuildChannels: {why:?}");
         return Err(why);
     }
 
@@ -111,7 +115,7 @@ pub async fn insert_into_restricted_guild_channels(
             return Ok(());
         }
 
-        error!("Couldn't insert into RestrictedGuildChannels: {why:?}");
+        error!("Failed to insert into RestrictedGuildChannels: {why:?}");
         return Err(why);
     }
 

@@ -71,9 +71,7 @@ pub fn initialise_intents() -> GatewayIntents {
         | GatewayIntents::GUILD_MODERATION
         | GatewayIntents::GUILD_MESSAGES
         | GatewayIntents::DIRECT_MESSAGES
-        | GatewayIntents::MESSAGE_CONTENT
-        | GatewayIntents::AUTO_MODERATION_CONFIGURATION
-        | GatewayIntents::AUTO_MODERATION_EXECUTION;
+        | GatewayIntents::MESSAGE_CONTENT;
 
     let elapsed_time = start_time.elapsed();
     debug!("Initialised intents in {elapsed_time:.2?}");

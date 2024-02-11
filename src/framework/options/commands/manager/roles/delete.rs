@@ -37,20 +37,20 @@ pub async fn delete(
     #[description = "The role to delete."] mut role: Role,
 ) -> Result<(), Error> {
     let result = {
-        let role_name = models::roles::role_name(&role).clone();
+        let role_name = role.name.clone();
 
         let guild = models::guilds::guild(ctx)?;
         let guild_name = &guild.name;
 
         match role.delete(ctx).await {
             Ok(_) => {
-                info!("Deleted role called @{role_name} from {guild_name}");
+                info!("Deleted @{role_name} role from {guild_name}");
                 Ok(format!("Deleted a role called `{role_name}`."))
             }
             Err(why) => {
-                error!("Couldn't delete role called @{role_name} from {guild_name}: {why:?}");
+                error!("Failed to delete @{role_name} role from {guild_name}: {why:?}");
                 Err(format!(
-                    "Sorry, but I couldn't delete a role called `{role_name}`."
+                    "An error occurred whilst deleting a role called `{role_name}`."
                 ))
             }
         }

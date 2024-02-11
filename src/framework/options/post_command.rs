@@ -19,7 +19,7 @@ use crate::{utility::models, Context};
 
 pub async fn handle(ctx: Context<'_>) {
     let (user_name, command_name, channel_name) = (
-        models::users::author_name(ctx).unwrap(),
+        &ctx.author().name,
         &ctx.command().qualified_name,
         models::channels::channel_name(ctx).await.unwrap(),
     );

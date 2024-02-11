@@ -44,7 +44,7 @@ pub async fn select_logs_channel_id_from_guilds(
     let logs_channel_id = match row.try_get::<i64, _>("logs_channel_id") {
         Ok(logs_channel_id) => logs_channel_id,
         Err(why) => {
-            error!("Couldn't get 'logsChannelId' from Guilds: {why:?}");
+            error!("Failed to get 'logsChannelId' from Guilds: {why:?}");
             return None;
         }
     };
@@ -76,7 +76,7 @@ pub async fn select_welcome_channel_id_from_guilds(
     let welcome_channel_id = match row.try_get::<i64, _>("welcome_channel_id") {
         Ok(welcome_channel_id) => welcome_channel_id,
         Err(why) => {
-            error!("Couldn't get 'welcomeChannelId' from Guilds: {why:?}");
+            error!("Failed to get 'welcomeChannelId' from Guilds: {why:?}");
             return None;
         }
     };
@@ -108,7 +108,7 @@ pub async fn select_suggestions_channel_id_from_guilds(
     let suggestions_channel_id = match row.try_get::<i64, _>("suggestions_channel_id") {
         Ok(suggestions_channel_id) => suggestions_channel_id,
         Err(why) => {
-            error!("Couldn't get 'suggestionsChannelId' from Guilds: {why:?}");
+            error!("Failed to get 'suggestionsChannelId' from Guilds: {why:?}");
             return None;
         }
     };
@@ -140,7 +140,7 @@ pub async fn select_usage_channel_id_from_guilds(
     let usage_channel_id = match row.try_get::<i64, _>("usage_channel_id") {
         Ok(usage_channel_id) => usage_channel_id,
         Err(why) => {
-            error!("Couldn't get 'usageChannelId' from Guilds: {why:?}");
+            error!("Failed to get 'usageChannelId' from Guilds: {why:?}");
             return None;
         }
     };
@@ -169,7 +169,7 @@ pub async fn select_guild_id_from_guilds(guild_id: &GuildId, pool: &SqlitePool) 
     let guild_id = match row.try_get::<i64, _>("guild_id") {
         Ok(guild_id) => guild_id,
         Err(why) => {
-            error!("Couldn't get 'guildId' from Guilds: {why:?}");
+            error!("Failed to get 'guildId' from Guilds: {why:?}");
             return None;
         }
     };
@@ -194,7 +194,7 @@ pub async fn update_guilds_set_logs_channel_id(
         .bind(i64::from(channel_id))
         .bind(i64::from(guild_id));
     if let Err(why) = query.execute(pool).await {
-        error!("Couldn't update 'logsChannelId' from Guilds: {why:?}");
+        error!("Failed to update 'logsChannelId' from Guilds: {why:?}");
         return Err(why);
     }
 
@@ -215,7 +215,7 @@ pub async fn update_guilds_set_welcome_channel_id(
         .bind(i64::from(channel_id))
         .bind(i64::from(guild_id));
     if let Err(why) = query.execute(pool).await {
-        error!("Couldn't update 'welcomeChannelId' from Guilds: {why:?}");
+        error!("Failed to update 'welcomeChannelId' from Guilds: {why:?}");
         return Err(why);
     }
 
@@ -236,7 +236,7 @@ pub async fn update_guilds_set_suggestions_channel_id(
         .bind(i64::from(channel_id))
         .bind(i64::from(guild_id));
     if let Err(why) = query.execute(pool).await {
-        error!("Couldn't update 'suggestionsChannelId' from Guilds: {why:?}");
+        error!("Failed to update 'suggestionsChannelId' from Guilds: {why:?}");
         return Err(why);
     }
 
@@ -257,7 +257,7 @@ pub async fn update_guilds_set_usage_channel_id(
         .bind(i64::from(channel_id))
         .bind(i64::from(guild_id));
     if let Err(why) = query.execute(pool).await {
-        error!("Couldn't update 'usageChannelId' from Guilds: {why:?}");
+        error!("Failed to update 'usageChannelId' from Guilds: {why:?}");
         return Err(why);
     }
 
@@ -277,7 +277,7 @@ pub async fn update_guilds_set_owner_id(
     let transaction = match pool.begin().await {
         Ok(transaction) => transaction,
         Err(why) => {
-            error!("Couldn't begin transaction: {why:?}");
+            error!("Failed to begin transaction: {why:?}");
             return Err(why);
         }
     };
@@ -290,12 +290,12 @@ pub async fn update_guilds_set_owner_id(
     .bind(i64::from(*owner_id))
     .bind(i64::from(*guild_id));
     if let Err(why) = query.execute(pool).await {
-        error!("Couldn't update Guilds: {why:?}");
+        error!("Failed to update Guilds: {why:?}");
         return Err(why);
     }
 
     if let Err(why) = transaction.commit().await {
-        error!("Couldn't commit transaction: {why:?}");
+        error!("Failed to commit transaction: {why:?}");
         return Err(why);
     }
 
@@ -311,19 +311,19 @@ pub async fn delete_from_guilds(guild_id: &GuildId, pool: &SqlitePool) -> Result
     let transaction = match pool.begin().await {
         Ok(transaction) => transaction,
         Err(why) => {
-            error!("Couldn't begin transaction: {why:?}");
+            error!("Failed to begin transaction: {why:?}");
             return Err(why);
         }
     };
 
     let query = sqlx::query("DELETE FROM guilds WHERE guild_id = ?").bind(i64::from(*guild_id));
     if let Err(why) = query.execute(pool).await {
-        error!("Couldn't delete Guilds: {why:?}");
+        error!("Failed to delete Guilds: {why:?}");
         return Err(why);
     }
 
     if let Err(why) = transaction.commit().await {
-        error!("Couldn't commit transaction: {why:?}");
+        error!("Failed to commit transaction: {why:?}");
         return Err(why);
     }
 
@@ -341,7 +341,7 @@ pub async fn insert_into_guilds(guild: &Guild, pool: &SqlitePool) -> Result<(), 
     let transaction = match pool.begin().await {
         Ok(transaction) => transaction,
         Err(why) => {
-            error!("Couldn't begin transaction: {why:?}");
+            error!("Failed to begin transaction: {why:?}");
             return Err(why);
         }
     };
@@ -365,12 +365,12 @@ pub async fn insert_into_guilds(guild: &Guild, pool: &SqlitePool) -> Result<(), 
             return Ok(());
         }
 
-        error!("Couldn't insert into Guilds: {why:?}");
+        error!("Failed to insert into Guilds: {why:?}");
         return Err(why);
     }
 
     if let Err(why) = transaction.commit().await {
-        error!("Couldn't commit transaction: {why:?}");
+        error!("Failed to commit transaction: {why:?}");
         return Err(why);
     }
 

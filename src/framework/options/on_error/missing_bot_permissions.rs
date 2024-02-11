@@ -26,10 +26,10 @@ pub(crate) async fn handle(missing_permissions: Permissions, ctx: Context<'_>) {
         .join(", ");
 
     let reply = messages::error_reply(
-        format!("Oh no! I'm missing the following permission(s): `{permissions}`"),
+        format!("Yours truly is missing the following permission(s): `{permissions}`"),
         true,
     );
     if let Err(why) = ctx.send(reply).await {
-        error!("Couldn't send reply: {:?}", why);
+        error!("Failed to send reply: {why:?}");
     }
 }

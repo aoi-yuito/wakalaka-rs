@@ -49,10 +49,8 @@ pub async fn delete(
         None => {
             warn!("Couldn't find {name:?} emoji in {guild_name}");
 
-            let reply = messages::error_reply(
-                format!("Sorry, but I couldn't find an emoji called `{name}`."),
-                true,
-            );
+            let reply =
+                messages::warn_reply(format!("Emoji called `{name}`. doesn't exist!"), true);
             ctx.send(reply).await?;
 
             return Ok(());
@@ -64,15 +62,15 @@ pub async fn delete(
 
     let result = match guild.delete_emoji(ctx, emoji_id).await {
         Ok(_) => {
-            let user_name = models::users::author_name(ctx)?;
+            let user_name = &ctx.author().name;
 
             info!("@{user_name} deleted {emoji_name:?} emoji from {guild_name}");
             Ok(format!("Deleted an emoji called `{emoji_name}`."))
         }
         Err(why) => {
-            error!("Couldn't delete {emoji_name:?} emoji from {guild_name}: {why:?}");
+            error!("Failed to delete {emoji_name:?} emoji from {guild_name}: {why:?}");
             Err(format!(
-                "Sorry, but I couldn't delete an emoji called `{emoji_name}`"
+                "An error occurred whilst deleting an emoji called `{emoji_name}`"
             ))
         }
     };

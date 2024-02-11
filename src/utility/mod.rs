@@ -15,18 +15,29 @@
 
 use tracing::error;
 
+use crate::Error;
+
 pub mod components;
 pub mod models;
 
-pub fn rgb_to_u32(code: &String) -> u32 {
+pub fn rgb_to_u32(code: &String) -> Result<u32, Error> {
     let mut rgb = code.split(',');
 
-    let r = rgb.next().unwrap().parse::<u32>().unwrap();
-    let g = rgb.next().unwrap().parse::<u32>().unwrap();
-    let b = rgb.next().unwrap().parse::<u32>().unwrap();
+    let r = rgb
+        .next()
+        .expect("Failed to parse red value")
+        .parse::<u32>()?;
+    let g = rgb
+        .next()
+        .expect("Failed to parse green value")
+        .parse::<u32>()?;
+    let b = rgb
+        .next()
+        .expect("Failed to parse blue value")
+        .parse::<u32>()?;
 
     let hex = format!("{r:02X}{g:02X}{b:02X}");
-    hex_to_u32(&hex)
+    Ok(hex_to_u32(&hex))
 }
 
 pub fn hex_to_u32(code: &String) -> u32 {
@@ -35,7 +46,7 @@ pub fn hex_to_u32(code: &String) -> u32 {
     match u32::from_str_radix(&hex_code, 16) {
         Ok(colour) => colour,
         Err(why) => {
-            error!("Couldn't parse {code}: {why:?}");
+            error!("Failed to parse {code:?}: {why:?}");
             return 0;
         }
     }

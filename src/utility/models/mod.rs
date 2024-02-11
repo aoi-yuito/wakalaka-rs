@@ -22,7 +22,7 @@ pub mod users;
 use serenity::all::{CurrentApplicationInfo, User};
 use tracing::{error, warn};
 
-pub async fn owner(ctx: &crate::serenity::Context) -> Option<User> {
+pub async fn owner_raw(ctx: &crate::serenity::Context) -> Option<User> {
     match current_application_info_raw(ctx).await {
         Some(app_info) => app_info.owner,
         None => {
@@ -48,7 +48,7 @@ pub async fn current_application_info_raw(
     match ctx.http.get_current_application_info().await {
         Ok(value) => Some(value),
         Err(why) => {
-            error!("Couldn't get current application info: {why:?}");
+            error!("Failed to get current application info: {why:?}");
             None
         }
     }

@@ -13,7 +13,10 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-use serenity::{all::ChannelId, builder::EditChannel};
+use serenity::{
+    all::{ChannelId, Mentionable},
+    builder::EditChannel,
+};
 use tracing::{error, info};
 
 use crate::{
@@ -38,7 +41,7 @@ pub async fn slowmode(
     #[rename = "channel"]
     channel_id: Option<ChannelId>,
     #[description = "The amount of seconds to wait between each message."]
-    #[min = 0]
+    #[min = 1]
     #[max = 21600]
     delay: Option<u16>,
 ) -> Result<(), Error> {
@@ -46,7 +49,7 @@ pub async fn slowmode(
         Some(channel_id) => channel_id,
         None => {
             let reply =
-                messages::info_reply(format!("You must specify a channel to slow down."), true);
+                messages::error_reply(format!("You must specify a channel to slow down!"), true);
             ctx.send(reply).await?;
 
             return Ok(());
@@ -57,7 +60,7 @@ pub async fn slowmode(
         None => 0,
     };
 
-    let user_name = models::users::author_name(ctx)?;
+    let user_name = ctx.author().name.clone();
 
     let guild = models::guilds::guild(ctx)?;
     let (guild_name, guild_channels) = (guild.name, models::channels::channels(ctx).await?);
@@ -68,10 +71,8 @@ pub async fn slowmode(
             continue;
         }
 
-        let (guild_channel_name, guild_channel_mention) = (
-            models::channels::channel_name_from_channel_id(ctx, guild_channel_id).await?,
-            models::channels::channel_mention_from_channel_id(guild_channel_id).await?,
-        );
+        let (guild_channel_name, guild_channel_mention) =
+            (channel_id.name(ctx).await?, channel_id.mention());
 
         let channel_builder = EditChannel::default().rate_limit_per_user(delay);
 
@@ -83,22 +84,20 @@ pub async fn slowmode(
 
                 if delay == 1 {
                     Ok(format!(
-                        "You'll now need to wait `{delay}` second between each message in {guild_channel_mention}."
+                        "Users now have to wait `{delay}` second between each message in {guild_channel_mention}."
                     ))
                 } else if delay > 1 {
                     Ok(format!(
-                        "You'll now need to wait `{delay}` seconds between each message in {guild_channel_mention}."
+                        "Users now have to wait `{delay}` seconds between each message in {guild_channel_mention}."
                     ))
                 } else {
-                    Ok(format!(
-                        "You'll now be able to send messages without any delay in {guild_channel_mention}."
-                    ))
+                    Ok(format!("Removed rate limit from {guild_channel_mention}."))
                 }
             }
             Err(why) => {
-                error!("Couldn't apply {delay}s limit to #{guild_channel_name} in {guild_name}: {why:?}");
+                error!("Failed to apply {delay}s limit to #{guild_channel_name} in {guild_name}: {why:?}");
                 Err(format!(
-                    "Sorry, but I couldn't apply rate limit to {guild_channel_mention}."
+                    "An error occurred whilst applying rate limit to {guild_channel_mention}."
                 ))
             }
         };

@@ -15,7 +15,7 @@
 
 use serenity::all::{Mentionable, UserId};
 
-use crate::{utility::models, Context, Error};
+use crate::{Context, Error};
 
 #[poise::command(
     prefix_command,
@@ -32,7 +32,7 @@ pub async fn hug(
     #[rename = "user"]
     user_id: UserId,
 ) -> Result<(), Error> {
-    let user = models::users::user(ctx, user_id).await?;
+    let user = user_id.to_user(ctx).await?;
 
     let user_mention = ctx.author().mention();
     let other_mention = user.mention();

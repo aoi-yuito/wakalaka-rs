@@ -22,14 +22,12 @@ pub async fn handle(guild_ids: &Vec<GuildId>, ctx: &crate::serenity::Context, da
     let pool = &data.pool;
 
     for guild_id in guild_ids {
-        let guild_name = models::guilds::guild_name_from_guild_id_raw(ctx, *guild_id)
-            .await
-            .unwrap();
+        let guild_name = models::guilds::guild_name_raw(ctx, *guild_id).await;
 
         let restricted_guild = check_restricted_guild!(&pool, &guild_id);
         if restricted_guild {
             if let Err(why) = guild_id.leave(ctx).await {
-                error!("Couldn't leave {guild_name}: {why:?}");
+                error!("Failed to leave {guild_name}: {why:?}");
             }
 
             return;

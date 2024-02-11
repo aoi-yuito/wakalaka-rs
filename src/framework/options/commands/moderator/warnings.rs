@@ -13,8 +13,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-use serenity::all::UserId;
-use tracing::error;
+use serenity::all::{Mentionable, User};
 
 use crate::{
     database::infractions::{self, InfractionType},
@@ -39,42 +38,29 @@ use crate::{
 /// Get a list of warnings for a user.
 pub async fn warnings(
     ctx: Context<'_>,
-    #[description = "The user to get warnings for."]
-    #[rename = "user"]
-    user_id: UserId,
+    #[description = "The user to get warnings for."] user: User,
 ) -> Result<(), Error> {
     let pool = &ctx.data().pool;
 
-    let user = models::users::user(ctx, user_id).await?;
-    let user_mention = models::users::user_mention(ctx, user_id).await?;
-
     if user.bot || user.system {
-        let reply = messages::error_reply(
-            "Sorry, but bots and system users cannot have warnings.",
-            true,
-        );
+        let reply = messages::error_reply("Cannot warn bots and system users!", true);
         ctx.send(reply).await?;
 
         return Ok(());
     }
 
+    let (user_id, user_mention) = (user.id, user.mention());
+
     let guild_id = models::guilds::guild_id(ctx)?;
 
     let warnings =
-        match infractions::select_from_infractions(InfractionType::Warn, &user_id, &guild_id, pool)
-            .await
-        {
-            Ok(warnings) => warnings,
-            Err(why) => {
-                error!("Couldn't select warnings from infractions: {why:?}");
-                return Err(why.into());
-            }
-        };
+        infractions::select_from_infractions(InfractionType::Warn, &user_id, &guild_id, pool)
+            .await?;
 
     let warning_count = warnings.len();
     if warning_count < 1 {
         let reply =
-            messages::info_reply(format!("{user_mention} doesn't have any warnings."), true);
+            messages::warn_reply(format!("{user_mention} doesn't have any warnings!"), true);
         ctx.send(reply).await?;
 
         return Ok(());

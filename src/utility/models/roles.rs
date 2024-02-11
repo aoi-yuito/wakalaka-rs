@@ -23,10 +23,6 @@ use crate::Context;
 
 use super::guilds;
 
-pub fn role_name(role: &Role) -> &String {
-    &role.name
-}
-
 pub async fn role_ids(roles: Vec<Role>) -> Vec<RoleId> {
     roles.iter().map(|role| role.id).collect::<Vec<_>>()
 }
@@ -44,7 +40,7 @@ pub fn roles(ctx: Context<'_>) -> Result<Vec<Role>, ModelError> {
     if role_count != 0 {
         Ok(roles)
     } else {
-        error!("Couldn't get roles");
+        error!("Failed to get roles");
         Err(ModelError::RoleNotFound)
     }
 }

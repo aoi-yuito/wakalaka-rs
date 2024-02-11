@@ -13,7 +13,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-use serenity::all::UserId;
+use serenity::all::{Mentionable, User};
 use tracing::{error, info};
 
 use crate::{
@@ -39,9 +39,7 @@ use crate::{
 /// Get a user out of a time-out.
 pub async fn untimeout(
     ctx: Context<'_>,
-    #[description = "The user to get out of a time-out from."]
-    #[rename = "user"]
-    user_id: UserId,
+    #[description = "The user to get out of a time-out."] user: User,
     #[description = "The reason for getting out of a time-out, if any."]
     #[min_length = 3]
     #[max_length = 80]
@@ -49,37 +47,36 @@ pub async fn untimeout(
 ) -> Result<(), Error> {
     let pool = &ctx.data().pool;
 
-    let user = models::users::user(ctx, user_id).await?;
-    let (user_name, user_mention) = (&user.name, models::users::user_mention(ctx, user_id).await?);
-
-    let moderator = models::users::author(ctx)?;
-    let (moderator_id, moderator_name) = (moderator.id, &moderator.name);
-
     if user.bot || user.system {
         let reply = messages::error_reply(
-            "Sorry, but bots and system users cannot be taken out of a time-out.",
+            "Cannot get bots and system users out of time-out!",
             true,
         );
         ctx.send(reply).await?;
 
         return Ok(());
     }
-    if user_id == moderator_id {
-        let reply = messages::error_reply(
-            "Sorry, but you cannot get yourself out of a time-out.",
-            true,
-        );
+
+    let (user_id, user_name, user_mention) = (user.id, &user.name, user.mention());
+
+    let moderator = ctx.author();
+    let (moderator_id, moderator_name) = (moderator.id, &moderator.name);
+    if moderator_id == user_id {
+        let reply = messages::error_reply("Cannot unmute yourself!", true);
         ctx.send(reply).await?;
 
         return Ok(());
     }
 
     let guild_id = models::guilds::guild_id(ctx)?;
+    let guild_name = models::guilds::guild_name(ctx, guild_id);
 
     let mut user_infractions = users::select_infractions_from_users(&user_id, pool).await?;
     if user_infractions < 1 {
-        let reply =
-            messages::info_reply(format!("{user_mention} hasn't been punished before."), true);
+        let reply = messages::warn_reply(
+            format!("{user_mention} doesn't have any infractions!"),
+            true,
+        );
         ctx.send(reply).await?;
 
         return Ok(());
@@ -91,13 +88,13 @@ pub async fn untimeout(
     for timeout in timeouts {
         let uuid = timeout.0;
 
-        let mut member = models::members::member(ctx, guild_id, user_id).await?;
+        let mut member = guild_id.member(&ctx, user_id).await?;
 
         if let Err(why) = member.enable_communication(ctx).await {
-            error!("Couldn't get member out of time-out: {why:?}");
+            error!("Failed to get @{user_name} out of time-out: {why:?}");
 
             let reply = messages::error_reply(
-                format!("Sorry, but I couldn't get {user_mention} out of a time-out."),
+                format!("An error occurred whilst getting {user_mention} out of a time-out."),
                 true,
             );
             ctx.send(reply).await?;
@@ -108,9 +105,9 @@ pub async fn untimeout(
         guild_members::update_guilds_members_set_timeout(&user_id, false, None, pool).await?;
 
         if let Some(ref reason) = reason {
-            info!("@{user_name} got @{moderator_name} out of time-out: {reason}");
+            info!("@{user_name} got @{moderator_name} out of time-out in {guild_name}: {reason}");
         } else {
-            info!("@{user_name} got @{moderator_name} out of time-out")
+            info!("@{user_name} got @{moderator_name} out of time-out in {guild_name}")
         }
 
         infractions::delete_from_infractions(&uuid, &guild_id, pool).await?;

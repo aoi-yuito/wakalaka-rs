@@ -14,16 +14,14 @@
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
 use rand::{rngs::StdRng, Rng, SeedableRng};
+use serenity::all::Mentionable;
 
-use crate::{
-    utility::{components::messages, models},
-    Context, Error,
-};
+use crate::{utility::components::messages, Context, Error};
 
 #[poise::command(
     prefix_command,
     slash_command,
-    category = "Misc",
+    category = "Miscellaneous",
     required_bot_permissions = "SEND_MESSAGES",
     guild_only,
     user_cooldown = 5
@@ -31,13 +29,13 @@ use crate::{
 /// Roll a number of points.
 pub async fn roll(
     ctx: Context<'_>,
-    #[description = "The number between point(s), if any."]
+    #[description = "The number between points, if any."]
     #[min = 1]
     number: Option<u32>,
 ) -> Result<(), Error> {
     if let Some(number) = number {
         if number < 2 {
-            let reply = messages::info_reply("Number must be greater than `1`.", true);
+            let reply = messages::error_reply("Number must be greater than `1`!", true);
             ctx.send(reply).await?;
 
             return Ok(());
@@ -51,16 +49,16 @@ pub async fn roll(
         None => rng.gen_range(1..100),
     };
 
-    let user_mention = models::users::author_mention(ctx)?;
+    let user_mention = ctx.author().mention();
 
     let reply = if generated_number == 1 {
         messages::reply(
-            format!("{user_mention} rolled {generated_number} point."),
+            format!("{user_mention} rolled {generated_number} point!"),
             false,
         )
     } else {
         messages::reply(
-            format!("{user_mention} rolled {generated_number} points."),
+            format!("{user_mention} rolled {generated_number} points!"),
             false,
         )
     };

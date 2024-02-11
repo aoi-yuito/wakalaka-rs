@@ -13,7 +13,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-use serenity::all::{ChannelType, GuildChannel};
+use serenity::all::{ChannelType, GuildChannel, Mentionable};
 use tracing::info;
 
 use crate::{
@@ -38,20 +38,18 @@ pub async fn channel(
 ) -> Result<(), Error> {
     let pool = &ctx.data().pool;
 
-    let (channel_id, channel_name, guild_id, guild_name) = (
+    let (channel_id, channel_name, channel_mention, guild_id) = (
         channel.id,
         &channel.name,
+        channel.mention(),
         &models::guilds::guild_id(ctx)?,
-        &models::guilds::guild_name(ctx)?,
     );
+    let guild_name = models::guilds::guild_name(ctx, *guild_id);
 
-    let (user_id, owner_id) = (
-        *models::users::author_id(ctx)?,
-        models::guilds::owner_id(ctx)?,
-    );
+    let (user_id, owner_id) = (ctx.author().id, models::guilds::owner_id(ctx)?);
     if user_id != owner_id {
-        let reply = messages::error_reply(
-            format!("Sorry, but only 👑 can allow usage within <#{channel_id}>."),
+        let reply = messages::info_reply(
+            format!("Only 👑 can deny usage within {channel_mention}!"),
             true,
         );
         ctx.send(reply).await?;
@@ -62,7 +60,7 @@ pub async fn channel(
     let channel_type = channel.kind;
     if channel_type == ChannelType::Category || channel_type == ChannelType::Directory {
         let reply = messages::error_reply(
-            format!("Sorry, but I can't deny usage within <#{channel_id}>."),
+            format!("{channel_mention} cannot be a `Category` or `Directory`!"),
             true,
         );
         ctx.send(reply).await?;
@@ -73,11 +71,12 @@ pub async fn channel(
     let failsafe_query = guilds::select_usage_channel_id_from_guilds(&guild_id, &pool).await;
     let result = match failsafe_query {
         Some(usage_channel_id) if usage_channel_id == channel_id => {
-            Err(format!("Couldn't deny usage within <#{usage_channel_id}>."))
+            let usage_channel_mention = usage_channel_id.mention();
+            Err(format!("Cannot deny usage within {usage_channel_mention}!"))
         }
         None => {
             Err(format!(
-                "I need to be configured before my usage in <#{channel_id}> could be denied. Please use `/setup usage` to configure me."
+                "Yours truly must be configured before usage within {channel_mention} could be denied. Please use `/setup usage` to configure yours truly."
             ))
         }
         _ => {
@@ -86,9 +85,9 @@ pub async fn channel(
                 Err(_) => {
                     info!("Denied usage within #{channel_name} in {guild_name}");
                     restricted_guild_channels::insert_into_restricted_guild_channels(&channel, &guild_id, &pool).await?;
-                    Ok(format!("Denied myself from being used within <#{channel_id}>."))
+                    Ok(format!("Denied usage of yours truly within {channel_mention}."))
                 }
-                _ => Err(format!("My usage is already denied within <#{channel_id}>.")),
+                _ => Err(format!("Usage within {channel_mention} is already denied!")),
             }
         }
     };

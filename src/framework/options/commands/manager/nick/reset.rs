@@ -13,7 +13,10 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-use serenity::{all::UserId, builder::EditMember};
+use serenity::{
+    all::{Mentionable, UserId},
+    builder::EditMember,
+};
 use tracing::{error, info};
 
 use crate::{
@@ -40,27 +43,23 @@ pub async fn reset(
 ) -> Result<(), Error> {
     let guild_id = models::guilds::guild_id(ctx)?;
 
-    let user = models::users::user(ctx, user_id).await?;
-    let (user_id, user_name, user_mention) = (
-        user.id,
-        user.name,
-        models::users::user_mention(ctx, user_id).await?,
-    );
+    let user = user_id.to_user(ctx).await?;
+    let (user_id, user_name, user_mention) = (user.id, &user.name, user.mention());
 
-    let mut member = models::members::member(ctx, guild_id, user_id).await?;
+    let mut member = guild_id.member(&ctx, user_id).await?;
     let member_builder = EditMember::default().nickname(String::new());
 
     let result = match member.edit(ctx, member_builder).await {
         Ok(_) => {
-            let moderator_name = models::users::author_name(ctx)?;
+            let moderator_name = &ctx.author().name;
 
             info!("@{moderator_name} removed @{user_name}'s nickname");
             Ok(format!("Removed {user_mention}'s nickname."))
         }
         Err(why) => {
-            error!("Couldn't remove @{user_name}'s nickname: {why:?}");
+            error!("Failed to remove @{user_name}'s nickname: {why:?}");
             Err(format!(
-                "Sorry, but I couldn't remove {user_mention}'s nickname."
+                "An error occurred whilst remove {user_mention}'s nickname."
             ))
         }
     };

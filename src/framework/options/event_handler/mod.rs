@@ -65,8 +65,7 @@ pub async fn handle(
             deleted_message_id,
             guild_id,
         } => {
-            message::message_delete::handle(channel_id, deleted_message_id, guild_id, ctx, data)
-                .await?;
+            message::message_delete::handle(channel_id, deleted_message_id, guild_id, data).await?;
         }
         FullEvent::InteractionCreate { interaction, .. } => {
             interaction::interaction_create::handle(interaction, ctx, data).await?;

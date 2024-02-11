@@ -32,14 +32,14 @@ pub async fn handle(
 
     let unavailable_guild_id = unavailable_guild.id;
 
-    let guild = guild.as_ref().expect("Couldn't get guild");
+    let guild = guild.as_ref().expect("Failed to get guild");
     let guild_id = guild.id;
     let guild_name = &guild.name;
 
     let combined_guild_ids = vec![guild_id, unavailable_guild_id];
     for combined_guild_id in combined_guild_ids {
         if let Err(why) = guilds::delete_from_guilds(&combined_guild_id, pool).await {
-            error!("Couldn't delete guild(s): {why:?}");
+            error!("Failed to delete guild(s): {why:?}");
         } else {
             let app_name = models::current_application_name_raw(&ctx).await.unwrap();
 

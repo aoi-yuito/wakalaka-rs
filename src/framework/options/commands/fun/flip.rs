@@ -33,12 +33,12 @@ pub async fn flip(ctx: Context<'_>) -> Result<(), Error> {
 
     let reply = if random {
         messages::reply(
-            format!("{user_mention} flipped a coin and got **heads**."),
+            format!("{user_mention} flipped a coin and got **heads**!"),
             false,
         )
     } else {
         messages::reply(
-            format!("{user_mention} flipped a coin and got **tails**."),
+            format!("{user_mention} flipped a coin and got **tails**!"),
             false,
         )
     };

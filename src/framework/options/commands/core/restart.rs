@@ -16,7 +16,6 @@
 use std::sync::Arc;
 
 use serenity::all::ShardId;
-use tracing::info;
 
 use crate::{utility::components::messages, Context, Error};
 
@@ -44,7 +43,6 @@ pub async fn restart(ctx: Context<'_>) -> Result<(), Error> {
         .cloned()
         .collect::<Vec<ShardId>>();
     for shard_id in shard_ids {
-        info!("Restarting shard {shard_id}");
         manager.restart(shard_id).await;
     }
 

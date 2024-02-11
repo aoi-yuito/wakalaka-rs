@@ -14,7 +14,7 @@
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
 use serenity::{
-    all::{GuildId, Member, UserId},
+    all::{GuildId, Member},
     model::ModelError,
 };
 use tracing::error;
@@ -28,7 +28,7 @@ pub async fn members_raw(
     match guild_id.members(&ctx, None, None).await {
         Ok(members) => Ok(members),
         Err(why) => {
-            error!("Couldn't get members: {why:?}");
+            error!("Failed to get members: {why:?}");
             return Err(ModelError::MemberNotFound);
         }
     }
@@ -38,21 +38,7 @@ pub async fn members(ctx: Context<'_>, guild_id: GuildId) -> Result<Vec<Member>,
     match guild_id.members(ctx, None, None).await {
         Ok(members) => Ok(members),
         Err(why) => {
-            error!("Couldn't get members: {why:?}");
-            return Err(ModelError::MemberNotFound);
-        }
-    }
-}
-
-pub async fn member(
-    ctx: Context<'_>,
-    guild_id: GuildId,
-    user_id: UserId,
-) -> Result<Member, ModelError> {
-    match guild_id.member(&ctx, user_id).await {
-        Ok(member) => Ok(member),
-        Err(why) => {
-            error!("Couldn't get member: {why:?}");
+            error!("Failed to get members: {why:?}");
             return Err(ModelError::MemberNotFound);
         }
     }

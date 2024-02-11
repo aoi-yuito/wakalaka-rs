@@ -46,21 +46,8 @@ pub async fn edit(
     #[description = "Whether the role should be pinned above lesser roles."] hoist: Option<bool>,
     #[description = "Whether the role should be mentionable."] mentionable: Option<bool>,
 ) -> Result<(), Error> {
-    if name.is_some() {
-        let name_char_count = name.as_ref().unwrap().chars().count();
-        if name_char_count < 1 || name_char_count > 100 {
-            let reply = messages::info_reply(
-                format!("Name of the role must be between `1` and `100` characters long."),
-                true,
-            );
-            ctx.send(reply).await?;
-
-            return Ok(());
-        }
-    }
-
     let result = {
-        let role_name = models::roles::role_name(&role).clone();
+        let role_name = role.name.clone();
 
         let guild = models::guilds::guild(ctx)?;
         let guild_name = &guild.name;
@@ -82,13 +69,13 @@ pub async fn edit(
 
         match role.edit(ctx, role_builder).await {
             Ok(_) => {
-                info!("Altered @{role_name} role in {guild_name}");
-                Ok(format!("Altered a role called `{role_name}`."))
+                info!("Edited @{role_name} role in {guild_name}");
+                Ok(format!("Edited a role called `{role_name}`."))
             }
             Err(why) => {
-                error!("Couldn't alter @{role_name} role in {guild_name}: {why:?}");
+                error!("Failed to edit @{role_name} role in {guild_name}: {why:?}");
                 Err(format!(
-                    "Sorry, but I couldn't alter a role called `{role_name}`."
+                    "An error occurred whilst editing a role called `{role_name}`."
                 ))
             }
         }

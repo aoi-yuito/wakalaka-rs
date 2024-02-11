@@ -27,19 +27,19 @@ pub(crate) async fn handle(missing_permissions: Option<Permissions>, ctx: Contex
             .join(", ");
 
         let reply = messages::error_reply(
-            format!("Oh no! You're missing the following permission(s): `{permissions}`"),
+            format!("You're missing the following permission(s): `{permissions}`"),
             true,
         );
         if let Err(why) = ctx.send(reply).await {
-            error!("Couldn't send reply: {:?}", why);
+            error!("Failed to send reply: {why:?}");
         }
     } else {
         let reply = messages::error_reply(
-            "Sorry, but I couldn't find the permission(s) you're missing. Please try again.",
+            "Yours truly couldn't find the permission(s) you're missing.",
             true,
         );
         if let Err(why) = ctx.send(reply).await {
-            error!("Couldn't send reply: {:?}", why);
+            error!("Failed to send reply: {why:?}");
         }
     }
 }

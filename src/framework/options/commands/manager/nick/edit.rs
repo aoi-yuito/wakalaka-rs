@@ -13,7 +13,10 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-use serenity::{all::UserId, builder::EditMember};
+use serenity::{
+    all::{Mentionable, UserId},
+    builder::EditMember,
+};
 use tracing::{error, info};
 
 use crate::{
@@ -44,19 +47,15 @@ pub async fn edit(
 ) -> Result<(), Error> {
     let guild_id = models::guilds::guild_id(ctx)?;
 
-    let user = models::users::user(ctx, user_id).await?;
-    let (user_id, user_name, user_mention) = (
-        user.id,
-        user.name,
-        models::users::user_mention(ctx, user_id).await?,
-    );
+    let user = user_id.to_user(ctx).await?;
+    let (user_id, user_name, user_mention) = (user.id, &user.name, user.mention());
 
-    let mut member = models::members::member(ctx, guild_id, user_id).await?;
+    let mut member = guild_id.member(&ctx, user_id).await?;
     let member_builder = EditMember::default().nickname(&nickname);
 
     let result = match member.edit(ctx, member_builder).await {
         Ok(_) => {
-            let moderator_name = models::users::author_name(ctx)?;
+            let moderator_name = &ctx.author().name;
 
             info!("@{moderator_name} changed @{user_name}'s nickname to {nickname:?}");
             Ok(format!(
@@ -64,9 +63,9 @@ pub async fn edit(
             ))
         }
         Err(why) => {
-            error!("Couldn't edit @{user_name}'s nickname to {nickname:?}: {why:?}");
+            error!("Failed to change @{user_name}'s nickname to {nickname:?}: {why:?}");
             Err(format!(
-                "Sorry, but I couldn't change {user_mention}'s nickname to `{nickname}`."
+                "An error occurred whilst changing {user_mention}'s nickname to `{nickname}`."
             ))
         }
     };

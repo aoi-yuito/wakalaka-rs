@@ -26,7 +26,7 @@ use crate::{
 #[poise::command(
     prefix_command,
     slash_command,
-    category = "Misc",
+    category = "Miscellaneous",
     required_bot_permissions = "SEND_MESSAGES",
     guild_only,
     user_cooldown = 5
@@ -41,7 +41,7 @@ pub async fn rgb(
 ) -> Result<(), Error> {
     let rgb_re = Regex::new(r"^\d{1,3},\d{1,3},\d{1,3}$").unwrap();
     if !rgb_re.is_match(&colour) {
-        let reply = messages::error_reply("Sorry, but that's not a valid RGB colour.", true);
+        let reply = messages::error_reply("Colour must be in RGB format!", true);
         ctx.send(reply).await?;
 
         return Ok(());
@@ -58,7 +58,7 @@ pub async fn rgb(
     let res_text = res.text().await?;
     let res_json: serde_json::Value = serde_json::from_str(&res_text)?;
 
-    let colour = utility::rgb_to_u32(&colour);
+    let colour = utility::rgb_to_u32(&colour)?;
     let hex_colour = format!("{:06X}", colour);
     let colour_url = format!("https://singlecolorimage.com/get/{hex_colour}/400x400");
 

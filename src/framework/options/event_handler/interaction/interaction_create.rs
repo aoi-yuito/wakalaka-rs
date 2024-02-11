@@ -61,19 +61,15 @@ async fn handle_suggestion_message(
     let guild_id = models::guilds::guild_id_from_component_raw(component);
     if let Ok(guild_id) = guild_id {
         let (moderator_id, user_id, channel_id) = (
-            models::guilds::owner_id_from_guild_id_raw(ctx, guild_id).await?,
+            models::guilds::owner_id_raw(ctx, guild_id).await?,
             component.user.id,
             component.channel_id,
         );
 
         if user_id != moderator_id {
-            let response = messages::error_response(
-                "Sorry, but only 👑 can accept or reject suggestions.",
-                true,
-            )
-            .await;
+            let response = messages::error_response("Only 👑 can manage suggestions!", true).await;
             if let Err(why) = component.create_response(&ctx, response).await {
-                error!("Couldn't create response: {why:?}");
+                error!("Failed to create response: {why:?}");
                 return Err(why.into());
             }
 
@@ -83,7 +79,7 @@ async fn handle_suggestion_message(
         let mut message = match channel_id.message(&ctx, message_id).await {
             Ok(message) => message,
             Err(why) => {
-                error!("Couldn't get message: {why:?}");
+                error!("Failed to get message: {why:?}");
                 return Err(why.into());
             }
         };
@@ -101,11 +97,11 @@ async fn handle_suggestion_message(
             )
             .await;
             if let Err(why) = accept {
-                error!("Couldn't accept suggestion: {why:?}");
+                error!("Failed to accept suggestion: {why:?}");
                 return Err(why.into());
             }
         } else if custom_id == "reject_suggest" {
-            let deny = suggestions::update_suggestions(
+            let reject = suggestions::update_suggestions(
                 i64::from(moderator_id),
                 i64::from(message_id),
                 i64::from(guild_id),
@@ -114,8 +110,8 @@ async fn handle_suggestion_message(
                 pool,
             )
             .await;
-            if let Err(why) = deny {
-                error!("Couldn't deny suggestion: {why:?}");
+            if let Err(why) = reject {
+                error!("Failed to reject suggestion: {why:?}");
                 return Err(why.into());
             }
         }
@@ -123,7 +119,7 @@ async fn handle_suggestion_message(
         let member_builder = EditMessage::default().components(Vec::new());
 
         if let Err(why) = message.edit(&ctx, member_builder).await {
-            error!("Couldn't edit message: {why:?}");
+            error!("Failed to edit message: {why:?}");
             return Err(why.into());
         }
     }

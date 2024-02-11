@@ -13,7 +13,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-use serenity::all::{ChannelType, GuildChannel};
+use serenity::all::{ChannelType, GuildChannel, Mentionable};
 use tracing::info;
 
 use crate::{
@@ -38,20 +38,18 @@ pub async fn channel(
 ) -> Result<(), Error> {
     let pool = &ctx.data().pool;
 
-    let (channel_id, channel_name, guild_id, guild_name) = (
+    let (channel_id, channel_name, channel_mention, guild_id) = (
         channel.id,
         &channel.name,
+        channel.mention(),
         &models::guilds::guild_id(ctx)?,
-        &models::guilds::guild_name(ctx)?,
     );
+    let guild_name = models::guilds::guild_name(ctx, *guild_id);
 
-    let (user_id, owner_id) = (
-        *models::users::author_id(ctx)?,
-        models::guilds::owner_id(ctx)?,
-    );
+    let (user_id, owner_id) = (ctx.author().id, models::guilds::owner_id(ctx)?);
     if user_id != owner_id {
-        let reply = messages::error_reply(
-            format!("Sorry, but only 👑 can allow usage within <#{channel_id}>."),
+        let reply = messages::info_reply(
+            format!("Only 👑 can allow usage within {channel_mention}."),
             true,
         );
         ctx.send(reply).await?;
@@ -62,7 +60,7 @@ pub async fn channel(
     let channel_type = channel.kind;
     if channel_type == ChannelType::Category || channel_type == ChannelType::Directory {
         let reply = messages::error_reply(
-            format!("Sorry, but I can't allow usage within <#{channel_id}>."),
+            format!("Cannot allow usage within {channel_mention}!"),
             true,
         );
         ctx.send(reply).await?;
@@ -73,11 +71,12 @@ pub async fn channel(
     let failsafe_query = guilds::select_usage_channel_id_from_guilds(&guild_id, &pool).await;
     let result = match failsafe_query {
         Some(usage_channel_id) if usage_channel_id == channel_id => {
-            Err(format!("I've already been configured to be primarily used in <#{usage_channel_id}>."))
+            let usage_channel_mention = usage_channel_id.mention();
+            Err(format!("Usage within {usage_channel_mention} is already allowed."))
         }
         None => {
             Err(format!(
-                "I need to be configured before my usage in <#{channel_id}> could be allowed. Please use `/setup usage` to configure me."
+                "Yours truly must be configured before usage in {channel_mention} could be allowed. Please use `/setup usage` to configure yours truly."
             ))
         }
         _ => {
@@ -86,9 +85,9 @@ pub async fn channel(
                 Ok(_) => {
                     info!("Allowed usage within #{channel_name} in {guild_name}");
                     restricted_guild_channels::delete_from_restricted_guild_channels(&channel, &pool).await?;
-                    Ok(format!("Allowed myself to be used within <#{channel_id}>."))
+                    Ok(format!("Allowed usage of yours truly within {channel_mention}."))
                 }
-                _ => Err(format!("My usage is already allowed within <#{channel_id}>."))
+                _ => Err(format!("Usage within {channel_mention} is already allowed!"))
             }
         }
     };

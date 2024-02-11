@@ -16,10 +16,7 @@
 use serenity::all::Guild;
 
 use crate::{
-    utility::{
-        components::{embeds, replies},
-        models,
-    },
+    utility::components::{embeds, replies},
     Context, Error,
 };
 
@@ -40,7 +37,7 @@ pub async fn server(
     guild: Guild,
 ) -> Result<(), Error> {
     let owner_id = guild.owner_id;
-    let owner = models::users::user(ctx, owner_id).await?;
+    let owner = owner_id.to_user(ctx).await?;
 
     let embed = embeds::lookup_server_command_embed(&guild, &owner);
 

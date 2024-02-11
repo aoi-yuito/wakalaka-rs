@@ -24,9 +24,7 @@ pub async fn handle(
     member: &Option<Member>,
     ctx: &crate::serenity::Context,
 ) {
-    let guild_name = models::guilds::guild_name_from_guild_id_raw(ctx, *guild_id)
-        .await
-        .unwrap();
+    let guild_name = models::guilds::guild_name_raw(ctx, *guild_id).await;
 
     if let Some(member) = member {
         let member_name = &member.user.name;

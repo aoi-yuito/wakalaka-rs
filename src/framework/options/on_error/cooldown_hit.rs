@@ -22,11 +22,20 @@ use crate::{utility::components::messages, Context};
 pub(crate) async fn handle(remaining_cooldown: Duration, ctx: Context<'_>) {
     let remaining_seconds = remaining_cooldown.as_secs();
 
-    let reply = messages::error_reply(
-        format!("You're too fast! Please wait {remaining_seconds} second(s) before trying again."),
-        true,
-    );
+    let reply = if remaining_seconds == 1 {
+        messages::warn_reply(
+            "You're too fast! Please wait `1` second before trying again.",
+            true,
+        )
+    } else {
+        messages::warn_reply(
+            format!(
+                "You're too fast! Please wait `{remaining_seconds}` seconds before trying again."
+            ),
+            true,
+        )
+    };
     if let Err(why) = ctx.send(reply).await {
-        error!("Couldn't send reply: {:?}", why);
+        error!("Failed to send reply: {why:?}");
     }
 }

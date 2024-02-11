@@ -14,7 +14,7 @@
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
 use chrono::Utc;
-use serenity::all::UserId;
+use serenity::all::{Mentionable, User};
 use tracing::{error, info};
 
 use crate::{
@@ -40,9 +40,7 @@ use crate::{
 /// Lock the door for a user.
 pub async fn ban(
     ctx: Context<'_>,
-    #[description = "The user to ban."]
-    #[rename = "user"]
-    user_id: UserId,
+    #[description = "The user to ban."] user: User,
     #[description = "The reason for banning."]
     #[min_length = 3]
     #[max_length = 80]
@@ -50,36 +48,31 @@ pub async fn ban(
 ) -> Result<(), Error> {
     let pool = &ctx.data().pool;
 
-    let user = models::users::user(ctx, user_id).await?;
-
-    let moderator = models::users::author(ctx)?;
-    let moderator_id = moderator.id;
-
-    if user.bot || user.system {
-        let reply =
-            messages::error_reply("Sorry, but bots and system users cannot be banned.", true);
+    if user.system {
+        let reply = messages::error_reply("Cannot ban system users!", true);
         ctx.send(reply).await?;
 
         return Ok(());
     }
-    if user_id == moderator_id {
-        let reply = messages::error_reply("Sorry, but you cannot ban yourself.", true);
+
+    let user_id = user.id;
+
+    let moderator = ctx.author();
+    let moderator_id = moderator.id;
+    if moderator_id == user_id {
+        let reply = messages::error_reply("Cannot ban yourself!", true);
         ctx.send(reply).await?;
 
         return Ok(());
     }
 
     let result = {
-        let (user_name, user_mention) =
-            (&user.name, models::users::user_mention(ctx, user_id).await?);
+        let (user_name, user_mention) = (&user_id.to_user(ctx).await?.name, user_id.mention());
 
-        let (moderator_name, moderator_mention) =
-            (&moderator.name, models::users::author_mention(ctx)?);
+        let (moderator_name, moderator_mention) = (&moderator.name, moderator.mention());
 
-        let (guild_id, guild_name) = (
-            models::guilds::guild_id(ctx)?,
-            models::guilds::guild_name(ctx)?,
-        );
+        let guild_id = models::guilds::guild_id(ctx)?;
+        let guild_name = models::guilds::guild_name(ctx, guild_id);
 
         let created_at = Utc::now().naive_utc();
 
@@ -113,8 +106,8 @@ pub async fn ban(
                 Ok(format!("{user_mention} has been banned."))
             }
             Err(why) => {
-                error!("Couldn't ban @{user_name}: {why:?}");
-                Err(format!("Sorry, but I couldn't ban {user_mention}."))
+                error!("Failed to ban @{user_name}: {why:?}");
+                Err(format!("An error occurred whilst banning {user_mention}."))
             }
         }
     };

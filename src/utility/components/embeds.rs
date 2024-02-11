@@ -164,15 +164,15 @@ pub fn ping_command_embed(
     let mut latency_field = String::new();
 
     for ((id, stage), latency) in ids.iter().zip(stages.iter()).zip(latencies.iter()) {
-        writeln!(id_field, "{id}").expect("Couldn't write to 'id_field'");
-        writeln!(stage_field, "{stage}").expect("Couldn't write to 'stage_field'");
+        writeln!(id_field, "{id}").expect("Failed to write to 'id_field'");
+        writeln!(stage_field, "{stage}").expect("Failed to write to 'stage_field'");
 
         if latency.is_some() {
             let latency = latency.unwrap_or_default();
 
-            writeln!(latency_field, "{latency:.2?}").expect("Couldn't write to 'latency_field'");
+            writeln!(latency_field, "{latency:.2?}").expect("Failed to write to 'latency_field'");
         } else {
-            writeln!(latency_field, "N/A").expect("Couldn't write to 'latency_field'");
+            writeln!(latency_field, "N/A").expect("Failed to write to 'latency_field'");
         }
     }
 

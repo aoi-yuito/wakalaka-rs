@@ -14,7 +14,10 @@
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
 use chrono::Utc;
-use serenity::{all::UserId, builder::EditMember};
+use serenity::{
+    all::{Mentionable, User},
+    builder::EditMember,
+};
 use tracing::{error, info};
 
 use crate::{
@@ -40,9 +43,7 @@ use crate::{
 /// Disallow a user from interaction in voice channels.
 pub async fn deafen(
     ctx: Context<'_>,
-    #[description = "The user to deafen."]
-    #[rename = "user"]
-    user_id: UserId,
+    #[description = "The user to deafen."] user: User,
     #[description = "The reason for deafening."]
     #[min_length = 3]
     #[max_length = 80]
@@ -50,42 +51,37 @@ pub async fn deafen(
 ) -> Result<(), Error> {
     let pool = &ctx.data().pool;
 
-    let user = models::users::user(ctx, user_id).await?;
-
-    let moderator = models::users::author(ctx)?;
-    let moderator_id = moderator.id;
-
-    if user.bot || user.system {
-        let reply =
-            messages::error_reply("Sorry, but bots and system users cannot be deafened.", true);
+    if user.system {
+        let reply = messages::error_reply("Cannot deafen system users!", true);
         ctx.send(reply).await?;
 
         return Ok(());
     }
-    if user_id == moderator_id {
-        let reply = messages::error_reply("Sorry, but you cannot deafen yourself.", true);
+
+    let user_id = user.id;
+
+    let moderator = ctx.author();
+    let moderator_id = moderator.id;
+    if moderator_id == user_id {
+        let reply = messages::error_reply("Cannot deafen yourself!", true);
         ctx.send(reply).await?;
 
         return Ok(());
     }
 
     let result = {
-        let (user_name, user_mention) =
-            (&user.name, models::users::user_mention(ctx, user_id).await?);
+        let (user_name, user_mention) = (&user_id.to_user(ctx).await?.name, user_id.mention());
 
-        let (moderator_name, moderator_mention) =
-            (&moderator.name, models::users::author_mention(ctx)?);
+        let (moderator_name, moderator_mention) = (&moderator.name, moderator_id.mention());
 
-        let (guild_id, guild_name) = (
-            models::guilds::guild_id(ctx)?,
-            models::guilds::guild_name(ctx)?,
-        );
+        let guild_id = models::guilds::guild_id(ctx)?;
+        let guild_name = models::guilds::guild_name(ctx, guild_id);
 
         let created_at = Utc::now().naive_utc();
 
         let mut user_infractions = users::select_infractions_from_users(&user_id, pool).await?;
 
-        let mut member = models::members::member(ctx, guild_id, user_id).await?;
+        let mut member = guild_id.member(&ctx, user_id).await?;
         let member_builder = EditMember::default().deafen(true);
 
         let message = messages::info_message(format!(
@@ -116,8 +112,10 @@ pub async fn deafen(
                 Ok(format!("{user_mention} has been deafened."))
             }
             Err(why) => {
-                error!("Couldn't deafen @{user_name}: {why:?}");
-                Err(format!("Sorry, but I couldn't deafen {user_mention}."))
+                error!("Failed to deafen @{user_name}: {why:?}");
+                Err(format!(
+                    "An error occurred whilst deafening {user_mention}."
+                ))
             }
         }
     };

@@ -13,7 +13,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
 
-use serenity::all::UserId;
+use serenity::all::{Mentionable, User};
 use tracing::info;
 
 use crate::{
@@ -38,10 +38,8 @@ use crate::{
 /// Remove a specific warning from a user.
 pub async fn unwarn(
     ctx: Context<'_>,
-    #[description = "The user to unwarn."]
-    #[rename = "user"]
-    user_id: UserId,
-    #[description = "The UUID of the warning to delete."]
+    #[description = "The user to unwarn."] user: User,
+    #[description = "The warning to delete."]
     #[min_length = 36]
     #[max_length = 36]
     #[rename = "uuid"]
@@ -53,32 +51,36 @@ pub async fn unwarn(
 ) -> Result<(), Error> {
     let pool = &ctx.data().pool;
 
-    let user = models::users::user(ctx, user_id).await?;
-    let (user_name, user_mention) = (&user.name, models::users::user_mention(ctx, user_id).await?);
-
-    let moderator = models::users::author(ctx)?;
-    let (moderator_id, moderator_name) = (moderator.id, &moderator.name);
-
     if user.bot || user.system {
-        let reply =
-            messages::error_reply("Sorry, but bots and system users cannot be unwarned.", true);
+        let reply = messages::error_reply(
+            "Cannot remove warnings from bots and system users!",
+            true,
+        );
         ctx.send(reply).await?;
 
         return Ok(());
     }
-    if user_id == moderator_id {
-        let reply = messages::error_reply("Sorry, but you cannot unwarn yourself.", true);
+
+    let (user_id, user_name, user_mention) = (user.id, &user.name, user.mention());
+
+    let moderator = ctx.author();
+    let (moderator_id, moderator_name) = (moderator.id, &moderator.name);
+    if moderator_id == user_id {
+        let reply = messages::error_reply("Cannot unwarn yourself!", true);
         ctx.send(reply).await?;
 
         return Ok(());
     }
 
     let guild_id = models::guilds::guild_id(ctx)?;
+    let guild_name = models::guilds::guild_name(ctx, guild_id);
 
     let mut user_infractions = users::select_infractions_from_users(&user_id, pool).await?;
     if user_infractions < 1 {
-        let reply =
-            messages::info_reply(format!("{user_mention} hasn't been punished before."), true);
+        let reply = messages::warn_reply(
+            format!("{user_mention} doesn't have any infractions!"),
+            true,
+        );
         ctx.send(reply).await?;
 
         return Ok(());
@@ -91,10 +93,8 @@ pub async fn unwarn(
         let uuid = if warning.0 == other_uuid {
             warning.0
         } else {
-            let reply = messages::error_reply(
-                format!(
-                    "Sorry, but {user_mention} doesn't have a warning with UUID `{other_uuid}`."
-                ),
+            let reply = messages::warn_reply(
+                format!("{user_mention} doesn't have the following warning: `{other_uuid}`"),
                 true,
             );
             ctx.send(reply).await?;
@@ -103,9 +103,9 @@ pub async fn unwarn(
         };
 
         if let Some(ref reason) = reason {
-            info!("@{user_name} unwarned by @{moderator_name}: {reason}");
+            info!("@{user_name} unwarned by @{moderator_name} in {guild_name}: {reason}");
         } else {
-            info!("@{user_name} unwarned by @{moderator_name}");
+            info!("@{user_name} unwarned by @{moderator_name} in {guild_name}");
         }
 
         infractions::delete_from_infractions(&uuid, &guild_id, pool).await?;

@@ -58,7 +58,7 @@ pub async fn add(
     );
     if image_width != 128 || image_height != 128 {
         let reply =
-            messages::info_reply("Width and height of the image must be `128` pixels.", true);
+            messages::error_reply("Width and height of the image must be `128` pixels!", true);
         ctx.send(reply).await?;
 
         return Ok(());
@@ -69,7 +69,7 @@ pub async fn add(
     let attachment = match CreateAttachment::url(ctx, &image_url).await {
         Ok(emoji) => emoji,
         Err(why) => {
-            error!("Couldn't create emoji: {why:?}");
+            error!("Failed to create emoji: {why:?}");
             return Err(why.into());
         }
     };
@@ -80,15 +80,15 @@ pub async fn add(
 
     let result = match guild.create_emoji(ctx, &name, &encoded_attachment).await {
         Ok(_) => {
-            let user_name = models::users::author_name(ctx)?;
+            let user_name = &ctx.author().name;
 
             info!("@{user_name} created {name:?} emoji in {guild_name}");
             Ok(format!("Created an emoji called `{name}`."))
         }
         Err(why) => {
-            error!("Couldn't create {name:?} emoji in {guild_name}: {why:?}");
+            error!("Failed to create {name:?} emoji in {guild_name}: {why:?}");
             Err(format!(
-                "Sorry, but I couldn't create an emoji called `{name}`."
+                "An error occurred whilst creating an emoji called `{name}`."
             ))
         }
     };

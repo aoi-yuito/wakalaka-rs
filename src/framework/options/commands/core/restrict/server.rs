@@ -40,16 +40,16 @@ pub async fn server(
 ) -> Result<(), Error> {
     let pool = &ctx.data().pool;
 
-    let other_guild_name = models::guilds::guild_name_from_guild_id(ctx, other_guild_id);
+    let other_guild_name = models::guilds::guild_name(ctx, other_guild_id);
 
     let guild_id = models::guilds::guild_id(ctx)?;
-    let guild_name = models::guilds::guild_name_from_guild_id(ctx, guild_id);
+    let guild_name = models::guilds::guild_name(ctx, guild_id);
 
     // Imagine trying to block your own server... in your OWN server.
     let failsafe_query = guilds::select_guild_id_from_guilds(&guild_id, &pool).await;
     let result = match failsafe_query {
         Some(guild_id) if guild_id == other_guild_id => Err(format!(
-            "Sorry, but I can't deny invitation to {guild_name}."
+            "Cannot deny {guild_name} from inviting yours truly!"
         )),
         _ => {
             let previous_query =
@@ -57,17 +57,19 @@ pub async fn server(
                     .await;
             match previous_query {
                 Err(_) => {
-                    info!("Denied invitation to {other_guild_name}");
+                    info!("Denied {other_guild_name} from inviting yours truly");
                     if let Err(why) = other_guild_id.leave(ctx).await {
-                        error!("Couldn't leave {other_guild_name}: {why:?}");
+                        error!("Failed to leave {other_guild_name}: {why:?}");
                         return Err(why.into());
                     }
                     restricted_guilds::insert_into_restricted_guilds(&other_guild_id, pool).await?;
                     Ok(format!(
-                        "Denied myself from being able to join {other_guild_name}."
+                        "Yours truly can no longer be invited to {other_guild_name}."
                     ))
                 }
-                _ => Err(format!("I'm already unable to join {other_guild_name}.")),
+                _ => Err(format!(
+                    "Invitation to {other_guild_name} is already denied!"
+                )),
             }
         }
     };

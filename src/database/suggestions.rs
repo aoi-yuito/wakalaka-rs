@@ -27,7 +27,7 @@ pub async fn delete_from_suggestions(message_id: i64, guild_id: i64, pool: &Sqli
             .bind(guild_id);
 
     if let Err(why) = suggest_query.execute(pool).await {
-        error!("Couldn't delete suggestion from database: {why:?}");
+        error!("Failed to delete suggestion from database: {why:?}");
         return;
     } else {
         let elapsed_time = start_time.elapsed();
@@ -54,7 +54,7 @@ pub async fn update_suggestions(
     .bind(message_id)
     .bind(guild_id);
     if let Err(why) = query.execute(pool).await {
-        error!("Couldn't update suggestion in database: {why:?}");
+        error!("Failed to update suggestion in database: {why:?}");
         return Err(why);
     }
 
@@ -91,7 +91,7 @@ pub async fn insert_into_suggestions(
     .bind(channel_id)
     .bind(guild_id);
     if let Err(why) = query.execute(pool).await {
-        error!("Couldn't insert into Suggestions: {why:?}");
+        error!("Failed to insert into Suggestions: {why:?}");
         return Err(why);
     }
 
