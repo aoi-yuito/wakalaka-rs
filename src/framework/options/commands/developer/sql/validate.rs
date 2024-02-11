@@ -24,7 +24,6 @@ use crate::{
     slash_command,
     category = "Developer",
     required_bot_permissions = "SEND_MESSAGES",
-    guild_only,
     user_cooldown = 5
 )]
 /// Check SQL query for syntax errors.
