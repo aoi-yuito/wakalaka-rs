@@ -204,27 +204,6 @@ pub async fn update_guilds_set_logs_channel_id(
     Ok(())
 }
 
-pub async fn update_guilds_set_welcome_channel_id(
-    channel_id: ChannelId,
-    guild_id: GuildId,
-    pool: &SqlitePool,
-) -> Result<(), sqlx::Error> {
-    let start_time = Instant::now();
-
-    let query = sqlx::query("UPDATE guilds SET welcome_channel_id = ? WHERE guild_id = ?")
-        .bind(i64::from(channel_id))
-        .bind(i64::from(guild_id));
-    if let Err(why) = query.execute(pool).await {
-        error!("Failed to update 'welcomeChannelId' from Guilds: {why:?}");
-        return Err(why);
-    }
-
-    let elapsed_time = start_time.elapsed();
-    debug!("Updated 'welcomeChannelId' from Guilds in {elapsed_time:.2?}");
-
-    Ok(())
-}
-
 pub async fn update_guilds_set_suggestions_channel_id(
     channel_id: ChannelId,
     guild_id: GuildId,

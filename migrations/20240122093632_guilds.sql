@@ -4,6 +4,5 @@ CREATE TABLE IF NOT EXISTS guilds (
     logs_channel_id BIGINT,
     suggestions_channel_id BIGINT,
     usage_channel_id BIGINT,
-    welcome_channel_id BIGINT,
     FOREIGN KEY (owner_id) REFERENCES users(user_id)
 );

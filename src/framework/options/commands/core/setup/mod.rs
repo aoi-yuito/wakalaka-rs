@@ -16,19 +16,16 @@
 mod logs;
 mod suggestions;
 mod usage;
-mod welcome;
 
 use crate::{
-    framework::commands::core::setup::{
-        logs::logs, suggestions::suggestions, usage::usage, welcome::welcome,
-    },
+    framework::commands::core::setup::{logs::logs, suggestions::suggestions, usage::usage},
     Context, Error,
 };
 
 #[poise::command(
     prefix_command,
     slash_command,
-    subcommands("logs", "suggestions", "usage", "welcome"),
+    subcommands("logs", "suggestions", "usage"),
     category = "Core",
     required_permissions = "ADMINISTRATOR",
     owners_only,
