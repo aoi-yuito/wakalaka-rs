@@ -1,18 +1,8 @@
 <!--
- Copyright (C) 2024 Kawaxte
- 
- wakalaka-rs is free software: you can redistribute it and/or modify
- it under the terms of the GNU Lesser General Public License as published by
- the Free Software Foundation, either version 3 of the License, or
- (at your option) any later version.
- 
- wakalaka-rs is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU Lesser General Public License for more details.
- 
- You should have received a copy of the GNU Lesser General Public License
- along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
+ Copyright (c) 2024 Kawaxte
+
+ This software is released under the MIT License.
+ https://opensource.org/licenses/MIT
 -->
 
 <div align="center">
@@ -28,9 +18,7 @@
 
 A work-in-progress, self-hostable Discord bot written purely in Rust, inspired by [Red](https://github.com/Cog-Creators/Red-DiscordBot) and [Dyno](https://dyno.gg).
 
-_Wakalaka is currently in a Beta stage, and I highly suggest you to not use her in a production environment. However, you can try her out and test her all you want. Report any issues you find, and suggest any features you'd like to see. The more feedback I get, the closer I can get her to Release Candidate stage._
-
-To invite her to your server, click [here](https://discord.com/api/oauth2/authorize?client_id=1190718691055251548&permissions=9899241204854&scope=bot).
+_Wakalaka is currently in Beta stage, and whilst she's not ready for general use (yet), she's still available for testing. If you'd like to test her, you can invite her to your server by clicking [here](https://discord.com/api/oauth2/authorize?client_id=1190718691055251548&permissions=9899241204854&scope=bot)._
 
 ---
 
