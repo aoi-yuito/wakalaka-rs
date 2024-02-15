@@ -1,0 +1,5 @@
+CREATE TABLE IF NOT EXISTS guilds (
+    guild_id BIGINT PRIMARY KEY ON DELETE CASCADE,
+    owner_id BIGINT NOT NULL,
+    FOREIGN KEY (owner_id) REFERENCES users (user_id) ON DELETE CASCADE
+);
