@@ -92,7 +92,7 @@ pub(crate) async fn insert_into(
                 // UNIQUE constraint failed
                 return Ok(());
             }
-            
+
             transaction.rollback().await?;
 
             error!("Failed to insert into Guilds: {why:?}");
