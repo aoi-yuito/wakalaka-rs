@@ -6,12 +6,9 @@
 use std::sync::Arc;
 
 use serenity::{all::Message, builder::GetMessages};
-use tracing::{error, info};
+use tracing::error;
 
-use crate::{
-    utils::{components, models},
-    Context, Error,
-};
+use crate::{utils::components, Context, Error};
 
 #[poise::command(
     slash_command,
@@ -36,14 +33,7 @@ pub(super) async fn after(
     let s_ctx = ctx.serenity_context();
     let http = Arc::clone(&s_ctx.http);
 
-    let author = ctx.author();
-    let author_name = &author.name;
-
     let channel_id = ctx.channel_id();
-    let channel_name = &channel_id.name(ctx).await?;
-
-    let guild = models::guilds::guild(ctx)?;
-    let guild_name = guild.name;
 
     let handle = tokio::spawn(async move {
         let mut deleted_message_count = 0;
