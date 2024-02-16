@@ -106,7 +106,7 @@ pub(super) async fn kick(
         }
         Err(why) => {
             error!("Failed to kick @{user_name} from {guild_name}: {why:?}");
-            Err(format!("An error occurred whilst kicking {user_mention}."))
+            Err(format!("An error occurred while kicking {user_mention}."))
         }
     };
 

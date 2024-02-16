@@ -129,7 +129,7 @@ pub(super) async fn timeout(
             Err(why) => {
                 error!("Failed to get @{user_name} out of time-out in {guild_name}: {why:?}");
                 Err(format!(
-                    "An error occurred whilst getting {user_mention} out of a time-out."
+                    "An error occurred while getting {user_mention} out of a time-out."
                 ))
             }
         }
@@ -186,7 +186,7 @@ pub(super) async fn timeout(
             Err(why) => {
                 error!("Failed to time out @{user_name} in {guild_name}: {why:?}");
                 Err(format!(
-                    "An error occurred whilst timing out {user_mention}."
+                    "An error occurred while timing out {user_mention}."
                 ))
             }
         }

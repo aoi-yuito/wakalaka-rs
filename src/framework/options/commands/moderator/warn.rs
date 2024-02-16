@@ -117,7 +117,7 @@ pub(super) async fn warn(
             info!("@{author_name} warned @{user_name} in {guild_name}: {reason}");
             Ok(format!("{user_mention} has been warned for {reason}."))
         }
-        Err(_) => Err(format!("An error occurred whilst warning {user_mention}.")),
+        Err(_) => Err(format!("An error occurred while warning {user_mention}.")),
     };
 
     let reply = match result {

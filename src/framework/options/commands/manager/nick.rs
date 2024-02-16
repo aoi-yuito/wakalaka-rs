@@ -73,10 +73,10 @@ pub(super) async fn nick(
         Err(why) => {
             if nickname.is_empty() {
                 info!("Failed to reset @{user_name}'s nickname in {guild_name}: {why:?}");
-                Err("An error occurred whilst resetting {user_mention}'s  nickname.")
+                Err("An error occurred while resetting {user_mention}'s  nickname.")
             } else {
                 info!("Failed to change @{user_name}'s nickname to {nickname:?} in {guild_name}: {why:?}");
-                Err("An error occurred whilst changing {user_mention}'s nickname.")
+                Err("An error occurred while changing {user_mention}'s nickname.")
             }
         }
     };

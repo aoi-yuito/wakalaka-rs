@@ -57,7 +57,7 @@ pub(super) async fn edit(
         }
         Err(why) => {
             error!("Failed to rename {emoji_name:?} to {name:?} in {guild_name}: {why:?}");
-            Err(format!("An error occurred whilst editing `{emoji}`."))
+            Err(format!("An error occurred while editing `{emoji}`."))
         }
     };
 

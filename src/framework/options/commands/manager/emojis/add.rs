@@ -100,7 +100,7 @@ pub(super) async fn add(
         }
         Err(why) => {
             error!("Failed to create {name:?} in {guild_name}: {why:?}");
-            Err(format!("An error occurred whilst creating `{name}`."))
+            Err(format!("An error occurred while creating `{name}`."))
         }
     };
 

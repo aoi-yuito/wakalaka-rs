@@ -51,7 +51,7 @@ pub(super) async fn unassign(
         Err(why) => {
             error!("Failed to take @{role_name} away from @{user_name} in {guild_name}: {why:?}");
             Err(format!(
-                "An error occurred whilst taking {role_mention} away from {user_mention}."
+                "An error occurred while taking {role_mention} away from {user_mention}."
             ))
         }
     };

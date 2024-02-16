@@ -100,7 +100,7 @@ pub(super) async fn unban(
         Err(why) => {
             error!("Failed to unban @{user_name} from {guild_name}: {why:?}");
             Err(format!(
-                "An error occurred whilst unbanning {user_mention}."
+                "An error occurred while unbanning {user_mention}."
             ))
         }
     };

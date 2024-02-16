@@ -51,7 +51,7 @@ pub(super) async fn assign(
         Err(why) => {
             error!("Failed to give @{role_name} to @{user_name} in {guild_name}: {why:?}");
             Err(format!(
-                "An error occurred whilst adding {role_mention} to {user_mention}."
+                "An error occurred while adding {role_mention} to {user_mention}."
             ))
         }
     };

@@ -78,7 +78,7 @@ pub(super) async fn slowmode(
                 }
             }
             Err(why) => Err(format!(
-                "An error occurred whilst slowing down {guild_channel_mention}: {why}",
+                "An error occurred while slowing down {guild_channel_mention}: {why}",
             )),
         };
 

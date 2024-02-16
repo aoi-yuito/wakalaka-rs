@@ -56,7 +56,7 @@ pub(super) async fn remove(
         }
         Err(why) => {
             error!("Failed to delete {emoji_name:?} from {guild_name}: {why:?}");
-            Err(format!("An error occurred whilst deleting `{emoji_name}`."))
+            Err(format!("An error occurred while deleting `{emoji_name}`."))
         }
     };
 

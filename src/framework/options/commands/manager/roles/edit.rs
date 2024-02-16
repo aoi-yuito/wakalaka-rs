@@ -66,7 +66,7 @@ pub(super) async fn edit(
         }
         Err(why) => {
             error!("Failed to edit @{role_name} in {guild_name}: {why:?}");
-            Err(format!("An error occurred whilst editing {role_mention}."))
+            Err(format!("An error occurred while editing {role_mention}."))
         }
     };
 

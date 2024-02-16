@@ -41,7 +41,7 @@ pub(super) async fn remove(
         }
         Err(why) => {
             error!("@{author_name} failed to delete @{role_name} from {guild_name}: {why:?}");
-            Err(format!("An error occurred whilst deleting {role_mention}."))
+            Err(format!("An error occurred while deleting {role_mention}."))
         }
     };
 
