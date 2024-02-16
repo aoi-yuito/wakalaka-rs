@@ -55,25 +55,6 @@ pub(crate) async fn update_set_violations(
     Ok(())
 }
 
-pub(crate) async fn delete_from(db: &SqlitePool, user_id: &UserId) -> Result<(), SqlxError> {
-    let transaction = db.begin().await?;
-
-    let query = sqlx::query("DELETE FROM users WHERE user_id = ?").bind(i64::from(*user_id));
-    match query.execute(db).await {
-        Ok(_) => (),
-        Err(why) => {
-            transaction.rollback().await?;
-
-            error!("Failed to delete from Users: {why:?}");
-            return Err(SqlxError::from(why));
-        }
-    }
-
-    transaction.commit().await?;
-
-    Ok(())
-}
-
 pub(crate) async fn insert_into(db: &SqlitePool, user_id: &UserId) -> Result<(), SqlxError> {
     let transaction = db.begin().await?;
 
