@@ -24,8 +24,8 @@ pub(super) async fn user(
     ctx: Context<'_>,
     #[description = "The user to restrict."] user: User,
     #[min_length = 1]
-    #[max_length = 120]
-    #[description = "The reason for restricting the user."]
+    #[max_length = 255]
+    #[description = "The reason for restricting."]
     reason: String,
 ) -> Result<(), Error> {
     let db = &ctx.data().db;

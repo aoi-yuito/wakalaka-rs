@@ -26,8 +26,8 @@ pub(super) async fn server(
     #[rename = "server"]
     guild: Guild,
     #[min_length = 1]
-    #[max_length = 120]
-    #[description = "The reason for restricting the server."]
+    #[max_length = 255]
+    #[description = "The reason for restricting."]
     reason: String,
 ) -> Result<(), Error> {
     let db = &ctx.data().db;
