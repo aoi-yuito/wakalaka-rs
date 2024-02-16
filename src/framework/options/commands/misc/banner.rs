@@ -13,7 +13,7 @@ use crate::{utils::components, Context, Error};
 
 #[poise::command(
     slash_command,
-    context_menu_command = "Get Banner",
+    context_menu_command = "Banner",
     category = "Miscellaneous",
     required_bot_permissions = "SEND_MESSAGES | EMBED_LINKS",
     user_cooldown = 5

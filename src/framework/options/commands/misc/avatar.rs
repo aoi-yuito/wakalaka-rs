@@ -13,7 +13,7 @@ use crate::{Context, Error};
 
 #[poise::command(
     slash_command,
-    context_menu_command = "Get Avatar",
+    context_menu_command = "Avatar",
     category = "Miscellaneous",
     required_bot_permissions = "SEND_MESSAGES | EMBED_LINKS",
     user_cooldown = 5
