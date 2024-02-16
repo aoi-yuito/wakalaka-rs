@@ -1,6 +1,6 @@
 [package]
 name = "wakalaka-rs"
-version = "0.1.5-beta"
+version = "0.2.0-beta"
 authors = ["Kawaxte"]
 edition = "2021"
 rust-version = "1.76.0"
