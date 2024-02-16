@@ -80,7 +80,7 @@ pub(super) async fn ban(
 
     let mut violations = queries::users::select_violations_from(db, &user_id).await?;
 
-    let handle = match member.ban_with_reason(&ctx, days, &reason).await {
+    let result = match member.ban_with_reason(&ctx, days, &reason).await {
         Ok(_) => {
             let created_at = Utc::now().naive_utc();
 
@@ -114,7 +114,7 @@ pub(super) async fn ban(
         }
     };
 
-    let reply = match handle {
+    let reply = match result {
         Ok(message) => components::replies::ok_reply_embed(message, true),
         Err(message) => components::replies::error_reply_embed(message, true),
     };

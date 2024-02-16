@@ -76,7 +76,7 @@ pub(super) async fn kick(
 
     let uuid = Uuid::new_v4();
 
-    let handle = match member.kick_with_reason(&ctx, &reason).await {
+    let result = match member.kick_with_reason(&ctx, &reason).await {
         Ok(_) => {
             let created_at = Utc::now().naive_utc();
 
@@ -110,7 +110,7 @@ pub(super) async fn kick(
         }
     };
 
-    let reply = match handle {
+    let reply = match result {
         Ok(message) => components::replies::ok_reply_embed(message, true),
         Err(message) => components::replies::error_reply_embed(message, true),
     };

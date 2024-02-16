@@ -88,7 +88,7 @@ pub(super) async fn timeout(
     let uuid = Uuid::new_v4();
     let uuids = queries::violations::select_uuids_from(db, &kind, &guild_id, &user_id).await?;
 
-    let handle = if time.is_none() {
+    let result = if time.is_none() {
         match member.enable_communication(ctx).await {
             Ok(_) => {
                 if uuids.is_empty() {
@@ -193,7 +193,7 @@ pub(super) async fn timeout(
         }
     };
 
-    let reply = match handle {
+    let reply = match result {
         Ok(message) => components::replies::ok_reply_embed(message, true),
         Err(message) => components::replies::error_reply_embed(message, true),
     };
