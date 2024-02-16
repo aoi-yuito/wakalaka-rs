@@ -27,14 +27,15 @@ use crate::{
 pub(super) async fn kick(
     ctx: Context<'_>,
     #[description = "The user to kick."] user: User,
-    #[description = "The reason for kicking."]
-    #[min_length = 3]
-    #[max_length = 120]
+    #[description = "The reason for kicking, if any."]
+    #[min_length = 1]
+    #[max_length = 255]
     reason: Option<String>,
 ) -> Result<(), Error> {
     let db = &ctx.data().db;
-
+    let uuid = format!("{}", Uuid::new_v4());
     let kind = Violation::Kick;
+    let reason = reason.unwrap_or(String::new());
 
     if user.system {
         let reply = components::replies::error_reply_embed("Cannot kick a system user.", true);
@@ -64,17 +65,16 @@ pub(super) async fn kick(
         return Ok(());
     }
 
-    let member = guild_id.member(&ctx, user_id).await?;
-
-    let reason = reason.unwrap_or(String::new());
-
     if let Err(_) = queries::users::select_user_id_from(db, &user_id).await {
         queries::users::insert_into(db, &user_id).await?;
+    }
+    if let Err(_) = queries::users::select_user_id_from(db, &author_id).await {
+        queries::users::insert_into(db, &author_id).await?;
     }
 
     let mut violations = queries::users::select_violations_from(db, &user_id).await?;
 
-    let uuid = Uuid::new_v4();
+    let member = guild_id.member(&ctx, user_id).await?;
 
     let result = match member.kick_with_reason(&ctx, &reason).await {
         Ok(_) => {

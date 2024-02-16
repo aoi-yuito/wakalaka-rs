@@ -34,14 +34,15 @@ pub(super) async fn timeout(
     #[min = 1]
     #[max = 28]
     time: Option<i64>,
-    #[description = "The reason for timing out."]
-    #[min_length = 3]
-    #[max_length = 120]
+    #[description = "The reason for timing out, if any."]
+    #[min_length = 1]
+    #[max_length = 255]
     reason: Option<String>,
 ) -> Result<(), Error> {
     let db = &ctx.data().db;
-
+    let uuid = format!("{}", Uuid::new_v4());
     let kind = Violation::Timeout;
+    let reason = reason.unwrap_or(String::new());
 
     if user.bot || user.system {
         let reply = components::replies::error_reply_embed(
@@ -75,18 +76,18 @@ pub(super) async fn timeout(
         return Ok(());
     }
 
-    let mut member = guild_id.member(&ctx, user_id).await?;
-
-    let reason = reason.unwrap_or(String::new());
-
     if let Err(_) = queries::users::select_user_id_from(db, &user_id).await {
         queries::users::insert_into(db, &user_id).await?;
     }
+    if let Err(_) = queries::users::select_user_id_from(db, &author_id).await {
+        queries::users::insert_into(db, &author_id).await?;
+    }
 
+    let uuids = queries::violations::select_uuids_from(db, &kind, &guild_id, &user_id).await?;
+    
     let mut violations = queries::users::select_violations_from(db, &user_id).await?;
 
-    let uuid = Uuid::new_v4();
-    let uuids = queries::violations::select_uuids_from(db, &kind, &guild_id, &user_id).await?;
+    let mut member = guild_id.member(&ctx, user_id).await?;
 
     let result = if time.is_none() {
         match member.enable_communication(ctx).await {
@@ -103,8 +104,6 @@ pub(super) async fn timeout(
                 }
 
                 for uuid in uuids {
-                    let uuid = Uuid::parse_str(&uuid).unwrap();
-
                     queries::violations::delete_from(db, &uuid).await?;
                 }
 

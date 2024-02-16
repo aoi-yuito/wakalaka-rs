@@ -31,14 +31,16 @@ pub(super) async fn ban(
     #[min = 0]
     #[max = 7]
     days: u8,
-    #[description = "The reason for banning."]
-    #[min_length = 3]
-    #[max_length = 120]
+    #[description = "The reason for banning, if any."]
+    #[min_length = 1]
+    #[max_length = 255]
     reason: Option<String>,
 ) -> Result<(), Error> {
     let db = &ctx.data().db;
-
     let kind = Violation::Ban;
+    let uuid = format!("{}", Uuid::new_v4());
+    let created_at = Utc::now().naive_utc();
+    let reason = reason.unwrap_or(String::new());
 
     if user.system {
         let reply = components::replies::error_reply_embed("Cannot ban a system user.", true);
@@ -68,22 +70,19 @@ pub(super) async fn ban(
         return Ok(());
     }
 
-    let member = guild_id.member(&ctx, user_id).await?;
-
-    let reason = reason.unwrap_or(String::new());
-
-    let uuid = Uuid::new_v4();
-
     if let Err(_) = queries::users::select_user_id_from(db, &user_id).await {
         queries::users::insert_into(db, &user_id).await?;
+    }
+    if let Err(_) = queries::users::select_user_id_from(db, &author_id).await {
+        queries::users::insert_into(db, &author_id).await?;
     }
 
     let mut violations = queries::users::select_violations_from(db, &user_id).await?;
 
+    let member = guild_id.member(&ctx, user_id).await?;
+
     let result = match member.ban_with_reason(&ctx, days, &reason).await {
         Ok(_) => {
-            let created_at = Utc::now().naive_utc();
-
             queries::violations::insert_into(
                 db,
                 &uuid,
