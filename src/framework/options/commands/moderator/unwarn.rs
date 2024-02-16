@@ -9,12 +9,11 @@ use serenity::{
     all::{ComponentInteractionDataKind, Mentionable, ReactionType, User},
     builder::{
         CreateActionRow, CreateInteractionResponse, CreateSelectMenu, CreateSelectMenuKind,
-        CreateSelectMenuOption,
+        CreateSelectMenuOption, EditMessage,
     },
 };
 use tokio::time::timeout;
 use tracing::{error, info};
-use uuid::Uuid;
 
 use crate::{
     database::queries::{self, violations::Violation},
@@ -37,7 +36,6 @@ pub(super) async fn unwarn(
     #[description = "The user to unwarn."] user: User,
 ) -> Result<(), Error> {
     let db = &ctx.data().db;
-
     let kind = Violation::Warning;
 
     if user.bot || user.system {
@@ -54,6 +52,7 @@ pub(super) async fn unwarn(
     let author = ctx.author();
     let author_id = author.id;
     let author_name = &author.name;
+    let author_mention = author.mention();
 
     let user_id = user.id;
     let user_name = &user.name;
@@ -82,8 +81,6 @@ pub(super) async fn unwarn(
         return Ok(());
     }
 
-    let mut violations = queries::users::select_violations_from(db, &user_id).await?;
-
     let uuids = queries::violations::select_uuids_from(db, &kind, &guild_id, &user_id).await?;
     if uuids.is_empty() {
         let reply = components::replies::error_reply_embed(
@@ -97,14 +94,16 @@ pub(super) async fn unwarn(
 
     let warning = queries::violations::select_from(db, &kind, &guild_id, &user_id).await?;
 
+    let mut violations = queries::users::select_violations_from(db, &user_id).await?;
+
     let menu_options = warning
         .iter()
         .enumerate()
         .map(|(_, (uuid, reason, created_at))| {
-            let formatted_date = created_at.format("%b %d, %Y").to_string();
+            let formatted_created_at = created_at.format("%b %d, %Y").to_string();
 
-            CreateSelectMenuOption::new(format!("{formatted_date}"), uuid)
-                .description(reason)
+            CreateSelectMenuOption::new(format!("@{author_name} ({formatted_created_at})"), uuid)
+                .description(reason.trim())
                 .emoji(ReactionType::Unicode(format!("⚠️")))
         })
         .collect::<Vec<_>>();
@@ -112,13 +111,12 @@ pub(super) async fn unwarn(
         options: menu_options,
     };
     let menu = CreateSelectMenu::new("warning_select", menu_kind)
-        .placeholder("Which warning would you like to remove?")
         .min_values(1)
         .max_values(1);
 
     let action_row = CreateActionRow::SelectMenu(menu);
 
-    let reply = components::replies::reply("Select a warning to remove:", true)
+    let reply = components::replies::reply("Which warning would you like to remove?", true)
         .components(vec![action_row]);
 
     let message = ctx.send(reply).await?.into_message().await?;
@@ -134,11 +132,9 @@ pub(super) async fn unwarn(
                 .await?;
 
             let data_kind = interaction.data.kind;
-            if let ComponentInteractionDataKind::StringSelect { values } = data_kind {
-                let values = values.into_iter().collect::<Vec<_>>();
-                for value in values {
-                    let uuid = value.parse::<Uuid>().unwrap();
-
+            if let ComponentInteractionDataKind::StringSelect { values: uuids } = data_kind {
+                let uuids = uuids.into_iter().collect::<Vec<_>>();
+                for uuid in uuids {
                     queries::violations::delete_from(db, &uuid).await?;
                 }
 
@@ -154,9 +150,7 @@ pub(super) async fn unwarn(
             Ok(format!("Removed a warning from {user_mention}."))
         } else {
             error!("Failed to remove warning from @{user_name} in {guild_name}");
-            Err(format!(
-                "Ran out of time to remove a warning from {user_mention}."
-            ))
+            Err(format!("Idle for too long."))
         };
 
     let reply = match result {
