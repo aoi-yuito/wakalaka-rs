@@ -1,83 +1,78 @@
-// Copyright (C) 2024 Kawaxte
+// Copyright (c) 2024 Kawaxte
 //
-// wakalaka-rs is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Lesser General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// wakalaka-rs is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Lesser General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public License
-// along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
+// This software is released under the MIT License.
+// https://opensource.org/licenses/MIT
 
-use serenity::all::GuildId;
-use tracing::{error, info};
+use serenity::all::Guild;
 
 use crate::{
-    database::{guilds, restricted_guilds},
-    utility::{components::messages, models},
+    database::queries,
+    utils::{components, models},
     Context, Error,
 };
 
 #[poise::command(
-    prefix_command,
     slash_command,
     category = "Core",
     required_permissions = "ADMINISTRATOR",
+    required_bot_permissions = "SEND_MESSAGES",
     owners_only,
-    user_cooldown = 5,
     ephemeral
 )]
-/// Deny inviting yours truly to a server.
-pub async fn server(
+/// Disallow a server from utilising yours truly.
+pub(super) async fn server(
     ctx: Context<'_>,
-    #[description = "The server to deny invitation to."]
+    #[description = "The server to restrict."]
     #[rename = "server"]
-    other_guild_id: GuildId,
+    guild: Guild,
+    #[min_length = 1]
+    #[max_length = 120]
+    #[description = "The reason for restricting the server."]
+    reason: String,
 ) -> Result<(), Error> {
-    let pool = &ctx.data().pool;
+    let db = &ctx.data().db;
 
-    let other_guild_name = models::guilds::guild_name(ctx, other_guild_id);
+    let ctx_guild = models::guilds::guild(ctx)?;
+    let ctx_guild_id = ctx_guild.id;
+    let ctx_guild_name = &ctx_guild.name;
 
-    let guild_id = models::guilds::guild_id(ctx)?;
-    let guild_name = models::guilds::guild_name(ctx, guild_id);
+    let guild_id = guild.id;
+    let guild_name = &guild.name;
 
-    // Imagine trying to block your own server... in your OWN server.
-    let failsafe_query = guilds::select_guild_id_from_guilds(&guild_id, &pool).await;
-    let result = match failsafe_query {
-        Some(guild_id) if guild_id == other_guild_id => Err(format!(
-            "Cannot deny {guild_name} from inviting yours truly!"
+    let guild_owner_id = guild.owner_id;
+
+    if ctx_guild_id == guild_id {
+        let reply = components::replies::error_reply_embed(
+            format!("Cannot disallow {ctx_guild_name} from utilising yours truly."),
+            true,
+        );
+
+        ctx.send(reply).await?;
+
+        return Ok(());
+    }
+
+    let result = match queries::restricted_guilds::select_guild_id_from(db, &guild_id).await {
+        Ok(_) => Err(format!(
+            "{guild_name} is already disallowed from utilising yours truly."
         )),
         _ => {
-            let previous_query =
-                restricted_guilds::select_guild_id_from_restricted_guilds(&other_guild_id, &pool)
-                    .await;
-            match previous_query {
-                Err(_) => {
-                    info!("Denied {other_guild_name} from inviting yours truly");
-                    if let Err(why) = other_guild_id.leave(ctx).await {
-                        error!("Failed to leave {other_guild_name}: {why:?}");
-                        return Err(why.into());
-                    }
-                    restricted_guilds::insert_into_restricted_guilds(&other_guild_id, pool).await?;
-                    Ok(format!(
-                        "Yours truly can no longer be invited to {other_guild_name}."
-                    ))
-                }
-                _ => Err(format!(
-                    "Invitation to {other_guild_name} is already denied!"
-                )),
-            }
+            queries::restricted_guilds::insert_into(db, &guild_id, &reason).await?;
+            queries::restricted_users::insert_into(db, &guild_owner_id, &reason).await?;
+
+            guild_id.leave(ctx).await?;
+
+            Ok(format!(
+                "{guild_name} isn't able to utilise yours truly anymore."
+            ))
         }
     };
 
     let reply = match result {
-        Ok(message) => messages::ok_reply(None, message, true),
-        Err(message) => messages::error_reply(None, message, true),
+        Ok(message) => components::replies::ok_reply_embed(message, true),
+        Err(message) => components::replies::error_reply_embed(message, true),
     };
+
     ctx.send(reply).await?;
 
     Ok(())
