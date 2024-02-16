@@ -1,103 +1,81 @@
-// Copyright (C) 2024 Kawaxte
+// Copyright (c) 2024 Kawaxte
 //
-// wakalaka-rs is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Lesser General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// wakalaka-rs is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Lesser General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public License
-// along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
+// This software is released under the MIT License.
+// https://opensource.org/licenses/MIT
 
-use poise::samples::create_application_commands;
 use serenity::all::Command;
-use tracing::error;
 
-use crate::{
-    utility::{components::messages, models},
-    Context, Error,
-};
+use crate::{utils::components, Context, Error};
 
 #[poise::command(
     prefix_command,
     category = "Core",
     required_permissions = "ADMINISTRATOR",
+    required_bot_permissions = "SEND_MESSAGES",
     owners_only,
     guild_only,
-    user_cooldown = 5,
-    ephemeral
+    user_cooldown = 5
 )]
-/// Register commands for yours truly.
-pub async fn register(
+/// Make commands available.
+pub(super) async fn register(
     ctx: Context<'_>,
-    #[description = "Whether or not the commands should be global."]
+    #[description = "Whether or not commands should be globalised."]
     #[flag]
     global: bool,
 ) -> Result<(), Error> {
-    let guild_id = models::guilds::guild_id(ctx)?;
+    let guild_id = ctx.guild_id().unwrap();
 
     let commands = &ctx.framework().options().commands;
-    let commands_builder = create_application_commands(&commands);
+
+    let commands_builder = poise::samples::create_application_commands(&commands);
 
     let command_count = commands_builder.len();
 
     if global {
-        let mut reply = if command_count == 1 {
-            messages::reply(None, "Registering global command...", true)
+        let mut global_message = if command_count == 1 {
+            format!("Registering a command globally...")
         } else {
-            messages::reply(None, format!("Registering global commands..."), true)
+            format!("Registering {command_count} commands globally...")
         };
+
+        let mut reply = components::replies::reply_embed(global_message, true);
 
         let reply_handle = ctx.send(reply).await?;
 
-        let global_commands = Command::set_global_commands(ctx, commands_builder).await;
-        if let Err(why) = global_commands {
-            error!("Failed to set global commands: {why:?}");
-            return Err(why.into());
-        }
+        Command::set_global_commands(ctx, commands_builder).await?;
 
-        reply = if command_count == 1 {
-            messages::ok_reply(None, "Registered `1` global command.", true)
+        global_message = if command_count == 1 {
+            format!("Command has been registered globally.")
         } else {
-            messages::ok_reply(
-                None,
-                format!("Registered `{command_count}` global commands."),
-                true,
-            )
+            format!("{command_count} commands have been registered globally.")
         };
+
+        reply = components::replies::reply_embed(global_message, true);
+
         reply_handle.edit(ctx, reply).await?;
-
-        return Ok(());
-    }
-
-    let mut reply = if command_count == 1 {
-        messages::reply(None, "Registering command...", true)
     } else {
-        messages::reply(None, format!("Registering commands..."), true)
-    };
+        let mut message = if command_count == 1 {
+            format!("Registering a command...")
+        } else {
+            format!("Registering {command_count} commands...")
+        };
 
-    let reply_handle = ctx.send(reply).await?;
+        let mut reply = components::replies::reply_embed(message, true);
 
-    let commands = guild_id.set_commands(ctx, commands_builder).await;
-    if let Err(why) = commands {
-        error!("Failed to set commands: {why:?}");
-        return Err(why.into());
+        let reply_handle = ctx.send(reply).await?;
+
+        guild_id.set_commands(ctx, commands_builder).await?;
+
+        message = if command_count == 1 {
+            format!("Command has been registered.")
+        } else {
+            format!("{command_count} commands have been registered.")
+        };
+
+        reply = components::replies::reply_embed(message, true);
+
+        reply_handle.edit(ctx, reply).await?;
     }
-
-    reply = if command_count == 1 {
-        messages::ok_reply(None, "Registered `1` command.", true)
-    } else {
-        messages::ok_reply(
-            None,
-            format!("Registered `{command_count}` commands."),
-            true,
-        )
-    };
-    reply_handle.edit(ctx, reply).await?;
 
     Ok(())
 }

@@ -1,70 +1,79 @@
-// Copyright (C) 2024 Kawaxte
+// Copyright (c) 2024 Kawaxte
 //
-// wakalaka-rs is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Lesser General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// wakalaka-rs is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Lesser General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public License
-// along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
+// This software is released under the MIT License.
+// https://opensource.org/licenses/MIT
 
 use serenity::all::Command;
-use tracing::error;
 
-use crate::{
-    utility::{components::messages, models},
-    Context, Error,
-};
+use crate::{utils::components, Context, Error};
 
 #[poise::command(
     prefix_command,
     category = "Core",
     required_permissions = "ADMINISTRATOR",
+    required_bot_permissions = "SEND_MESSAGES",
     owners_only,
-    user_cooldown = 5,
-    ephemeral
+    guild_only,
+    user_cooldown = 5
 )]
-/// Unregister commands for yours truly.
-pub async fn unregister(
+/// Make commands unavailable.
+pub(super) async fn unregister(
     ctx: Context<'_>,
-    #[description = "Whether or not the commands should be global."]
+    #[description = "Whether or not commands should be globalised."]
     #[flag]
     global: bool,
 ) -> Result<(), Error> {
-    let guild_id = models::guilds::guild_id(ctx)?;
+    let guild_id = ctx.guild_id().unwrap();
+
+    let commands = &ctx.framework().options().commands;
+
+    let command_count = commands.len();
 
     if global {
-        let mut reply = messages::reply(None, "Unregistering command(s) globally...", true);
+        let mut global_message = if command_count == 1 {
+            format!("Unregistering a command globally...")
+        } else {
+            format!("Unregistering {command_count} commands globally...")
+        };
+
+        let mut reply = components::replies::reply_embed(global_message, true);
+
         let reply_handle = ctx.send(reply).await?;
 
-        let global_commands = Command::set_global_commands(ctx, vec![]).await;
-        if let Err(why) = global_commands {
-            error!("Failed to set global commands: {why:?}");
-            return Err(why.into());
-        }
+        Command::set_global_commands(ctx, vec![]).await?;
 
-        reply = messages::ok_reply(None, "Unregistered every global command.", true);
+        global_message = if command_count == 1 {
+            format!("Command has been unregistered globally.")
+        } else {
+            format!("{command_count} commands have been unregistered globally.")
+        };
+
+        reply = components::replies::ok_reply_embed(global_message, true);
+
         reply_handle.edit(ctx, reply).await?;
+    } else {
+        let mut message = if command_count == 1 {
+            format!("Unregistering a command...")
+        } else {
+            format!("Unregistering {command_count} commands...")
+        };
 
-        return Ok(());
+        let mut reply = components::replies::reply_embed(message, true);
+
+        let reply_handle = ctx.send(reply).await?;
+
+        guild_id.set_commands(ctx, vec![]).await?;
+
+        message = if command_count == 1 {
+            format!("Command has been unregistered.")
+        } else {
+            format!("{command_count} commands have been unregistered.")
+        };
+
+        reply = components::replies::ok_reply_embed(message, true);
+
+        reply_handle.edit(ctx, reply).await?;
     }
-
-    let mut reply = messages::reply(None, "Unregistering command(s)...", true);
-    let reply_handle = ctx.send(reply).await?;
-
-    let commands = guild_id.set_commands(ctx, vec![]).await;
-    if let Err(why) = commands {
-        error!("Failed to set commands: {why:?}");
-        return Err(why.into());
-    }
-
-    reply = messages::ok_reply(None, "Unregistered every command.", true);
-    reply_handle.edit(ctx, reply).await?;
 
     Ok(())
 }
