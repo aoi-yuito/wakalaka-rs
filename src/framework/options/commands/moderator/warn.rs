@@ -90,7 +90,7 @@ pub(super) async fn warn(
 
     let created_at = Utc::now().naive_utc();
 
-    let handle = match queries::violations::insert_into(
+    let result = match queries::violations::insert_into(
         db,
         &uuid,
         &kind,
@@ -119,7 +119,7 @@ pub(super) async fn warn(
         Err(_) => Err(format!("An error occurred whilst warning {user_mention}.")),
     };
 
-    let reply = match handle {
+    let reply = match result {
         Ok(message) => components::replies::ok_reply_embed(message, true),
         Err(message) => components::replies::error_reply_embed(message, true),
     };
