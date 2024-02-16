@@ -1,67 +1,49 @@
-// Copyright (C) 2024 Kawaxte
+// Copyright (c) 2024 Kawaxte
 //
-// wakalaka-rs is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Lesser General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// wakalaka-rs is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Lesser General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public License
-// along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
+// This software is released under the MIT License.
+// https://opensource.org/licenses/MIT
 
-use serenity::all::User;
-use tracing::warn;
-
-use crate::{
-    utility::{
-        components::{embeds, messages, replies},
-        models,
-    },
-    Context, Error,
+use poise::CreateReply;
+use serenity::{
+    all::{colours::branding, Mentionable, User},
+    builder::CreateEmbed,
 };
 
+use crate::{utils::components, Context, Error};
+
 #[poise::command(
-    prefix_command,
     slash_command,
     context_menu_command = "Get Banner",
-    category = "Misc",
-    required_bot_permissions = "SEND_MESSAGES",
-    user_cooldown = 5,
-    guild_only
+    category = "Miscellaneous",
+    required_bot_permissions = "SEND_MESSAGES | EMBED_LINKS",
+    user_cooldown = 5
 )]
 /// Get a user's banner.
-pub async fn banner(
+pub(super) async fn banner(
     ctx: Context<'_>,
-    #[description = "The user to get the banner from."] user: User,
+    #[description = "The user to get banner of"] user: User,
 ) -> Result<(), Error> {
-    let user_id = user.id;
-    let (user_name, user_mention) = (&user.name, models::users::user_mention(ctx, user_id).await?);
+    let user_name = &user.name;
+    let user_mention = user.mention();
+    let user_banner_url = user.banner_url();
+    if let Some(user_banner_url) = user_banner_url {
+        let user_accent_colour = user.accent_colour.unwrap_or(branding::BLURPLE);
 
-    let (user_avatar_url, user_banner_url) = (
-        user.avatar_url().unwrap_or(user.default_avatar_url()),
-        match user.banner_url() {
-            Some(banner_url) => banner_url,
-            None => {
-                warn!("Couldn't find @{user_name}'s banner");
+        let embed = CreateEmbed::default()
+            .title(user_name)
+            .image(user_banner_url)
+            .colour(user_accent_colour);
 
-                let reply = messages::error_reply(
-                    format!("Sorry, but I couldn't find {user_mention}'s banner."),
-                    true,
-                );
-                ctx.send(reply).await?;
+        let reply = CreateReply::default().embed(embed);
 
-                return Ok(());
-            }
-        },
+        ctx.send(reply).await?;
+    }
+
+    let reply = components::replies::error_reply_embed(
+        format!("{user_mention} doesn't have a banner."),
+        true,
     );
 
-    let embed = embeds::banner_command_embed(user_name, user_avatar_url, user_banner_url);
-
-    let reply = replies::reply_embed(embed, false);
     ctx.send(reply).await?;
 
     Ok(())

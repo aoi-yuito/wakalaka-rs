@@ -1,82 +1,45 @@
-// Copyright (C) 2024 Kawaxte
-//
-// wakalaka-rs is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Lesser General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// wakalaka-rs is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Lesser General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public License
-// along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
+// Copyright (c) 2024 Kawaxte
+// 
+// This software is released under the MIT License.
+// https://opensource.org/licenses/MIT
 
-use poise::{Framework, FrameworkOptions, PrefixFrameworkOptions};
-use serenity::all::GatewayIntents;
-use tokio::time::Instant;
-use tracing::debug;
+mod options;
 
-use crate::framework::options::commands;
-use crate::{Data, Error};
+use poise::{Framework, FrameworkOptions};
 
-pub mod options;
-pub mod setup;
+use crate::{Data, Error, SContext, SReady};
 
-pub async fn initialise_framework_options() -> FrameworkOptions<Data, Error> {
-    let start_time = Instant::now();
+pub(crate) async fn framework(data: Data) -> Framework<Data, Error> {
+    Framework::builder()
+        .setup(|ctx, ready, framework| Box::pin(framework_setup(ctx, ready, framework, data)))
+        .options(framework_options().await)
+        .build()
+}
 
-    let framework_options = FrameworkOptions {
-        commands: commands::guild_commands().await,
+async fn framework_setup(
+    _ctx: &SContext,
+    _ready: &SReady,
+    _framework: &Framework<Data, Error>,
+    data: Data,
+) -> Result<Data, Error> {
+    Ok(data)
+}
+
+async fn framework_options() -> FrameworkOptions<Data, Error> {
+    FrameworkOptions {
+        commands: options::commands::commands().await,
         on_error: |error| Box::pin(options::on_error::handle(error)),
         post_command: |ctx| Box::pin(options::post_command::handle(ctx)),
         command_check: Some(|ctx| Box::pin(options::command_check::handle(ctx))),
-        event_handler: |ctx, event, framework, data| {
-            Box::pin(options::event_handler::handle(ctx, event, framework, data))
+        event_handler: |ctx, event, framework_ctx, data| {
+            Box::pin(options::event_handler::handle(
+                ctx,
+                event,
+                framework_ctx,
+                data,
+            ))
         },
-        prefix_options: PrefixFrameworkOptions {
-            prefix: Some(format!("?")),
-            ..Default::default()
-        },
+        prefix_options: options::prefix_options::prefix_framework_options(),
         ..Default::default()
-    };
-
-    let elapsed_time = start_time.elapsed();
-    debug!("Initialised framework options in {elapsed_time:.2?}");
-
-    framework_options
-}
-
-pub async fn initialise_framework(data: Data) -> Framework<Data, Error> {
-    let start_time = Instant::now();
-
-    let framework = Framework::builder()
-        .setup(|ctx, _, _| Box::pin(async move { setup::handle(ctx, data).await }))
-        .options(initialise_framework_options().await)
-        .build();
-
-    let elapsed_time = start_time.elapsed();
-    debug!("Initialised framework in {elapsed_time:.2?}");
-
-    framework
-}
-
-pub fn initialise_intents() -> GatewayIntents {
-    let start_time = Instant::now();
-
-    let intents = GatewayIntents::non_privileged()
-        | GatewayIntents::GUILDS
-        | GatewayIntents::GUILD_MEMBERS
-        | GatewayIntents::GUILD_MODERATION
-        | GatewayIntents::GUILD_MESSAGES
-        | GatewayIntents::DIRECT_MESSAGES
-        | GatewayIntents::MESSAGE_CONTENT
-        | GatewayIntents::AUTO_MODERATION_CONFIGURATION
-        | GatewayIntents::AUTO_MODERATION_EXECUTION;
-
-    let elapsed_time = start_time.elapsed();
-    debug!("Initialised intents in {elapsed_time:.2?}");
-
-    intents
+    }
 }

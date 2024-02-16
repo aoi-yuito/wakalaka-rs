@@ -1,1 +1,0 @@
-CREATE TABLE IF NOT EXISTS restricted_users (user_id BIGINT PRIMARY KEY);

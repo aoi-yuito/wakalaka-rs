@@ -1,40 +1,19 @@
-// Copyright (C) 2024 Kawaxte
-//
-// wakalaka-rs is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Lesser General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// wakalaka-rs is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Lesser General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public License
-// along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
+// Copyright (c) 2024 Kawaxte
+// 
+// This software is released under the MIT License.
+// https://opensource.org/licenses/MIT
 
-use serenity::all::{GuildId, Member, User};
+use serenity::all::{GuildId, User};
 use tracing::info;
 
-use crate::utility::models;
+use crate::{utils::models, Error, SContext};
 
-pub async fn handle(
-    guild_id: &GuildId,
-    user: &User,
-    member: &Option<Member>,
-    ctx: &crate::serenity::Context,
-) {
-    let guild_name = models::guilds::guild_name_from_guild_id_raw(ctx, *guild_id)
-        .await
-        .unwrap();
+pub(crate) async fn handle(ctx: &SContext, guild_id: &GuildId, user: &User) -> Result<(), Error> {
+    let guild_name = models::guilds::name_raw(ctx, guild_id);
 
-    if let Some(member) = member {
-        let member_name = &member.user.name;
+    let user_name = &user.name;
 
-        info!("@{member_name} left from {guild_name}")
-    } else {
-        let user_name = &user.name;
+    info!("@{user_name} left {guild_name}");
 
-        info!("@{user_name} left from {guild_name}")
-    }
+    Ok(())
 }

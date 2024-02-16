@@ -1,25 +1,16 @@
-// Copyright (C) 2024 Kawaxte
+// Copyright (c) 2024 Kawaxte
 //
-// wakalaka-rs is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Lesser General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// wakalaka-rs is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Lesser General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public License
-// along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
+// This software is released under the MIT License.
+// https://opensource.org/licenses/MIT
+
+use std::sync::Arc;
 
 use serenity::{all::Message, builder::GetMessages};
-use tracing::{error, info};
+use tracing::error;
 
-use crate::{utility::{components::messages, models}, Context, Error};
+use crate::{utils::components, Context, Error};
 
 #[poise::command(
-    prefix_command,
     slash_command,
     category = "Moderator",
     required_permissions = "MANAGE_MESSAGES",
@@ -29,74 +20,74 @@ use crate::{utility::{components::messages, models}, Context, Error};
     ephemeral
 )]
 /// Delete a given amount of messages before a specific message.
-pub async fn before(
+pub(super) async fn before(
     ctx: Context<'_>,
-    #[description = "The message to delete before."] message: Message,
-    #[description = "The amount of to delete before."]
+    #[description = "The message to start deleting from."] message: Message,
+    #[description = "The amount of messages to delete."]
     #[min = 1]
     #[max = 100]
     count: Option<u8>,
 ) -> Result<(), Error> {
-    let count = count.unwrap_or(1);
-    if count < 1 || count > 100 {
-        let reply = messages::info_reply(
-            "Amount to delete must be between `1` and `100` messages.",
-            true,
-        );
+    let count = count.unwrap_or(50);
+
+    let s_ctx = ctx.serenity_context();
+    let http = Arc::clone(&s_ctx.http);
+
+    let channel_id = ctx.channel_id();
+
+    let handle = tokio::spawn(async move {
+        let mut deleted_message_count = 0;
+
+        let message_id = message.id;
+
+        let messages_builder = GetMessages::default().before(message_id).limit(count);
+
+        let messages = match channel_id.messages(&http, messages_builder).await {
+            Ok(messages) => messages,
+            Err(why) => {
+                error!("Failed to get messages: {why:?}");
+                return deleted_message_count;
+            }
+        };
+        for message in messages {
+            if let Err(why) = message.delete(&http).await {
+                error!("Failed to delete message: {why:?}");
+                continue;
+            }
+
+            deleted_message_count += 1;
+        }
+
+        deleted_message_count
+    });
+
+    let reply_before = components::replies::reply_embed(format!("Deleting messages..."), true);
+
+    let reply_handle = ctx.send(reply_before).await?;
+
+    let deleted_message_count = handle.await?;
+    if deleted_message_count == 0 {
+        let reply =
+            components::replies::warn_reply_embed(format!("No messages were deleted."), true);
+
         ctx.send(reply).await?;
 
         return Ok(());
     }
 
-    let http = ctx.serenity_context().http.clone();
-    let channel_id = ctx.channel_id();
-    let user_name = models::users::author_name(ctx)?.clone();
+    let reply_after = if deleted_message_count == 1 {
+        components::replies::ok_reply_embed(
+            format!("{deleted_message_count} message has been deleted."),
+            true,
+        )
+    } else {
+        components::replies::ok_reply_embed(
+            format!("{deleted_message_count} messages have been deleted."),
+            true,
+        )
+    };
 
-    let handle = tokio::spawn(async move {
-        let mut deleted_messages_count = 0;
-
-        let channel_name = match channel_id.name(&http).await {
-            Ok(channel_name) => channel_name,
-            Err(why) => {
-                error!("Couldn't get channel name: {why:?}");
-                return deleted_messages_count;
-            }
-        };
-
-        let message_id = message.id;
-
-        let messages_before = GetMessages::default().before(message_id).limit(count);
-        let messages = match channel_id.messages(&http, messages_before).await {
-            Ok(messages) => messages,
-            Err(why) => {
-                error!("Couldn't get messages: {why:?}");
-                return deleted_messages_count;
-            }
-        };
-        for message in messages {
-            if let Err(why) = message.delete(&http).await {
-                error!("Couldn't delete message: {why:?}");
-                continue;
-            }
-
-            deleted_messages_count += 1;
-        }
-
-        info!("@{user_name} deleted {deleted_messages_count} message(s) in #{channel_name}");
-
-        deleted_messages_count
-    });
-
-    let reply_before = messages::reply("Deleting message(s)...", true);
-    let reply = ctx.send(reply_before).await?;
-
-    let deleted_messages_count = handle.await.unwrap_or(0);
-
-    let reply_after = messages::ok_reply(
-        format!("I've deleted {deleted_messages_count} message(s)."),
-        true,
-    );
-    reply.edit(ctx, reply_after).await?;
+    reply_handle.edit(ctx, reply_after).await?;
 
     Ok(())
 }

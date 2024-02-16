@@ -1,52 +1,40 @@
-// Copyright (C) 2024 Kawaxte
+// Copyright (c) 2024 Kawaxte
 //
-// wakalaka-rs is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Lesser General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// wakalaka-rs is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Lesser General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public License
-// along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
+// This software is released under the MIT License.
+// https://opensource.org/licenses/MIT
 
 use serenity::all::Guild;
-use tracing::error;
+use sqlx::SqlitePool;
 
 use crate::{
-    check_restricted_guild,
-    database::{guild_members, guilds, users},
-    utility::models,
-    Data,
+    database::{checks, queries},
+    Error, SContext,
 };
 
-pub async fn handle(guild: &Guild, is_new: bool, ctx: &crate::serenity::Context, data: &Data) {
-    let pool = &data.pool;
+pub(crate) async fn handle(
+    ctx: &SContext,
+    db: &SqlitePool,
+    guild: &Guild,
+    is_new: &Option<bool>,
+) -> Result<(), Error> {
+    if !is_new.is_some() {
+        return Ok(());
+    }
 
     let guild_id = guild.id;
-    let guild_members = match models::members::members_raw(&ctx, &guild_id).await {
-        Ok(members) => members,
-        Err(_) => {
-            return;
-        }
-    };
 
-    let restricted_guild = check_restricted_guild!(&pool, &guild_id);
-    if restricted_guild || !is_new {
-        return;
+    let guild_owner_id = guild.owner_id;
+    let guild_owner = guild_owner_id.to_user(ctx).await?;
+
+    let guild_restricted = checks::check_restricted_guild(ctx, db, guild, &guild_owner).await?;
+    if guild_restricted {
+        guild.leave(ctx).await?;
+        return Ok(());
     }
 
-    match users::insert_into_users(&guild_members, pool).await {
-        Err(why) => error!("Couldn't insert into Users: {why:?}"),
-        Ok(()) => match guilds::insert_into_guilds(guild, pool).await {
-            Err(why) => error!("Couldn't insert into Guilds: {why:?}"),
-            Ok(()) => match guild_members::insert_into_guild_members(&guild_members, pool).await {
-                Err(why) => error!("Couldn't insert into GuildMembers: {why:?}"),
-                Ok(()) => (),
-            },
-        },
-    }
+    queries::users::insert_into(db, &guild_owner_id).await?;
+
+    queries::guilds::insert_into(db, &guild_id, &guild_owner_id).await?;
+
+    Ok(())
 }

@@ -1,28 +1,20 @@
-// Copyright (C) 2024 Kawaxte
+// Copyright (c) 2024 Kawaxte
 //
-// wakalaka-rs is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Lesser General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// wakalaka-rs is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Lesser General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public License
-// along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
+// This software is released under the MIT License.
+// https://opensource.org/licenses/MIT
 
-use serenity::all::User;
+use chrono::Utc;
+use serenity::all::{Mentionable, User};
 use tracing::{error, info};
+use uuid::Uuid;
 
 use crate::{
-    utility::{components::messages, models},
+    database::queries::{self, violations::Violation},
+    utils::{components, models},
     Context, Error,
 };
 
 #[poise::command(
-    prefix_command,
     slash_command,
     category = "Moderator",
     required_permissions = "KICK_MEMBERS",
@@ -31,74 +23,98 @@ use crate::{
     user_cooldown = 5,
     ephemeral
 )]
-/// Kick a user outside.
-pub async fn kick(
+/// Kick a user.
+pub(super) async fn kick(
     ctx: Context<'_>,
     #[description = "The user to kick."] user: User,
-    #[description = "The reason for kicking."] reason: String,
+    #[description = "The reason for kicking, if any."]
+    #[min_length = 1]
+    #[max_length = 255]
+    reason: Option<String>,
 ) -> Result<(), Error> {
-    let user_id = user.id;
-
-    let moderator = models::users::author(ctx)?;
-    let moderator_id = moderator.id;
+    let db = &ctx.data().db;
+    let uuid = format!("{}", Uuid::new_v4());
+    let kind = Violation::Kick;
+    let reason = reason.unwrap_or(String::new());
 
     if user.system {
-        let reply = messages::error_reply("Sorry, but system users cannot be kicked.", true);
-        ctx.send(reply).await?;
+        let reply = components::replies::error_reply_embed("Cannot kick a system user.", true);
 
-        return Ok(());
-    }
-    if user_id == moderator_id {
-        let reply = messages::error_reply("Sorry, but you cannot ban yourself.", true);
         ctx.send(reply).await?;
 
         return Ok(());
     }
 
-    let reason_char_count = reason.chars().count();
-    if reason_char_count < 6 || reason_char_count > 80 {
-        let reply =
-            messages::info_reply("Reason must be between `6` and `80` characters long.", true);
+    let author = ctx.author();
+    let author_id = author.id;
+    let author_name = &author.name;
+
+    let user_id = user.id;
+    let user_name = &user.name;
+    let user_mention = user.mention();
+
+    let guild = models::guilds::guild(ctx)?;
+    let guild_id = guild.id;
+    let guild_name = &guild.name;
+
+    if user_id == author_id {
+        let reply = components::replies::error_reply_embed("Cannot kick yourself.", true);
+
         ctx.send(reply).await?;
 
         return Ok(());
     }
 
-    let result = {
-        let (user_name, user_mention) =
-            (&user.name, models::users::user_mention(ctx, user_id).await?);
+    if let Err(_) = queries::users::select_user_id_from(db, &user_id).await {
+        queries::users::insert_into(db, &user_id).await?;
+    }
+    if let Err(_) = queries::users::select_user_id_from(db, &author_id).await {
+        queries::users::insert_into(db, &author_id).await?;
+    }
 
-        let (moderator_name, moderator_mention) =
-            (&moderator.name, models::users::author_mention(ctx)?);
+    let mut violations = queries::users::select_violations_from(db, &user_id).await?;
 
-        let (guild_id, guild_name) = (
-            models::guilds::guild_id(ctx)?,
-            models::guilds::guild_name(ctx)?,
-        );
+    let member = guild_id.member(&ctx, user_id).await?;
 
-        let member = models::members::member(ctx, guild_id, user_id).await?;
+    let result = match member.kick_with_reason(&ctx, &reason).await {
+        Ok(_) => {
+            let created_at = Utc::now().naive_utc();
 
-        let message = messages::info_message(format!(
-            "You've been kicked from {guild_name} by {moderator_mention} for {reason}.",
-        ));
-        user.direct_message(ctx, message).await?;
+            queries::violations::insert_into(
+                db,
+                &uuid,
+                &kind,
+                &guild_id,
+                &user_id,
+                &author_id,
+                &reason,
+                &created_at,
+            )
+            .await?;
 
-        match member.kick_with_reason(ctx, &reason).await {
-            Ok(_) => {
-                info!("@{moderator_name} kicked @{user_name} from {guild_name}: {reason}");
+            violations += 1;
+
+            queries::users::update_set_violations(db, &user_id, violations).await?;
+
+            if reason.is_empty() {
+                info!("@{author_name} kicked @{user_name} from {guild_name}");
                 Ok(format!("{user_mention} has been kicked."))
+            } else {
+                info!("@{author_name} kicked @{user_name} from {guild_name}: {reason}");
+                Ok(format!("{user_mention} has been kicked for {reason}."))
             }
-            Err(why) => {
-                error!("Couldn't kick @{user_name}: {why:?}");
-                Err(format!("Sorry, but I couldn't kick {user_mention}."))
-            }
+        }
+        Err(why) => {
+            error!("Failed to kick @{user_name} from {guild_name}: {why:?}");
+            Err(format!("An error occurred whilst kicking {user_mention}."))
         }
     };
 
     let reply = match result {
-        Ok(message) => messages::ok_reply(message, true),
-        Err(message) => messages::error_reply(message, true),
+        Ok(message) => components::replies::ok_reply_embed(message, true),
+        Err(message) => components::replies::error_reply_embed(message, true),
     };
+
     ctx.send(reply).await?;
 
     Ok(())

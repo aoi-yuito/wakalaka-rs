@@ -1,4 +1,0 @@
-CREATE TABLE IF NOT EXISTS users (
-    user_id BIGINT PRIMARY KEY,
-    infractions INTEGER NOT NULL DEFAULT 0
-);

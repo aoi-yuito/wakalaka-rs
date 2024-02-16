@@ -1,28 +1,17 @@
-// Copyright (C) 2024 Kawaxte
+// Copyright (c) 2024 Kawaxte
 //
-// wakalaka-rs is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Lesser General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// wakalaka-rs is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Lesser General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public License
-// along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
+// This software is released under the MIT License.
+// https://opensource.org/licenses/MIT
 
-use serenity::{all::Role, builder::EditRole};
+use serenity::all::{Mentionable, Role};
 use tracing::{error, info};
 
 use crate::{
-    utility::{self, components::messages, models},
+    utils::{components, models},
     Context, Error,
 };
 
 #[poise::command(
-    prefix_command,
     slash_command,
     category = "Manager",
     required_permissions = "MANAGE_ROLES",
@@ -31,73 +20,61 @@ use crate::{
     user_cooldown = 5,
     ephemeral
 )]
-/// Customise an existing role.
-pub async fn edit(
+/// Alter an existing role.
+pub(super) async fn edit(
     ctx: Context<'_>,
-    #[description = "The role to customise."] mut role: Role,
-    #[description = "The name for the role, if any."]
+    #[description = "The role to alter."] mut role: Role,
+    #[description = "The new name for the role."]
     #[min_length = 1]
     #[max_length = 100]
     name: Option<String>,
-    #[description = "The colour of the role in hexadecimal, if any."]
+    #[description = "The new colour for the role. (hexadecimal)"]
     #[min = 3]
     #[max = 11]
     colour: Option<String>,
     #[description = "Whether the role should be pinned above lesser roles."] hoist: Option<bool>,
     #[description = "Whether the role should be mentionable."] mentionable: Option<bool>,
 ) -> Result<(), Error> {
-    if name.is_some() {
-        let name_char_count = name.as_ref().unwrap().chars().count();
-        if name_char_count < 1 || name_char_count > 100 {
-            let reply = messages::info_reply(
-                format!("Name of the role must be between `1` and `100` characters long."),
-                true,
-            );
-            ctx.send(reply).await?;
+    let author = ctx.author();
+    let author_name = &author.name;
 
-            return Ok(());
+    let role_name = role.name.clone();
+    let role_mention = role.mention();
+
+    let guild = models::guilds::guild(ctx)?;
+    let guild_name = &guild.name;
+
+    let role_builder = if let Some(colour) = colour {
+        let colour = crate::utils::hex_to_u32(&colour);
+
+        serenity::builder::EditRole::new()
+            .name(&name.unwrap_or(format!("{role_name}")))
+            .colour(colour)
+            .hoist(hoist.is_some())
+            .mentionable(mentionable.is_some())
+    } else {
+        serenity::builder::EditRole::new()
+            .name(&name.unwrap_or(format!("{role_name}")))
+            .hoist(hoist.is_some())
+            .mentionable(mentionable.is_some())
+    };
+
+    let result = match role.edit(ctx, role_builder).await {
+        Ok(_) => {
+            info!("@{author_name} edited @{role_name} in {guild_name}");
+            Ok(format!("{role_mention} has been edited."))
         }
-    }
-
-    let result = {
-        let role_name = models::roles::role_name(&role).clone();
-
-        let guild = models::guilds::guild(ctx)?;
-        let guild_name = &guild.name;
-
-        let role_builder = if let Some(colour) = colour {
-            let colour = utility::hex_to_u32(&colour);
-
-            EditRole::new()
-                .name(&name.unwrap_or(role_name.clone()))
-                .colour(colour)
-                .hoist(hoist.is_some())
-                .mentionable(mentionable.is_some())
-        } else {
-            EditRole::new()
-                .name(&name.unwrap_or(role_name.clone()))
-                .hoist(hoist.is_some())
-                .mentionable(mentionable.is_some())
-        };
-
-        match role.edit(ctx, role_builder).await {
-            Ok(_) => {
-                info!("Altered @{role_name} role in {guild_name}");
-                Ok(format!("I've altered a role called `{role_name}`."))
-            }
-            Err(why) => {
-                error!("Couldn't alter @{role_name} role in {guild_name}: {why:?}");
-                Err(format!(
-                    "Sorry, but I couldn't alter a role called `{role_name}`."
-                ))
-            }
+        Err(why) => {
+            error!("Failed to edit @{role_name} in {guild_name}: {why:?}");
+            Err(format!("An error occurred whilst editing {role_mention}."))
         }
     };
 
     let reply = match result {
-        Ok(message) => messages::ok_reply(message, true),
-        Err(message) => messages::error_reply(message, true),
+        Ok(message) => components::replies::ok_reply_embed(message, true),
+        Err(message) => components::replies::error_reply_embed(message, true),
     };
+
     ctx.send(reply).await?;
 
     Ok(())

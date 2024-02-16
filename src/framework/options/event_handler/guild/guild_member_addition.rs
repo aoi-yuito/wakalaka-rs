@@ -1,61 +1,28 @@
-// Copyright (C) 2024 Kawaxte
-//
-// wakalaka-rs is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Lesser General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// wakalaka-rs is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Lesser General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public License
-// along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
+// Copyright (c) 2024 Kawaxte
+// 
+// This software is released under the MIT License.
+// https://opensource.org/licenses/MIT
 
-use serenity::{
-    all::{Member, Mentionable},
-    builder::CreateMessage,
-};
-use tracing::{error, info};
+use serenity::all::Member;
+use sqlx::SqlitePool;
+use tracing::info;
 
-use crate::{
-    database::{guilds, users},
-    utility::models,
-    Data,
-};
+use crate::{database::queries, utils::models, Error, SContext};
 
-pub async fn handle(new_member: &Member, ctx: &crate::serenity::Context, data: &Data) {
-    let pool = &data.pool;
-
-    let guild_id = new_member.guild_id;
-    let guild_name = models::guilds::guild_name_from_guild_id_raw(ctx, guild_id)
-        .await
-        .unwrap();
-
-    let members = match models::members::members_raw(&ctx, &guild_id).await {
-        Ok(members) => members,
-        Err(_) => {
-            return;
-        }
-    };
-
-    if let Err(why) = users::insert_into_users(&members, pool).await {
-        error!("Couldn't insert into Users: {why:?}");
-    } else {
-        let user = &new_member.user;
-        let (user_name, user_mention) = (&user.name, user.mention());
-
-        info!("@{user_name} joined {guild_name}");
-
-        let welcome_channel_id = guilds::check_welcome_channel(&guild_id, pool).await;
-        if let Some(channel_id) = welcome_channel_id {
-            let message_builder = CreateMessage::default()
-                .content(format!("Welcome to **{guild_name}**, {user_mention}!"));
-            let message = channel_id.send_message(&ctx, message_builder).await;
-            if let Err(why) = message {
-                error!("Couldn't send message: {why:?}");
-            }
-        }
+pub(crate) async fn handle(ctx: &SContext, db: &SqlitePool, member: &Member) -> Result<(), Error> {
+    if member.user.bot || member.user.system {
+        return Ok(());
     }
+
+    let member_id = &member.user.id;
+    let member_name = &member.user.name;
+
+    let guild_id = member.guild_id;
+    let guild_name = models::guilds::name_raw(ctx, &guild_id);
+
+    info!("@{member_name} joined {guild_name}");
+
+    queries::users::insert_into(db, &member_id).await?;
+
+    Ok(())
 }

@@ -1,32 +1,27 @@
-// Copyright (C) 2024 Kawaxte
+// Copyright (c) 2024 Kawaxte
 //
-// wakalaka-rs is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Lesser General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// wakalaka-rs is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Lesser General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public License
-// along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
+// This software is released under the MIT License.
+// https://opensource.org/licenses/MIT
 
-use serenity::all::UserId;
-use tracing::info;
+use std::time::Duration;
+
+use serenity::{
+    all::{ComponentInteractionDataKind, Mentionable, ReactionType, User},
+    builder::{
+        CreateActionRow, CreateInteractionResponse, CreateSelectMenu, CreateSelectMenuKind,
+        CreateSelectMenuOption,
+    },
+};
+use tokio::time::timeout;
+use tracing::{error, info};
 
 use crate::{
-    database::{
-        infractions::{self, InfractionType},
-        users,
-    },
-    utility::{components::messages, models},
+    database::queries::{self, violations::Violation},
+    utils::{components, models},
     Context, Error,
 };
 
 #[poise::command(
-    prefix_command,
     slash_command,
     category = "Moderator",
     required_permissions = "MODERATE_MEMBERS",
@@ -35,98 +30,134 @@ use crate::{
     user_cooldown = 5,
     ephemeral
 )]
-/// Remove a specific warning from a user.
-pub async fn unwarn(
+/// Remove a warning from a user.
+pub(super) async fn unwarn(
     ctx: Context<'_>,
-    #[description = "The user to unwarn."]
-    #[rename = "user"]
-    user_id: UserId,
-    #[description = "UUID of the warning to delete."]
-    #[min_length = 36]
-    #[max_length = 36]
-    uuid: String,
-    #[description = "The reason for deleting warning, if any."]
-    #[min_length = 6]
-    #[max_length = 80]
-    reason: Option<String>,
+    #[description = "The user to unwarn."] user: User,
 ) -> Result<(), Error> {
-    let pool = &ctx.data().pool;
-
-    let user = models::users::user(ctx, user_id).await?;
-    let (user_name, user_mention) = (&user.name, models::users::user_mention(ctx, user_id).await?);
-
-    let moderator = models::users::author(ctx)?;
-    let (moderator_id, moderator_name) = (moderator.id, &moderator.name);
+    let db = &ctx.data().db;
+    let kind = Violation::Warning;
 
     if user.bot || user.system {
+        let reply = components::replies::error_reply_embed(
+            "Cannot remove a warning from a bot or system user.",
+            true,
+        );
+
+        ctx.send(reply).await?;
+
+        return Ok(());
+    }
+
+    let author = ctx.author();
+    let author_id = author.id;
+    let author_name = &author.name;
+
+    let user_id = user.id;
+    let user_name = &user.name;
+    let user_mention = user.mention();
+
+    let guild = models::guilds::guild(ctx)?;
+    let guild_id = guild.id;
+    let guild_name = &guild.name;
+
+    if user_id == author_id {
         let reply =
-            messages::error_reply("Sorry, but bots and system users cannot be unwarned.", true);
-        ctx.send(reply).await?;
-
-        return Ok(());
-    }
-    if user_id == moderator_id {
-        let reply = messages::error_reply("Sorry, but you cannot unwarn yourself.", true);
+            components::replies::error_reply_embed("Cannot remove a warning from yourself.", true);
         ctx.send(reply).await?;
 
         return Ok(());
     }
 
-    let uuid_char_count = uuid.chars().count();
-    if uuid_char_count != 36 {
-        let reply = messages::info_reply("UUID must be exactly `36` characters long.", true);
+    if let Err(_) = queries::users::select_user_id_from(db, &user_id).await {
+        let reply = components::replies::error_reply_embed(
+            format!("{user_mention} isn't in the database!"),
+            true,
+        );
+
         ctx.send(reply).await?;
 
         return Ok(());
     }
 
-    let guild_id = models::guilds::guild_id(ctx)?;
-
-    let mut user_infractions = users::select_infractions_from_users(&user_id, pool).await?;
-    if user_infractions < 1 {
-        let reply =
-            messages::info_reply(format!("{user_mention} hasn't been punished before."), true);
+    let uuids = queries::violations::select_uuids_from(db, &kind, &guild_id, &user_id).await?;
+    if uuids.is_empty() {
+        let reply = components::replies::error_reply_embed(
+            format!("{user_mention} doesn't have any warnings!",),
+            true,
+        );
         ctx.send(reply).await?;
 
         return Ok(());
     }
 
-    let warnings =
-        infractions::select_from_infractions(InfractionType::Warn, &user_id, &guild_id, pool)
-            .await?;
-    for warning in warnings {
-        let uuid = warning.0;
+    let warning = queries::violations::select_from(db, &kind, &guild_id, &user_id).await?;
 
-        if let Some(ref reason) = reason {
-            let reason_char_count = reason.chars().count();
-            if reason_char_count < 6 || reason_char_count > 80 {
-                let reply = messages::info_reply(
-                    "Reason must be between `6` and `80` characters long.",
-                    true,
-                );
-                ctx.send(reply).await?;
+    let mut violations = queries::users::select_violations_from(db, &user_id).await?;
 
-                return Ok(());
+    let menu_options = warning
+        .iter()
+        .enumerate()
+        .map(|(_, (uuid, reason, created_at))| {
+            let formatted_created_at = created_at.format("%b %d, %Y").to_string();
+
+            CreateSelectMenuOption::new(format!("@{author_name} ({formatted_created_at})"), uuid)
+                .description(reason.trim())
+                .emoji(ReactionType::Unicode(format!("⚠️")))
+        })
+        .collect::<Vec<_>>();
+    let menu_kind = CreateSelectMenuKind::String {
+        options: menu_options,
+    };
+    let menu = CreateSelectMenu::new("warning_select", menu_kind)
+        .min_values(1)
+        .max_values(1);
+
+    let action_row = CreateActionRow::SelectMenu(menu);
+
+    let reply = components::replies::reply("Which warning would you like to remove?", true)
+        .components(vec![action_row]);
+
+    let message = ctx.send(reply).await?.into_message().await?;
+
+    let interaction_collector = message.await_component_interactions(ctx);
+
+    let duration = Duration::from_secs(60 * 3);
+
+    let result =
+        if let Ok(Some(interaction)) = timeout(duration, interaction_collector.next()).await {
+            interaction
+                .create_response(ctx, CreateInteractionResponse::Acknowledge)
+                .await?;
+
+            let data_kind = interaction.data.kind;
+            if let ComponentInteractionDataKind::StringSelect { values: uuids } = data_kind {
+                let uuids = uuids.into_iter().collect::<Vec<_>>();
+                for uuid in uuids {
+                    queries::violations::delete_from(db, &uuid).await?;
+                }
+
+                violations -= 1;
+                if violations < 0 {
+                    violations = 0;
+                }
+
+                queries::users::update_set_violations(db, &user_id, violations).await?;
             }
 
-            info!("@{user_name} unwarned by @{moderator_name}: {reason}");
+            info!("@{author_name} removed warning from @{user_name} in {guild_name}");
+            Ok(format!("Removed a warning from {user_mention}."))
         } else {
-            info!("@{user_name} unwarned by @{moderator_name}");
-        }
+            error!("Failed to remove warning from @{user_name} in {guild_name}");
+            Err(format!("Idle for too long."))
+        };
 
-        infractions::delete_from_infractions(&uuid, &guild_id, pool).await?;
+    let reply = match result {
+        Ok(message) => components::replies::ok_reply_embed(message, true),
+        Err(message) => components::replies::error_reply_embed(message, true),
+    };
 
-        user_infractions -= 1;
-        if user_infractions < 0 {
-            user_infractions = 0;
-        }
-
-        users::update_users_set_infractions(&user_id, user_infractions, pool).await?;
-
-        let reply =
-            messages::ok_reply(format!("I've removed a warning from {user_mention}."), true);
-        ctx.send(reply).await?;
-    }
+    ctx.send(reply).await?;
 
     Ok(())
 }

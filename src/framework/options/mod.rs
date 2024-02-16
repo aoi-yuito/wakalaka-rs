@@ -1,20 +1,11 @@
-// Copyright (C) 2024 Kawaxte
-//
-// wakalaka-rs is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Lesser General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// wakalaka-rs is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Lesser General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public License
-// along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
+// Copyright (c) 2024 Kawaxte
+// 
+// This software is released under the MIT License.
+// https://opensource.org/licenses/MIT
 
-pub mod command_check;
-pub mod commands;
-pub mod event_handler;
-pub mod on_error;
-pub mod post_command;
+pub(super) mod command_check;
+pub(super) mod commands;
+pub(super) mod event_handler;
+pub(super) mod on_error;
+pub(super) mod post_command;
+pub(super) mod prefix_options;

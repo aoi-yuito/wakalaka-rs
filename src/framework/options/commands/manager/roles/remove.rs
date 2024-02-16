@@ -1,28 +1,17 @@
-// Copyright (C) 2024 Kawaxte
+// Copyright (c) 2024 Kawaxte
 //
-// wakalaka-rs is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Lesser General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// wakalaka-rs is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Lesser General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public License
-// along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
+// This software is released under the MIT License.
+// https://opensource.org/licenses/MIT
 
-use serenity::all::{Role, UserId};
+use serenity::all::{Mentionable, Role};
 use tracing::{error, info};
 
 use crate::{
-    utility::{components::messages, models},
+    utils::{components, models},
     Context, Error,
 };
 
 #[poise::command(
-    prefix_command,
     slash_command,
     category = "Manager",
     required_permissions = "MANAGE_ROLES",
@@ -31,45 +20,36 @@ use crate::{
     user_cooldown = 5,
     ephemeral
 )]
-/// Take role(s) from a user.
-pub async fn remove(
+/// Delete an existing role.
+pub(super) async fn remove(
     ctx: Context<'_>,
-    #[description = "The role(s) to take."] roles: Vec<Role>,
-    #[description = "The user to take the role(s) from."]
-    #[rename = "user"]
-    user_id: UserId,
+    #[description = "The role to delete."] mut role: Role,
 ) -> Result<(), Error> {
-    let result = {
-        let role_ids = models::roles::role_ids(roles).await;
+    let author = ctx.author();
+    let author_name = &author.name;
 
-        let (user_name, user_mention) = (
-            models::users::user_name(ctx, user_id).await?,
-            models::users::user_mention(ctx, user_id).await?,
-        );
+    let role_name = role.name.clone();
+    let role_mention = role.mention();
 
-        let guild = models::guilds::guild(ctx)?;
-        let (guild_id, guild_name) = (guild.id, &guild.name);
+    let guild = models::guilds::guild(ctx)?;
+    let guild_name = &guild.name;
 
-        let member = models::members::member(ctx, guild_id, user_id).await?;
-
-        match member.remove_roles(ctx, &role_ids).await {
-            Ok(_) => {
-                info!("Removed role(s) from @{user_name} in {guild_name}");
-                Ok(format!("I've removed role(s) from {user_mention}."))
-            }
-            Err(why) => {
-                error!("Couldn't remove role(s) from @{user_name} in {guild_name}: {why:?}");
-                Err(format!(
-                    "Sorry, but I couldn't remove role(s) from {user_mention}."
-                ))
-            }
+    let result = match role.delete(ctx).await {
+        Ok(_) => {
+            info!("@{author_name} deleted @{role_name} from {guild_name}");
+            Ok(format!("{role_mention} has been deleted."))
+        }
+        Err(why) => {
+            error!("@{author_name} failed to delete @{role_name} from {guild_name}: {why:?}");
+            Err(format!("An error occurred whilst deleting {role_mention}."))
         }
     };
 
     let reply = match result {
-        Ok(message) => messages::ok_reply(message, true),
-        Err(message) => messages::error_reply(message, true),
+        Ok(message) => components::replies::ok_reply_embed(message, true),
+        Err(message) => components::replies::error_reply_embed(message, true),
     };
+
     ctx.send(reply).await?;
 
     Ok(())

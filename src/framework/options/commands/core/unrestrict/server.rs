@@ -1,74 +1,79 @@
-// Copyright (C) 2024 Kawaxte
+// Copyright (c) 2024 Kawaxte
 //
-// wakalaka-rs is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Lesser General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// wakalaka-rs is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Lesser General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public License
-// along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
+// This software is released under the MIT License.
+// https://opensource.org/licenses/MIT
 
-use serenity::all::GuildId;
-use tracing::info;
+use serenity::all::Guild;
 
 use crate::{
-    database::{guilds, restricted_guilds},
-    utility::{components::messages, models},
+    database::queries,
+    utils::{components, models},
     Context, Error,
 };
 
 #[poise::command(
-    prefix_command,
     slash_command,
     category = "Core",
     required_permissions = "ADMINISTRATOR",
+    required_bot_permissions = "SEND_MESSAGES",
     owners_only,
-    guild_only,
-    user_cooldown = 5,
     ephemeral
 )]
-/// Allow inviting yours truly to a server.
-pub async fn server(
+/// Allow a server to utilise yours truly.
+pub(super) async fn server(
     ctx: Context<'_>,
-    #[description = "The server to allow invitation to."]
+    #[description = "The server to unrestrict."]
     #[rename = "server"]
-    other_guild_id: GuildId,
+    guild: Guild,
 ) -> Result<(), Error> {
-    let pool = &ctx.data().pool;
+    let db = &ctx.data().db;
 
-    let other_guild_name = models::guilds::guild_name_from_guild_id(ctx, other_guild_id);
+    let ctx_guild = models::guilds::guild(ctx)?;
+    let ctx_guild_id = ctx_guild.id;
+    let ctx_guild_name = &ctx_guild.name;
 
-    let failsafe_query = guilds::select_guild_id_from_guilds(&other_guild_id, &pool).await;
-    let result = match failsafe_query {
-        Some(guild_id) if guild_id == other_guild_id => Err(format!(
-            "I've already been allowed to join {other_guild_name}."
+    let guild_id = guild.id;
+    let guild_name = &guild.name;
+
+    let guild_owner_id = guild.owner_id;
+
+    if ctx_guild_id == guild_id {
+        let reply = components::replies::error_reply_embed(
+            format!("{ctx_guild_name} is already allowed to utilise yours truly!"),
+            true,
+        );
+
+        ctx.send(reply).await?;
+
+        return Ok(());
+    }
+
+    let result = match queries::guilds::select_guild_id_from(db, &guild_id).await {
+        Ok(_) => Err(format!(
+            "{guild_name} is already allowed to utilise yours truly!"
         )),
         _ => {
-            let previous_query =
-                restricted_guilds::select_guild_id_from_restricted_guilds(&other_guild_id, &pool)
-                    .await;
-            match previous_query {
+            match queries::restricted_guilds::select_guild_id_from(db, &guild_id).await {
                 Ok(_) => {
-                    info!("Allowed invitation to {other_guild_name}");
-                    restricted_guilds::delete_from_restricted_guilds(&other_guild_id, pool).await?;
+                    queries::restricted_guilds::delete_from(db, &guild_id).await?;
+                    queries::restricted_users::delete_from(db, &guild_owner_id).await?; // We want the owner of the server to be able to use yours truly elsewhere.
+
                     Ok(format!(
-                        "I've allowed myself to be invited to {other_guild_name}."
+                        "{guild_name} is able to utilise yours truly again."
                     ))
                 }
-                _ => Err(format!("I'm already able to join {other_guild_name}.")),
+                _ => Err(format!(
+                    "{guild_name} is already allowed to utilise yours truly!"
+                )),
             }
         }
     };
 
     let reply = match result {
-        Ok(message) => messages::ok_reply(message, true),
-        Err(message) => messages::error_reply(message, true),
+        Ok(message) => components::replies::ok_reply_embed(message, true),
+        Err(message) => components::replies::error_reply_embed(message, true),
     };
+
     ctx.send(reply).await?;
 
     Ok(())

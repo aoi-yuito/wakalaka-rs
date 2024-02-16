@@ -1,83 +1,77 @@
-// Copyright (C) 2024 Kawaxte
+// Copyright (c) 2024 Kawaxte
 //
-// wakalaka-rs is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Lesser General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// wakalaka-rs is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Lesser General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public License
-// along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
+// This software is released under the MIT License.
+// https://opensource.org/licenses/MIT
 
-use serenity::all::UserId;
-use tracing::info;
+use serenity::all::{Mentionable, User};
 
 use crate::{
-    database::{restricted_users, users},
-    utility::{components::messages, models},
+    database::queries,
+    utils::{components, models},
     Context, Error,
 };
 
 #[poise::command(
-    prefix_command,
     slash_command,
     category = "Core",
     required_permissions = "ADMINISTRATOR",
-    user_cooldown = 5,
+    required_bot_permissions = "SEND_MESSAGES",
+    owners_only,
     ephemeral
 )]
 /// Allow a user to use yours truly.
-pub async fn user(
+pub(super) async fn user(
     ctx: Context<'_>,
-    #[description = "The user to allow usage for."]
-    #[rename = "user"]
-    other_user_id: UserId,
+    #[description = "The user to unrestrict."] user: User,
 ) -> Result<(), Error> {
-    let pool = &ctx.data().pool;
+    let db = &ctx.data().db;
 
-    let user_name = models::users::user_name(ctx, other_user_id).await?;
-
-    let owner_id = models::guilds::owner_id(ctx)?;
-    if other_user_id == owner_id {
-        let reply = messages::error_reply(
-            format!("Sorry, but you can't unrestrict yourself from using me."),
+    if user.bot || user.system {
+        let reply = components::replies::error_reply_embed(
+            "Cannot allow a bot or system user to use yours truly.",
             true,
         );
+
         ctx.send(reply).await?;
 
         return Ok(());
     }
 
-    let failsafe_query = users::select_user_id_from_users(&other_user_id, &pool).await;
-    let result = match failsafe_query {
-        Some(_) if other_user_id == owner_id => {
-            Err(format!("I'm already able to be used by {user_name}."))
-        }
-        None => Err(format!(
-            "Are you sure that the provided user is a part of me?"
+    let user_id = user.id;
+    let user_mention = user.mention();
+
+    let guild = models::guilds::guild(ctx)?;
+
+    let guild_owner_id = guild.owner_id;
+    let guild_owner_mention = guild_owner_id.mention();
+
+    let query = queries::users::select_user_id_from(db, &user_id).await;
+
+    let result = match query {
+        Ok(_) if user_id == guild_owner_id => Err(format!(
+            "Cannot allow {guild_owner_mention} to use yours truly."
         )),
         _ => {
-            let previous_query =
-                restricted_users::select_user_id_from_restricted_users(&other_user_id, &pool).await;
-            match previous_query {
+            let restricted_query =
+                queries::restricted_users::select_user_id_from(db, &user_id).await;
+            match restricted_query {
                 Ok(_) => {
-                    info!("Allowed usage for {user_name}.");
-                    restricted_users::delete_from_restricted_users(&other_user_id, &pool).await?;
-                    Ok(format!("I've allowed {user_name} to use me."))
+                    queries::restricted_users::delete_from(db, &user_id).await?;
+
+                    Ok(format!("{user_mention} is able to use yours truly again."))
                 }
-                _ => Err(format!("I'm already able to be used by {user_name}.")),
+                _ => Err(format!(
+                    "{user_mention} is already allowed to use yours truly!"
+                )),
             }
         }
     };
 
     let reply = match result {
-        Ok(message) => messages::ok_reply(message, true),
-        Err(message) => messages::error_reply(message, true),
+        Ok(message) => components::replies::ok_reply_embed(message, true),
+        Err(message) => components::replies::error_reply_embed(message, true),
     };
+
     ctx.send(reply).await?;
 
     Ok(())

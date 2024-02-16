@@ -1,34 +1,20 @@
-// Copyright (C) 2024 Kawaxte
+// Copyright (c) 2024 Kawaxte
 //
-// wakalaka-rs is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Lesser General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// wakalaka-rs is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Lesser General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public License
-// along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
+// This software is released under the MIT License.
+// https://opensource.org/licenses/MIT
 
 use chrono::Utc;
-use serenity::all::UserId;
+use serenity::all::{Mentionable, User};
 use tracing::{error, info};
+use uuid::Uuid;
 
 use crate::{
-    database::{
-        guild_members,
-        infractions::{self, InfractionType},
-        users,
-    },
-    utility::{components::messages, models},
+    database::queries::{self, violations::Violation},
+    utils::{components, models},
     Context, Error,
 };
 
 #[poise::command(
-    prefix_command,
     slash_command,
     category = "Moderator",
     required_permissions = "BAN_MEMBERS",
@@ -37,101 +23,101 @@ use crate::{
     user_cooldown = 5,
     ephemeral
 )]
-/// Lock the door for a user.
-pub async fn ban(
+/// Ban a user.
+pub(super) async fn ban(
     ctx: Context<'_>,
-    #[description = "The user to ban."]
-    #[rename = "user"]
-    user_id: UserId,
-    #[description = "The reason for banning."]
-    #[min_length = 6]
-    #[max_length = 80]
-    reason: String,
+    #[description = "The user to ban."] user: User,
+    #[description = "The number of days of messages to delete."]
+    #[min = 0]
+    #[max = 7]
+    days: u8,
+    #[description = "The reason for banning, if any."]
+    #[min_length = 1]
+    #[max_length = 255]
+    reason: Option<String>,
 ) -> Result<(), Error> {
-    let pool = &ctx.data().pool;
+    let db = &ctx.data().db;
+    let kind = Violation::Ban;
+    let uuid = format!("{}", Uuid::new_v4());
+    let created_at = Utc::now().naive_utc();
+    let reason = reason.unwrap_or(String::new());
 
-    let user = models::users::user(ctx, user_id).await?;
+    if user.system {
+        let reply = components::replies::error_reply_embed("Cannot ban a system user.", true);
 
-    let moderator = models::users::author(ctx)?;
-    let moderator_id = moderator.id;
-
-    if user.bot || user.system {
-        let reply =
-            messages::error_reply("Sorry, but bots and system users cannot be banned.", true);
-        ctx.send(reply).await?;
-
-        return Ok(());
-    }
-    if user_id == moderator_id {
-        let reply = messages::error_reply("Sorry, but you cannot ban yourself.", true);
         ctx.send(reply).await?;
 
         return Ok(());
     }
 
-    let reason_char_count = reason.chars().count();
-    if reason_char_count < 6 || reason_char_count > 80 {
-        let reply =
-            messages::info_reply("Reason must be between `6` and `80` characters long.", true);
+    let author = ctx.author();
+    let author_id = author.id;
+    let author_name = &author.name;
+
+    let user_id = user.id;
+    let user_name = &user.name;
+    let user_mention = user.mention();
+
+    let guild = models::guilds::guild(ctx)?;
+    let guild_id = guild.id;
+    let guild_name = &guild.name;
+
+    if user_id == author_id {
+        let reply = components::replies::error_reply_embed("Cannot ban yourself.", true);
+
         ctx.send(reply).await?;
 
         return Ok(());
     }
 
-    let result = {
-        let (user_name, user_mention) =
-            (&user.name, models::users::user_mention(ctx, user_id).await?);
+    if let Err(_) = queries::users::select_user_id_from(db, &user_id).await {
+        queries::users::insert_into(db, &user_id).await?;
+    }
+    if let Err(_) = queries::users::select_user_id_from(db, &author_id).await {
+        queries::users::insert_into(db, &author_id).await?;
+    }
 
-        let (moderator_name, moderator_mention) =
-            (&moderator.name, models::users::author_mention(ctx)?);
+    let mut violations = queries::users::select_violations_from(db, &user_id).await?;
 
-        let (guild_id, guild_name) = (
-            models::guilds::guild_id(ctx)?,
-            models::guilds::guild_name(ctx)?,
-        );
+    let member = guild_id.member(&ctx, user_id).await?;
 
-        let created_at = Utc::now().naive_utc();
+    let result = match member.ban_with_reason(&ctx, days, &reason).await {
+        Ok(_) => {
+            queries::violations::insert_into(
+                db,
+                &uuid,
+                &kind,
+                &guild_id,
+                &user_id,
+                &author_id,
+                &reason,
+                &created_at,
+            )
+            .await?;
 
-        let mut user_infractions = users::select_infractions_from_users(&user_id, pool).await?;
+            violations += 1;
 
-        let message = messages::info_message(format!(
-            "You've been banned from {guild_name} by {moderator_mention} for {reason}.",
-        ));
-        user.direct_message(ctx, message).await?;
+            queries::users::update_set_violations(db, &user_id, violations).await?;
 
-        match guild_id.ban_with_reason(ctx, user_id, 0, &reason).await {
-            Ok(_) => {
-                guild_members::update_guilds_members_set_ban(&user_id, true, pool).await?;
-
-                infractions::insert_into_infractions(
-                    InfractionType::Ban,
-                    &user_id,
-                    &moderator_id,
-                    &reason,
-                    created_at,
-                    &guild_id,
-                    pool,
-                )
-                .await?;
-
-                user_infractions += 1;
-
-                users::update_users_set_infractions(&user_id, user_infractions, pool).await?;
-
-                info!("@{moderator_name} banned @{user_name} from {guild_name}: {reason}");
+            if reason.is_empty() {
+                info!("@{author_name} banned @{user_name} from {guild_name}");
                 Ok(format!("{user_mention} has been banned."))
+            } else {
+                info!("@{author_name} banned @{user_name} from {guild_name}: {reason}");
+                Ok(format!("{user_mention} has been banned for {reason}."))
             }
-            Err(why) => {
-                error!("Couldn't ban @{user_name}: {why:?}");
-                Err(format!("Sorry, but I couldn't ban {user_mention}."))
-            }
+        }
+        Err(why) => {
+            error!("Failed to ban @{user_name} from {guild_name}: {why:?}");
+            Err(format!("An error occurred whilst banning {user_mention}."))
         }
     };
 
     let reply = match result {
-        Ok(message) => messages::ok_reply(message, true),
-        Err(message) => messages::error_reply(message, true),
+        Ok(message) => components::replies::ok_reply_embed(message, true),
+        Err(message) => components::replies::error_reply_embed(message, true),
     };
+
     ctx.send(reply).await?;
 
     Ok(())
