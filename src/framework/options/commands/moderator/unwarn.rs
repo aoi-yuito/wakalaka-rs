@@ -9,7 +9,7 @@ use serenity::{
     all::{ComponentInteractionDataKind, Mentionable, ReactionType, User},
     builder::{
         CreateActionRow, CreateInteractionResponse, CreateSelectMenu, CreateSelectMenuKind,
-        CreateSelectMenuOption, EditMessage,
+        CreateSelectMenuOption,
     },
 };
 use tokio::time::timeout;
@@ -52,7 +52,6 @@ pub(super) async fn unwarn(
     let author = ctx.author();
     let author_id = author.id;
     let author_name = &author.name;
-    let author_mention = author.mention();
 
     let user_id = user.id;
     let user_name = &user.name;
