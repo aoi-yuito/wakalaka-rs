@@ -1,14 +1,7 @@
-// CREATE TABLE IF NOT EXISTS violations (
-//     uuid VARCHAR(32) PRIMARY KEY,
-//     kind TEXT,
-//     guild_id BIGINT NOT NULL,
-//     user_id BIGINT NOT NULL,
-//     moderator_id BIGINT NOT NULL,
-//     reason VARCHAR(120) NOT NULL,
-//     FOREIGN KEY (guild_id) REFERENCES guilds (guild_id),
-//     FOREIGN KEY (user_id) REFERENCES users (user_id),
-//     FOREIGN KEY (moderator_id) REFERENCES users (user_id)
-// );
+// Copyright (c) 2024 Kawaxte
+//
+// This software is released under the MIT License.
+// https://opensource.org/licenses/MIT
 
 use std::borrow::Cow;
 
@@ -16,7 +9,6 @@ use chrono::NaiveDateTime;
 use serenity::all::{GuildId, UserId};
 use sqlx::{Row, SqlitePool};
 use tracing::error;
-use uuid::Uuid;
 
 use crate::SqlxError;
 
@@ -95,7 +87,7 @@ pub(crate) async fn select_from(
     Ok(uuids)
 }
 
-pub(crate) async fn delete_from(db: &SqlitePool, uuid: &Uuid) -> Result<(), SqlxError> {
+pub(crate) async fn delete_from(db: &SqlitePool, uuid: &String) -> Result<(), SqlxError> {
     let transaction = db.begin().await?;
 
     let query = sqlx::query("DELETE FROM violations WHERE uuid = ?").bind(format!("{uuid}"));
@@ -116,7 +108,7 @@ pub(crate) async fn delete_from(db: &SqlitePool, uuid: &Uuid) -> Result<(), Sqlx
 
 pub(crate) async fn insert_into(
     db: &SqlitePool,
-    uuid: &Uuid,
+    uuid: &String,
     kind: &Violation,
     guild_id: &GuildId,
     user_id: &UserId,
@@ -127,12 +119,12 @@ pub(crate) async fn insert_into(
     let transaction = db.begin().await?;
 
     let query = sqlx::query("INSERT INTO violations (uuid, kind, guild_id, user_id, moderator_id, reason, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)")
-        .bind(format!("{uuid}"))
+        .bind(uuid)
         .bind(Cow::from(*kind))
         .bind(i64::from(*guild_id))
         .bind(i64::from(*user_id))
         .bind(i64::from(*moderator_id))
-        .bind(reason)
+        .bind(reason.trim())
         .bind(created_at);
     match query.execute(db).await {
         Ok(_) => (),

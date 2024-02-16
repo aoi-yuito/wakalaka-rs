@@ -46,7 +46,7 @@ pub(crate) async fn insert_into(
 
     let query = sqlx::query("INSERT INTO restricted_guilds (guild_id, reason) VALUES (?, ?)")
         .bind(i64::from(*guild_id))
-        .bind(reason);
+        .bind(reason.trim());
     match query.execute(db).await {
         Ok(_) => (),
         Err(why) => {
