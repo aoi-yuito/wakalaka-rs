@@ -116,10 +116,4 @@ The executable will be in the `target` directory.
 
 [![gh_licence](https://img.shields.io/github/license/Kawaxte/wakalaka-rs?logo=github&style=for-the-badge)](LICENSE)
 
-This project is licenced under the [GNU Lesser General Public Licence v3.0](https://www.gnu.org/Licences/lgpl-3.0.en.html).
-
-The GNU Lesser General Public Licence (LGPL) is a free-software Licence published by the Free Software Foundation (FSF). The Licence allows developers and companies to use and integrate a software component released under the LGPL into their own (even proprietary) software without being required by the terms of a strong copyleft Licence to release the source code of their own components.
-
-However, any modifications to the original software must be released under the same LGPL Licence. These modifications may be distributed under any Licence if they are not distributed with the original software. This includes, in the case of a library, if the program dynamically links to the library.
-
-For more details, please refer to the [GNU Lesser General Public Licence v3.0](https://www.gnu.org/Licences/lgpl-3.0.en.html).
+This project is licenced under the [MIT License](LICENSE). You can use the project for any purpose, but you must include the original copyright and licence.
