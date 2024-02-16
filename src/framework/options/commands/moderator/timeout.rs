@@ -1,17 +1,7 @@
-// Copyright (C) 2024 Kawaxte
+// Copyright (c) 2024 Kawaxte
 //
-// wakalaka-rs is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Lesser General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// wakalaka-rs is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Lesser General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public License
-// along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
+// This software is released under the MIT License.
+// https://opensource.org/licenses/MIT
 
 use chrono::{Duration, Utc};
 use serenity::{
@@ -19,19 +9,15 @@ use serenity::{
     model::Timestamp,
 };
 use tracing::{error, info};
+use uuid::Uuid;
 
 use crate::{
-    database::{
-        guild_members,
-        infractions::{self, InfractionType},
-        users,
-    },
-    utility::{components::messages, models},
+    database::queries::{self, violations::Violation},
+    utils::{components, models},
     Context, Error,
 };
 
 #[poise::command(
-    prefix_command,
     slash_command,
     category = "Moderator",
     required_permissions = "MODERATE_MEMBERS",
@@ -40,96 +26,166 @@ use crate::{
     user_cooldown = 5,
     ephemeral
 )]
-/// Give user a time-out.
-pub async fn timeout(
+/// Put user on a time-out.
+pub(super) async fn timeout(
     ctx: Context<'_>,
     #[description = "The user to time out."] user: User,
-    #[description = "The reason for timing out."]
-    #[min_length = 3]
-    #[max_length = 80]
-    reason: String,
-    #[description = "The amount of days to time out for."]
+    #[description = "The amount of days a time-out should last."]
     #[min = 1]
     #[max = 28]
-    duration: Option<i64>,
+    time: Option<i64>,
+    #[description = "The reason for timing out."]
+    #[min_length = 3]
+    #[max_length = 120]
+    reason: Option<String>,
 ) -> Result<(), Error> {
-    let pool = &ctx.data().pool;
+    let db = &ctx.data().db;
+
+    let kind = Violation::Timeout;
 
     if user.bot || user.system {
-        let reply = messages::error_reply(None, "Cannot time out bots and system users!", true);
+        let reply = components::replies::error_reply_embed(
+            "Cannot put a bot or system user on a time-out.",
+            true,
+        );
+
         ctx.send(reply).await?;
 
         return Ok(());
     }
+
+    let author = ctx.author();
+    let author_id = author.id;
+    let author_name = &author.name;
 
     let user_id = user.id;
+    let user_name = &user.name;
+    let user_mention = user.mention();
 
-    let moderator = ctx.author();
-    let moderator_id = moderator.id;
-    if moderator_id == user_id {
-        let reply = messages::error_reply(None, "Cannot time yourself out!", true);
+    let guild = models::guilds::guild(ctx)?;
+    let guild_id = guild.id;
+    let guild_name = &guild.name;
+
+    if user_id == author_id {
+        let reply =
+            components::replies::error_reply_embed("Cannot put yourself on a time-out.", true);
+
         ctx.send(reply).await?;
 
         return Ok(());
     }
 
-    let duration = duration.unwrap_or(1);
+    let mut member = guild_id.member(&ctx, user_id).await?;
 
-    let result = {
-        let (user_name, user_mention) = (&user.name, user.mention());
+    let reason = reason.unwrap_or(String::new());
 
-        let (moderator_name, moderator_mention) = (&moderator.name, moderator.mention());
+    if let Err(_) = queries::users::select_user_id_from(db, &user_id).await {
+        queries::users::insert_into(db, &user_id).await?;
+    }
 
-        let guild_id = models::guilds::guild_id(ctx)?;
-        let guild_name = models::guilds::guild_name(ctx, guild_id);
+    let mut violations = queries::users::select_violations_from(db, &user_id).await?;
 
-        let created_at = Utc::now().naive_utc();
+    let uuid = Uuid::new_v4();
+    let uuids = queries::violations::select_uuids_from(db, &kind, &guild_id, &user_id).await?;
 
-        let mut user_infractions = users::select_infractions_from_users(&user_id, pool).await?;
-
-        let mut member = guild_id.member(&ctx, user_id).await?;
-
-        let message = messages::info_message(None, format!(
-            "You've been timed out in {guild_name} by {moderator_mention} for {reason}.",
-        ));
-        user.direct_message(ctx, message).await?;
-
-        let time = Timestamp::from(Utc::now() + Duration::days(duration));
-        let disabled_until = time
-            .to_rfc3339()
-            .expect("Failed to convert time to RFC3339");
-
-        match member.disable_communication_until_datetime(ctx, time).await {
+    let handle = if time.is_none() {
+        match member.enable_communication(ctx).await {
             Ok(_) => {
-                guild_members::update_guilds_members_set_timeout(
-                    &user_id,
-                    true,
-                    Some(disabled_until),
-                    pool,
-                )
-                .await?;
+                if uuids.is_empty() {
+                    let reply = components::replies::error_reply_embed(
+                        "{user_mention} isn't on a time-out!",
+                        true,
+                    );
 
-                info!("@{moderator_name} timed out @{user_name} in {guild_name}: {reason}");
+                    ctx.send(reply).await?;
 
-                infractions::insert_into_infractions(
-                    InfractionType::Timeout,
-                    &user_id,
-                    &moderator_id,
-                    &reason,
-                    created_at,
-                    &guild_id,
-                    pool,
-                )
-                .await?;
+                    return Ok(());
+                }
 
-                user_infractions += 1;
+                for uuid in uuids {
+                    let uuid = Uuid::parse_str(&uuid).unwrap();
 
-                users::update_users_set_infractions(&user_id, user_infractions, pool).await?;
+                    queries::violations::delete_from(db, &uuid).await?;
+                }
 
-                Ok(format!("{user_mention} has been timed out."))
+                violations -= 1;
+                if violations < 0 {
+                    violations = 0;
+                }
+
+                queries::users::update_set_violations(db, &user_id, violations).await?;
+
+                if reason.is_empty() {
+                    info!("@{author_name} got @{user_name} out of time-out in {guild_name}");
+                    Ok(format!("{user_mention} has been gotten out of a time-out."))
+                } else {
+                    info!(
+                        "@{author_name} got @{user_name} out of time-out in {guild_name}: {reason}"
+                    );
+                    Ok(format!(
+                        "{user_mention} has been gotten out of a time-out for {reason}."
+                    ))
+                }
             }
             Err(why) => {
-                error!("Failed to time out @{user_name}: {why:?}");
+                error!("Failed to get @{user_name} out of time-out in {guild_name}: {why:?}");
+                Err(format!(
+                    "An error occurred whilst getting {user_mention} out of a time-out."
+                ))
+            }
+        }
+    } else {
+        let time = time.unwrap_or(0);
+
+        let now = Utc::now();
+        let days = Duration::days(time);
+
+        let timestamp = Timestamp::from(now + days);
+
+        match member
+            .disable_communication_until_datetime(ctx, timestamp)
+            .await
+        {
+            Ok(_) => {
+                if !uuids.is_empty() {
+                    let reply = components::replies::error_reply_embed(
+                        "{user_mention} is already on a time-out!",
+                        true,
+                    );
+
+                    ctx.send(reply).await?;
+
+                    return Ok(());
+                }
+
+                let created_at = Utc::now().naive_utc();
+
+                queries::violations::insert_into(
+                    db,
+                    &uuid,
+                    &kind,
+                    &guild_id,
+                    &user_id,
+                    &author_id,
+                    &reason,
+                    &created_at,
+                )
+                .await?;
+
+                violations += 1;
+
+                queries::users::update_set_violations(db, &user_id, violations).await?;
+
+                if reason.is_empty() {
+                    info!("@{author_name} timed out @{user_name} in {guild_name}");
+                    Ok(format!("{user_mention} has been timed out."))
+                } else {
+                    info!("@{author_name} timed out @{user_name} in {guild_name}: {reason}");
+                    Ok(format!("{user_mention} has been timed out for {reason}."))
+                }
+            }
+            Err(why) => {
+                error!("Failed to time out @{user_name} in {guild_name}: {why:?}");
                 Err(format!(
                     "An error occurred whilst timing out {user_mention}."
                 ))
@@ -137,10 +193,11 @@ pub async fn timeout(
         }
     };
 
-    let reply = match result {
-        Ok(message) => messages::ok_reply(None, message, true),
-        Err(message) => messages::error_reply(None, message, true),
+    let reply = match handle {
+        Ok(message) => components::replies::ok_reply_embed(message, true),
+        Err(message) => components::replies::error_reply_embed(message, true),
     };
+
     ctx.send(reply).await?;
 
     Ok(())

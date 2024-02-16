@@ -1,33 +1,20 @@
-// Copyright (C) 2024 Kawaxte
+// Copyright (c) 2024 Kawaxte
 //
-// wakalaka-rs is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Lesser General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// wakalaka-rs is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Lesser General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public License
-// along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
+// This software is released under the MIT License.
+// https://opensource.org/licenses/MIT
 
 use chrono::Utc;
 use serenity::all::{Mentionable, User};
 use tracing::info;
+use uuid::Uuid;
 
 use crate::{
-    database::{
-        infractions::{self, InfractionType},
-        users,
-    },
-    utility::{components::messages, models},
+    database::queries::{self, violations::Violation},
+    utils::{components, models},
     Context, Error,
 };
 
 #[poise::command(
-    prefix_command,
     slash_command,
     category = "Moderator",
     required_permissions = "MODERATE_MEMBERS",
@@ -36,85 +23,107 @@ use crate::{
     user_cooldown = 5,
     ephemeral
 )]
-/// Warn a user for their misbehavior.
-pub async fn warn(
+/// Give user a warning.
+pub(super) async fn warn(
     ctx: Context<'_>,
-    #[description = "The user to warn."]
-    #[rename = "user"]
-    user: User,
+    #[description = "The user to warn."] user: User,
     #[description = "The reason for warning."]
     #[min_length = 3]
-    #[max_length = 80]
+    #[max_length = 120]
     reason: String,
 ) -> Result<(), Error> {
-    let pool = &ctx.data().pool;
+    let db = &ctx.data().db;
+
+    let kind = Violation::Warning;
 
     if user.bot || user.system {
-        let reply = messages::error_reply(None, "Cannot warn bots and system users!", true);
+        let reply = components::replies::error_reply_embed(
+            "Cannot give warning to a bot or system user.",
+            true,
+        );
+
         ctx.send(reply).await?;
 
         return Ok(());
     }
 
-    let (user_id, user_name, user_mention) = (user.id, &user.name, user.mention());
+    let author = ctx.author();
+    let author_id = author.id;
+    let author_name = &author.name;
+    let author_mention = author.mention();
 
-    let moderator = ctx.author();
-    let (moderator_id, moderator_name, moderator_mention) =
-        (moderator.id, &moderator.name, moderator.mention());
-    if moderator_id == user_id {
-        let reply = messages::error_reply(None, "Cannot warn yourself!", true);
+    let user_id = user.id;
+    let user_name = &user.name;
+    let user_mention = user.mention();
+
+    let guild = models::guilds::guild(ctx)?;
+    let guild_id = guild.id;
+    let guild_name = &guild.name;
+
+    if user_id == author_id {
+        let reply = components::replies::error_reply_embed("Cannot give yourself a warning.", true);
         ctx.send(reply).await?;
 
         return Ok(());
     }
 
-    let guild_id = models::guilds::guild_id(ctx)?;
-    let guild_name = models::guilds::guild_name(ctx, guild_id);
+    if let Err(_) = queries::users::select_user_id_from(db, &user_id).await {
+        queries::users::insert_into(db, &user_id).await?;
+    }
+
+    let mut violations = queries::users::select_violations_from(db, &user_id).await?;
+
+    let uuid = Uuid::new_v4();
+    let uuids = queries::violations::select_uuids_from(db, &kind, &guild_id, &user_id).await?;
+
+    let uuid_count = uuids.len();
+    if uuid_count >= 3 {
+        let reply = components::replies::error_reply_embed(
+            format!("Cannot give more than {uuid_count} warnings to {user_mention}."),
+            true,
+        );
+
+        ctx.send(reply).await?;
+
+        return Ok(());
+    }
 
     let created_at = Utc::now().naive_utc();
 
-    let mut user_infractions = users::select_infractions_from_users(&user_id, pool).await?;
-
-    let warnings =
-        infractions::select_from_infractions(InfractionType::Warn, &user_id, &guild_id, pool)
-            .await?;
-
-    let warning_count = warnings.len();
-    if warning_count >= 3 {
-        let reply = messages::warn_reply(None, 
-            format!(
-            "{user_mention} has reached a maximum number of warnings. Take further action manually.",
-        ),
-            true,
-        );
-        ctx.send(reply).await?;
-
-        return Ok(());
-    }
-
-    let message = messages::info_message(None, format!(
-        "You've been warned by {moderator_mention} in {guild_name} for {reason}.",
-    ));
-    user.direct_message(ctx, message).await?;
-
-    info!("@{user_name} warned by @{moderator_name} in {guild_name}: {reason}");
-
-    infractions::insert_into_infractions(
-        InfractionType::Warn,
-        &user_id,
-        &moderator_id,
-        &reason,
-        created_at,
+    let handle = match queries::violations::insert_into(
+        db,
+        &uuid,
+        &kind,
         &guild_id,
-        pool,
+        &user_id,
+        &author_id,
+        &reason,
+        &created_at,
     )
-    .await?;
+    .await
+    {
+        Ok(_) => {
+            violations += 1;
 
-    user_infractions += 1;
+            queries::users::update_set_violations(db, &user_id, violations).await?;
 
-    users::update_users_set_infractions(&user_id, user_infractions, pool).await?;
+            let message = components::messages::message_embed(format!(
+                "You've been warned by {author_mention} in {guild_name} for {reason}.",
+            ));
 
-    let reply = messages::ok_reply(None, format!("{user_mention} has been warned."), true);
+            user.dm(ctx, message).await?;
+
+            info!("@{author_name} warned @{user_name} in {guild_name}: {reason}");
+            Ok(format!("{user_mention} has been warned for {reason}."))
+        }
+        Err(_) => Err(format!("An error occurred whilst warning {user_mention}.")),
+    };
+
+    let reply = match handle {
+        Ok(message) => components::replies::ok_reply_embed(message, true),
+        Err(message) => components::replies::error_reply_embed(message, true),
+    };
+
     ctx.send(reply).await?;
 
     Ok(())

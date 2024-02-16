@@ -1,28 +1,20 @@
-// Copyright (C) 2024 Kawaxte
+// Copyright (c) 2024 Kawaxte
 //
-// wakalaka-rs is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Lesser General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// wakalaka-rs is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Lesser General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public License
-// along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
+// This software is released under the MIT License.
+// https://opensource.org/licenses/MIT
 
+use chrono::Utc;
 use serenity::all::{Mentionable, User};
 use tracing::{error, info};
+use uuid::Uuid;
 
 use crate::{
-    utility::{components::messages, models},
+    database::queries::{self, violations::Violation},
+    utils::{components, models},
     Context, Error,
 };
 
 #[poise::command(
-    prefix_command,
     slash_command,
     category = "Moderator",
     required_permissions = "KICK_MEMBERS",
@@ -31,64 +23,98 @@ use crate::{
     user_cooldown = 5,
     ephemeral
 )]
-/// Kick a user outside.
-pub async fn kick(
+/// Kick a user.
+pub(super) async fn kick(
     ctx: Context<'_>,
     #[description = "The user to kick."] user: User,
     #[description = "The reason for kicking."]
     #[min_length = 3]
-    #[max_length = 80]
-    reason: String,
+    #[max_length = 120]
+    reason: Option<String>,
 ) -> Result<(), Error> {
+    let db = &ctx.data().db;
+
+    let kind = Violation::Kick;
+
     if user.system {
-        let reply = messages::error_reply(None, "Cannot kick system users!", true);
+        let reply = components::replies::error_reply_embed("Cannot kick a system user.", true);
+
         ctx.send(reply).await?;
 
         return Ok(());
     }
+
+    let author = ctx.author();
+    let author_id = author.id;
+    let author_name = &author.name;
 
     let user_id = user.id;
+    let user_name = &user.name;
+    let user_mention = user.mention();
 
-    let moderator = ctx.author();
-    let moderator_id = moderator.id;
-    if moderator_id == user_id {
-        let reply = messages::error_reply(None, "Cannot kick yourself!", true);
+    let guild = models::guilds::guild(ctx)?;
+    let guild_id = guild.id;
+    let guild_name = &guild.name;
+
+    if user_id == author_id {
+        let reply = components::replies::error_reply_embed("Cannot kick yourself.", true);
+
         ctx.send(reply).await?;
 
         return Ok(());
     }
 
-    let result = {
-        let (user_name, user_mention) = (&user.name, user.mention());
+    let member = guild_id.member(&ctx, user_id).await?;
 
-        let (moderator_name, moderator_mention) = (&moderator.name, moderator.mention());
+    let reason = reason.unwrap_or(String::new());
 
-        let guild_id = models::guilds::guild_id(ctx)?;
-        let guild_name = models::guilds::guild_name(ctx, guild_id);
+    if let Err(_) = queries::users::select_user_id_from(db, &user_id).await {
+        queries::users::insert_into(db, &user_id).await?;
+    }
 
-        let member = guild_id.member(&ctx, user_id).await?;
+    let mut violations = queries::users::select_violations_from(db, &user_id).await?;
 
-        let message = messages::info_message(None, format!(
-            "You've been kicked from {guild_name} by {moderator_mention} for {reason}.",
-        ));
-        user.direct_message(ctx, message).await?;
+    let uuid = Uuid::new_v4();
 
-        match member.kick_with_reason(ctx, &reason).await {
-            Ok(_) => {
-                info!("@{moderator_name} kicked @{user_name} from {guild_name}: {reason}");
+    let handle = match member.kick_with_reason(&ctx, &reason).await {
+        Ok(_) => {
+            let created_at = Utc::now().naive_utc();
+
+            queries::violations::insert_into(
+                db,
+                &uuid,
+                &kind,
+                &guild_id,
+                &user_id,
+                &author_id,
+                &reason,
+                &created_at,
+            )
+            .await?;
+
+            violations += 1;
+
+            queries::users::update_set_violations(db, &user_id, violations).await?;
+
+            if reason.is_empty() {
+                info!("@{author_name} kicked @{user_name} from {guild_name}");
                 Ok(format!("{user_mention} has been kicked."))
+            } else {
+                info!("@{author_name} kicked @{user_name} from {guild_name}: {reason}");
+                Ok(format!("{user_mention} has been kicked for {reason}."))
             }
-            Err(why) => {
-                error!("Failed to kick @{user_name}: {why:?}");
-                Err(format!("An error occurred whilst kicking {user_mention}."))
-            }
+        }
+        Err(why) => {
+            error!("Failed to kick @{user_name} from {guild_name}: {why:?}");
+            Err(format!("An error occurred whilst kicking {user_mention}."))
         }
     };
 
-    let reply = match result {
-        Ok(message) => messages::ok_reply(None, message, true),
-        Err(message) => messages::error_reply(None, message, true),
+    let reply = match handle {
+        Ok(message) => components::replies::ok_reply_embed(message, true),
+        Err(message) => components::replies::error_reply_embed(message, true),
     };
+
     ctx.send(reply).await?;
 
     Ok(())
