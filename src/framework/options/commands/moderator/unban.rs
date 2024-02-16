@@ -5,7 +5,6 @@
 
 use serenity::all::{Mentionable, User};
 use tracing::{error, info};
-use uuid::Uuid;
 
 use crate::{
     database::queries::{self, violations::Violation},
@@ -28,7 +27,6 @@ pub(super) async fn unban(
     #[description = "The user to unban."] user: User,
 ) -> Result<(), Error> {
     let db = &ctx.data().db;
-
     let kind = Violation::Ban;
 
     if user.system {
@@ -61,7 +59,7 @@ pub(super) async fn unban(
 
     if let Err(_) = queries::users::select_user_id_from(db, &user_id).await {
         let reply = components::replies::error_reply_embed(
-            format!("{user_mention} isn't in the database!"),
+            format!("{user_mention} hasn't done anything yet!"),
             true,
         );
 
@@ -70,9 +68,9 @@ pub(super) async fn unban(
         return Ok(());
     }
 
-    let mut violations = queries::users::select_violations_from(db, &user_id).await?;
-
     let uuids = queries::violations::select_uuids_from(db, &kind, &guild_id, &user_id).await?;
+    
+    let mut violations = queries::users::select_violations_from(db, &user_id).await?;
 
     let result = match guild_id.unban(ctx, user_id).await {
         Ok(_) => {
@@ -86,8 +84,6 @@ pub(super) async fn unban(
             }
 
             for uuid in uuids {
-                let uuid = Uuid::parse_str(&uuid).unwrap();
-
                 queries::violations::delete_from(db, &uuid).await?;
             }
 
