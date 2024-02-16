@@ -16,7 +16,6 @@ pub(crate) const CARGO_NAME: &str = env!("CARGO_PKG_NAME");
 pub(crate) const CARGO_AUTHORS: &str = env!("CARGO_PKG_AUTHORS");
 pub(crate) const CARGO_DESCRIPTION: &str = env!("CARGO_PKG_DESCRIPTION");
 pub(crate) const CARGO_REPOSITORY: &str = env!("CARGO_PKG_REPOSITORY");
-pub(crate) const CARGO_RUST_VERSION: &str = env!("CARGO_PKG_RUST_VERSION");
 
 pub(crate) const GITHUB_URL: &str = "https://github.com/Kawaxte";
 
