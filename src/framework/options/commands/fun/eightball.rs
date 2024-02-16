@@ -20,7 +20,7 @@ pub(super) async fn eightball(
     ctx: Context<'_>,
     #[description = "The question to ask."]
     #[min_length = 3]
-    #[max_length = 120]
+    #[max_length = 255]
     question: String,
 ) -> Result<(), Error> {
     let mut rng = StdRng::from_entropy();
