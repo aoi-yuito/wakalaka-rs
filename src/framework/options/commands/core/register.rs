@@ -50,7 +50,7 @@ pub(super) async fn register(
             format!("{command_count} commands have been registered globally.")
         };
 
-        reply = components::replies::reply_embed(global_message, true);
+        reply = components::replies::ok_reply_embed(global_message, true);
 
         reply_handle.edit(ctx, reply).await?;
     } else {
@@ -72,7 +72,7 @@ pub(super) async fn register(
             format!("{command_count} commands have been registered.")
         };
 
-        reply = components::replies::reply_embed(message, true);
+        reply = components::replies::ok_reply_embed(message, true);
 
         reply_handle.edit(ctx, reply).await?;
     }
