@@ -1,47 +1,66 @@
-// Copyright (C) 2024 Kawaxte
+// Copyright (c) 2024 Kawaxte
 //
-// wakalaka-rs is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Lesser General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// wakalaka-rs is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Lesser General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public License
-// along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
+// This software is released under the MIT License.
+// https://opensource.org/licenses/MIT
 
-use serenity::all::Guild;
-
-use crate::{
-    utility::components::{embeds, replies},
-    Context, Error,
+use poise::CreateReply;
+use serenity::{
+    all::Guild,
+    builder::{CreateEmbedAuthor, CreateEmbedFooter},
 };
 
+use crate::{utils::components, Context, Error};
+
 #[poise::command(
-    prefix_command,
     slash_command,
-    category = "Core",
-    required_bot_permissions = "SEND_MESSAGES",
+    category = "Information",
+    required_bot_permissions = "SEND_MESSAGES | EMBED_LINKS",
     guild_only,
     user_cooldown = 5,
     ephemeral
 )]
-/// Get information about a server.
-pub async fn server(
+/// Get information of a given server.
+pub(super) async fn server(
     ctx: Context<'_>,
     #[description = "The server to get information of."]
     #[rename = "server"]
     guild: Guild,
 ) -> Result<(), Error> {
-    let owner_id = guild.owner_id;
-    let owner = owner_id.to_user(ctx).await?;
+    let guild_id = guild.id;
+    let guild_name = &guild.name;
+    let guild_description = guild.description.as_deref().unwrap_or_default();
+    let guild_icon_url = guild.icon_url().unwrap_or_default();
+    let guild_banner_url = guild.banner_url().unwrap_or_default();
 
-    let embed = embeds::lookup_server_command_embed(&guild, &owner);
+    let guild_owner_id = guild.owner_id;
+    let guild_owner = guild_owner_id.to_user(ctx).await?;
+    let guild_owner_name = &guild_owner.name;
+    let guild_owner_face = guild_owner.face();
 
-    let reply = replies::reply_embed(embed, true);
+    let guild_role_count = guild.roles.len();
+    let guild_member_count = guild.member_count;
+    let guild_channel_count = guild.channels.len();
+
+    let created_at = guild_id.created_at();
+
+    let embed_author = CreateEmbedAuthor::new(guild_owner_name).icon_url(guild_owner_face);
+    let embed_fields = vec![
+        ("Roles", format!("{guild_role_count}"), true),
+        ("Members", format!("{guild_member_count}"), true),
+        ("Channels", format!("{guild_channel_count}"), true),
+    ];
+    let embed_footer = CreateEmbedFooter::new(format!("{guild_id}"));
+
+    let embed = components::embeds::embed(guild_description)
+        .author(embed_author)
+        .title(guild_name)
+        .thumbnail(guild_icon_url)
+        .image(guild_banner_url)
+        .fields(embed_fields)
+        .footer(embed_footer)
+        .timestamp(created_at);
+
+    let reply = CreateReply::default().embed(embed);
     ctx.send(reply).await?;
 
     Ok(())
