@@ -1,47 +1,26 @@
-// Copyright (C) 2024 Kawaxte
+// Copyright (c) 2024 Kawaxte
 //
-// wakalaka-rs is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Lesser General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// wakalaka-rs is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Lesser General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public License
-// along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
+// This software is released under the MIT License.
+// https://opensource.org/licenses/MIT
 
 use serenity::model::Permissions;
 use tracing::error;
 
-use crate::{utility::components::messages, Context};
+use crate::{utils::components, Context};
 
-pub(crate) async fn handle(missing_permissions: Option<Permissions>, ctx: Context<'_>) {
-    if let Some(permissions) = missing_permissions {
-        let permissions = permissions
-            .iter()
-            .map(|permission| format!("{permission}"))
-            .collect::<Vec<String>>()
-            .join(", ");
+pub(crate) async fn handle(permissions: Option<Permissions>, ctx: Context<'_>) {
+    let separated_permissions = permissions
+        .iter()
+        .map(|permissions| format!("{permissions}"))
+        .collect::<Vec<_>>()
+        .join(", ");
 
-        let reply = messages::error_reply(
-            None,
-            format!("You're missing the following permission(s): `{permissions}`"),
-            true,
-        );
-        if let Err(why) = ctx.send(reply).await {
-            error!("Failed to send reply: {why:?}");
-        }
-    } else {
-        let reply = messages::error_reply(
-            None,
-            "Yours truly couldn't find the permission(s) you're missing.",
-            true,
-        );
-        if let Err(why) = ctx.send(reply).await {
-            error!("Failed to send reply: {why:?}");
-        }
+    let reply = components::replies::error_reply_embed(
+        format!("Missing the following permissions: {separated_permissions}"),
+        true,
+    );
+
+    if let Err(why) = ctx.send(reply).await {
+        error!("Failed to send reply: {why}");
     }
 }

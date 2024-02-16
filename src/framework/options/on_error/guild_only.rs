@@ -1,24 +1,21 @@
-// Copyright (C) 2024 Kawaxte
+// Copyright (c) 2024 Kawaxte
 //
-// wakalaka-rs is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Lesser General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// wakalaka-rs is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Lesser General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public License
-// along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
+// This software is released under the MIT License.
+// https://opensource.org/licenses/MIT
 
 use tracing::error;
 
-use crate::{utility::components::messages, Context};
+use crate::{utils::components, Context};
 
 pub(crate) async fn handle(ctx: Context<'_>) {
-    let reply = messages::error_reply(None, "You can only use this command in a server!", true);
+    let command = &ctx.command();
+    let command_name = &command.name;
+
+    let reply = components::replies::error_reply_embed(
+        format!("`{command_name}` can only be invoked in a server."),
+        true,
+    );
+
     if let Err(why) = ctx.send(reply).await {
         error!("Failed to send reply: {why:?}");
     }
