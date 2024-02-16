@@ -3,7 +3,7 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
-use serenity::all::{Mentionable, Role};
+use serenity::all::{Mentionable, Role, User};
 use tracing::{error, info};
 
 use crate::{
@@ -20,28 +20,39 @@ use crate::{
     user_cooldown = 5,
     ephemeral
 )]
-/// Delete an existing role.
-pub(super) async fn remove(
+/// Take away a role from a user.
+pub(super) async fn unassign(
     ctx: Context<'_>,
-    #[description = "The role to delete."] mut role: Role,
+    #[description = "The role to take."] role: Role,
+    #[description = "The user to take the role from."] user: User,
 ) -> Result<(), Error> {
     let author = ctx.author();
     let author_name = &author.name;
 
-    let role_name = role.name.clone();
+    let user_id = user.id;
+    let user_name = &user.name;
+    let user_mention = user.mention();
+
+    let role_id = role.id;
+    let role_name = &role.name;
     let role_mention = role.mention();
 
     let guild = models::guilds::guild(ctx)?;
+    let guild_id = guild.id;
     let guild_name = &guild.name;
 
-    let result = match role.delete(ctx).await {
+    let member = guild_id.member(&ctx, user_id).await?;
+
+    let result = match member.remove_role(ctx, role_id).await {
         Ok(_) => {
-            info!("@{author_name} deleted @{role_name} from {guild_name}");
-            Ok(format!("{role_mention} has been deleted."))
+            info!("@{author_name} took @{role_name} from @{user_name} in {guild_name}");
+            Ok(format!("Took {role_mention} away from {user_mention}."))
         }
         Err(why) => {
-            error!("@{author_name} failed to delete @{role_name} from {guild_name}: {why:?}");
-            Err(format!("An error occurred whilst deleting {role_mention}."))
+            error!("Failed to take @{role_name} away from @{user_name} in {guild_name}: {why:?}");
+            Err(format!(
+                "An error occurred whilst taking {role_mention} away from {user_mention}."
+            ))
         }
     };
 

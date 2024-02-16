@@ -1,4 +1,3 @@
-
 pub(crate) mod checks;
 pub(crate) mod queries;
 
@@ -6,13 +5,15 @@ use sqlx::{
     sqlite::{SqliteConnectOptions, SqlitePoolOptions},
     SqlitePool,
 };
-use tokio::runtime::Runtime;
 
 use crate::{utils::environment, SqlxError};
 
-pub(crate) fn start() -> Result<SqlitePool, SqlxError> {
-    let pool = Runtime::new()?.block_on(connect())?;
-    Runtime::new()?.block_on(migrate(&pool))?;
+pub(crate) async fn start() -> Result<SqlitePool, SqlxError> {
+    //no runtime
+    let pool = connect().await?;
+
+    migrate(&pool).await?;
+
     Ok(pool)
 }
 

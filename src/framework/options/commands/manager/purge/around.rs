@@ -1,28 +1,19 @@
-// Copyright (C) 2024 Kawaxte
+// Copyright (c) 2024 Kawaxte
 //
-// wakalaka-rs is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Lesser General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// wakalaka-rs is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Lesser General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public License
-// along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
+// This software is released under the MIT License.
+// https://opensource.org/licenses/MIT
+
+use std::sync::Arc;
 
 use serenity::{all::Message, builder::GetMessages};
 use tracing::{error, info};
 
 use crate::{
-    utility::{components::messages, models},
+    utils::{components, models},
     Context, Error,
 };
 
 #[poise::command(
-    prefix_command,
     slash_command,
     category = "Moderator",
     required_permissions = "MANAGE_MESSAGES",
@@ -32,9 +23,9 @@ use crate::{
     ephemeral
 )]
 /// Delete a given amount of messages around a specific message.
-pub async fn around(
+pub(super) async fn around(
     ctx: Context<'_>,
-    #[description = "The message to start deleting around."] message: Message,
+    #[description = "The message to start deleting from."] message: Message,
     #[description = "The amount of messages to delete."]
     #[min = 1]
     #[max = 100]
@@ -42,14 +33,17 @@ pub async fn around(
 ) -> Result<(), Error> {
     let count = count.unwrap_or(50);
 
-    let http = ctx.serenity_context().http.clone();
+    let s_ctx = ctx.serenity_context();
+    let http = Arc::clone(&s_ctx.http);
 
-    let user_name = ctx.author().name.clone();
+    let author = ctx.author();
+    let author_name = &author.name;
 
-    let (channel_id, channel_name) = (
-        ctx.channel_id(),
-        models::channels::channel_name(ctx).await?,
-    );
+    let channel_id = ctx.channel_id();
+    let channel_name = &channel_id.name(ctx).await?;
+
+    let guild = models::guilds::guild(ctx)?;
+    let guild_name = guild.name;
 
     let handle = tokio::spawn(async move {
         let mut deleted_message_count = 0;
@@ -74,18 +68,35 @@ pub async fn around(
             deleted_message_count += 1;
         }
 
-        info!("@{user_name} deleted {deleted_message_count} message(s) in #{channel_name}");
-
         deleted_message_count
     });
 
-    let reply_before = messages::reply(None, "Deleting message(s)...", true);
+    let reply_before = components::replies::reply_embed(format!("Deleting messages..."), true);
 
     let reply_handle = ctx.send(reply_before).await?;
 
-    let message_count = handle.await.unwrap_or(0);
+    let deleted_message_count = handle.await?;
+    if deleted_message_count == 0 {
+        let reply =
+            components::replies::warn_reply_embed(format!("No messages were deleted."), true);
 
-    let reply_after = messages::ok_reply(None, format!("Deleted {message_count} message(s)."), true);
+        ctx.send(reply).await?;
+
+        return Ok(());
+    }
+
+    let reply_after = if deleted_message_count == 1 {
+        components::replies::ok_reply_embed(
+            format!("{deleted_message_count} message has been deleted."),
+            true,
+        )
+    } else {
+        components::replies::ok_reply_embed(
+            format!("{deleted_message_count} messages have been deleted."),
+            true,
+        )
+    };
+
     reply_handle.edit(ctx, reply_after).await?;
 
     Ok(())

@@ -1,44 +1,40 @@
-// Copyright (C) 2024 Kawaxte
+// Copyright (c) 2024 Kawaxte
 //
-// wakalaka-rs is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Lesser General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// wakalaka-rs is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Lesser General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public License
-// along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
+// This software is released under the MIT License.
+// https://opensource.org/licenses/MIT
 
-use serenity::all::User;
-
-use crate::{
-    utility::components::{embeds, replies},
-    Context, Error,
+use poise::CreateReply;
+use serenity::{
+    all::{colours::branding, User},
+    builder::CreateEmbed,
 };
 
+use crate::{Context, Error};
+
 #[poise::command(
-    prefix_command,
     slash_command,
     context_menu_command = "Get Avatar",
     category = "Miscellaneous",
-    required_bot_permissions = "SEND_MESSAGES",
-    guild_only,
+    required_bot_permissions = "SEND_MESSAGES | EMBED_LINKS",
     user_cooldown = 5
 )]
 /// Get a user's avatar.
-pub async fn avatar(
+pub(super) async fn avatar(
     ctx: Context<'_>,
-    #[description = "The user to get the avatar from."] user: User,
+    #[description = "The user to get avatar of"] user: User,
 ) -> Result<(), Error> {
-    let (user_name, user_face) = (&user.name, user.face());
+    let user_name = &user.name;
+    let user_face = user.face();
 
-    let embed = embeds::avatar_command_embed(user_name, user_face);
+    let user_accent_colour = user.accent_colour.unwrap_or(branding::BLURPLE);
 
-    let reply = replies::reply_embed(embed, false);
+    let embed = CreateEmbed::default()
+        .title(user_name)
+        .image(user_face)
+        .colour(user_accent_colour);
+
+    let reply = CreateReply::default().embed(embed);
+
     ctx.send(reply).await?;
 
     Ok(())

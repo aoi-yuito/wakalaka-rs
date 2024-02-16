@@ -1,72 +1,40 @@
-// Copyright (C) 2024 Kawaxte
+// Copyright (c) 2024 Kawaxte
 //
-// wakalaka-rs is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Lesser General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// wakalaka-rs is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Lesser General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public License
-// along with wakalaka-rs. If not, see <http://www.gnu.org/licenses/>.
+// This software is released under the MIT License.
+// https://opensource.org/licenses/MIT
 
 use serenity::all::Guild;
-use tracing::error;
+use sqlx::SqlitePool;
 
 use crate::{
-    database::{guild_members, guilds, restricted_guilds, users},
-    utility::models,
-    Data, Error,
+    database::{checks, queries},
+    Error, SContext,
 };
 
-pub async fn handle(
+pub(crate) async fn handle(
+    ctx: &SContext,
+    db: &SqlitePool,
     guild: &Guild,
-    is_new: bool,
-    ctx: &crate::serenity::Context,
-    data: &Data,
+    is_new: &Option<bool>,
 ) -> Result<(), Error> {
-    let pool = &data.pool;
-
-    if !is_new {
+    if !is_new.is_some() {
         return Ok(());
     }
 
     let guild_id = guild.id;
-    let guild_name = &guild.name;
-    let guild_members = match models::members::members_raw(&ctx, &guild_id).await {
-        Ok(members) => members,
-        Err(why) => {
-            error!("Failed to get members for {guild_name}: {why:?}");
-            return Err(why.into());
-        }
-    };
 
-    let restricted_guild = restricted_guilds::check_restricted_guild(&pool, &guild_id).await;
-    if restricted_guild {
-        if let Err(why) = guild.leave(ctx).await {
-            error!("Failed to leave {guild_name}: {why:?}");
-            return Err(why.into());
-        }
+    let guild_owner_id = guild.owner_id;
+    let guild_owner = guild_owner_id.to_user(ctx).await?;
 
+    let guild_restricted = checks::check_restricted_guild(ctx, db, guild, &guild_owner).await?;
+    if guild_restricted {
+        guild.leave(ctx).await?;
         return Ok(());
     }
 
-    if users::insert_into_users(&guild_members, pool)
-        .await
-        .is_err()
-    {
-        return Ok(());
-    } else if guilds::insert_into_guilds(guild, pool).await.is_err() {
-        return Ok(());
-    } else if guild_members::insert_into_guild_members(&guild_members, pool)
-        .await
-        .is_err()
-    {
-        return Ok(());
-    }
+    queries::users::insert_into(db, &guild_owner_id).await?;
+
+    queries::guilds::insert_into(db, &guild_id, &guild_owner_id).await?;
 
     Ok(())
 }
