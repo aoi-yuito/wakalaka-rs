@@ -61,7 +61,7 @@ pub(super) async fn user(
                     Ok(format!("{user_mention} is able to use yours truly again."))
                 }
                 _ => Err(format!(
-                    "{user_mention} is already allowed to use yours truly."
+                    "{user_mention} is already allowed to use yours truly!"
                 )),
             }
         }

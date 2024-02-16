@@ -49,9 +49,7 @@ pub(super) async fn user(
     let guild_owner_id = guild.owner_id;
     let guild_owner_mention = guild_owner_id.mention();
 
-    let query = queries::users::select_user_id_from(db, &user_id).await;
-
-    let result = match query {
+    let result = match queries::users::select_user_id_from(db, &user_id).await {
         Ok(_) if user_id == guild_owner_id => Err(format!(
             "Cannot disallow {guild_owner_mention} from using yours truly."
         )),
