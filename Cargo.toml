@@ -1,5 +1,5 @@
 [package]
-name = "wakalaka-rs"
+name = "wakalaka"
 version = "0.2.1-beta"
 authors = ["Kawaxte"]
 edition = "2021"
