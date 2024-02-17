@@ -5,7 +5,7 @@
 
 use chrono::Utc;
 use serenity::all::{Mentionable, User};
-use tracing::info;
+use tracing::{error, info};
 use uuid::Uuid;
 
 use crate::{
@@ -117,7 +117,10 @@ pub(super) async fn warn(
             info!("@{author_name} warned @{user_name} in {guild_name}: {reason}");
             Ok(format!("{user_mention} has been warned for {reason}."))
         }
-        Err(_) => Err(format!("An error occurred while warning {user_mention}.")),
+        Err(why) => {
+            error!("Failed to warn @{user_name} in {guild_name}: {why:?}");
+            Err(format!("An error occurred while warning {user_mention}."))
+        }
     };
 
     let reply = match result {
