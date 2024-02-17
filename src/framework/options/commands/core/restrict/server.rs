@@ -68,7 +68,7 @@ pub(super) async fn server(
                 ))
             }
         },
-        Err(_) => Err(format!("{guild_name} isn't in the database!")),
+        _ => Err(format!("{guild_name} isn't in the database!")),
     };
 
     let reply = match result {
