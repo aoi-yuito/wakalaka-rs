@@ -56,9 +56,7 @@ pub(super) async fn user(
         _ => {
             queries::users::insert_into(db, &user_id).await?;
 
-            let restricted_query =
-                queries::restricted_users::select_user_id_from(db, &user_id).await;
-            match restricted_query {
+            match queries::restricted_users::select_user_id_from(db, &user_id).await {
                 Ok(_) => Err(format!(
                     "{user_mention} is already disallowed from using yours truly."
                 )),
