@@ -52,20 +52,23 @@ pub(super) async fn server(
         return Ok(());
     }
 
-    let result = match queries::restricted_guilds::select_guild_id_from(db, &guild_id).await {
-        Ok(_) => Err(format!(
-            "{guild_name} is already disallowed from having yours truly."
-        )),
-        _ => {
-            queries::restricted_guilds::insert_into(db, &guild_id, &reason).await?;
-            queries::restricted_users::insert_into(db, &guild_owner_id, &reason).await?;
+    let result = match queries::guilds::select_guild_id_from(db, &guild_id).await {
+        Ok(_) => match queries::restricted_guilds::select_guild_id_from(db, &guild_id).await {
+            Ok(_) => Err(format!(
+                "{guild_name} is already disallowed from having yours truly."
+            )),
+            _ => {
+                queries::restricted_guilds::insert_into(db, &guild_id, &reason).await?;
+                queries::restricted_users::insert_into(db, &guild_owner_id, &reason).await?;
 
-            guild_id.leave(ctx).await?;
+                guild_id.leave(ctx).await?;
 
-            Ok(format!(
-                "{guild_name} isn't able to have yours truly anymore."
-            ))
-        }
+                Ok(format!(
+                    "{guild_name} isn't able to have yours truly anymore."
+                ))
+            }
+        },
+        Err(_) => Err(format!("{guild_name} isn't in the database!")),
     };
 
     let reply = match result {
