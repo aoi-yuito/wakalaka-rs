@@ -21,7 +21,7 @@ use crate::{Context, Error};
 /// Get a user's avatar.
 pub(super) async fn avatar(
     ctx: Context<'_>,
-    #[description = "The user to get avatar of"] user: User,
+    #[description = "The user to get the avatar of."] user: User,
 ) -> Result<(), Error> {
     let user_name = &user.name;
     let user_face = user.face();
