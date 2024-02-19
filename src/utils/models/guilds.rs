@@ -21,6 +21,13 @@ pub(crate) fn name_raw(ctx: &SContext, guild_id: &GuildId) -> String {
     }
 }
 
+pub(crate) fn guild_from_id(ctx: Context<'_>, guild_id: &GuildId) -> Result<Guild, ModelError> {
+    match guild_id.to_guild_cached(&ctx) {
+        Some(guild) => Ok(guild.clone()),
+        None => Err(ModelError::GuildNotFound),
+    }
+}
+
 pub(crate) fn guild(ctx: Context<'_>) -> Result<Guild, ModelError> {
     match ctx.guild() {
         Some(guild) => Ok(guild.clone()),
