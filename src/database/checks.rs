@@ -32,6 +32,8 @@ pub(crate) async fn check_restricted_guild(
 
     owner.dm(ctx, message).await?;
 
+    guild.leave(ctx).await?;
+
     Ok(true)
 }
 
