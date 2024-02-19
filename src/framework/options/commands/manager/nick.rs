@@ -18,7 +18,7 @@ use crate::{
     slash_command,
     category = "Manager",
     required_permissions = "MANAGE_NICKNAMES",
-    required_bot_permissions = "SEND_MESSAGES | MANAGE_NICKNAMES",
+    required_bot_permissions = "MANAGE_GUILD | SEND_MESSAGES | MANAGE_NICKNAMES",
     guild_only,
     user_cooldown = 5,
     ephemeral
