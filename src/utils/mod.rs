@@ -20,7 +20,7 @@ pub(crate) const CARGO_REPOSITORY: &str = env!("CARGO_PKG_REPOSITORY");
 pub(crate) const GITHUB_URL: &str = "https://github.com/Kawaxte";
 
 pub(crate) const INVITE_URL: &str = "https://discord.gg/jUZVWk7q2q";
-pub(crate) const BOT_INVITE_URL: &str = "https://discord.com/api/oauth2/authorize?client_id=1190718691055251548&permissions=9899241204854&scope=bot";
+pub(crate) const BOT_INVITE_URL: &str = "https://discord.com/api/oauth2/authorize?client_id=1190718691055251548&permissions=9925535296631&scope=bot";
 
 pub(crate) fn rgb_to_u32(code: &String) -> Result<u32, Error> {
     let mut rgb = code.split(',');
