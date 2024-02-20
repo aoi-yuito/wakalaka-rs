@@ -12,6 +12,10 @@ pub(crate) async fn handle(error: Error, input: Option<String>, ctx: Context<'_>
     let command_name = &command.qualified_name;
 
     let result = if let Some(input) = input {
+        if input == ctx.prefix() {
+            return;
+        }
+
         error!("Failed to parse arguments for {command_name:?}: {error:?} (input: {input:?})");
         Ok(format!(
             "{input:?} isn't a valid argument for `{command_name}`!"
