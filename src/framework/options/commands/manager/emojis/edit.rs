@@ -39,7 +39,7 @@ pub(super) async fn edit(
             error!("Failed to find {emoji:?} in {guild_name}");
 
             let reply =
-                components::replies::error_reply_embed(format!("`{emoji}` doesn't exist!"), true);
+                components::replies::error_reply_embed(format!("`{emoji}` does not exist!"), true);
 
             ctx.send(reply).await?;
 

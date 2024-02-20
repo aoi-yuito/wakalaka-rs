@@ -36,7 +36,7 @@ pub(super) async fn remove(
             error!("Failed to find {name:?} in {guild_name}");
 
             let reply =
-                components::replies::error_reply_embed(format!("`{name}` doesn't exist!"), true);
+                components::replies::error_reply_embed(format!("`{name}` does not exist!"), true);
 
             ctx.send(reply).await?;
 

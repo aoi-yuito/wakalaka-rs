@@ -62,11 +62,11 @@ pub(super) async fn server(
                 queries::restricted_users::insert_into(db, &guild_owner_id, &reason).await?;
 
                 Ok(format!(
-                    "{guild_name} isn't able to have yours truly anymore."
+                    "{guild_name} is not able to have yours truly anymore."
                 ))
             }
         },
-        _ => Err(format!("{guild_name} isn't in the database!")),
+        _ => Err(format!("{guild_name} is not in the database!")),
     };
 
     let reply = match result {

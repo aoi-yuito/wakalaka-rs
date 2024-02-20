@@ -64,7 +64,7 @@ pub(super) async fn user(
                     queries::restricted_users::insert_into(db, &user_id, &reason).await?;
 
                     Ok(format!(
-                        "{user_mention} isn't able to use yours truly anymore."
+                        "{user_mention} is not able to use yours truly anymore."
                     ))
                 }
             }

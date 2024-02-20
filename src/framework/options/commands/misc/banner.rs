@@ -45,7 +45,7 @@ pub(super) async fn banner(
     }
 
     let reply = components::replies::error_reply_embed(
-        format!("{user_mention} doesn't have a banner!"),
+        format!("{user_mention} does not have a banner!"),
         true,
     );
 

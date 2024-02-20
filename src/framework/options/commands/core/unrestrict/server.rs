@@ -60,7 +60,7 @@ pub(super) async fn server(
                 "{guild_name} is already allowed to have yours truly!"
             )),
         },
-        _ => Err(format!("{guild_name} isn't in the database!")),
+        _ => Err(format!("{guild_name} is not in the database!")),
     };
 
     let reply = match result {

@@ -94,7 +94,7 @@ pub(super) async fn timeout(
             Ok(_) => {
                 if uuids.is_empty() {
                     let reply = components::replies::error_reply_embed(
-                        "{user_mention} isn't on a time-out!",
+                        "{user_mention} is not on a time-out!",
                         true,
                     );
 

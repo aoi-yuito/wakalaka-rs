@@ -18,7 +18,7 @@ pub(crate) async fn handle(error: Error, input: Option<String>, ctx: Context<'_>
 
         error!("Failed to parse arguments for {command_name:?}: {error:?} (input: {input:?})");
         Ok(format!(
-            "{input:?} isn't a valid argument for `{command_name}`!"
+            "{input:?} is not a valid argument for `{command_name}`!"
         ))
     } else {
         error!("Failed to parse arguments for {command_name:?}: {error:?}");
