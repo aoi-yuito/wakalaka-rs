@@ -13,12 +13,12 @@ pub(crate) async fn handle(cooldown: Duration, ctx: Context<'_>) {
     let remaining_seconds = cooldown.as_secs();
 
     let reply = if remaining_seconds == 1 || remaining_seconds == 0 {
-        components::replies::error_reply_embed(
+        components::replies::warn_reply_embed(
             "You're too fast! Please wait a second before trying again.",
             true,
         )
     } else {
-        components::replies::error_reply_embed(
+        components::replies::warn_reply_embed(
             format!(
                 "You're too fast! Please wait {remaining_seconds} seconds before trying again."
             ),

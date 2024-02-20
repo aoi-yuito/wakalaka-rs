@@ -15,7 +15,7 @@ use crate::{
     slash_command,
     category = "Manager",
     required_permissions = "MANAGE_ROLES",
-    required_bot_permissions = "SEND_MESSAGES | MANAGE_ROLES",
+    required_bot_permissions = "MANAGE_GUILD | SEND_MESSAGES | MANAGE_ROLES",
     guild_only,
     user_cooldown = 5,
     ephemeral
@@ -66,7 +66,7 @@ pub(super) async fn edit(
         }
         Err(why) => {
             error!("Failed to edit @{role_name} in {guild_name}: {why:?}");
-            Err(format!("An error occurred whilst editing {role_mention}."))
+            Err(format!("An error occurred while editing {role_mention}."))
         }
     };
 

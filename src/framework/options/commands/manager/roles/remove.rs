@@ -15,7 +15,7 @@ use crate::{
     slash_command,
     category = "Manager",
     required_permissions = "MANAGE_ROLES",
-    required_bot_permissions = "SEND_MESSAGES | MANAGE_ROLES",
+    required_bot_permissions = "MANAGE_GUILD | SEND_MESSAGES | MANAGE_ROLES",
     guild_only,
     user_cooldown = 5,
     ephemeral
@@ -41,7 +41,7 @@ pub(super) async fn remove(
         }
         Err(why) => {
             error!("@{author_name} failed to delete @{role_name} from {guild_name}: {why:?}");
-            Err(format!("An error occurred whilst deleting {role_mention}."))
+            Err(format!("An error occurred while deleting {role_mention}."))
         }
     };
 

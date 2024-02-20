@@ -15,7 +15,7 @@ use crate::{
     slash_command,
     category = "Manager",
     required_permissions = "CREATE_GUILD_EXPRESSIONS",
-    required_bot_permissions = "SEND_MESSAGES | CREATE_GUILD_EXPRESSIONS",
+    required_bot_permissions = "MANAGE_GUILD | SEND_MESSAGES | CREATE_GUILD_EXPRESSIONS",
     guild_only,
     user_cooldown = 5,
     ephemeral
@@ -100,7 +100,7 @@ pub(super) async fn add(
         }
         Err(why) => {
             error!("Failed to create {name:?} in {guild_name}: {why:?}");
-            Err(format!("An error occurred whilst creating `{name}`."))
+            Err(format!("An error occurred while creating `{name}`."))
         }
     };
 

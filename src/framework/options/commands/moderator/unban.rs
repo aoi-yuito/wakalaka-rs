@@ -76,7 +76,7 @@ pub(super) async fn unban(
         Ok(_) => {
             if uuids.is_empty() {
                 let reply =
-                    components::replies::error_reply_embed("{user_mention} isn't banned!", true);
+                    components::replies::error_reply_embed("{user_mention} is not banned!", true);
 
                 ctx.send(reply).await?;
 
@@ -100,7 +100,7 @@ pub(super) async fn unban(
         Err(why) => {
             error!("Failed to unban @{user_name} from {guild_name}: {why:?}");
             Err(format!(
-                "An error occurred whilst unbanning {user_mention}."
+                "An error occurred while unbanning {user_mention}."
             ))
         }
     };

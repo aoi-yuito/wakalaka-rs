@@ -45,26 +45,20 @@ pub(super) async fn user(
     let guild_owner_id = guild.owner_id;
     let guild_owner_mention = guild_owner_id.mention();
 
-    let query = queries::users::select_user_id_from(db, &user_id).await;
-
-    let result = match query {
+    let result = match queries::users::select_user_id_from(db, &user_id).await {
         Ok(_) if user_id == guild_owner_id => Err(format!(
             "Cannot allow {guild_owner_mention} to use yours truly."
         )),
-        _ => {
-            let restricted_query =
-                queries::restricted_users::select_user_id_from(db, &user_id).await;
-            match restricted_query {
-                Ok(_) => {
-                    queries::restricted_users::delete_from(db, &user_id).await?;
+        _ => match queries::restricted_users::select_user_id_from(db, &user_id).await {
+            Ok(_) => {
+                queries::restricted_users::delete_from(db, &user_id).await?;
 
-                    Ok(format!("{user_mention} is able to use yours truly again."))
-                }
-                _ => Err(format!(
-                    "{user_mention} is already allowed to use yours truly!"
-                )),
+                Ok(format!("{user_mention} is able to use yours truly again."))
             }
-        }
+            _ => Err(format!(
+                "{user_mention} is already allowed to use yours truly!"
+            )),
+        },
     };
 
     let reply = match result {

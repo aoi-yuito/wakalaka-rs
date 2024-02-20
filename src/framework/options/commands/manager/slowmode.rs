@@ -18,7 +18,7 @@ use crate::{
     slash_command,
     category = "Manager",
     required_permissions = "MANAGE_CHANNELS",
-    required_bot_permissions = "MANAGE_CHANNELS | SEND_MESSAGES",
+    required_bot_permissions = "MANAGE_GUILD | MANAGE_CHANNELS | SEND_MESSAGES",
     guild_only,
     user_cooldown = 5,
     ephemeral
@@ -78,7 +78,7 @@ pub(super) async fn slowmode(
                 }
             }
             Err(why) => Err(format!(
-                "An error occurred whilst slowing down {guild_channel_mention}: {why}",
+                "An error occurred while slowing down {guild_channel_mention}: {why}",
             )),
         };
 

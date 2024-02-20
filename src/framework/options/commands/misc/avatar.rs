@@ -13,7 +13,7 @@ use crate::{Context, Error};
 
 #[poise::command(
     slash_command,
-    context_menu_command = "Get Avatar",
+    context_menu_command = "Avatar",
     category = "Miscellaneous",
     required_bot_permissions = "SEND_MESSAGES | EMBED_LINKS",
     user_cooldown = 5
@@ -21,7 +21,7 @@ use crate::{Context, Error};
 /// Get a user's avatar.
 pub(super) async fn avatar(
     ctx: Context<'_>,
-    #[description = "The user to get avatar of"] user: User,
+    #[description = "The user to get the avatar of."] user: User,
 ) -> Result<(), Error> {
     let user_name = &user.name;
     let user_face = user.face();

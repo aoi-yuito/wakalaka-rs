@@ -15,7 +15,7 @@ use crate::{
     slash_command,
     category = "Manager",
     required_permissions = "MANAGE_GUILD_EXPRESSIONS",
-    required_bot_permissions = "SEND_MESSAGES | MANAGE_GUILD_EXPRESSIONS",
+    required_bot_permissions = "MANAGE_GUILD | SEND_MESSAGES | MANAGE_GUILD_EXPRESSIONS",
     guild_only,
     user_cooldown = 5,
     ephemeral
@@ -39,7 +39,7 @@ pub(super) async fn edit(
             error!("Failed to find {emoji:?} in {guild_name}");
 
             let reply =
-                components::replies::error_reply_embed(format!("`{emoji}` doesn't exist!"), true);
+                components::replies::error_reply_embed(format!("`{emoji}` does not exist!"), true);
 
             ctx.send(reply).await?;
 
@@ -57,7 +57,7 @@ pub(super) async fn edit(
         }
         Err(why) => {
             error!("Failed to rename {emoji_name:?} to {name:?} in {guild_name}: {why:?}");
-            Err(format!("An error occurred whilst editing `{emoji}`."))
+            Err(format!("An error occurred while editing `{emoji}`."))
         }
     };
 

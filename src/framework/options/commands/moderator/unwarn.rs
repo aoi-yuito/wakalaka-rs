@@ -71,7 +71,7 @@ pub(super) async fn unwarn(
 
     if let Err(_) = queries::users::select_user_id_from(db, &user_id).await {
         let reply = components::replies::error_reply_embed(
-            format!("{user_mention} isn't in the database!"),
+            format!("{user_mention} is not in the database!"),
             true,
         );
 
@@ -83,7 +83,7 @@ pub(super) async fn unwarn(
     let uuids = queries::violations::select_uuids_from(db, &kind, &guild_id, &user_id).await?;
     if uuids.is_empty() {
         let reply = components::replies::error_reply_embed(
-            format!("{user_mention} doesn't have any warnings!",),
+            format!("{user_mention} does not have any warnings!"),
             true,
         );
         ctx.send(reply).await?;

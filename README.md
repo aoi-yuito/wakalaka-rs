@@ -18,7 +18,9 @@
 
 A work-in-progress, self-hostable Discord bot written purely in Rust, inspired by [Red](https://github.com/Cog-Creators/Red-DiscordBot) and [Dyno](https://dyno.gg).
 
-_Wakalaka is currently in Beta stage, and whilst she's not ready for general use (yet), she's still available for testing. If you'd like to test her, you can invite her to your server by clicking [here](https://discord.com/api/oauth2/authorize?client_id=1190718691055251548&permissions=9899241204854&scope=bot)._
+_As of now, Wakalaka is in Beta. She's not ready for full-time use, but she's ready for testing and feedback. If you feel like testing her, click [here](https://discord.com/api/oauth2/authorize?client_id=1190718691055251548&permissions=9925535296631&scope=bot) to bring her to your server._
+
+> Bare in mind that my programming skills far from good, and I'm still learning Rust. Any issue you have, please report it instead of keeping it to yourself. I'm always looking for ways to improve my projects, and to please other people. Thanks.
 
 ---
 
@@ -112,10 +114,4 @@ The executable will be in the `target` directory.
 
 [![gh_licence](https://img.shields.io/github/license/Kawaxte/wakalaka-rs?logo=github&style=for-the-badge)](LICENSE)
 
-This project is licenced under the [GNU Lesser General Public Licence v3.0](https://www.gnu.org/Licences/lgpl-3.0.en.html).
-
-The GNU Lesser General Public Licence (LGPL) is a free-software Licence published by the Free Software Foundation (FSF). The Licence allows developers and companies to use and integrate a software component released under the LGPL into their own (even proprietary) software without being required by the terms of a strong copyleft Licence to release the source code of their own components.
-
-However, any modifications to the original software must be released under the same LGPL Licence. These modifications may be distributed under any Licence if they are not distributed with the original software. This includes, in the case of a library, if the program dynamically links to the library.
-
-For more details, please refer to the [GNU Lesser General Public Licence v3.0](https://www.gnu.org/Licences/lgpl-3.0.en.html).
+This project is licenced under the [MIT License](LICENSE). You can use the project for any purpose, but you must include the original copyright and licence.

@@ -33,7 +33,7 @@ pub(super) async fn eightball(
         && !question.starts_with("why")
     {
         let reply = components::replies::error_reply_embed(
-            format!("\"{question}\" isn't an open-ended question!"),
+            format!("\"{question}\" is not an open-ended question!"),
             true,
         );
 

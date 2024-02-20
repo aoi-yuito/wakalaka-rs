@@ -21,7 +21,7 @@ use crate::{
     subcommands("add", "assign", "edit", "remove", "unassign"),
     category = "Manager",
     required_permissions = "MANAGE_ROLES",
-    required_bot_permissions = "MANAGE_ROLES",
+    required_bot_permissions = "MANAGE_GUILD | MANAGE_ROLES",
     guild_only,
     subcommand_required,
     ephemeral

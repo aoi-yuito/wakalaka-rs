@@ -19,7 +19,7 @@ use crate::{
     owners_only,
     ephemeral
 )]
-/// Disallow a server from utilising yours truly.
+/// Disallow a server from having yours truly.
 pub(super) async fn server(
     ctx: Context<'_>,
     #[description = "The server to restrict."]
@@ -43,7 +43,7 @@ pub(super) async fn server(
 
     if ctx_guild_id == guild_id {
         let reply = components::replies::error_reply_embed(
-            format!("Cannot disallow {ctx_guild_name} from utilising yours truly."),
+            format!("Cannot disallow {ctx_guild_name} from having yours truly."),
             true,
         );
 
@@ -52,20 +52,21 @@ pub(super) async fn server(
         return Ok(());
     }
 
-    let result = match queries::restricted_guilds::select_guild_id_from(db, &guild_id).await {
-        Ok(_) => Err(format!(
-            "{guild_name} is already disallowed from utilising yours truly."
-        )),
-        _ => {
-            queries::restricted_guilds::insert_into(db, &guild_id, &reason).await?;
-            queries::restricted_users::insert_into(db, &guild_owner_id, &reason).await?;
+    let result = match queries::guilds::select_guild_id_from(db, &guild_id).await {
+        Ok(_) => match queries::restricted_guilds::select_guild_id_from(db, &guild_id).await {
+            Ok(_) => Err(format!(
+                "{guild_name} is already disallowed from having yours truly."
+            )),
+            _ => {
+                queries::restricted_guilds::insert_into(db, &guild_id, &reason).await?;
+                queries::restricted_users::insert_into(db, &guild_owner_id, &reason).await?;
 
-            guild_id.leave(ctx).await?;
-
-            Ok(format!(
-                "{guild_name} isn't able to utilise yours truly anymore."
-            ))
-        }
+                Ok(format!(
+                    "{guild_name} is not able to have yours truly anymore."
+                ))
+            }
+        },
+        _ => Err(format!("{guild_name} is not in the database!")),
     };
 
     let reply = match result {
@@ -74,6 +75,8 @@ pub(super) async fn server(
     };
 
     ctx.send(reply).await?;
+
+    guild_id.leave(ctx).await?;
 
     Ok(())
 }

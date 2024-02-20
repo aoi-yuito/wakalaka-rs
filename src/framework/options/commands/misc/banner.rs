@@ -13,7 +13,7 @@ use crate::{utils::components, Context, Error};
 
 #[poise::command(
     slash_command,
-    context_menu_command = "Get Banner",
+    context_menu_command = "Banner",
     category = "Miscellaneous",
     required_bot_permissions = "SEND_MESSAGES | EMBED_LINKS",
     user_cooldown = 5
@@ -21,10 +21,13 @@ use crate::{utils::components, Context, Error};
 /// Get a user's banner.
 pub(super) async fn banner(
     ctx: Context<'_>,
-    #[description = "The user to get banner of"] user: User,
+    #[description = "The user to get the banner of."] user: User,
 ) -> Result<(), Error> {
+    let user_id = user.id;
+    let user = ctx.http().get_user(user_id).await?;
     let user_name = &user.name;
     let user_mention = user.mention();
+
     let user_banner_url = user.banner_url();
     if let Some(user_banner_url) = user_banner_url {
         let user_accent_colour = user.accent_colour.unwrap_or(branding::BLURPLE);
@@ -37,10 +40,12 @@ pub(super) async fn banner(
         let reply = CreateReply::default().embed(embed);
 
         ctx.send(reply).await?;
+
+        return Ok(());
     }
 
     let reply = components::replies::error_reply_embed(
-        format!("{user_mention} doesn't have a banner."),
+        format!("{user_mention} does not have a banner!"),
         true,
     );
 

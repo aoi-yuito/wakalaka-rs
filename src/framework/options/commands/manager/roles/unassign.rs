@@ -15,7 +15,7 @@ use crate::{
     slash_command,
     category = "Manager",
     required_permissions = "MANAGE_ROLES",
-    required_bot_permissions = "SEND_MESSAGES | MANAGE_ROLES",
+    required_bot_permissions = "MANAGE_GUILD | SEND_MESSAGES | MANAGE_ROLES",
     guild_only,
     user_cooldown = 5,
     ephemeral
@@ -51,7 +51,7 @@ pub(super) async fn unassign(
         Err(why) => {
             error!("Failed to take @{role_name} away from @{user_name} in {guild_name}: {why:?}");
             Err(format!(
-                "An error occurred whilst taking {role_mention} away from {user_mention}."
+                "An error occurred while taking {role_mention} away from {user_mention}."
             ))
         }
     };

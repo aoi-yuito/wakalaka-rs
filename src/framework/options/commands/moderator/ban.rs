@@ -109,7 +109,7 @@ pub(super) async fn ban(
         }
         Err(why) => {
             error!("Failed to ban @{user_name} from {guild_name}: {why:?}");
-            Err(format!("An error occurred whilst banning {user_mention}."))
+            Err(format!("An error occurred while banning {user_mention}."))
         }
     };
 

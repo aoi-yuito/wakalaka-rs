@@ -17,7 +17,7 @@ use crate::{
     subcommands("add", "edit", "remove"),
     category = "Manager",
     required_permissions = "MANAGE_GUILD_EXPRESSIONS | CREATE_GUILD_EXPRESSIONS",
-    required_bot_permissions = "SEND_MESSAGES | MANAGE_GUILD_EXPRESSIONS | CREATE_GUILD_EXPRESSIONS",
+    required_bot_permissions = "MANAGE_GUILD | SEND_MESSAGES | MANAGE_GUILD_EXPRESSIONS | CREATE_GUILD_EXPRESSIONS",
     guild_only,
     subcommand_required,
     ephemeral

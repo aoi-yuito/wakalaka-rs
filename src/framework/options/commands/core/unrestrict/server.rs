@@ -19,7 +19,7 @@ use crate::{
     owners_only,
     ephemeral
 )]
-/// Allow a server to utilise yours truly.
+/// Allow a server to have yours truly.
 pub(super) async fn server(
     ctx: Context<'_>,
     #[description = "The server to unrestrict."]
@@ -39,7 +39,7 @@ pub(super) async fn server(
 
     if ctx_guild_id == guild_id {
         let reply = components::replies::error_reply_embed(
-            format!("{ctx_guild_name} is already allowed to utilise yours truly!"),
+            format!("{ctx_guild_name} is already allowed to have yours truly!"),
             true,
         );
 
@@ -49,24 +49,18 @@ pub(super) async fn server(
     }
 
     let result = match queries::guilds::select_guild_id_from(db, &guild_id).await {
-        Ok(_) => Err(format!(
-            "{guild_name} is already allowed to utilise yours truly!"
-        )),
-        _ => {
-            match queries::restricted_guilds::select_guild_id_from(db, &guild_id).await {
-                Ok(_) => {
-                    queries::restricted_guilds::delete_from(db, &guild_id).await?;
-                    queries::restricted_users::delete_from(db, &guild_owner_id).await?; // We want the owner of the server to be able to use yours truly elsewhere.
+        Ok(_) => match queries::restricted_guilds::select_guild_id_from(db, &guild_id).await {
+            Ok(_) => {
+                queries::restricted_guilds::delete_from(db, &guild_id).await?;
+                queries::restricted_users::delete_from(db, &guild_owner_id).await?;
 
-                    Ok(format!(
-                        "{guild_name} is able to utilise yours truly again."
-                    ))
-                }
-                _ => Err(format!(
-                    "{guild_name} is already allowed to utilise yours truly!"
-                )),
+                Ok(format!("{guild_name} is able to have yours truly again."))
             }
-        }
+            _ => Err(format!(
+                "{guild_name} is already allowed to have yours truly!"
+            )),
+        },
+        _ => Err(format!("{guild_name} is not in the database!")),
     };
 
     let reply = match result {

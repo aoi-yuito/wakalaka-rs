@@ -3,6 +3,8 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
+mod argument_parse;
+mod command;
 mod cooldown_hit;
 mod dm_only;
 mod guild_only;
@@ -10,11 +12,23 @@ mod missing_bot_permissions;
 mod missing_user_permissions;
 mod not_an_owner;
 mod nsfw_only;
+mod subcommand_required;
 
 use crate::FrameworkError;
 
 pub(crate) async fn handle(framework_error: FrameworkError<'_>) {
     match framework_error {
+        FrameworkError::Command { error, ctx, .. } => {
+            command::handle(error, ctx).await;
+        }
+        FrameworkError::SubcommandRequired { ctx } => {
+            subcommand_required::handle(ctx).await;
+        }
+        FrameworkError::ArgumentParse {
+            error, input, ctx, ..
+        } => {
+            argument_parse::handle(error, input, ctx).await;
+        }
         FrameworkError::MissingBotPermissions {
             missing_permissions,
             ctx,

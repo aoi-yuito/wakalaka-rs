@@ -14,7 +14,7 @@ use crate::{
     slash_command,
     category = "Manager",
     required_permissions = "CREATE_GUILD_EXPRESSIONS",
-    required_bot_permissions = "SEND_MESSAGES | CREATE_GUILD_EXPRESSIONS",
+    required_bot_permissions = "MANAGE_GUILD | SEND_MESSAGES | CREATE_GUILD_EXPRESSIONS",
     guild_only,
     user_cooldown = 5,
     ephemeral
@@ -36,7 +36,7 @@ pub(super) async fn remove(
             error!("Failed to find {name:?} in {guild_name}");
 
             let reply =
-                components::replies::error_reply_embed(format!("`{name}` doesn't exist!"), true);
+                components::replies::error_reply_embed(format!("`{name}` does not exist!"), true);
 
             ctx.send(reply).await?;
 
@@ -56,7 +56,7 @@ pub(super) async fn remove(
         }
         Err(why) => {
             error!("Failed to delete {emoji_name:?} from {guild_name}: {why:?}");
-            Err(format!("An error occurred whilst deleting `{emoji_name}`."))
+            Err(format!("An error occurred while deleting `{emoji_name}`."))
         }
     };
 
