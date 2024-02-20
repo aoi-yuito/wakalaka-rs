@@ -1,44 +1,47 @@
 // Copyright (c) 2024 Kawaxte
-// 
+//
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
 use std::sync::Arc;
 
 use serenity::gateway::ActivityData;
-use tokio::time::Duration;
+use tokio::time::{interval, Duration, Interval};
 
 use tracing::info;
 
 use crate::{Error, SContext, SReady};
 
 pub(crate) async fn handle(ctx: &SContext, ready: &SReady) -> Result<(), Error> {
-    let user_name = &ready.user.name;
+    let bot = &ready.user;
+    let bot_name = &bot.name;
 
     let guild_ids = ctx.cache.guilds();
 
     let guild_id_count = guild_ids.len();
     if guild_id_count == 1 {
-        info!("Connected to {guild_id_count} guild as @{user_name}");
+        info!("Connected to {guild_id_count} guild as @{bot_name}");
     } else {
-        info!("Connected to {guild_id_count} guilds as @{user_name}");
+        info!("Connected to {guild_id_count} guilds as @{bot_name}");
     }
 
     let ctx = Arc::new(ctx.clone());
-    tokio::spawn(async move {
-        loop {
-            set_activity(&ctx, &guild_id_count).await;
 
-            tokio::time::sleep(Duration::from_secs(30)).await;
-        }
-    });
+    let interval = interval(Duration::from_secs(30));
+
+    set_activity(&ctx, interval, &guild_id_count).await;
 
     Ok(())
 }
 
-async fn set_activity(ctx: &crate::serenity::Context, count: &usize) {
+async fn set_activity(ctx: &SContext, mut interval: Interval, count: &usize) {
     let ytpmv = "Blue As You Are";
 
     let activity = format!("{ytpmv:?} in {count} guild(s)");
-    ctx.set_activity(Some(ActivityData::listening(&activity)));
+
+    loop {
+        ctx.set_activity(Some(ActivityData::listening(&activity)));
+
+        interval.tick().await;
+    }
 }
