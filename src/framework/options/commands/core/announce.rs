@@ -17,8 +17,8 @@ use crate::{
     required_permissions = "ADMINISTRATOR",
     required_bot_permissions = "SEND_MESSAGES",
     owners_only,
-    guild_only,
-    user_cooldown = 5
+    user_cooldown = 5,
+    ephemeral
 )]
 /// Send an announcement to servers yours truly is in.
 pub(super) async fn announce(
