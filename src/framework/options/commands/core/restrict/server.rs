@@ -61,8 +61,6 @@ pub(super) async fn server(
                 queries::restricted_guilds::insert_into(db, &guild_id, &reason).await?;
                 queries::restricted_users::insert_into(db, &guild_owner_id, &reason).await?;
 
-                guild_id.leave(ctx).await?;
-
                 Ok(format!(
                     "{guild_name} isn't able to have yours truly anymore."
                 ))
@@ -77,6 +75,8 @@ pub(super) async fn server(
     };
 
     ctx.send(reply).await?;
+
+    guild_id.leave(ctx).await?;
 
     Ok(())
 }
