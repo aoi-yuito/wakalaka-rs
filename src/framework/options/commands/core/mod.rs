@@ -3,8 +3,8 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
-mod register;
 mod announce;
+mod register;
 mod restrict;
 mod unregister;
 mod unrestrict;
