@@ -12,7 +12,7 @@ pub(crate) async fn handle(ctx: Context<'_>) {
     let command_name = &command.name;
 
     let reply = components::replies::error_reply_embed(
-        format!("`{command_name}` can only be invoked in a server."),
+        format!("Cannot `{command_name}` outside a server."),
         true,
     );
 

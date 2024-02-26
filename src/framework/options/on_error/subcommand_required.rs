@@ -12,7 +12,7 @@ pub(crate) async fn handle(ctx: Context<'_>) {
     let command_name = &command.qualified_name;
 
     let reply = components::replies::error_reply_embed(
-        format!("Cannot invoke `{command_name}` without providing a sub-command!"),
+        format!("Cannot invoke `{command_name}` without providing a sub-command."),
         true,
     );
 
