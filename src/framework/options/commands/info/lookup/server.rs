@@ -23,7 +23,7 @@ use crate::{utils::components, Context, Error};
 pub(super) async fn server(
     ctx: Context<'_>,
     #[description = "The server to get information of."]
-    #[rename = "server"]
+    #[rename = "id"]
     guild: Guild,
 ) -> Result<(), Error> {
     let guild_id = guild.id;
@@ -38,7 +38,11 @@ pub(super) async fn server(
     let guild_owner_face = guild_owner.face();
 
     let guild_role_count = guild.roles.len();
-    let guild_member_count = guild.member_count;
+    let guild_member_count = guild
+        .members
+        .iter()
+        .filter(|member| !member.1.user.bot)
+        .count();
     let guild_channel_count = guild.channels.len();
 
     let created_at = guild_id.created_at();
