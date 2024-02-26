@@ -14,7 +14,7 @@ use crate::{utils::components, Context, Error};
     slash_command,
     category = "Moderator",
     required_permissions = "MANAGE_MESSAGES",
-    required_bot_permissions = "MANAGE_GUILD | SEND_MESSAGES | MANAGE_MESSAGES",
+    required_bot_permissions = "SEND_MESSAGES | MANAGE_MESSAGES",
     guild_only,
     user_cooldown = 5,
     ephemeral
