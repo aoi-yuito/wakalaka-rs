@@ -8,7 +8,7 @@ use std::borrow::Cow;
 use chrono::NaiveDateTime;
 use serenity::all::{GuildId, UserId};
 use sqlx::{Row, SqlitePool};
-use tracing::error;
+use tracing::{debug, error};
 
 use crate::SqlxError;
 
@@ -92,7 +92,9 @@ pub(crate) async fn delete_from(db: &SqlitePool, uuid: &String) -> Result<(), Sq
 
     let query = sqlx::query("DELETE FROM violations WHERE uuid = ?").bind(format!("{uuid}"));
     match query.execute(db).await {
-        Ok(_) => (),
+        Ok(_) => {
+            debug!("Deleted from Violations:\n\tuuid: {uuid}")
+        }
         Err(why) => {
             transaction.rollback().await?;
 
@@ -127,7 +129,9 @@ pub(crate) async fn insert_into(
         .bind(reason.trim())
         .bind(created_at);
     match query.execute(db).await {
-        Ok(_) => (),
+        Ok(_) => {
+            debug!("Inserted into Violations:\n\tuuid: {uuid}\n\tkind: {kind}\n\tguild_id: {guild_id}\n\tuser_id: {user_id}\n\tmoderator_id: {moderator_id}\n\treason: {reason}\n\tcreated_at: {created_at}");
+        }
         Err(why) => {
             let error = format!("{why}");
             if error.contains("1555") {

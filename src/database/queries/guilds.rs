@@ -1,6 +1,6 @@
 use serenity::all::{GuildId, UserId};
 use sqlx::{Row, SqlitePool};
-use tracing::error;
+use tracing::{debug, error};
 
 use crate::SqlxError;
 
@@ -41,7 +41,9 @@ pub(crate) async fn update_set_owner_id(
         .bind(i64::from(*owner_id))
         .bind(i64::from(*guild_id));
     match query.execute(db).await {
-        Ok(_) => (),
+        Ok(_) => {
+            debug!("Updated Guilds:\n\tguild_id: {guild_id}\n\towner_id: {owner_id}");
+        }
         Err(why) => {
             transaction.rollback().await?;
 
@@ -60,7 +62,9 @@ pub(crate) async fn delete_from(db: &SqlitePool, guild_id: &GuildId) -> Result<(
 
     let query = sqlx::query("DELETE FROM guilds WHERE guild_id = ?").bind(i64::from(*guild_id));
     match query.execute(db).await {
-        Ok(_) => (),
+        Ok(_) => {
+            debug!("Deleted from Guilds:\n\tguild_id: {guild_id}");
+        }
         Err(why) => {
             transaction.rollback().await?;
 
@@ -85,7 +89,9 @@ pub(crate) async fn insert_into(
         .bind(i64::from(*guild_id))
         .bind(i64::from(*owner_id));
     match query.execute(db).await {
-        Ok(_) => (),
+        Ok(_) => {
+            debug!("Inserted into Guilds:\n\tguild_id: {guild_id}\n\towner_id: {owner_id}");
+        }
         Err(why) => {
             let error = format!("{why}");
             if error.contains("1555") {

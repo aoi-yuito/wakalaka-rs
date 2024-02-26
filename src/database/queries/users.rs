@@ -1,6 +1,6 @@
 use serenity::all::UserId;
 use sqlx::{Row, SqlitePool};
-use tracing::error;
+use tracing::{debug, error};
 
 use crate::SqlxError;
 
@@ -41,7 +41,9 @@ pub(crate) async fn update_set_violations(
         .bind(violations)
         .bind(i64::from(*user_id));
     match query.execute(db).await {
-        Ok(_) => (),
+        Ok(_) => {
+            debug!("Updated Users:\n\tuser_id: {user_id}\n\tviolations: {violations}");
+        },
         Err(why) => {
             transaction.rollback().await?;
 
@@ -60,7 +62,9 @@ pub(crate) async fn insert_into(db: &SqlitePool, user_id: &UserId) -> Result<(),
 
     let query = sqlx::query("INSERT INTO users (user_id) VALUES (?)").bind(i64::from(*user_id));
     match query.execute(db).await {
-        Ok(_) => (),
+        Ok(_) => {
+            debug!("Inserted into Users:\n\tuser_id: {user_id}");
+        }
         Err(why) => {
             let error = format!("{why}");
             if error.contains("1555") {

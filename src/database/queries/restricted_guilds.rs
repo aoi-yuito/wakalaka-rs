@@ -1,6 +1,6 @@
 use serenity::all::GuildId;
 use sqlx::{Row, SqlitePool};
-use tracing::info;
+use tracing::{debug, info};
 
 use crate::SqlxError;
 
@@ -23,7 +23,9 @@ pub(crate) async fn delete_from(db: &SqlitePool, guild_id: &GuildId) -> Result<(
     let query =
         sqlx::query("DELETE FROM restricted_guilds WHERE guild_id = ?").bind(i64::from(*guild_id));
     match query.execute(db).await {
-        Ok(_) => (),
+        Ok(_) => {
+            debug!("Deleted from RestrictedGuilds:\n\tguild_id: {guild_id}")
+        }
         Err(why) => {
             transaction.rollback().await?;
 
@@ -48,7 +50,9 @@ pub(crate) async fn insert_into(
         .bind(i64::from(*guild_id))
         .bind(reason.trim());
     match query.execute(db).await {
-        Ok(_) => (),
+        Ok(_) => {
+            debug!("Inserted into RestrictedGuilds:\n\tguild_id: {guild_id}\n\treason: {reason}");
+        }
         Err(why) => {
             let error = format!("{why}");
             if error.contains("1555") {

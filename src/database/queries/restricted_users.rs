@@ -1,6 +1,6 @@
 use serenity::all::UserId;
 use sqlx::{Row, SqlitePool};
-use tracing::error;
+use tracing::{debug, error};
 
 use crate::SqlxError;
 
@@ -23,7 +23,9 @@ pub(crate) async fn delete_from(db: &SqlitePool, user_id: &UserId) -> Result<(),
     let query =
         sqlx::query("DELETE FROM restricted_users WHERE user_id = ?").bind(i64::from(*user_id));
     match query.execute(db).await {
-        Ok(_) => (),
+        Ok(_) => {
+            debug!("Deleted from RestrictedUsers:\n\tuser_id: {user_id}");
+        },
         Err(why) => {
             let error = format!("{why}");
             if error.contains("1555") {
@@ -54,7 +56,9 @@ pub(crate) async fn insert_into(
         .bind(i64::from(*user_id))
         .bind(reason.trim());
     match query.execute(db).await {
-        Ok(_) => (),
+        Ok(_) => {
+            debug!("Inserted into RestrictedUsers:\n\tuser_id: {user_id}\n\treason: {reason}");
+        },
         Err(why) => {
             transaction.rollback().await?;
 
