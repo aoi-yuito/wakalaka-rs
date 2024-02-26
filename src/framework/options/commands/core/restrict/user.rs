@@ -58,13 +58,13 @@ pub(super) async fn user(
 
             match queries::restricted_users::select_user_id_from(db, &user_id).await {
                 Ok(_) => Err(format!(
-                    "{user_mention} is already disallowed from using yours truly."
+                    "{user_mention} is already disallowed from using yours truly!"
                 )),
                 _ => {
                     queries::restricted_users::insert_into(db, &user_id, &reason).await?;
 
                     Ok(format!(
-                        "{user_mention} is not able to use yours truly anymore."
+                        "{user_mention} is not able to use yours truly anymore!"
                     ))
                 }
             }

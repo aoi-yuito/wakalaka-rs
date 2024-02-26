@@ -53,7 +53,7 @@ pub(super) async fn user(
             Ok(_) => {
                 queries::restricted_users::delete_from(db, &user_id).await?;
 
-                Ok(format!("{user_mention} is able to use yours truly again."))
+                Ok(format!("{user_mention} is able to use yours truly again!"))
             }
             _ => Err(format!(
                 "{user_mention} is already allowed to use yours truly!"

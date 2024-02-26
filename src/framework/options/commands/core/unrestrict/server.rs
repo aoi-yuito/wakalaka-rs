@@ -23,7 +23,7 @@ use crate::{
 pub(super) async fn server(
     ctx: Context<'_>,
     #[description = "The server to unrestrict."]
-    #[rename = "server"]
+    #[rename = "id"]
     guild: Guild,
 ) -> Result<(), Error> {
     let db = &ctx.data().db;
@@ -54,7 +54,7 @@ pub(super) async fn server(
                 queries::restricted_guilds::delete_from(db, &guild_id).await?;
                 queries::restricted_users::delete_from(db, &guild_owner_id).await?;
 
-                Ok(format!("{guild_name} is able to have yours truly again."))
+                Ok(format!("{guild_name} is able to have yours truly again!"))
             }
             _ => Err(format!(
                 "{guild_name} is already allowed to have yours truly!"

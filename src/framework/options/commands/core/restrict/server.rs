@@ -23,7 +23,7 @@ use crate::{
 pub(super) async fn server(
     ctx: Context<'_>,
     #[description = "The server to restrict."]
-    #[rename = "server"]
+    #[rename = "id"]
     guild: Guild,
     #[min_length = 1]
     #[max_length = 255]
@@ -55,14 +55,14 @@ pub(super) async fn server(
     let result = match queries::guilds::select_guild_id_from(db, &guild_id).await {
         Ok(_) => match queries::restricted_guilds::select_guild_id_from(db, &guild_id).await {
             Ok(_) => Err(format!(
-                "{guild_name} is already disallowed from having yours truly."
+                "{guild_name} is already disallowed from having yours truly!"
             )),
             _ => {
                 queries::restricted_guilds::insert_into(db, &guild_id, &reason).await?;
                 queries::restricted_users::insert_into(db, &guild_owner_id, &reason).await?;
 
                 Ok(format!(
-                    "{guild_name} is not able to have yours truly anymore."
+                    "{guild_name} is not able to have yours truly anymore!"
                 ))
             }
         },
