@@ -43,9 +43,9 @@ pub(crate) async fn handle(
         return Ok(());
     }
 
-    queries::guilds::delete_from(db, &guild_id).await?;
-
     info!("@{bot_name} left {guild_name}");
+
+    queries::guilds::delete_from(db, &guild_id).await?;
 
     Ok(())
 }
