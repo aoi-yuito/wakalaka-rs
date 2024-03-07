@@ -9,6 +9,7 @@ mod info;
 mod manager;
 mod misc;
 mod moderator;
+mod music;
 
 use poise::Command;
 
@@ -22,5 +23,6 @@ pub(crate) async fn commands() -> Vec<Command<Data, Error>> {
     commands.extend(manager::commands().await);
     commands.extend(misc::commands().await);
     commands.extend(moderator::commands().await);
+    commands.extend(music::commands().await);
     commands
 }
