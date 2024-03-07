@@ -40,17 +40,6 @@ pub(crate) fn lastfm_api_key() -> Result<String, Error> {
     Ok(lastfm_api_key)
 }
 
-pub(crate) fn lastfm_api_secret() -> Result<String, Error> {
-    let lastfm_api_secret = match dotenvy::var("LASTFM_API_SECRET") {
-        Ok(api_secret) => api_secret,
-        Err(why) => {
-            error!("LASTFM_API_SECRET not found in environment: {why:?}");
-            return Err(why.into());
-        }
-    };
-    Ok(lastfm_api_secret)
-}
-
 pub(crate) fn rust_log() -> Result<String, Error> {
     let rust_log = match dotenvy::var("RUST_LOG") {
         Ok(level) => level,
