@@ -101,10 +101,10 @@ pub(super) async fn ban(
 
             if reason.is_empty() {
                 info!("@{author_name} banned @{user_name} from {guild_name}");
-                Ok(format!("{user_mention} has been banned."))
+                Ok(format!("{user_mention} has been banned!"))
             } else {
                 info!("@{author_name} banned @{user_name} from {guild_name}: {reason}");
-                Ok(format!("{user_mention} has been banned for {reason}."))
+                Ok(format!("{user_mention} has been banned: {reason}"))
             }
         }
         Err(why) => {

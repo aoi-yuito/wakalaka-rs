@@ -115,7 +115,7 @@ pub(super) async fn warn(
             user.dm(ctx, message).await?;
 
             info!("@{author_name} warned @{user_name} in {guild_name}: {reason}");
-            Ok(format!("{user_mention} has been warned for {reason}."))
+            Ok(format!("{user_mention} has been warned: {reason}"))
         }
         Err(why) => {
             error!("Failed to warn @{user_name} in {guild_name}: {why:?}");

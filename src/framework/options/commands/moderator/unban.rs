@@ -59,7 +59,7 @@ pub(super) async fn unban(
 
     if let Err(_) = queries::users::select_user_id_from(db, &user_id).await {
         let reply = components::replies::error_reply_embed(
-            format!("{user_mention} hasn't done anything yet!"),
+            format!("{user_mention} has not done anything yet!"),
             true,
         );
 
@@ -95,7 +95,7 @@ pub(super) async fn unban(
             queries::users::update_set_violations(db, &user_id, violations).await?;
 
             info!("@{author_name} unbanned @{user_name} from {guild_name}");
-            Ok(format!("{user_mention} has been unbanned."))
+            Ok(format!("{user_mention} has been unbanned!"))
         }
         Err(why) => {
             error!("Failed to unban @{user_name} from {guild_name}: {why:?}");

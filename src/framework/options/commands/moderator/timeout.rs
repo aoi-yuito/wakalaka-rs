@@ -84,7 +84,7 @@ pub(super) async fn timeout(
     }
 
     let uuids = queries::violations::select_uuids_from(db, &kind, &guild_id, &user_id).await?;
-    
+
     let mut violations = queries::users::select_violations_from(db, &user_id).await?;
 
     let mut member = guild_id.member(&ctx, user_id).await?;
@@ -148,7 +148,7 @@ pub(super) async fn timeout(
             Ok(_) => {
                 if !uuids.is_empty() {
                     let reply = components::replies::error_reply_embed(
-                        "{user_mention} is already on a time-out!",
+                        format!("Cannot time {user_mention} out as they're already on a time-out."),
                         true,
                     );
 
@@ -176,17 +176,17 @@ pub(super) async fn timeout(
                 queries::users::update_set_violations(db, &user_id, violations).await?;
 
                 if reason.is_empty() {
-                    info!("@{author_name} timed out @{user_name} in {guild_name}");
-                    Ok(format!("{user_mention} has been timed out."))
+                    info!("@{author_name} timed @{user_name} out in {guild_name}");
+                    Ok(format!("{user_mention} has been timed out!"))
                 } else {
-                    info!("@{author_name} timed out @{user_name} in {guild_name}: {reason}");
-                    Ok(format!("{user_mention} has been timed out for {reason}."))
+                    info!("@{author_name} timed @{user_name} out in {guild_name}: {reason}");
+                    Ok(format!("{user_mention} has been timed out: {reason}"))
                 }
             }
             Err(why) => {
-                error!("Failed to time out @{user_name} in {guild_name}: {why:?}");
+                error!("Failed to time @{user_name}out in {guild_name}: {why:?}");
                 Err(format!(
-                    "An error occurred while timing out {user_mention}."
+                    "An error occurred while timing {user_mention} out."
                 ))
             }
         }

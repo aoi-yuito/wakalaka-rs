@@ -98,10 +98,10 @@ pub(super) async fn kick(
 
             if reason.is_empty() {
                 info!("@{author_name} kicked @{user_name} from {guild_name}");
-                Ok(format!("{user_mention} has been kicked."))
+                Ok(format!("{user_mention} has been kicked!"))
             } else {
                 info!("@{author_name} kicked @{user_name} from {guild_name}: {reason}");
-                Ok(format!("{user_mention} has been kicked for {reason}."))
+                Ok(format!("{user_mention} has been kicked: {reason}"))
             }
         }
         Err(why) => {

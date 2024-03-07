@@ -149,7 +149,7 @@ pub(super) async fn unwarn(
             Ok(format!("Removed a warning from {user_mention}."))
         } else {
             error!("Failed to remove warning from @{user_name} in {guild_name}");
-            Err(format!("Idle for too long."))
+            Err(format!("Took too long to respond."))
         };
 
     let reply = match result {
