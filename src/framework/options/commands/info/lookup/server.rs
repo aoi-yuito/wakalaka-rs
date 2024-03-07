@@ -5,11 +5,14 @@
 
 use poise::CreateReply;
 use serenity::{
-    all::Guild,
+    all::GuildId,
     builder::{CreateEmbedAuthor, CreateEmbedFooter},
 };
 
-use crate::{utils::components, Context, Error};
+use crate::{
+    utils::{components, models},
+    Context, Error,
+};
 
 #[poise::command(
     slash_command,
@@ -19,14 +22,14 @@ use crate::{utils::components, Context, Error};
     user_cooldown = 5,
     ephemeral
 )]
-/// Get information of a given server.
+/// Get information of a given server yours truly is in.
 pub(super) async fn server(
     ctx: Context<'_>,
     #[description = "The server to get information of."]
     #[rename = "id"]
-    guild: Guild,
+    guild_id: GuildId,
 ) -> Result<(), Error> {
-    let guild_id = guild.id;
+    let guild = models::guilds::guild_from_id(ctx, &guild_id)?;
     let guild_name = &guild.name;
     let guild_description = guild.description.as_deref().unwrap_or_default();
     let guild_icon_url = guild.icon_url().unwrap_or_default();

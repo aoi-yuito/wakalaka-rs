@@ -37,7 +37,7 @@ pub(super) async fn nick(
             components::replies::error_reply_embed("Cannot alter a system user's nickname.", true);
 
         ctx.send(reply).await?;
-
+        
         return Ok(());
     }
 
