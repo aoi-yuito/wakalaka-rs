@@ -5,6 +5,7 @@
 
 mod database;
 mod framework;
+mod integrations;
 mod utils;
 
 use ::serenity::all::GatewayIntents;
