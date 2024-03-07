@@ -7,17 +7,6 @@ use tracing::error;
 
 use crate::Error;
 
-pub(crate) fn rust_log() -> Result<String, Error> {
-    let rust_log = match dotenvy::var("RUST_LOG") {
-        Ok(level) => level,
-        Err(why) => {
-            error!("RUST_LOG not found in environment: {why:?}");
-            return Err(why.into());
-        }
-    };
-    Ok(rust_log)
-}
-
 pub(crate) fn database_url() -> Result<String, Error> {
     let database_url = match dotenvy::var("DATABASE_URL") {
         Ok(url) => url,
@@ -38,4 +27,37 @@ pub(crate) fn discord_token() -> Result<String, Error> {
         }
     };
     Ok(discord_token)
+}
+
+pub(crate) fn lastfm_api_key() -> Result<String, Error> {
+    let lastfm_api_key = match dotenvy::var("LASTFM_API_KEY") {
+        Ok(api_key) => api_key,
+        Err(why) => {
+            error!("LASTFM_API_KEY not found in environment: {why:?}");
+            return Err(why.into());
+        }
+    };
+    Ok(lastfm_api_key)
+}
+
+pub(crate) fn lastfm_api_secret() -> Result<String, Error> {
+    let lastfm_api_secret = match dotenvy::var("LASTFM_API_SECRET") {
+        Ok(api_secret) => api_secret,
+        Err(why) => {
+            error!("LASTFM_API_SECRET not found in environment: {why:?}");
+            return Err(why.into());
+        }
+    };
+    Ok(lastfm_api_secret)
+}
+
+pub(crate) fn rust_log() -> Result<String, Error> {
+    let rust_log = match dotenvy::var("RUST_LOG") {
+        Ok(level) => level,
+        Err(why) => {
+            error!("RUST_LOG not found in environment: {why:?}");
+            return Err(why.into());
+        }
+    };
+    Ok(rust_log)
 }
