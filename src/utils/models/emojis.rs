@@ -15,7 +15,7 @@ pub(crate) async fn emoji_id(ctx: Context<'_>, name: &String) -> Option<EmojiId>
                 let emoji_id = emoji.id;
                 let emoji_name = &emoji.name;
                 if emoji_name == name {
-                    return Some(emoji_id);
+                    Some(emoji_id);
                 }
             }
 
