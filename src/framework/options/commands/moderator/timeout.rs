@@ -8,7 +8,7 @@ use serenity::{
     all::{Mentionable, User},
     model::Timestamp,
 };
-use tracing::{error, info};
+use tracing::{error, info, warn};
 use uuid::Uuid;
 
 use crate::{
@@ -137,7 +137,13 @@ pub(super) async fn timeout(
         let time = time.unwrap_or(0);
 
         let now = Utc::now();
-        let days = Duration::days(time);
+        let days = match Duration::try_days(time) {
+            Some(duration) => duration,
+            None => {
+                warn!("Bounds exceeded for @{user_name} in {guild_name}");
+                return Ok(());
+            }
+        };
 
         let timestamp = Timestamp::from(now + days);
 
