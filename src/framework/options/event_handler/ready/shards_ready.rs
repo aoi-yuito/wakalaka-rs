@@ -9,9 +9,9 @@ use crate::Error;
 
 pub(crate) async fn handle(shard_count: &u32) -> Result<(), Error> {
     if *shard_count == 1 {
-        info!("Received Ready event for 1 shard");
+        info!("Readied 1 shard");
     } else {
-        info!("Received Ready event for {shard_count} shards");
+        info!("Readied {shard_count} shards");
     }
 
     Ok(())
