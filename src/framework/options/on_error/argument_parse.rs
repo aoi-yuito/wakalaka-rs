@@ -19,10 +19,10 @@ pub(crate) async fn handle(error: Error, input: Option<String>, ctx: Context<'_>
         error!("Failed to parse arguments for {command_name:?}: {error:?}");
 
         if input.len() >= 18 && input.len() <= 19 {
-            Ok(format!("{input:?} could not be found!"))
+            Ok(format!("Cannot find {input:?}."))
         } else {
             Ok(format!(
-                "{input:?} is not a valid argument for {command_name}`!"
+                "{input:?} is not a valid argument for `{command_name}`!"
             ))
         }
     } else {
