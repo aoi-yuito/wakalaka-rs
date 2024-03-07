@@ -17,6 +17,7 @@ use crate::{
     required_permissions = "ADMINISTRATOR",
     required_bot_permissions = "SEND_MESSAGES",
     owners_only,
+    user_cooldown = 5,
     ephemeral
 )]
 /// Disallow a user from using yours truly.
@@ -32,7 +33,7 @@ pub(super) async fn user(
 
     if user.bot || user.system {
         let reply = components::replies::error_reply_embed(
-            "Cannot disallow a bot or system user from using yours truly.",
+            "Cannot restrict a bot or system user from using yours truly.",
             true,
         );
 
@@ -47,24 +48,23 @@ pub(super) async fn user(
     let guild = models::guilds::guild(ctx)?;
 
     let guild_owner_id = guild.owner_id;
-    let guild_owner_mention = guild_owner_id.mention();
 
     let result = match queries::users::select_user_id_from(db, &user_id).await {
-        Ok(_) if user_id == guild_owner_id => Err(format!(
-            "Cannot disallow {guild_owner_mention} from using yours truly."
-        )),
+        Ok(_) if user_id == guild_owner_id => {
+            Err(format!("Cannot restrict yourself from using yours truly."))
+        }
         _ => {
             queries::users::insert_into(db, &user_id).await?;
 
             match queries::restricted_users::select_user_id_from(db, &user_id).await {
                 Ok(_) => Err(format!(
-                    "{user_mention} is already disallowed from using yours truly!"
+                    "Cannot restrict {user_mention} from using yours truly as they're restricted already."
                 )),
                 _ => {
                     queries::restricted_users::insert_into(db, &user_id, &reason).await?;
 
                     Ok(format!(
-                        "{user_mention} is not able to use yours truly anymore!"
+                        "{user_mention} has been restricted from using yours truly: {reason}"
                     ))
                 }
             }

@@ -24,6 +24,7 @@ use crate::{
     required_bot_permissions = "MANAGE_ROLES",
     guild_only,
     subcommand_required,
+    user_cooldown = 5,
     ephemeral
 )]
 pub(super) async fn roles(_ctx: Context<'_>) -> Result<(), Error> {

@@ -19,6 +19,7 @@ use crate::{
     required_bot_permissions = "SEND_MESSAGES",
     owners_only,
     subcommand_required,
+    user_cooldown = 5,
     ephemeral
 )]
 pub(super) async fn unrestrict(_ctx: Context<'_>) -> Result<(), Error> {

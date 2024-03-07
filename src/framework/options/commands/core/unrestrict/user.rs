@@ -17,6 +17,7 @@ use crate::{
     required_permissions = "ADMINISTRATOR",
     required_bot_permissions = "SEND_MESSAGES",
     owners_only,
+    user_cooldown = 5,
     ephemeral
 )]
 /// Allow a user to use yours truly.
@@ -28,7 +29,7 @@ pub(super) async fn user(
 
     if user.bot || user.system {
         let reply = components::replies::error_reply_embed(
-            "Cannot allow a bot or system user to use yours truly.",
+            "Cannot unrestrict a bot or system user from using yours truly.",
             true,
         );
 
@@ -43,21 +44,18 @@ pub(super) async fn user(
     let guild = models::guilds::guild(ctx)?;
 
     let guild_owner_id = guild.owner_id;
-    let guild_owner_mention = guild_owner_id.mention();
 
     let result = match queries::users::select_user_id_from(db, &user_id).await {
         Ok(_) if user_id == guild_owner_id => Err(format!(
-            "Cannot allow {guild_owner_mention} to use yours truly."
+            "Cannot unrestrict yourself from using yours truly."
         )),
         _ => match queries::restricted_users::select_user_id_from(db, &user_id).await {
             Ok(_) => {
                 queries::restricted_users::delete_from(db, &user_id).await?;
 
-                Ok(format!("{user_mention} is able to use yours truly again!"))
+                Ok(format!("{user_mention} has been unrestricted from using yours truly!"))
             }
-            _ => Err(format!(
-                "{user_mention} is already allowed to use yours truly!"
-            )),
+            _ => Err(format!("Cannot unrestrict {user_mention} from using yours truly as they're not restricted.")),
         },
     };
 

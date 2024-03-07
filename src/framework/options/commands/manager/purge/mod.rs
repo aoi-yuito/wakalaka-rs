@@ -20,6 +20,7 @@ use crate::{
     required_bot_permissions = "MANAGE_MESSAGES",
     guild_only,
     subcommand_required,
+    user_cooldown = 5,
     ephemeral
 )]
 pub(super) async fn purge(_ctx: Context<'_>) -> Result<(), Error> {

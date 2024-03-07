@@ -14,6 +14,7 @@ use crate::{framework::options::commands::info::lookup::server::server, Context,
     required_bot_permissions = "SEND_MESSAGES | EMBED_LINKS",
     guild_only,
     subcommand_required,
+    user_cooldown = 5,
     ephemeral
 )]
 pub(super) async fn lookup(_ctx: Context<'_>) -> Result<(), Error> {

@@ -20,6 +20,7 @@ use crate::{
     required_bot_permissions = "SEND_MESSAGES | MANAGE_GUILD_EXPRESSIONS | CREATE_GUILD_EXPRESSIONS",
     guild_only,
     subcommand_required,
+    user_cooldown = 5,
     ephemeral
 )]
 pub(super) async fn emojis(_ctx: Context<'_>) -> Result<(), Error> {
