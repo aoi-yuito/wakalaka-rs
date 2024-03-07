@@ -17,19 +17,6 @@ pub(crate) async fn select_owner_id_from(
     Ok(owner_id)
 }
 
-pub(crate) async fn select_guild_id_from(
-    db: &SqlitePool,
-    guild_id: &GuildId,
-) -> Result<GuildId, SqlxError> {
-    let query =
-        sqlx::query("SELECT guild_id FROM guilds WHERE guild_id = ?").bind(i64::from(*guild_id));
-
-    let row = query.fetch_one(db).await?;
-
-    let guild_id = GuildId::from(row.get::<i64, _>("guild_id") as u64);
-    Ok(guild_id)
-}
-
 pub(crate) async fn update_set_owner_id(
     db: &SqlitePool,
     guild_id: &GuildId,
