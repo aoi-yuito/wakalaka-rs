@@ -7,6 +7,7 @@ pub(crate) mod components;
 pub(crate) mod environment;
 pub(crate) mod models;
 
+use regex::Regex;
 use tracing::error;
 
 use crate::Error;
@@ -21,6 +22,36 @@ pub(crate) const GITHUB_URL: &str = "https://github.com/Kawaxte";
 
 pub(crate) const INVITE_URL: &str = "https://discord.gg/jUZVWk7q2q";
 pub(crate) const BOT_INVITE_URL: &str = "https://discord.com/api/oauth2/authorize?client_id=1190718691055251548&permissions=9925535296631&scope=bot";
+
+pub(crate) fn html_to_md(mut text: String) -> String {
+    let a_re = Regex::new(r#"<a href="(.*?)">(.*?)</a>"#).expect("Failed to compile regex");
+    let b_re = Regex::new(r"<b>(.*?)</b>").expect("Failed to compile regex");
+    let blockquote_re =
+        Regex::new(r"<blockquote>(.*?)</blockquote>").expect("Failed to compile regex");
+    let br_re = Regex::new(r"<br>").expect("Failed to compile regex");
+    let code_re = Regex::new(r"<code>(.*?)</code>").expect("Failed to compile regex");
+    let h1_re = Regex::new(r"<h1>(.*?)</h1>").expect("Failed to compile regex");
+    let h2_re = Regex::new(r"<h2>(.*?)</h2>").expect("Failed to compile regex");
+    let h3_re = Regex::new(r"<h3>(.*?)</h3>").expect("Failed to compile regex");
+    let hr_re = Regex::new(r"<hr>").expect("Failed to compile regex");
+    let i_re = Regex::new(r"<i>(.*?)</i>").expect("Failed to compile regex");
+    let u_re = Regex::new(r"<u>(.*?)</u>").expect("Failed to compile regex");
+    let s_re = Regex::new(r"<s>(.*?)</s>").expect("Failed to compile regex");
+
+    text = format!("{}", a_re.replace_all(&text, "[$2]($1)"));
+    text = format!("{}", b_re.replace_all(&text, "**$1**"));
+    text = format!("{}", blockquote_re.replace_all(&text, "> $1"));
+    text = format!("{}", br_re.replace_all(&text, "\n"));
+    text = format!("{}", code_re.replace_all(&text, "`$1`"));
+    text = format!("{}", hr_re.replace_all(&text, "---"));
+    text = format!("{}", h1_re.replace_all(&text, "# $1"));
+    text = format!("{}", h2_re.replace_all(&text, "## $1"));
+    text = format!("{}", h3_re.replace_all(&text, "### $1"));
+    text = format!("{}", i_re.replace_all(&text, "*$1*"));
+    text = format!("{}", u_re.replace_all(&text, "__$1__"));
+    text = format!("{}", s_re.replace_all(&text, "~~$1~~"));
+    text
+}
 
 pub(crate) fn rgb_to_u32(code: &String) -> Result<u32, Error> {
     let mut rgb = code.split(',');
