@@ -43,7 +43,7 @@ pub(crate) async fn update_set_violations(
     match query.execute(db).await {
         Ok(_) => {
             debug!("Updated Users:\n\tuser_id: {user_id}\n\tviolations: {violations}");
-        },
+        }
         Err(why) => {
             transaction.rollback().await?;
 
