@@ -2,12 +2,12 @@ use serenity::all::UserId;
 use sqlx::{Row, SqlitePool};
 use tracing::{debug, error};
 
-use crate::SqlxError;
+use crate::{SqlxError, SqlxThrowable};
 
 pub(crate) async fn select_violations_from(
     db: &SqlitePool,
     user_id: &UserId,
-) -> Result<i64, SqlxError> {
+) -> SqlxThrowable<i64> {
     let query =
         sqlx::query("SELECT violations FROM users WHERE user_id = ?").bind(i64::from(*user_id));
 
@@ -20,7 +20,7 @@ pub(crate) async fn select_violations_from(
 pub(crate) async fn select_user_id_from(
     db: &SqlitePool,
     user_id: &UserId,
-) -> Result<UserId, SqlxError> {
+) -> SqlxThrowable<UserId> {
     let query =
         sqlx::query("SELECT user_id FROM users WHERE user_id = ?").bind(i64::from(*user_id));
 
@@ -34,7 +34,7 @@ pub(crate) async fn update_set_violations(
     db: &SqlitePool,
     user_id: &UserId,
     violations: i64,
-) -> Result<(), SqlxError> {
+) -> SqlxThrowable<()> {
     let transaction = db.begin().await?;
 
     let query = sqlx::query("UPDATE users SET violations = ? WHERE user_id = ?")
@@ -57,7 +57,7 @@ pub(crate) async fn update_set_violations(
     Ok(())
 }
 
-pub(crate) async fn insert_into(db: &SqlitePool, user_id: &UserId) -> Result<(), SqlxError> {
+pub(crate) async fn insert_into(db: &SqlitePool, user_id: &UserId) -> SqlxThrowable<()> {
     let transaction = db.begin().await?;
 
     let query = sqlx::query("INSERT INTO users (user_id) VALUES (?)").bind(i64::from(*user_id));

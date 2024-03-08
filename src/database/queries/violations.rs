@@ -10,7 +10,7 @@ use serenity::all::{GuildId, UserId};
 use sqlx::{Row, SqlitePool};
 use tracing::{debug, error};
 
-use crate::SqlxError;
+use crate::{SqlxError, SqlxThrowable};
 
 #[derive(Copy, Clone)]
 pub(crate) enum Violation {
@@ -47,7 +47,7 @@ pub(crate) async fn select_uuids_from(
     kind: &Violation,
     guild_id: &GuildId,
     user_id: &UserId,
-) -> Result<Vec<String>, SqlxError> {
+) -> SqlxThrowable<Vec<String>> {
     let query =
         sqlx::query("SELECT uuid FROM violations WHERE kind = ? AND guild_id = ? AND user_id = ?")
             .bind(Cow::from(*kind))
@@ -69,7 +69,7 @@ pub(crate) async fn select_from(
     kind: &Violation,
     guild_id: &GuildId,
     user_id: &UserId,
-) -> Result<Vec<(String, String, NaiveDateTime)>, SqlxError> {
+) -> SqlxThrowable<Vec<(String, String, NaiveDateTime)>> {
     let query = sqlx::query(
         "SELECT uuid, reason, created_at FROM violations WHERE kind = ? AND guild_id = ? AND user_id = ?",
     )
@@ -87,7 +87,7 @@ pub(crate) async fn select_from(
     Ok(uuids)
 }
 
-pub(crate) async fn delete_from(db: &SqlitePool, uuid: &String) -> Result<(), SqlxError> {
+pub(crate) async fn delete_from(db: &SqlitePool, uuid: &String) -> SqlxThrowable<()> {
     let transaction = db.begin().await?;
 
     let query = sqlx::query("DELETE FROM violations WHERE uuid = ?").bind(format!("{uuid}"));
@@ -117,7 +117,7 @@ pub(crate) async fn insert_into(
     moderator_id: &UserId,
     reason: &String,
     created_at: &NaiveDateTime,
-) -> Result<(), SqlxError> {
+) -> SqlxThrowable<()> {
     let transaction = db.begin().await?;
 
     let query = sqlx::query("INSERT INTO violations (uuid, kind, guild_id, user_id, moderator_id, reason, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)")

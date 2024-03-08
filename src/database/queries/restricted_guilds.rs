@@ -2,12 +2,12 @@ use serenity::all::GuildId;
 use sqlx::{Row, SqlitePool};
 use tracing::{debug, info};
 
-use crate::SqlxError;
+use crate::{SqlxError, SqlxThrowable};
 
 pub(crate) async fn select_guild_id_from(
     db: &SqlitePool,
     guild_id: &GuildId,
-) -> Result<GuildId, SqlxError> {
+) -> SqlxThrowable<GuildId> {
     let query = sqlx::query("SELECT guild_id FROM restricted_guilds WHERE guild_id = ?")
         .bind(i64::from(*guild_id));
 
@@ -17,7 +17,7 @@ pub(crate) async fn select_guild_id_from(
     Ok(guild_id)
 }
 
-pub(crate) async fn delete_from(db: &SqlitePool, guild_id: &GuildId) -> Result<(), SqlxError> {
+pub(crate) async fn delete_from(db: &SqlitePool, guild_id: &GuildId) -> SqlxThrowable<()> {
     let transaction = db.begin().await?;
 
     let query =
@@ -43,7 +43,7 @@ pub(crate) async fn insert_into(
     db: &SqlitePool,
     guild_id: &GuildId,
     reason: &String,
-) -> Result<(), SqlxError> {
+) -> SqlxThrowable<()> {
     let transaction = db.begin().await?;
 
     let query = sqlx::query("INSERT INTO restricted_guilds (guild_id, reason) VALUES (?, ?)")
