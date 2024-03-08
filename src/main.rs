@@ -29,8 +29,11 @@ type Error = Box<dyn std::error::Error + Send + Sync>;
 type FrameworkError<'a> = poise::FrameworkError<'a, Data, Error>;
 type SqlxError = sqlx::Error;
 
+type Throwable<T> = Result<T, Error>;
+type SqlxThrowable<T> = Result<T, SqlxError>;
+
 #[tokio::main]
-async fn main() -> Result<(), Error> {
+async fn main() -> Throwable<()> {
     let filter = environment::rust_log()?;
 
     let subscriber = tracing_subscriber::fmt()
