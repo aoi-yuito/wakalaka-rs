@@ -6,7 +6,7 @@
 use serenity::all::{GuildId, ModelError, Role, RoleId};
 use tracing::warn;
 
-use crate::SContext;
+use crate::{SContext, Throwable};
 
 use super::guilds;
 
@@ -14,7 +14,7 @@ pub(crate) async fn role_from_id_raw(
     ctx: &SContext,
     guild_id: &GuildId,
     role_id: &RoleId,
-) -> Result<Role, ModelError> {
+) -> Throwable<Role> {
     let guild = guilds::guild_from_id_raw(ctx, guild_id)?;
     let guild_name = &guild.name;
 
@@ -22,7 +22,7 @@ pub(crate) async fn role_from_id_raw(
         Some(role) => role.clone(),
         None => {
             warn!("No role found in {guild_name}");
-            return Err(ModelError::RoleNotFound);
+            return Err(Box::new(ModelError::RoleNotFound));
         }
     };
     Ok(role)

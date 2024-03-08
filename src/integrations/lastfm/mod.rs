@@ -8,7 +8,7 @@ pub(crate) mod artist;
 use reqwest::header::USER_AGENT;
 use std::collections::HashMap;
 
-use crate::{utils::environment, Error};
+use crate::{utils::environment, Throwable};
 
 use super::POSTMAN_USER_AGENT;
 
@@ -16,7 +16,7 @@ const LASTFM_API_ROOT_URL: &str = "https://ws.audioscrobbler.com/2.0/";
 
 pub(crate) async fn lastfm_get(
     mut payload: HashMap<&'static str, String>,
-) -> Result<serde_json::Value, Error> {
+) -> Throwable<serde_json::Value> {
     let lastfm_api_key = environment::lastfm_api_key()?;
 
     payload.insert("api_key", lastfm_api_key);

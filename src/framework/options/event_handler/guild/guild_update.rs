@@ -6,9 +6,9 @@
 use serenity::all::PartialGuild;
 use sqlx::SqlitePool;
 
-use crate::{database::queries, Error};
+use crate::{database::queries, Throwable};
 
-pub(crate) async fn handle(db: &SqlitePool, guild: &PartialGuild) -> Result<(), Error> {
+pub(crate) async fn handle(db: &SqlitePool, guild: &PartialGuild) -> Throwable<()> {
     let guild_id = guild.id;
 
     let db_owner_id = queries::guilds::select_owner_id_from(db, &guild_id).await?;

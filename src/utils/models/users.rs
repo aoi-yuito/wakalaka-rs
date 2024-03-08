@@ -6,9 +6,9 @@
 use serenity::all::CurrentUser;
 use tracing::error;
 
-use crate::{Error, SContext};
+use crate::{SContext, Throwable};
 
-pub(crate) async fn bot_raw(ctx: &SContext) -> Result<CurrentUser, Error> {
+pub(crate) async fn bot_raw(ctx: &SContext) -> Throwable<CurrentUser> {
     match ctx.http.get_current_user().await {
         Ok(bot) => Ok(bot),
         Err(why) => {

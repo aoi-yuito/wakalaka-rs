@@ -8,7 +8,7 @@ mod user;
 
 use crate::{
     framework::options::commands::core::restrict::{server::server, user::user},
-    Context, Error,
+    Context, Throwable,
 };
 
 #[poise::command(
@@ -22,6 +22,6 @@ use crate::{
     user_cooldown = 5,
     ephemeral
 )]
-pub(super) async fn restrict(_ctx: Context<'_>) -> Result<(), Error> {
+pub(super) async fn restrict(_ctx: Context<'_>) -> Throwable<()> {
     Ok(())
 }

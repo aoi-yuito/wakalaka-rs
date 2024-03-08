@@ -6,7 +6,7 @@
 use serenity::all::{ChannelId, GuildChannel, GuildId};
 use tracing::warn;
 
-use crate::{Context, Error};
+use crate::{Context, Throwable};
 
 pub(crate) async fn name(ctx: Context<'_>, channel_id: &ChannelId) -> String {
     match channel_id.name(ctx).await {
@@ -18,10 +18,7 @@ pub(crate) async fn name(ctx: Context<'_>, channel_id: &ChannelId) -> String {
     }
 }
 
-pub(crate) async fn channels(
-    ctx: Context<'_>,
-    guild_id: &GuildId,
-) -> Result<Vec<GuildChannel>, Error> {
+pub(crate) async fn channels(ctx: Context<'_>, guild_id: &GuildId) -> Throwable<Vec<GuildChannel>> {
     let channel_map = guild_id.channels(ctx).await?;
 
     let guild_channels = channel_map.values().cloned().collect::<Vec<_>>();

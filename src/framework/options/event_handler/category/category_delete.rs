@@ -6,9 +6,9 @@
 use serenity::all::{ChannelType, GuildChannel};
 use tracing::info;
 
-use crate::{utils::models, Error, SContext};
+use crate::{utils::models, SContext, Throwable};
 
-pub(crate) async fn handle(ctx: &SContext, category: &GuildChannel) -> Result<(), Error> {
+pub(crate) async fn handle(ctx: &SContext, category: &GuildChannel) -> Throwable<()> {
     if category.kind != ChannelType::Category {
         return Ok(());
     }

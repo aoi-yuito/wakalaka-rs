@@ -11,7 +11,7 @@ use tracing::info;
 
 use crate::{
     utils::{components, models},
-    Context, Error,
+    Context, Throwable,
 };
 
 #[poise::command(
@@ -31,13 +31,13 @@ pub(super) async fn nick(
     #[min_length = 1]
     #[max_length = 32]
     nickname: Option<String>,
-) -> Result<(), Error> {
+) -> Throwable<()> {
     if user.system {
         let reply =
             components::replies::error_reply_embed("Cannot alter a system user's nickname.", true);
 
         ctx.send(reply).await?;
-        
+
         return Ok(());
     }
 

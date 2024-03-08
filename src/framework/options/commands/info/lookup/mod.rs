@@ -5,7 +5,7 @@
 
 mod server;
 
-use crate::{framework::options::commands::info::lookup::server::server, Context, Error};
+use crate::{framework::options::commands::info::lookup::server::server, Context, Throwable};
 
 #[poise::command(
     slash_command,
@@ -17,6 +17,6 @@ use crate::{framework::options::commands::info::lookup::server::server, Context,
     user_cooldown = 5,
     ephemeral
 )]
-pub(super) async fn lookup(_ctx: Context<'_>) -> Result<(), Error> {
+pub(super) async fn lookup(_ctx: Context<'_>) -> Throwable<()> {
     Ok(())
 }

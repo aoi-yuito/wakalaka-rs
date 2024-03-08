@@ -11,7 +11,7 @@ use tracing::info;
 
 use crate::{
     utils::{components, models},
-    Context, Error,
+    Context, Throwable,
 };
 
 #[poise::command(
@@ -31,7 +31,7 @@ pub(super) async fn slowmode(
     #[min = 1]
     #[max = 21600]
     delay: Option<u16>,
-) -> Result<(), Error> {
+) -> Throwable<()> {
     let channel = match channel {
         Some(channel) => channel,
         None => ctx.guild_channel().await.unwrap(),

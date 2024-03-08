@@ -5,7 +5,7 @@
 
 use serenity::all::Command;
 
-use crate::{utils::components, Context, Error};
+use crate::{utils::components, Context, Throwable};
 
 #[poise::command(
     prefix_command,
@@ -19,10 +19,10 @@ use crate::{utils::components, Context, Error};
 /// Make commands available.
 pub(super) async fn register(
     ctx: Context<'_>,
-    #[description = "Whether or not commands should be globalised."]
+    #[description = "Whether the commands should be globalised."]
     #[flag]
     global: bool,
-) -> Result<(), Error> {
+) -> Throwable<()> {
     let guild_id = ctx.guild_id().unwrap();
 
     let commands = &ctx.framework().options().commands;

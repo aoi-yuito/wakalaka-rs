@@ -9,7 +9,7 @@ use sqlx::SqlitePool;
 use crate::{
     utils::components,
     utils::{GITHUB_URL, INVITE_URL},
-    Context, Error, SContext,
+    Context, SContext, Throwable,
 };
 
 use super::queries;
@@ -19,7 +19,7 @@ pub(crate) async fn check_restricted_guild(
     db: &SqlitePool,
     guild: &Guild,
     owner: &User,
-) -> Result<bool, Error> {
+) -> Throwable<bool> {
     let guild_id = guild.id;
     let guild_name = &guild.name;
 
@@ -41,7 +41,7 @@ pub(crate) async fn check_restricted_user(
     ctx: Context<'_>,
     db: &SqlitePool,
     user: &User,
-) -> Result<bool, Error> {
+) -> Throwable<bool> {
     let user_id = user.id;
 
     if let Err(_) = queries::restricted_users::select_user_id_from(db, &user_id).await {

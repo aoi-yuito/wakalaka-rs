@@ -6,9 +6,9 @@
 use serenity::all::GuildId;
 use tracing::info;
 
-use crate::Error;
+use crate::Throwable;
 
-pub(crate) async fn handle(guild_ids: &Vec<GuildId>) -> Result<(), Error> {
+pub(crate) async fn handle(guild_ids: &Vec<GuildId>) -> Throwable<()> {
     let guild_id_count = guild_ids.len();
     if guild_id_count == 1 {
         info!("Readied cache for 1 server");

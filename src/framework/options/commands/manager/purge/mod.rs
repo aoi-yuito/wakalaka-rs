@@ -9,7 +9,7 @@ mod before;
 
 use crate::{
     framework::options::commands::manager::purge::{after::after, around::around, before::before},
-    Context, Error,
+    Context, Throwable,
 };
 
 #[poise::command(
@@ -23,6 +23,6 @@ use crate::{
     user_cooldown = 5,
     ephemeral
 )]
-pub(super) async fn purge(_ctx: Context<'_>) -> Result<(), Error> {
+pub(super) async fn purge(_ctx: Context<'_>) -> Throwable<()> {
     Ok(())
 }

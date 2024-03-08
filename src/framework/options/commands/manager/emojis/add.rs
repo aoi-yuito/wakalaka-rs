@@ -8,7 +8,7 @@ use tracing::{error, info};
 
 use crate::{
     utils::{components, models},
-    Context, Error,
+    Context, Throwable,
 };
 
 #[poise::command(
@@ -28,7 +28,7 @@ pub(super) async fn add(
     #[max_length = 32]
     name: String,
     #[description = "The image representing the emoji."] image: Attachment,
-) -> Result<(), Error> {
+) -> Throwable<()> {
     let image_width = match image.width {
         Some(width) => {
             if width < 128 {

@@ -9,7 +9,7 @@ use serenity::{
     builder::CreateEmbed,
 };
 
-use crate::{Context, Error};
+use crate::{Context, Throwable};
 
 #[poise::command(
     slash_command,
@@ -22,7 +22,7 @@ use crate::{Context, Error};
 pub(super) async fn avatar(
     ctx: Context<'_>,
     #[description = "The user to get the avatar of."] user: User,
-) -> Result<(), Error> {
+) -> Throwable<()> {
     let user_name = &user.name;
     let user_face = user.face();
 

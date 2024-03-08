@@ -5,7 +5,7 @@
 
 use serenity::all::Mentionable;
 
-use crate::{utils::components, Context, Error};
+use crate::{utils::components, Context, Throwable};
 
 #[poise::command(
     slash_command,
@@ -21,7 +21,7 @@ pub(crate) async fn roll(
     #[min = 1]
     #[max = 2147483647] // i32::MAX
     number: Option<i32>,
-) -> Result<(), Error> {
+) -> Throwable<()> {
     let number = number.unwrap_or(100);
 
     let rolled_number = rand::random::<i32>() % number + 1;

@@ -8,7 +8,7 @@ use serenity::all::{CreateEmbedFooter, CreateMessage, Timestamp};
 
 use crate::{
     utils::{components, models},
-    Context, Error,
+    Context, Throwable,
 };
 
 #[poise::command(
@@ -27,7 +27,7 @@ pub(super) async fn announce(
     #[min_length = 1]
     #[max_length = 4096]
     message: String,
-) -> Result<(), Error> {
+) -> Throwable<()> {
     let message = message.replace("  ", "\n\n");
 
     let author = ctx.author();

@@ -6,9 +6,9 @@
 use serenity::all::GuildChannel;
 use tracing::info;
 
-use crate::{utils::models, Error, SContext};
+use crate::{utils::models, SContext, Throwable};
 
-pub(crate) async fn handle(ctx: &SContext, channel: &GuildChannel) -> Result<(), Error> {
+pub(crate) async fn handle(ctx: &SContext, channel: &GuildChannel) -> Throwable<()> {
     let guild_id = channel.guild_id;
     let guild = models::guilds::guild_from_id_raw(ctx, &guild_id)?;
     let guild_name = guild.name;

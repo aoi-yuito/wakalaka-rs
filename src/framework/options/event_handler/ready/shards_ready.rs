@@ -5,9 +5,9 @@
 
 use tracing::info;
 
-use crate::Error;
+use crate::Throwable;
 
-pub(crate) async fn handle(shard_count: &u32) -> Result<(), Error> {
+pub(crate) async fn handle(shard_count: &u32) -> Throwable<()> {
     if *shard_count == 1 {
         info!("Readied 1 shard");
     } else {

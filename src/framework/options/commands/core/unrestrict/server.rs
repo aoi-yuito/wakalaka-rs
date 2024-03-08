@@ -8,7 +8,7 @@ use serenity::all::GuildId;
 use crate::{
     database::queries,
     utils::{components, models},
-    Context, Error,
+    Context, Throwable,
 };
 
 #[poise::command(
@@ -26,7 +26,7 @@ pub(super) async fn server(
     #[description = "The server to unrestrict."]
     #[rename = "id"]
     guild_id: GuildId,
-) -> Result<(), Error> {
+) -> Throwable<()> {
     let db = &ctx.data().db;
 
     let ctx_guild = models::guilds::guild(ctx)?;

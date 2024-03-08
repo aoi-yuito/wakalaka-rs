@@ -6,13 +6,9 @@
 use serenity::all::{GuildId, RoleId};
 use tracing::info;
 
-use crate::{utils::models, Error, SContext};
+use crate::{utils::models, SContext, Throwable};
 
-pub(crate) async fn handle(
-    ctx: &SContext,
-    guild_id: &GuildId,
-    role_id: &RoleId,
-) -> Result<(), Error> {
+pub(crate) async fn handle(ctx: &SContext, guild_id: &GuildId, role_id: &RoleId) -> Throwable<()> {
     let guild = models::guilds::guild_from_id_raw(ctx, guild_id)?;
     let guild_name = &guild.name;
 

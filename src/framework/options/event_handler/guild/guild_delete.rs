@@ -7,14 +7,14 @@ use serenity::all::{Guild, UnavailableGuild, UserId};
 use sqlx::SqlitePool;
 use tracing::{info, warn};
 
-use crate::{database::queries, utils::models, Error, SContext};
+use crate::{database::queries, utils::models, SContext, Throwable};
 
 pub(crate) async fn handle(
     ctx: &SContext,
     db: &SqlitePool,
     unavailable_guild: &UnavailableGuild,
     guild: &Option<Guild>,
-) -> Result<(), Error> {
+) -> Throwable<()> {
     if unavailable_guild.unavailable {
         let unavailable_guild_id = unavailable_guild.id;
         let unavailable_guild_name = models::guilds::name_raw(&ctx, &unavailable_guild_id);

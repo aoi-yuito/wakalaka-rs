@@ -8,7 +8,7 @@ use serenity::all::{Mentionable, User};
 use crate::{
     database::queries,
     utils::{components, models},
-    Context, Error,
+    Context, Throwable,
 };
 
 #[poise::command(
@@ -24,7 +24,7 @@ use crate::{
 pub(super) async fn user(
     ctx: Context<'_>,
     #[description = "The user to unrestrict."] user: User,
-) -> Result<(), Error> {
+) -> Throwable<()> {
     let db = &ctx.data().db;
 
     if user.bot || user.system {

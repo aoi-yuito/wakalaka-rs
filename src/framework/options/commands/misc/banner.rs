@@ -9,7 +9,7 @@ use serenity::{
     builder::CreateEmbed,
 };
 
-use crate::{utils::components, Context, Error};
+use crate::{utils::components, Context, Throwable};
 
 #[poise::command(
     slash_command,
@@ -22,7 +22,7 @@ use crate::{utils::components, Context, Error};
 pub(super) async fn banner(
     ctx: Context<'_>,
     #[description = "The user to get the banner of."] user: User,
-) -> Result<(), Error> {
+) -> Throwable<()> {
     let user_id = user.id;
     let user = ctx.http().get_user(user_id).await?;
     let user_name = &user.name;

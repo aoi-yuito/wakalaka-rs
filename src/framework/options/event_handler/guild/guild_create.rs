@@ -10,7 +10,7 @@ use tracing::info;
 use crate::{
     database::{checks, queries},
     utils::models,
-    Error, SContext,
+    SContext, Throwable,
 };
 
 pub(crate) async fn handle(
@@ -18,7 +18,7 @@ pub(crate) async fn handle(
     db: &SqlitePool,
     guild: &Guild,
     is_new: &Option<bool>,
-) -> Result<(), Error> {
+) -> Throwable<()> {
     if !is_new.is_some() {
         return Ok(());
     }

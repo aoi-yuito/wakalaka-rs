@@ -12,14 +12,14 @@ mod thread;
 
 use serenity::client::FullEvent;
 
-use crate::{Data, Error, FrameworkContext, SContext};
+use crate::{Data, FrameworkContext, SContext, Throwable};
 
 pub(crate) async fn handle(
     ctx: &SContext,
     event: &FullEvent,
     _framework_ctx: FrameworkContext<'_>,
     data: &Data,
-) -> Result<(), Error> {
+) -> Throwable<()> {
     let db = &data.db;
 
     match event {

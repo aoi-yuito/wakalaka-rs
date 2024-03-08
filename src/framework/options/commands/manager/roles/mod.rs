@@ -13,7 +13,7 @@ use crate::{
     framework::options::commands::manager::roles::{
         add::add, assign::assign, edit::edit, remove::remove, unassign::unassign,
     },
-    Context, Error,
+    Context, Throwable,
 };
 
 #[poise::command(
@@ -27,6 +27,6 @@ use crate::{
     user_cooldown = 5,
     ephemeral
 )]
-pub(super) async fn roles(_ctx: Context<'_>) -> Result<(), Error> {
+pub(super) async fn roles(_ctx: Context<'_>) -> Throwable<()> {
     Ok(())
 }

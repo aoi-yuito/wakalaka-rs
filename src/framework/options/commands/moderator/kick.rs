@@ -11,7 +11,7 @@ use uuid::Uuid;
 use crate::{
     database::queries::{self, violations::Violation},
     utils::{components, models},
-    Context, Error,
+    Context, Throwable,
 };
 
 #[poise::command(
@@ -31,7 +31,7 @@ pub(super) async fn kick(
     #[min_length = 1]
     #[max_length = 255]
     reason: Option<String>,
-) -> Result<(), Error> {
+) -> Throwable<()> {
     let db = &ctx.data().db;
     let uuid = format!("{}", Uuid::new_v4());
     let kind = Violation::Kick;

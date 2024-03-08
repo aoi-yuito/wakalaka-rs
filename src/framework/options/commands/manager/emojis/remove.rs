@@ -7,7 +7,7 @@ use tracing::{error, info};
 
 use crate::{
     utils::{components, models},
-    Context, Error,
+    Context, Throwable,
 };
 
 #[poise::command(
@@ -26,7 +26,7 @@ pub(super) async fn remove(
     #[min_length = 2]
     #[max_length = 32]
     name: String,
-) -> Result<(), Error> {
+) -> Throwable<()> {
     let guild = models::guilds::guild(ctx)?;
     let guild_name = &guild.name;
 

@@ -8,7 +8,7 @@ use tracing::{error, info};
 
 use crate::{
     utils::{components, models},
-    Context, Error,
+    Context, Throwable,
 };
 
 #[poise::command(
@@ -24,7 +24,7 @@ use crate::{
 pub(super) async fn remove(
     ctx: Context<'_>,
     #[description = "The role to delete."] mut role: Role,
-) -> Result<(), Error> {
+) -> Throwable<()> {
     let author = ctx.author();
     let author_name = &author.name;
 

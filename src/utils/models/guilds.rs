@@ -9,7 +9,7 @@ use serenity::{
 };
 use tracing::warn;
 
-use crate::{Context, SContext};
+use crate::{Context, SContext, Throwable};
 
 pub(crate) fn name_raw(ctx: &SContext, guild_id: &GuildId) -> String {
     match guild_id.name(ctx) {
@@ -21,23 +21,23 @@ pub(crate) fn name_raw(ctx: &SContext, guild_id: &GuildId) -> String {
     }
 }
 
-pub(crate) fn guild_from_id_raw(ctx: &SContext, guild_id: &GuildId) -> Result<Guild, ModelError> {
+pub(crate) fn guild_from_id_raw(ctx: &SContext, guild_id: &GuildId) -> Throwable<Guild> {
     match guild_id.to_guild_cached(ctx) {
         Some(guild) => Ok(guild.clone()),
-        None => Err(ModelError::GuildNotFound),
+        None => Err(Box::new(ModelError::GuildNotFound)),
     }
 }
 
-pub(crate) fn guild_from_id(ctx: Context<'_>, guild_id: &GuildId) -> Result<Guild, ModelError> {
+pub(crate) fn guild_from_id(ctx: Context<'_>, guild_id: &GuildId) -> Throwable<Guild> {
     match guild_id.to_guild_cached(&ctx) {
         Some(guild) => Ok(guild.clone()),
-        None => Err(ModelError::GuildNotFound),
+        None => Err(Box::new(ModelError::GuildNotFound)),
     }
 }
 
-pub(crate) fn guild(ctx: Context<'_>) -> Result<Guild, ModelError> {
+pub(crate) fn guild(ctx: Context<'_>) -> Throwable<Guild> {
     match ctx.guild() {
         Some(guild) => Ok(guild.clone()),
-        None => Err(ModelError::GuildNotFound),
+        None => Err(Box::new(ModelError::GuildNotFound)),
     }
 }

@@ -11,7 +11,7 @@ use serenity::{
 
 use crate::{
     utils::{components, models},
-    Context, Error,
+    Context, Throwable,
 };
 
 #[poise::command(
@@ -28,7 +28,7 @@ pub(super) async fn server(
     #[description = "The server to get information of."]
     #[rename = "id"]
     guild_id: GuildId,
-) -> Result<(), Error> {
+) -> Throwable<()> {
     let guild = models::guilds::guild_from_id(ctx, &guild_id)?;
     let guild_name = &guild.name;
     let guild_description = guild.description.as_deref().unwrap_or_default();

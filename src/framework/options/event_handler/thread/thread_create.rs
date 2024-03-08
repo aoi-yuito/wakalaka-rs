@@ -6,9 +6,9 @@
 use serenity::all::{ChannelType, GuildChannel};
 use tracing::info;
 
-use crate::{utils::models, Error, SContext};
+use crate::{utils::models, SContext, Throwable};
 
-pub(crate) async fn handle(ctx: &SContext, thread: &GuildChannel) -> Result<(), Error> {
+pub(crate) async fn handle(ctx: &SContext, thread: &GuildChannel) -> Throwable<()> {
     if thread.kind != ChannelType::PublicThread || thread.kind != ChannelType::PrivateThread {
         return Ok(());
     }

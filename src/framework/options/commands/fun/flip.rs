@@ -5,7 +5,7 @@
 
 use serenity::all::Mentionable;
 
-use crate::{utils::components, Context, Error};
+use crate::{utils::components, Context, Throwable};
 
 #[poise::command(
     slash_command,
@@ -15,7 +15,7 @@ use crate::{utils::components, Context, Error};
     user_cooldown = 5
 )]
 /// Flip a coin.
-pub(super) async fn flip(ctx: Context<'_>) -> Result<(), Error> {
+pub(super) async fn flip(ctx: Context<'_>) -> Throwable<()> {
     let random = rand::random::<bool>();
 
     let author = ctx.author();

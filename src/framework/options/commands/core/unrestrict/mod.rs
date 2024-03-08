@@ -1,5 +1,5 @@
 // Copyright (c) 2024 Kawaxte
-// 
+//
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
@@ -8,7 +8,7 @@ mod user;
 
 use crate::{
     framework::options::commands::core::unrestrict::{server::server, user::user},
-    Context, Error,
+    Context, Throwable,
 };
 
 #[poise::command(
@@ -22,6 +22,6 @@ use crate::{
     user_cooldown = 5,
     ephemeral
 )]
-pub(super) async fn unrestrict(_ctx: Context<'_>) -> Result<(), Error> {
+pub(super) async fn unrestrict(_ctx: Context<'_>) -> Throwable<()> {
     Ok(())
 }

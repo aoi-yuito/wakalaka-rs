@@ -8,7 +8,7 @@ use tracing::{error, info};
 
 use crate::{
     utils::{components, models},
-    Context, Error,
+    Context, Throwable,
 };
 
 #[poise::command(
@@ -25,7 +25,7 @@ pub(super) async fn assign(
     ctx: Context<'_>,
     #[description = "The role to give."] role: Role,
     #[description = "The user to give the role to."] user: User,
-) -> Result<(), Error> {
+) -> Throwable<()> {
     let author = ctx.author();
     let author_name = &author.name;
 

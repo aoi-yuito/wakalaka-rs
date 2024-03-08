@@ -8,7 +8,7 @@ use std::sync::Arc;
 use serenity::{all::Message, builder::GetMessages};
 use tracing::error;
 
-use crate::{utils::components, Context, Error};
+use crate::{utils::components, Context, Throwable};
 
 #[poise::command(
     slash_command,
@@ -27,7 +27,7 @@ pub(super) async fn around(
     #[min = 1]
     #[max = 100]
     count: Option<u8>,
-) -> Result<(), Error> {
+) -> Throwable<()> {
     let count = count.unwrap_or(50);
 
     let s_ctx = ctx.serenity_context();

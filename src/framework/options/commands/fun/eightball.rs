@@ -5,7 +5,7 @@
 
 use rand::{rngs::StdRng, seq::SliceRandom, SeedableRng};
 
-use crate::{utils::components, Context, Error};
+use crate::{utils::components, Context, Throwable};
 
 #[poise::command(
     slash_command,
@@ -22,7 +22,7 @@ pub(super) async fn eightball(
     #[min_length = 3]
     #[max_length = 255]
     question: String,
-) -> Result<(), Error> {
+) -> Throwable<()> {
     let mut rng = StdRng::from_entropy();
 
     let question = question.to_lowercase();

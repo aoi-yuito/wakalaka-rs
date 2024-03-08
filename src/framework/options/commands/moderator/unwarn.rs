@@ -18,7 +18,7 @@ use tracing::{error, info};
 use crate::{
     database::queries::{self, violations::Violation},
     utils::{components, models},
-    Context, Error,
+    Context, Throwable,
 };
 
 #[poise::command(
@@ -34,7 +34,7 @@ use crate::{
 pub(super) async fn unwarn(
     ctx: Context<'_>,
     #[description = "The user to unwarn."] user: User,
-) -> Result<(), Error> {
+) -> Throwable<()> {
     let db = &ctx.data().db;
     let kind = Violation::Warning;
 

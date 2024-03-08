@@ -1,5 +1,5 @@
 // Copyright (c) 2024 Kawaxte
-// 
+//
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
@@ -7,9 +7,9 @@ use serenity::all::Member;
 use sqlx::SqlitePool;
 use tracing::info;
 
-use crate::{database::queries, utils::models, Error, SContext};
+use crate::{database::queries, utils::models, SContext, Throwable};
 
-pub(crate) async fn handle(ctx: &SContext, db: &SqlitePool, member: &Member) -> Result<(), Error> {
+pub(crate) async fn handle(ctx: &SContext, db: &SqlitePool, member: &Member) -> Throwable<()> {
     if member.user.bot || member.user.system {
         return Ok(());
     }

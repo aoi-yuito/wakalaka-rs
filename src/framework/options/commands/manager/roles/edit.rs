@@ -8,7 +8,7 @@ use tracing::{error, info};
 
 use crate::{
     utils::{components, models},
-    Context, Error,
+    Context, Throwable,
 };
 
 #[poise::command(
@@ -34,7 +34,7 @@ pub(super) async fn edit(
     colour: Option<String>,
     #[description = "Whether the role should be pinned above lesser roles."] hoist: Option<bool>,
     #[description = "Whether the role should be mentionable."] mentionable: Option<bool>,
-) -> Result<(), Error> {
+) -> Throwable<()> {
     let author = ctx.author();
     let author_name = &author.name;
 

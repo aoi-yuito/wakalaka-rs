@@ -9,7 +9,7 @@ use tracing::{error, info};
 use crate::{
     database::queries::{self, violations::Violation},
     utils::{components, models},
-    Context, Error,
+    Context, Throwable,
 };
 
 #[poise::command(
@@ -25,7 +25,7 @@ use crate::{
 pub(super) async fn unban(
     ctx: Context<'_>,
     #[description = "The user to unban."] user: User,
-) -> Result<(), Error> {
+) -> Throwable<()> {
     let db = &ctx.data().db;
     let kind = Violation::Ban;
 
@@ -69,7 +69,7 @@ pub(super) async fn unban(
     }
 
     let uuids = queries::violations::select_uuids_from(db, &kind, &guild_id, &user_id).await?;
-    
+
     let mut violations = queries::users::select_violations_from(db, &user_id).await?;
 
     let result = match guild_id.unban(ctx, user_id).await {
@@ -99,9 +99,7 @@ pub(super) async fn unban(
         }
         Err(why) => {
             error!("Failed to unban @{user_name} from {guild_name}: {why:?}");
-            Err(format!(
-                "An error occurred while unbanning {user_mention}."
-            ))
+            Err(format!("An error occurred while unbanning {user_mention}."))
         }
     };
 

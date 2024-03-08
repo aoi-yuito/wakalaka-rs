@@ -10,7 +10,7 @@ pub(crate) mod models;
 use regex::Regex;
 use tracing::error;
 
-use crate::Error;
+use crate::Throwable;
 
 pub(crate) const CARGO_VERSION: &str = env!("CARGO_PKG_VERSION");
 pub(crate) const CARGO_NAME: &str = env!("CARGO_PKG_NAME");
@@ -53,7 +53,7 @@ pub(crate) fn html_to_md(mut text: String) -> String {
     text
 }
 
-pub(crate) fn rgb_to_u32(code: &String) -> Result<u32, Error> {
+pub(crate) fn rgb_to_u32(code: &String) -> Throwable<u32> {
     let mut rgb = code.split(',');
 
     let r = rgb.next().unwrap_or("0").parse::<u32>()?;

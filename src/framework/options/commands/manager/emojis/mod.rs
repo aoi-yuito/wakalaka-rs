@@ -9,7 +9,7 @@ mod remove;
 
 use crate::{
     framework::options::commands::manager::emojis::{add::add, edit::edit, remove::remove},
-    Context, Error,
+    Context, Throwable,
 };
 
 #[poise::command(
@@ -23,6 +23,6 @@ use crate::{
     user_cooldown = 5,
     ephemeral
 )]
-pub(super) async fn emojis(_ctx: Context<'_>) -> Result<(), Error> {
+pub(super) async fn emojis(_ctx: Context<'_>) -> Throwable<()> {
     Ok(())
 }

@@ -6,9 +6,9 @@
 use serenity::all::InviteCreateEvent;
 use tracing::{info, warn};
 
-use crate::{utils::models, Error, SContext};
+use crate::{utils::models, SContext, Throwable};
 
-pub(crate) async fn handle(ctx: &SContext, create_evt: &InviteCreateEvent) -> Result<(), Error> {
+pub(crate) async fn handle(ctx: &SContext, create_evt: &InviteCreateEvent) -> Throwable<()> {
     let channel_id = &create_evt.channel_id;
     let channel = channel_id.to_channel(ctx).await?;
 

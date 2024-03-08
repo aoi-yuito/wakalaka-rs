@@ -8,9 +8,9 @@ pub(super) mod shards_ready;
 
 use tracing::info;
 
-use crate::{Error, SContext, SReady};
+use crate::{SContext, SReady, Throwable};
 
-pub(crate) async fn handle(ctx: &SContext, ready: &SReady) -> Result<(), Error> {
+pub(crate) async fn handle(ctx: &SContext, ready: &SReady) -> Throwable<()> {
     let bot = &ready.user;
     let bot_name = &bot.name;
 
