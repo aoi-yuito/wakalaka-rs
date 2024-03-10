@@ -39,8 +39,8 @@ pub(crate) async fn handle(
 
     info!("@{bot_name} joined {guild_name}");
 
-    queries::users::insert_into(db, &guild_owner_id).await?;
-    queries::guilds::insert_into(db, &guild_id, &guild_owner_id).await?;
+    queries::users::insert(db, &guild_owner_id).await?;
+    queries::guilds::insert(db, &guild_id, &guild_owner_id).await?;
 
     Ok(())
 }

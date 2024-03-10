@@ -45,13 +45,13 @@ pub(super) async fn user(
 
     let guild_owner_id = guild.owner_id;
 
-    let result = match queries::users::select_user_id_from(db, &user_id).await {
+    let result = match queries::users::select_user_id(db, &user_id).await {
         Ok(_) if user_id == guild_owner_id => Err(format!(
             "Cannot unrestrict yourself from using yours truly."
         )),
-        _ => match queries::restricted_users::select_user_id_from(db, &user_id).await {
+        _ => match queries::restricted_users::select_user_id(db, &user_id).await {
             Ok(_) => {
-                queries::restricted_users::delete_from(db, &user_id).await?;
+                queries::restricted_users::delete(db, &user_id).await?;
 
                 Ok(format!("{user_mention} has been unrestricted from using yours truly!"))
             }

@@ -65,14 +65,14 @@ pub(super) async fn kick(
         return Ok(());
     }
 
-    if let Err(_) = queries::users::select_user_id_from(db, &user_id).await {
-        queries::users::insert_into(db, &user_id).await?;
+    if let Err(_) = queries::users::select_user_id(db, &user_id).await {
+        queries::users::insert(db, &user_id).await?;
     }
-    if let Err(_) = queries::users::select_user_id_from(db, &author_id).await {
-        queries::users::insert_into(db, &author_id).await?;
+    if let Err(_) = queries::users::select_user_id(db, &author_id).await {
+        queries::users::insert(db, &author_id).await?;
     }
 
-    let mut violations = queries::users::select_violations_from(db, &user_id).await?;
+    let mut violations = queries::users::select_violations(db, &user_id).await?;
 
     let member = guild_id.member(&ctx, user_id).await?;
 
@@ -80,7 +80,7 @@ pub(super) async fn kick(
         Ok(_) => {
             let created_at = Utc::now().naive_utc();
 
-            queries::violations::insert_into(
+            queries::violations::insert(
                 db,
                 &uuid,
                 &kind,
@@ -94,7 +94,7 @@ pub(super) async fn kick(
 
             violations += 1;
 
-            queries::users::update_set_violations(db, &user_id, violations).await?;
+            queries::users::update_violations(db, &user_id, violations).await?;
 
             if reason.is_empty() {
                 info!("@{author_name} kicked @{user_name} from {guild_name}");

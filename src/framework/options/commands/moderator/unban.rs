@@ -57,7 +57,7 @@ pub(super) async fn unban(
         return Ok(());
     }
 
-    if let Err(_) = queries::users::select_user_id_from(db, &user_id).await {
+    if let Err(_) = queries::users::select_user_id(db, &user_id).await {
         let reply = components::replies::error_reply_embed(
             format!("{user_mention} has not done anything yet!"),
             true,
@@ -68,9 +68,9 @@ pub(super) async fn unban(
         return Ok(());
     }
 
-    let uuids = queries::violations::select_uuids_from(db, &kind, &guild_id, &user_id).await?;
+    let uuids = queries::violations::select_uuids(db, &kind, &guild_id, &user_id).await?;
 
-    let mut violations = queries::users::select_violations_from(db, &user_id).await?;
+    let mut violations = queries::users::select_violations(db, &user_id).await?;
 
     let result = match guild_id.unban(ctx, user_id).await {
         Ok(_) => {
@@ -84,7 +84,7 @@ pub(super) async fn unban(
             }
 
             for uuid in uuids {
-                queries::violations::delete_from(db, &uuid).await?;
+                queries::violations::delete(db, &uuid).await?;
             }
 
             violations -= 1;
@@ -92,7 +92,7 @@ pub(super) async fn unban(
                 violations = 0;
             }
 
-            queries::users::update_set_violations(db, &user_id, violations).await?;
+            queries::users::update_violations(db, &user_id, violations).await?;
 
             info!("@{author_name} unbanned @{user_name} from {guild_name}");
             Ok(format!("{user_mention} has been unbanned!"))

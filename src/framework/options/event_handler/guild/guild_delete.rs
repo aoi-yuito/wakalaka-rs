@@ -37,15 +37,15 @@ pub(crate) async fn handle(
     if guild_owner_id == deleted_user_id {
         warn!("Owner of {guild_name} does not exist, removing entries ...");
 
-        queries::guilds::delete_from(db, &guild_id).await?;
-        queries::restricted_guilds::delete_from(db, &guild_id).await?;
+        queries::guilds::delete(db, &guild_id).await?;
+        queries::restricted_guilds::delete(db, &guild_id).await?;
 
         return Ok(());
     }
 
     info!("@{bot_name} left {guild_name}");
 
-    queries::guilds::delete_from(db, &guild_id).await?;
+    queries::guilds::delete(db, &guild_id).await?;
 
     Ok(())
 }

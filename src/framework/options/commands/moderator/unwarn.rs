@@ -69,7 +69,7 @@ pub(super) async fn unwarn(
         return Ok(());
     }
 
-    if let Err(_) = queries::users::select_user_id_from(db, &user_id).await {
+    if let Err(_) = queries::users::select_user_id(db, &user_id).await {
         let reply = components::replies::error_reply_embed(
             format!("{user_mention} is not in the database!"),
             true,
@@ -80,7 +80,7 @@ pub(super) async fn unwarn(
         return Ok(());
     }
 
-    let uuids = queries::violations::select_uuids_from(db, &kind, &guild_id, &user_id).await?;
+    let uuids = queries::violations::select_uuids(db, &kind, &guild_id, &user_id).await?;
     if uuids.is_empty() {
         let reply = components::replies::error_reply_embed(
             format!("{user_mention} does not have any warnings!"),
@@ -91,9 +91,9 @@ pub(super) async fn unwarn(
         return Ok(());
     }
 
-    let warning = queries::violations::select_from(db, &kind, &guild_id, &user_id).await?;
+    let warning = queries::violations::select(db, &kind, &guild_id, &user_id).await?;
 
-    let mut violations = queries::users::select_violations_from(db, &user_id).await?;
+    let mut violations = queries::users::select_violations(db, &user_id).await?;
 
     let menu_options = warning
         .iter()
@@ -134,7 +134,7 @@ pub(super) async fn unwarn(
             if let ComponentInteractionDataKind::StringSelect { values: uuids } = data_kind {
                 let uuids = uuids.into_iter().collect::<Vec<_>>();
                 for uuid in uuids {
-                    queries::violations::delete_from(db, &uuid).await?;
+                    queries::violations::delete(db, &uuid).await?;
                 }
 
                 violations -= 1;
@@ -142,7 +142,7 @@ pub(super) async fn unwarn(
                     violations = 0;
                 }
 
-                queries::users::update_set_violations(db, &user_id, violations).await?;
+                queries::users::update_violations(db, &user_id, violations).await?;
             }
 
             info!("@{author_name} removed warning from @{user_name} in {guild_name}");

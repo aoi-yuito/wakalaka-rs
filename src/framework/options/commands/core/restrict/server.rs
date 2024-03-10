@@ -52,13 +52,13 @@ pub(super) async fn server(
         return Ok(());
     }
 
-    let result = match queries::restricted_guilds::select_guild_id_from(db, &guild_id).await {
+    let result = match queries::restricted_guilds::select_guild_id(db, &guild_id).await {
         Ok(_) => Err(format!(
             "Cannot restrict {guild_name} from having yours truly in it as it's restricted already."
         )),
         _ => {
-            queries::restricted_guilds::insert_into(db, &guild_id, &reason).await?;
-            queries::restricted_users::insert_into(db, &guild_owner_id, &reason).await?;
+            queries::restricted_guilds::insert(db, &guild_id, &reason).await?;
+            queries::restricted_users::insert(db, &guild_owner_id, &reason).await?;
 
             Ok(format!(
                 "{guild_name} has been restricted from having yours truly in it: {reason}"

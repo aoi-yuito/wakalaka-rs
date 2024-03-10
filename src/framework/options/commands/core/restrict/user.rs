@@ -49,19 +49,19 @@ pub(super) async fn user(
 
     let guild_owner_id = guild.owner_id;
 
-    let result = match queries::users::select_user_id_from(db, &user_id).await {
+    let result = match queries::users::select_user_id(db, &user_id).await {
         Ok(_) if user_id == guild_owner_id => {
             Err(format!("Cannot restrict yourself from using yours truly."))
         }
         _ => {
-            queries::users::insert_into(db, &user_id).await?;
+            queries::users::insert(db, &user_id).await?;
 
-            match queries::restricted_users::select_user_id_from(db, &user_id).await {
+            match queries::restricted_users::select_user_id(db, &user_id).await {
                 Ok(_) => Err(format!(
                     "Cannot restrict {user_mention} from using yours truly as they're restricted already."
                 )),
                 _ => {
-                    queries::restricted_users::insert_into(db, &user_id, &reason).await?;
+                    queries::restricted_users::insert(db, &user_id, &reason).await?;
 
                     Ok(format!(
                         "{user_mention} has been restricted from using yours truly: {reason}"

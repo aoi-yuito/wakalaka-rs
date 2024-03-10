@@ -68,16 +68,16 @@ pub(super) async fn warn(
         return Ok(());
     }
 
-    if let Err(_) = queries::users::select_user_id_from(db, &user_id).await {
-        queries::users::insert_into(db, &user_id).await?;
+    if let Err(_) = queries::users::select_user_id(db, &user_id).await {
+        queries::users::insert(db, &user_id).await?;
     }
-    if let Err(_) = queries::users::select_user_id_from(db, &author_id).await {
-        queries::users::insert_into(db, &author_id).await?;
+    if let Err(_) = queries::users::select_user_id(db, &author_id).await {
+        queries::users::insert(db, &author_id).await?;
     }
 
-    let mut violations = queries::users::select_violations_from(db, &user_id).await?;
+    let mut violations = queries::users::select_violations(db, &user_id).await?;
 
-    let uuids = queries::violations::select_uuids_from(db, &kind, &guild_id, &user_id).await?;
+    let uuids = queries::violations::select_uuids(db, &kind, &guild_id, &user_id).await?;
 
     let uuid_count = uuids.len();
     if uuid_count >= 3 {
@@ -91,7 +91,7 @@ pub(super) async fn warn(
         return Ok(());
     }
 
-    let result = match queries::violations::insert_into(
+    let result = match queries::violations::insert(
         db,
         &uuid,
         &kind,
@@ -106,7 +106,7 @@ pub(super) async fn warn(
         Ok(_) => {
             violations += 1;
 
-            queries::users::update_set_violations(db, &user_id, violations).await?;
+            queries::users::update_violations(db, &user_id, violations).await?;
 
             let message = components::messages::message_embed(format!(
                 "You've been warned by {author_mention} in {guild_name} for {reason}.",

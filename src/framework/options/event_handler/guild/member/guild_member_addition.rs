@@ -22,7 +22,7 @@ pub(crate) async fn handle(ctx: &SContext, db: &SqlitePool, member: &Member) -> 
 
     info!("@{member_name} joined {guild_name}");
 
-    queries::users::insert_into(db, &member_id).await?;
+    queries::users::insert(db, &member_id).await?;
 
     Ok(())
 }

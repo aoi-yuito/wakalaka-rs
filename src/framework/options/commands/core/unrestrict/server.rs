@@ -48,10 +48,10 @@ pub(super) async fn server(
         return Ok(());
     }
 
-    let result = match queries::restricted_guilds::select_guild_id_from(db, &guild_id).await {
+    let result = match queries::restricted_guilds::select_guild_id(db, &guild_id).await {
         Ok(_) => {
-            queries::restricted_guilds::delete_from(db, &guild_id).await?;
-            queries::restricted_users::delete_from(db, &guild_owner_id).await?;
+            queries::restricted_guilds::delete(db, &guild_id).await?;
+            queries::restricted_users::delete(db, &guild_owner_id).await?;
 
             Ok(format!("{guild_name} has been unrestricted from having yours truly in it."))
         }
