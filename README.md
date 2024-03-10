@@ -20,7 +20,7 @@ A work-in-progress, self-hostable Discord bot written purely in Rust, inspired b
 
 _As of now, Wakalaka is in Beta. She's not ready for full-time use, but she's ready for testing and feedback. If you feel like testing her, click [here](https://discord.com/api/oauth2/authorize?client_id=1190718691055251548&permissions=9925535296631&scope=bot) to bring her to your server._
 
-> Bare in mind that my programming skills far from good, and I'm still learning Rust. Any issue you have, please report it instead of keeping it to yourself. I'm always looking for ways to improve my projects, and to please other people. Thanks.
+> Keep in mind that my programming skills are far from decent and that I don't consider myself a developer or a programmer. Any issue you have, please report it here instead of keeping it to yourself. I'm always looking for ways to improve my projects, and to ensure I fulfill the requests of other people for the sake of pleasing them. Thanks.
 
 ---
 
