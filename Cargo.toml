@@ -11,6 +11,7 @@ license-file = "LICENSE"
 
 [dependencies]
 dotenvy = "0.15.7"
+md-5 = "0.10.6"
 
 [dependencies.num-format]
 version = "0.4.4"
