@@ -4,18 +4,16 @@
 // https://opensource.org/licenses/MIT
 
 mod artist;
-mod search;
 
-use crate::{
-    framework::options::commands::music::lastfm::{artist::artist, search::search},
-    Context, Throwable,
-};
+use crate::{framework::options::commands::music::lastfm::artist::artist, Context, Throwable};
 
 const LASTFM_COLOUR: u32 = 0xA90000;
 
+const MUSIC_URL: &str = "https://www.last.fm/music/";
+
 #[poise::command(
     slash_command,
-    subcommands("search", "artist"),
+    subcommands("artist"),
     category = "Music",
     required_bot_permissions = "SEND_MESSAGES",
     subcommand_required,
