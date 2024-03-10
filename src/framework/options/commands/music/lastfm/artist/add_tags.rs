@@ -45,6 +45,16 @@ pub(super) async fn addtags(
     let author = ctx.author();
     let author_id = author.id;
 
+    let user = if let Some(name) = queries::users::select_lastfm_name(db, &author_id).await? {
+        name
+    } else {
+        let reply =
+            components::replies::error_reply_embed("Your Last.fm account must be linked!", true);
+
+        ctx.send(reply).await?;
+
+        return Ok(());
+    };
     let sk = if let Some(session_key) = queries::users::select_lastfm_key(db, &author_id).await? {
         session_key
     } else {
@@ -56,8 +66,54 @@ pub(super) async fn addtags(
         return Ok(());
     };
 
+    let json = integrations::lastfm::artist::get_tags(artist, None::<String>, &user, None).await?;
+    let json_tags = match &json["tags"]["tag"] {
+        serde_json::Value::Array(tags) => tags,
+        _ => {
+            let reply = components::replies::error_reply_embed(
+                format!("Cannot find tags for **{artist}** assigned by **{user}**.",),
+                true,
+            );
+
+            ctx.send(reply).await?;
+
+            return Ok(());
+        }
+    };
+    let artist_tags = json_tags
+        .iter()
+        .map(|tag| {
+            format!(
+                "{}",
+                tag["name"].as_str().expect("tag.name is not a string")
+            )
+        })
+        .collect::<Vec<_>>();
+
+    let tag_matches = tags
+        .split(',')
+        .map(|tag| tag.trim())
+        .filter(|tag| artist_tags.contains(&format!("{tag}")))
+        .collect::<Vec<_>>();
+    if !tag_matches.is_empty() {
+        let reply = components::replies::error_reply_embed(
+            format!("`{tags}` already exists for **{artist}**!",),
+            true,
+        );
+
+        ctx.send(reply).await?;
+
+        return Ok(());
+    }
+
     let result = match integrations::lastfm::artist::add_tags(artist, tags, sk).await {
-        Ok(_) => Ok(format!("`{tags}` have been added to **{artist}**.")),
+        Ok(_) => {
+            if tag_count == 1 {
+                Ok(format!("`{tags}` has been added to **{artist}**."))
+            } else {
+                Ok(format!("`{tags}` have been added to **{artist}**."))
+            }
+        }
         Err(why) => {
             error!("Failed to add tags to artist: {why:?}");
 
