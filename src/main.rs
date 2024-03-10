@@ -9,6 +9,7 @@ mod integrations;
 mod utils;
 
 use ::serenity::all::GatewayIntents;
+
 use poise::serenity_prelude as serenity;
 use sqlx::SqlitePool;
 use tracing::subscriber;
