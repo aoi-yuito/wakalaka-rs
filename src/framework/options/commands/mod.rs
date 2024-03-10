@@ -6,6 +6,7 @@
 mod core;
 mod fun;
 mod info;
+mod integrations;
 mod manager;
 mod misc;
 mod moderator;
@@ -20,6 +21,7 @@ pub(crate) async fn commands() -> Vec<Command<Data, Error>> {
     commands.extend(core::commands().await);
     commands.extend(fun::commands().await);
     commands.extend(info::commands().await);
+    commands.extend(integrations::commands().await);
     commands.extend(manager::commands().await);
     commands.extend(misc::commands().await);
     commands.extend(moderator::commands().await);
