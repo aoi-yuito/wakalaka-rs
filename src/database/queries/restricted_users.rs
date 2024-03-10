@@ -4,7 +4,7 @@ use tracing::{debug, error};
 
 use crate::{SqlxError, SqlxThrowable};
 
-pub(crate) async fn select_user_id_from(
+pub(crate) async fn select_user_id(
     db: &SqlitePool,
     user_id: &UserId,
 ) -> SqlxThrowable<Option<UserId>> {
@@ -17,7 +17,7 @@ pub(crate) async fn select_user_id_from(
     Ok(Some(user_id))
 }
 
-pub(crate) async fn delete_from(db: &SqlitePool, user_id: &UserId) -> SqlxThrowable<()> {
+pub(crate) async fn delete(db: &SqlitePool, user_id: &UserId) -> SqlxThrowable<()> {
     let transaction = db.begin().await?;
 
     let query =
@@ -45,7 +45,7 @@ pub(crate) async fn delete_from(db: &SqlitePool, user_id: &UserId) -> SqlxThrowa
     Ok(())
 }
 
-pub(crate) async fn insert_into(
+pub(crate) async fn insert(
     db: &SqlitePool,
     user_id: &UserId,
     reason: &String,

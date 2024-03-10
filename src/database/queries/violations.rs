@@ -42,7 +42,7 @@ impl std::fmt::Display for Violation {
     }
 }
 
-pub(crate) async fn select_uuids_from(
+pub(crate) async fn select_uuids(
     db: &SqlitePool,
     kind: &Violation,
     guild_id: &GuildId,
@@ -64,7 +64,7 @@ pub(crate) async fn select_uuids_from(
     Ok(uuids)
 }
 
-pub(crate) async fn select_from(
+pub(crate) async fn select(
     db: &SqlitePool,
     kind: &Violation,
     guild_id: &GuildId,
@@ -87,7 +87,7 @@ pub(crate) async fn select_from(
     Ok(uuids)
 }
 
-pub(crate) async fn delete_from(db: &SqlitePool, uuid: &String) -> SqlxThrowable<()> {
+pub(crate) async fn delete(db: &SqlitePool, uuid: &String) -> SqlxThrowable<()> {
     let transaction = db.begin().await?;
 
     let query = sqlx::query("DELETE FROM violations WHERE uuid = ?").bind(format!("{uuid}"));
@@ -108,7 +108,7 @@ pub(crate) async fn delete_from(db: &SqlitePool, uuid: &String) -> SqlxThrowable
     Ok(())
 }
 
-pub(crate) async fn insert_into(
+pub(crate) async fn insert(
     db: &SqlitePool,
     uuid: &String,
     kind: &Violation,

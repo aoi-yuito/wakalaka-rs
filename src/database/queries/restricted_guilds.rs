@@ -4,10 +4,7 @@ use tracing::{debug, info};
 
 use crate::{SqlxError, SqlxThrowable};
 
-pub(crate) async fn select_guild_id_from(
-    db: &SqlitePool,
-    guild_id: &GuildId,
-) -> SqlxThrowable<GuildId> {
+pub(crate) async fn select_guild_id(db: &SqlitePool, guild_id: &GuildId) -> SqlxThrowable<GuildId> {
     let query = sqlx::query("SELECT guild_id FROM restricted_guilds WHERE guild_id = ?")
         .bind(i64::from(*guild_id));
 
@@ -17,7 +14,7 @@ pub(crate) async fn select_guild_id_from(
     Ok(guild_id)
 }
 
-pub(crate) async fn delete_from(db: &SqlitePool, guild_id: &GuildId) -> SqlxThrowable<()> {
+pub(crate) async fn delete(db: &SqlitePool, guild_id: &GuildId) -> SqlxThrowable<()> {
     let transaction = db.begin().await?;
 
     let query =
@@ -39,7 +36,7 @@ pub(crate) async fn delete_from(db: &SqlitePool, guild_id: &GuildId) -> SqlxThro
     Ok(())
 }
 
-pub(crate) async fn insert_into(
+pub(crate) async fn insert(
     db: &SqlitePool,
     guild_id: &GuildId,
     reason: &String,
