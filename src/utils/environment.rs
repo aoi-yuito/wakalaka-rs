@@ -40,6 +40,17 @@ pub(crate) fn lastfm_api_key() -> Throwable<String> {
     Ok(lastfm_api_key)
 }
 
+pub(crate) fn lastfm_api_secret() -> Throwable<String> {
+    let lastfm_api_secret = match dotenvy::var("LASTFM_API_SECRET") {
+        Ok(api_secret) => api_secret,
+        Err(why) => {
+            error!("LASTFM_API_SECRET not found in environment: {why:?}");
+            return Err(why.into());
+        }
+    };
+    Ok(lastfm_api_secret)
+}
+
 pub(crate) fn rust_log() -> Throwable<String> {
     let rust_log = match dotenvy::var("RUST_LOG") {
         Ok(level) => level,
