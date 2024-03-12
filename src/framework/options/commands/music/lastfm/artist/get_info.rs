@@ -5,11 +5,14 @@
 
 use chrono::NaiveDateTime;
 use poise::CreateReply;
+use regex::Regex;
 use serenity::all::{CreateEmbed, CreateEmbedFooter, Timestamp};
 
 use crate::{
-    framework::options::commands::music::lastfm::LASTFM_COLOUR, integrations, utils, Context,
-    Throwable,
+    framework::options::commands::music::lastfm::LASTFM_COLOUR,
+    integrations,
+    utils::{self, components},
+    Context, Throwable,
 };
 
 struct Info {
@@ -36,7 +39,10 @@ struct Info {
 /// Get information about an artist.
 pub(super) async fn getinfo(
     ctx: Context<'_>,
-    #[description = "The name of the artist."] artist: String,
+    #[description = "The artist name."]
+    #[min_length = 2]
+    #[max_length = 15]
+    artist: String,
     #[description = "The musicbrainz ID for the artist."]
     #[min_length = 36]
     #[max_length = 36]
@@ -46,9 +52,17 @@ pub(super) async fn getinfo(
     #[max_length = 3]
     lang: Option<String>,
     #[description = "Whether to autocorrect the artist name."] autocorrect: Option<bool>,
-    #[description = "The username to look up."] username: Option<String>,
+    #[description = "The username for the context of the request."] username: Option<String>,
 ) -> Throwable<()> {
+    let artist_re = Regex::new(r"^[a-zA-Z][a-zA-Z0-9_-]*$")?;
     let artist = artist.trim();
+    if !artist_re.is_match(artist) {
+        let reply = components::replies::error_reply_embed("Name of the artist must begin with a letter and contain only letters, numbers, hyphens, and underscores!", true);
+
+        ctx.send(reply).await?;
+
+        return Ok(());
+    }
 
     let username = match username {
         Some(username) => username.clone(),
@@ -169,7 +183,7 @@ pub(super) async fn getinfo(
     let artist_listener_count = &get_info.listeners;
     let artist_plays_count = &format!("{} ({})", &get_info.playcount, &get_info.userplaycount);
     let artist_tags = &get_info.tags;
-    let artist_summary = utils::html_to_md(get_info.summary).replace(" [", "\n\n[");
+    let artist_summary = utils::html_to_md(get_info.summary)?.replace(" [", "\n\n[");
     let artist_published = &get_info.published;
 
     let embed_description = format!(

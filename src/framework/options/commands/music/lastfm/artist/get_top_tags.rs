@@ -4,11 +4,14 @@
 // https://opensource.org/licenses/MIT
 
 use poise::CreateReply;
+use regex::Regex;
 use serenity::all::CreateEmbed;
 
 use crate::{
     framework::options::commands::music::lastfm::{LASTFM_COLOUR, MUSIC_URL},
-    integrations, Context, Throwable,
+    integrations,
+    utils::components,
+    Context, Throwable,
 };
 
 #[poise::command(
@@ -21,14 +24,25 @@ use crate::{
 /// Get the most popular tags for an artist.
 pub(super) async fn gettoptags(
     ctx: Context<'_>,
-    #[description = "The name of the artist."] artist: String,
+    #[description = "The artist name."]
+    #[min_length = 2]
+    #[max_length = 15]
+    artist: String,
     #[description = "The musicbrainz ID for the artist."]
     #[min_length = 36]
     #[max_length = 36]
     mbid: Option<String>,
     #[description = "Whether to autocorrect the artist name."] autocorrect: Option<bool>,
 ) -> Throwable<()> {
+    let artist_re = Regex::new(r"^[a-zA-Z][a-zA-Z0-9_-]*$")?;
     let artist = artist.trim();
+    if !artist_re.is_match(artist) {
+        let reply = components::replies::error_reply_embed("Name of the artist must begin with a letter and contain only letters, numbers, hyphens, and underscores!", true);
+
+        ctx.send(reply).await?;
+
+        return Ok(());
+    }
 
     let json = integrations::lastfm::artist::get_top_tags(artist, mbid, autocorrect).await?;
 

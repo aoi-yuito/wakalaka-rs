@@ -6,6 +6,7 @@
 use std::time::Duration;
 
 use poise::CreateReply;
+use regex::Regex;
 use serenity::all::{
     CreateActionRow, CreateEmbed, CreateEmbedFooter, CreateInteractionResponse,
     CreateInteractionResponseMessage,
@@ -36,7 +37,10 @@ struct Similar {
 /// Get similar artists for the given artist.
 pub(super) async fn getsimilar(
     ctx: Context<'_>,
-    #[description = "The name of the artist."] artist: String,
+    #[description = "The artist name."]
+    #[min_length = 2]
+    #[max_length = 15]
+    artist: String,
     #[description = "The amount of similar artists to display."]
     #[min = 1]
     #[max = 100]
@@ -47,7 +51,15 @@ pub(super) async fn getsimilar(
     #[max_length = 36]
     mbid: Option<String>,
 ) -> Throwable<()> {
+    let artist_re = Regex::new(r"^[a-zA-Z][a-zA-Z0-9_-]*$")?;
     let artist = artist.trim();
+    if !artist_re.is_match(artist) {
+        let reply = components::replies::error_reply_embed("Name of the artist must begin with a letter and contain only letters, numbers, hyphens, and underscores!", true);
+
+        ctx.send(reply).await?;
+
+        return Ok(());
+    }
 
     let json = integrations::lastfm::artist::get_similar(artist, limit, autocorrect, mbid).await?;
 

@@ -4,10 +4,12 @@
 // https://opensource.org/licenses/MIT
 
 use poise::CreateReply;
+use regex::Regex;
 use serenity::all::{CreateEmbed, CreateEmbedFooter};
 
 use crate::{
-    framework::options::commands::music::lastfm::LASTFM_COLOUR, integrations, Context, Throwable,
+    framework::options::commands::music::lastfm::LASTFM_COLOUR, integrations, utils::components,
+    Context, Throwable,
 };
 
 struct Correction {
@@ -26,9 +28,20 @@ struct Correction {
 /// Get the corrected artist name.
 pub(super) async fn getcorrection(
     ctx: Context<'_>,
-    #[description = "The name of the artist."] artist: String,
+    #[description = "The artist name."]
+    #[min_length = 2]
+    #[max_length = 15]
+    artist: String,
 ) -> Throwable<()> {
+    let artist_re = Regex::new(r"^[a-zA-Z][a-zA-Z0-9_-]*$")?;
     let artist = artist.trim();
+    if !artist_re.is_match(artist) {
+        let reply = components::replies::error_reply_embed("Name of the artist must begin with a letter and contain only letters, numbers, hyphens, and underscores!", true);
+
+        ctx.send(reply).await?;
+
+        return Ok(());
+    }
 
     let json = integrations::lastfm::artist::get_correction(artist).await?;
 
@@ -48,12 +61,7 @@ pub(super) async fn getcorrection(
                 .as_str()
                 .expect("artist.name is not a string")
         ),
-        mbid: format!(
-            "{}",
-            artist["mbid"]
-                .as_str()
-                .unwrap_or("")
-        ),
+        mbid: format!("{}", artist["mbid"].as_str().unwrap_or("")),
         url: format!(
             "{}",
             artist["url"].as_str().expect("artist.url is not a string")

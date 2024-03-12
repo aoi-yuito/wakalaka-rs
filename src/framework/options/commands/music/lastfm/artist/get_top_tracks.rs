@@ -6,6 +6,7 @@
 use std::time::Duration;
 
 use poise::CreateReply;
+use regex::Regex;
 use serenity::all::{
     CreateActionRow, CreateEmbed, CreateEmbedAuthor, CreateEmbedFooter, CreateInteractionResponse,
     CreateInteractionResponseMessage,
@@ -37,7 +38,10 @@ struct TopTracks {
 /// Get the top tracks by an artist.
 pub(super) async fn gettoptracks(
     ctx: Context<'_>,
-    #[description = "The name of the artist."] artist: String,
+    #[description = "The artist name."]
+    #[min_length = 2]
+    #[max_length = 15]
+    artist: String,
     #[description = "The musicbrainz ID for the artist."]
     #[min_length = 36]
     #[max_length = 36]
@@ -51,7 +55,15 @@ pub(super) async fn gettoptracks(
     #[max = 50]
     limit: Option<u8>,
 ) -> Throwable<()> {
+    let artist_re = Regex::new(r"^[a-zA-Z][a-zA-Z0-9_-]*$")?;
     let artist = artist.trim();
+    if !artist_re.is_match(artist) {
+        let reply = components::replies::error_reply_embed("Name of the artist must begin with a letter and contain only letters, numbers, hyphens, and underscores!", true);
+
+        ctx.send(reply).await?;
+
+        return Ok(());
+    }
 
     let json = integrations::lastfm::artist::get_top_tracks(artist, mbid, autocorrect, limit, page)
         .await?;
