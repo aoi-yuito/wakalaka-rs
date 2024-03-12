@@ -31,34 +31,33 @@ pub(crate) fn md5(input: String) -> String {
     format!("{:x}", hasher.finalize())
 }
 
-pub(crate) fn html_to_md(mut text: String) -> String {
-    let a_re = Regex::new(r#"<a href="(.*?)">(.*?)</a>"#).expect("Failed to compile regex");
-    let b_re = Regex::new(r"<b>(.*?)</b>").expect("Failed to compile regex");
-    let blockquote_re =
-        Regex::new(r"<blockquote>(.*?)</blockquote>").expect("Failed to compile regex");
-    let br_re = Regex::new(r"<br>").expect("Failed to compile regex");
-    let code_re = Regex::new(r"<code>(.*?)</code>").expect("Failed to compile regex");
-    let h1_re = Regex::new(r"<h1>(.*?)</h1>").expect("Failed to compile regex");
-    let h2_re = Regex::new(r"<h2>(.*?)</h2>").expect("Failed to compile regex");
-    let h3_re = Regex::new(r"<h3>(.*?)</h3>").expect("Failed to compile regex");
-    let hr_re = Regex::new(r"<hr>").expect("Failed to compile regex");
-    let i_re = Regex::new(r"<i>(.*?)</i>").expect("Failed to compile regex");
-    let u_re = Regex::new(r"<u>(.*?)</u>").expect("Failed to compile regex");
-    let s_re = Regex::new(r"<s>(.*?)</s>").expect("Failed to compile regex");
+pub(crate) fn html_to_md(mut input: String) -> Throwable<String> {
+    let a_re = Regex::new(r#"<a href="(.*?)">(.*?)</a>"#)?;
+    let b_re = Regex::new(r"<b>(.*?)</b>")?;
+    let blockquote_re = Regex::new(r"<blockquote>(.*?)</blockquote>")?;
+    let br_re = Regex::new(r"<br>")?;
+    let code_re = Regex::new(r"<code>(.*?)</code>")?;
+    let h1_re = Regex::new(r"<h1>(.*?)</h1>")?;
+    let h2_re = Regex::new(r"<h2>(.*?)</h2>")?;
+    let h3_re = Regex::new(r"<h3>(.*?)</h3>")?;
+    let hr_re = Regex::new(r"<hr>")?;
+    let i_re = Regex::new(r"<i>(.*?)</i>")?;
+    let u_re = Regex::new(r"<u>(.*?)</u>")?;
+    let s_re = Regex::new(r"<s>(.*?)</s>")?;
 
-    text = format!("{}", a_re.replace_all(&text, "[$2]($1)"));
-    text = format!("{}", b_re.replace_all(&text, "**$1**"));
-    text = format!("{}", blockquote_re.replace_all(&text, "> $1"));
-    text = format!("{}", br_re.replace_all(&text, "\n"));
-    text = format!("{}", code_re.replace_all(&text, "`$1`"));
-    text = format!("{}", hr_re.replace_all(&text, "---"));
-    text = format!("{}", h1_re.replace_all(&text, "# $1"));
-    text = format!("{}", h2_re.replace_all(&text, "## $1"));
-    text = format!("{}", h3_re.replace_all(&text, "### $1"));
-    text = format!("{}", i_re.replace_all(&text, "*$1*"));
-    text = format!("{}", u_re.replace_all(&text, "__$1__"));
-    text = format!("{}", s_re.replace_all(&text, "~~$1~~"));
-    text
+    input = format!("{}", a_re.replace_all(&input, "[$2]($1)"));
+    input = format!("{}", b_re.replace_all(&input, "**$1**"));
+    input = format!("{}", blockquote_re.replace_all(&input, "> $1"));
+    input = format!("{}", br_re.replace_all(&input, "\n"));
+    input = format!("{}", code_re.replace_all(&input, "`$1`"));
+    input = format!("{}", hr_re.replace_all(&input, "---"));
+    input = format!("{}", h1_re.replace_all(&input, "# $1"));
+    input = format!("{}", h2_re.replace_all(&input, "## $1"));
+    input = format!("{}", h3_re.replace_all(&input, "### $1"));
+    input = format!("{}", i_re.replace_all(&input, "*$1*"));
+    input = format!("{}", u_re.replace_all(&input, "__$1__"));
+    input = format!("{}", s_re.replace_all(&input, "~~$1~~"));
+    Ok(input)
 }
 
 pub(crate) fn rgb_to_u32(code: &String) -> Throwable<u32> {
