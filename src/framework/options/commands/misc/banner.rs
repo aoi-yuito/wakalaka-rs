@@ -9,7 +9,7 @@ use serenity::{
     builder::CreateEmbed,
 };
 
-use crate::{utils::components, Context, Throwable};
+use crate::{utils::builders, Context, Throwable};
 
 #[poise::command(
     slash_command,
@@ -44,7 +44,7 @@ pub(super) async fn banner(
         return Ok(());
     }
 
-    let reply = components::replies::error_reply_embed(
+    let reply = builders::replies::error_reply_embed(
         format!("{user_mention} does not have a banner!"),
         true,
     );

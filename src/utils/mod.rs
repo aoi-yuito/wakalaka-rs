@@ -3,7 +3,7 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
-pub(crate) mod components;
+pub(crate) mod builders;
 pub(crate) mod environment;
 pub(crate) mod models;
 

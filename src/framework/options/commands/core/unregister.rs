@@ -5,7 +5,7 @@
 
 use serenity::all::Command;
 
-use crate::{utils::components, Context, Throwable};
+use crate::{utils::builders, Context, Throwable};
 
 #[poise::command(
     prefix_command,
@@ -36,7 +36,7 @@ pub(super) async fn unregister(
             format!("Unregistering {command_count} commands globally...")
         };
 
-        let mut reply = components::replies::reply_embed(global_message, true);
+        let mut reply = builders::replies::reply_embed(global_message, true);
 
         let reply_handle = ctx.send(reply).await?;
 
@@ -48,7 +48,7 @@ pub(super) async fn unregister(
             format!("{command_count} commands have been unregistered globally.")
         };
 
-        reply = components::replies::ok_reply_embed(global_message, true);
+        reply = builders::replies::ok_reply_embed(global_message, true);
 
         reply_handle.edit(ctx, reply).await?;
     } else {
@@ -58,7 +58,7 @@ pub(super) async fn unregister(
             format!("Unregistering {command_count} commands...")
         };
 
-        let mut reply = components::replies::reply_embed(message, true);
+        let mut reply = builders::replies::reply_embed(message, true);
 
         let reply_handle = ctx.send(reply).await?;
 
@@ -70,7 +70,7 @@ pub(super) async fn unregister(
             format!("{command_count} commands have been unregistered.")
         };
 
-        reply = components::replies::ok_reply_embed(message, true);
+        reply = builders::replies::ok_reply_embed(message, true);
 
         reply_handle.edit(ctx, reply).await?;
     }

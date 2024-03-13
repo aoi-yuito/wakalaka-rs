@@ -7,7 +7,7 @@ use serenity::all::{Mentionable, User};
 
 use crate::{
     database::queries,
-    utils::{components, models},
+    utils::{builders, models},
     Context, Throwable,
 };
 
@@ -32,7 +32,7 @@ pub(super) async fn user(
     let db = &ctx.data().db;
 
     if user.bot || user.system {
-        let reply = components::replies::error_reply_embed(
+        let reply = builders::replies::error_reply_embed(
             "Cannot restrict a bot or system user from using yours truly.",
             true,
         );
@@ -72,8 +72,8 @@ pub(super) async fn user(
     };
 
     let reply = match result {
-        Ok(message) => components::replies::ok_reply_embed(message, true),
-        Err(message) => components::replies::error_reply_embed(message, true),
+        Ok(message) => builders::replies::ok_reply_embed(message, true),
+        Err(message) => builders::replies::error_reply_embed(message, true),
     };
 
     ctx.send(reply).await?;

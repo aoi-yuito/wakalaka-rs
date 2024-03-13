@@ -7,7 +7,7 @@ use serenity::builder::EditRole;
 use tracing::{error, info};
 
 use crate::{
-    utils::{self, components, models},
+    utils::{self, builders, models},
     Context, Throwable,
 };
 
@@ -67,8 +67,8 @@ pub(super) async fn add(
     };
 
     let reply = match result {
-        Ok(message) => components::replies::ok_reply_embed(message, true),
-        Err(message) => components::replies::error_reply_embed(message, true),
+        Ok(message) => builders::replies::ok_reply_embed(message, true),
+        Err(message) => builders::replies::error_reply_embed(message, true),
     };
 
     ctx.send(reply).await?;

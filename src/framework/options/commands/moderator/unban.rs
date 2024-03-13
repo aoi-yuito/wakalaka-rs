@@ -8,7 +8,7 @@ use tracing::{error, info};
 
 use crate::{
     database::queries::{self, violations::Violation},
-    utils::{components, models},
+    utils::{builders, models},
     Context, Throwable,
 };
 
@@ -30,7 +30,7 @@ pub(super) async fn unban(
     let kind = Violation::Ban;
 
     if user.system {
-        let reply = components::replies::error_reply_embed("Cannot unban a system user.", true);
+        let reply = builders::replies::error_reply_embed("Cannot unban a system user.", true);
 
         ctx.send(reply).await?;
 
@@ -50,7 +50,7 @@ pub(super) async fn unban(
     let guild_name = &guild.name;
 
     if user_id == author_id {
-        let reply = components::replies::error_reply_embed("Cannot unban yourself.", true);
+        let reply = builders::replies::error_reply_embed("Cannot unban yourself.", true);
 
         ctx.send(reply).await?;
 
@@ -58,7 +58,7 @@ pub(super) async fn unban(
     }
 
     if let Err(_) = queries::users::select_user_id(db, &user_id).await {
-        let reply = components::replies::error_reply_embed(
+        let reply = builders::replies::error_reply_embed(
             format!("{user_mention} has not done anything yet!"),
             true,
         );
@@ -76,7 +76,7 @@ pub(super) async fn unban(
         Ok(_) => {
             if uuids.is_empty() {
                 let reply =
-                    components::replies::error_reply_embed("{user_mention} is not banned!", true);
+                    builders::replies::error_reply_embed("{user_mention} is not banned!", true);
 
                 ctx.send(reply).await?;
 
@@ -104,8 +104,8 @@ pub(super) async fn unban(
     };
 
     let reply = match result {
-        Ok(message) => components::replies::ok_reply_embed(message, true),
-        Err(message) => components::replies::error_reply_embed(message, true),
+        Ok(message) => builders::replies::ok_reply_embed(message, true),
+        Err(message) => builders::replies::error_reply_embed(message, true),
     };
 
     ctx.send(reply).await?;

@@ -10,7 +10,7 @@ use serenity::{
 };
 
 use crate::{
-    utils::{components, models},
+    utils::{builders, models},
     Context, Throwable,
 };
 
@@ -58,7 +58,7 @@ pub(super) async fn server(
     ];
     let embed_footer = CreateEmbedFooter::new(format!("{guild_id}"));
 
-    let embed = components::embeds::embed(guild_description)
+    let embed = builders::embeds::embed(guild_description)
         .author(embed_author)
         .title(guild_name)
         .thumbnail(guild_icon_url)

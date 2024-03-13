@@ -8,7 +8,7 @@ use serenity::builder::{CreateEmbedAuthor, CreateEmbedFooter};
 
 use crate::{
     utils::{
-        components, CARGO_AUTHORS, CARGO_DESCRIPTION, CARGO_NAME, CARGO_REPOSITORY, CARGO_VERSION,
+        builders, CARGO_AUTHORS, CARGO_DESCRIPTION, CARGO_NAME, CARGO_REPOSITORY, CARGO_VERSION,
     },
     Context, Throwable,
 };
@@ -25,7 +25,7 @@ pub(super) async fn about(ctx: Context<'_>) -> Throwable<()> {
     let embed_author = CreateEmbedAuthor::new(CARGO_AUTHORS);
     let embed_footer = CreateEmbedFooter::new(CARGO_VERSION);
 
-    let embed = components::embeds::embed(CARGO_DESCRIPTION)
+    let embed = builders::embeds::embed(CARGO_DESCRIPTION)
         .author(embed_author)
         .title(CARGO_NAME)
         .url(CARGO_REPOSITORY)

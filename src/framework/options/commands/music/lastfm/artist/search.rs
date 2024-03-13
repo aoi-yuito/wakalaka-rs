@@ -14,7 +14,7 @@ use serenity::all::{
 use tokio::time::Instant;
 
 use crate::{
-    framework::options::commands::music::lastfm::LASTFM_COLOUR, integrations, utils::components,
+    framework::options::commands::music::lastfm::LASTFM_COLOUR, integrations, utils::builders,
     Context, Throwable,
 };
 
@@ -52,7 +52,7 @@ pub(super) async fn search(
     let artist_re = Regex::new(r"^[a-zA-Z][a-zA-Z0-9_-]*$")?;
     let artist = artist.trim();
     if !artist_re.is_match(artist) {
-        let reply = components::replies::error_reply_embed("Name of the artist must begin with a letter and contain only letters, numbers, hyphens, and underscores!", true);
+        let reply = builders::replies::error_reply_embed("Name of the artist must begin with a letter and contain only letters, numbers, hyphens, and underscores!", true);
 
         ctx.send(reply).await?;
 
@@ -126,10 +126,10 @@ pub(super) async fn search(
         .footer(embed_footer)
         .colour(LASTFM_COLOUR);
 
-    let mut first_page = components::buttons::first_page_button(true);
-    let mut previous_page = components::buttons::previous_page_button(true);
-    let mut next_page = components::buttons::next_page_button(artist_count < 1);
-    let mut last_page = components::buttons::last_page_button(artist_count < 1);
+    let mut first_page = builders::buttons::first_button(true);
+    let mut previous_page = builders::buttons::previous_button(true);
+    let mut next_page = builders::buttons::next_button(artist_count < 1);
+    let mut last_page = builders::buttons::last_button(artist_count < 1);
 
     let mut action_rows = vec![CreateActionRow::Buttons(vec![
         first_page,
@@ -181,12 +181,12 @@ pub(super) async fn search(
                 _ => current_artist_index,
             };
 
-            first_page = components::buttons::first_page_button(current_artist_index == 0);
-            previous_page = components::buttons::previous_page_button(current_artist_index == 0);
+            first_page = builders::buttons::first_button(current_artist_index == 0);
+            previous_page = builders::buttons::previous_button(current_artist_index == 0);
             next_page =
-                components::buttons::next_page_button(current_artist_index == artist_count - 1);
+                builders::buttons::next_button(current_artist_index == artist_count - 1);
             last_page =
-                components::buttons::last_page_button(current_artist_index == artist_count - 1);
+                builders::buttons::last_button(current_artist_index == artist_count - 1);
 
             action_rows = vec![CreateActionRow::Buttons(vec![
                 first_page,
@@ -239,7 +239,7 @@ pub(super) async fn search(
         match result {
             Ok(_) => {}
             Err(message) => {
-                let reply = components::replies::error_reply_embed(message, true);
+                let reply = builders::replies::error_reply_embed(message, true);
 
                 ctx.send(reply).await?;
                 break;

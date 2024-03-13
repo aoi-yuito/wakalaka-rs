@@ -6,7 +6,7 @@
 use serenity::model::Permissions;
 use tracing::error;
 
-use crate::{utils::components, Context};
+use crate::{utils::builders, Context};
 
 pub(crate) async fn handle(permissions: Permissions, ctx: Context<'_>) {
     let separated_permissions = permissions
@@ -15,7 +15,7 @@ pub(crate) async fn handle(permissions: Permissions, ctx: Context<'_>) {
         .collect::<Vec<_>>()
         .join(", ");
     
-    let reply = components::replies::error_reply_embed(format!("Missing the following permissions: {separated_permissions}"), true);
+    let reply = builders::replies::error_reply_embed(format!("Missing the following permissions: {separated_permissions}"), true);
 
     if let Err(why) = ctx.send(reply).await {
         error!("Failed to send reply: {why}");

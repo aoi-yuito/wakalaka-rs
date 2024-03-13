@@ -10,7 +10,7 @@ use uuid::Uuid;
 
 use crate::{
     database::queries::{self, violations::Violation},
-    utils::{components, models},
+    utils::{builders, models},
     Context, Throwable,
 };
 
@@ -43,7 +43,7 @@ pub(super) async fn ban(
     let reason = reason.unwrap_or(String::new());
 
     if user.system {
-        let reply = components::replies::error_reply_embed("Cannot ban a system user.", true);
+        let reply = builders::replies::error_reply_embed("Cannot ban a system user.", true);
 
         ctx.send(reply).await?;
 
@@ -63,7 +63,7 @@ pub(super) async fn ban(
     let guild_name = &guild.name;
 
     if user_id == author_id {
-        let reply = components::replies::error_reply_embed("Cannot ban yourself.", true);
+        let reply = builders::replies::error_reply_embed("Cannot ban yourself.", true);
 
         ctx.send(reply).await?;
 
@@ -114,8 +114,8 @@ pub(super) async fn ban(
     };
 
     let reply = match result {
-        Ok(message) => components::replies::ok_reply_embed(message, true),
-        Err(message) => components::replies::error_reply_embed(message, true),
+        Ok(message) => builders::replies::ok_reply_embed(message, true),
+        Err(message) => builders::replies::error_reply_embed(message, true),
     };
 
     ctx.send(reply).await?;

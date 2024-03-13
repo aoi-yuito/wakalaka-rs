@@ -5,7 +5,7 @@
 
 use serenity::all::Mentionable;
 
-use crate::{utils::components, Context, Throwable};
+use crate::{utils::builders, Context, Throwable};
 
 #[poise::command(
     slash_command,
@@ -22,12 +22,12 @@ pub(super) async fn flip(ctx: Context<'_>) -> Throwable<()> {
     let author_mention = author.mention();
 
     let reply = if random {
-        components::replies::reply_embed(
+        builders::replies::reply_embed(
             format!("{author_mention} flipped a coin and got **heads**!"),
             false,
         )
     } else {
-        components::replies::reply_embed(
+        builders::replies::reply_embed(
             format!("{author_mention} flipped a coin and got **tails**!"),
             false,
         )

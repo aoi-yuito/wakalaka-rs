@@ -5,7 +5,7 @@
 
 use rand::{rngs::StdRng, seq::SliceRandom, SeedableRng};
 
-use crate::{utils::components, Context, Throwable};
+use crate::{utils::builders, Context, Throwable};
 
 #[poise::command(
     slash_command,
@@ -32,7 +32,7 @@ pub(super) async fn eightball(
         && !question.starts_with("where")
         && !question.starts_with("why")
     {
-        let reply = components::replies::error_reply_embed(
+        let reply = builders::replies::error_reply_embed(
             format!("\"{question}\" is not an open-ended question!"),
             true,
         );
@@ -49,7 +49,7 @@ pub(super) async fn eightball(
         .and_then(|answers| answers.choose(&mut rng))
         .unwrap();
 
-    let reply = components::replies::reply_embed(format!("🎱 {answer}."), true);
+    let reply = builders::replies::reply_embed(format!("🎱 {answer}."), true);
 
     ctx.send(reply).await?;
 

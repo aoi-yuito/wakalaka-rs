@@ -10,7 +10,7 @@ use uuid::Uuid;
 
 use crate::{
     database::queries::{self, violations::Violation},
-    utils::{components, models},
+    utils::{builders, models},
     Context, Throwable,
 };
 
@@ -38,7 +38,7 @@ pub(super) async fn warn(
     let created_at = Utc::now().naive_utc();
 
     if user.bot || user.system {
-        let reply = components::replies::error_reply_embed(
+        let reply = builders::replies::error_reply_embed(
             "Cannot give warning to a bot or system user.",
             true,
         );
@@ -62,7 +62,7 @@ pub(super) async fn warn(
     let guild_name = &guild.name;
 
     if user_id == author_id {
-        let reply = components::replies::error_reply_embed("Cannot give yourself a warning.", true);
+        let reply = builders::replies::error_reply_embed("Cannot give yourself a warning.", true);
         ctx.send(reply).await?;
 
         return Ok(());
@@ -81,7 +81,7 @@ pub(super) async fn warn(
 
     let uuid_count = uuids.len();
     if uuid_count >= 3 {
-        let reply = components::replies::error_reply_embed(
+        let reply = builders::replies::error_reply_embed(
             format!("Cannot give more than {uuid_count} warnings to {user_mention}."),
             true,
         );
@@ -108,7 +108,7 @@ pub(super) async fn warn(
 
             queries::users::update_violations(db, &user_id, violations).await?;
 
-            let message = components::messages::message_embed(format!(
+            let message = builders::messages::message_embed(format!(
                 "You've been warned by {author_mention} in {guild_name} for {reason}.",
             ));
 
@@ -124,8 +124,8 @@ pub(super) async fn warn(
     };
 
     let reply = match result {
-        Ok(message) => components::replies::ok_reply_embed(message, true),
-        Err(message) => components::replies::error_reply_embed(message, true),
+        Ok(message) => builders::replies::ok_reply_embed(message, true),
+        Err(message) => builders::replies::error_reply_embed(message, true),
     };
 
     ctx.send(reply).await?;

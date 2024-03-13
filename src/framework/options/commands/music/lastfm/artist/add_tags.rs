@@ -6,7 +6,7 @@
 use regex::Regex;
 use tracing::error;
 
-use crate::{database::queries, integrations, utils::components, Context, Throwable};
+use crate::{database::queries, integrations, utils::builders, Context, Throwable};
 
 #[poise::command(
     slash_command,
@@ -29,7 +29,7 @@ pub(super) async fn addtags(
     let artist_re = Regex::new(r"^[a-zA-Z][a-zA-Z0-9_-]*$")?;
     let artist = artist.trim();
     if !artist_re.is_match(artist) {
-        let reply = components::replies::error_reply_embed("Name of the artist must begin with a letter and contain only letters, numbers, hyphens, and underscores!", true);
+        let reply = builders::replies::error_reply_embed("Name of the artist must begin with a letter and contain only letters, numbers, hyphens, and underscores!", true);
 
         ctx.send(reply).await?;
 
@@ -44,7 +44,7 @@ pub(super) async fn addtags(
 
     let tag_count = tags.matches(',').count() + 1;
     if tag_count > 10 || tag_count < 1 {
-        let reply = components::replies::error_reply_embed(
+        let reply = builders::replies::error_reply_embed(
             "Number of tags must be between 1 and 10, separated by commas!",
             true,
         );
@@ -61,7 +61,7 @@ pub(super) async fn addtags(
         name
     } else {
         let reply =
-            components::replies::error_reply_embed("Your Last.fm account must be linked!", true);
+            builders::replies::error_reply_embed("Your Last.fm account must be linked!", true);
 
         ctx.send(reply).await?;
 
@@ -71,7 +71,7 @@ pub(super) async fn addtags(
         session_key
     } else {
         let reply =
-            components::replies::error_reply_embed("Your Last.fm account must be linked!", true);
+            builders::replies::error_reply_embed("Your Last.fm account must be linked!", true);
 
         ctx.send(reply).await?;
 
@@ -82,7 +82,7 @@ pub(super) async fn addtags(
     let json_tags = match &json["tags"]["tag"] {
         serde_json::Value::Array(tags) => tags,
         _ => {
-            let reply = components::replies::error_reply_embed(
+            let reply = builders::replies::error_reply_embed(
                 format!("Cannot find tags for **{artist}** assigned by **{user}**.",),
                 true,
             );
@@ -108,7 +108,7 @@ pub(super) async fn addtags(
         .filter(|tag| artist_tags.contains(&format!("{tag}")))
         .collect::<Vec<_>>();
     if !tag_matches.is_empty() {
-        let reply = components::replies::error_reply_embed(
+        let reply = builders::replies::error_reply_embed(
             format!("`{tags}` already exists for **{artist}**!",),
             true,
         );
@@ -136,8 +136,8 @@ pub(super) async fn addtags(
     };
 
     let reply = match result {
-        Ok(message) => components::replies::ok_reply_embed(message, true),
-        Err(message) => components::replies::error_reply_embed(message, true),
+        Ok(message) => builders::replies::ok_reply_embed(message, true),
+        Err(message) => builders::replies::error_reply_embed(message, true),
     };
 
     ctx.send(reply).await?;

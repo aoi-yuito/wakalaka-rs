@@ -11,7 +11,7 @@ use crate::{
     database::queries,
     framework::options::commands::music::lastfm::{LASTFM_COLOUR, MUSIC_URL},
     integrations,
-    utils::components,
+    utils::builders,
     Context, Throwable,
 };
 
@@ -41,7 +41,7 @@ pub(super) async fn gettags(
     let artist_re = Regex::new(r"^[a-zA-Z][a-zA-Z0-9_-]*$")?;
     let artist = artist.trim();
     if !artist_re.is_match(artist) {
-        let reply = components::replies::error_reply_embed("Name of the artist must begin with a letter and contain only letters, numbers, hyphens, and underscores!", true);
+        let reply = builders::replies::error_reply_embed("Name of the artist must begin with a letter and contain only letters, numbers, hyphens, and underscores!", true);
 
         ctx.send(reply).await?;
 
@@ -58,7 +58,7 @@ pub(super) async fn gettags(
                 if let Some(name) = queries::users::select_lastfm_name(db, &author_id).await? {
                     name
                 } else {
-                    let reply = components::replies::error_reply_embed(
+                    let reply = builders::replies::error_reply_embed(
                         "Your Last.fm account must be linked!",
                         true,
                     );
@@ -76,7 +76,7 @@ pub(super) async fn gettags(
     let tags = match &json["tags"]["tag"] {
         serde_json::Value::Array(tags) => tags,
         _ => {
-            let reply = components::replies::error_reply_embed(
+            let reply = builders::replies::error_reply_embed(
                 format!("Cannot find tags for **{artist}** assigned by **{user}**.",),
                 true,
             );

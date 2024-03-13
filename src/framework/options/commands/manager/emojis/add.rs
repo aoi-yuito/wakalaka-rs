@@ -7,7 +7,7 @@ use serenity::{all::Attachment, builder::CreateAttachment};
 use tracing::{error, info};
 
 use crate::{
-    utils::{components, models},
+    utils::{builders, models},
     Context, Throwable,
 };
 
@@ -32,7 +32,7 @@ pub(super) async fn add(
     let image_width = match image.width {
         Some(width) => {
             if width < 128 {
-                let reply = components::replies::error_reply_embed(
+                let reply = builders::replies::error_reply_embed(
                     "Image width must be `128` pixels or more!",
                     true,
                 );
@@ -44,7 +44,7 @@ pub(super) async fn add(
         }
         None => {
             let reply =
-                components::replies::error_reply_embed("Attachment must be an image!", true);
+                builders::replies::error_reply_embed("Attachment must be an image!", true);
 
             ctx.send(reply).await?;
 
@@ -54,7 +54,7 @@ pub(super) async fn add(
     let image_height = match image.height {
         Some(height) => {
             if height < 128 {
-                let reply = components::replies::error_reply_embed(
+                let reply = builders::replies::error_reply_embed(
                     "Image height must be `128` pixels or more!",
                     true,
                 );
@@ -66,7 +66,7 @@ pub(super) async fn add(
         }
         None => {
             let reply =
-                components::replies::error_reply_embed("Attachment must be an image!", true);
+                builders::replies::error_reply_embed("Attachment must be an image!", true);
 
             ctx.send(reply).await?;
 
@@ -75,7 +75,7 @@ pub(super) async fn add(
     };
     if image_width != image_height {
         let reply =
-            components::replies::error_reply_embed("Image must be `128x128` in size!", true);
+            builders::replies::error_reply_embed("Image must be `128x128` in size!", true);
 
         ctx.send(reply).await?;
 
@@ -105,8 +105,8 @@ pub(super) async fn add(
     };
 
     let reply = match result {
-        Ok(message) => components::replies::ok_reply_embed(message, true),
-        Err(message) => components::replies::error_reply_embed(message, true),
+        Ok(message) => builders::replies::ok_reply_embed(message, true),
+        Err(message) => builders::replies::error_reply_embed(message, true),
     };
 
     ctx.send(reply).await?;

@@ -5,7 +5,7 @@
 
 use tracing::error;
 
-use crate::{utils::components, Context, Error};
+use crate::{utils::builders, Context, Error};
 
 pub(crate) async fn handle(error: Error, input: Option<String>, ctx: Context<'_>) {
     let command = ctx.command();
@@ -33,8 +33,8 @@ pub(crate) async fn handle(error: Error, input: Option<String>, ctx: Context<'_>
     };
 
     let reply = match result {
-        Ok(message) => components::replies::error_reply_embed(message, true),
-        Err(message) => components::replies::error_reply_embed(message, true),
+        Ok(message) => builders::replies::error_reply_embed(message, true),
+        Err(message) => builders::replies::error_reply_embed(message, true),
     };
 
     if let Err(why) = ctx.send(reply).await {

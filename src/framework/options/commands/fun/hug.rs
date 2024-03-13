@@ -5,7 +5,7 @@
 
 use serenity::all::{Mentionable, User};
 
-use crate::{utils::components, Context, Throwable};
+use crate::{utils::builders, Context, Throwable};
 
 #[poise::command(
     slash_command,
@@ -25,7 +25,7 @@ pub(super) async fn hug(
     let author = ctx.author();
     let author_id = author.id;
     if user_id == author_id {
-        let reply = components::replies::error_reply_embed("Cannot 🫂 yourself.", true);
+        let reply = builders::replies::error_reply_embed("Cannot 🫂 yourself.", true);
 
         ctx.send(reply).await?;
 

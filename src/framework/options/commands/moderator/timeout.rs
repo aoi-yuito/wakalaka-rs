@@ -13,7 +13,7 @@ use uuid::Uuid;
 
 use crate::{
     database::queries::{self, violations::Violation},
-    utils::{components, models},
+    utils::{builders, models},
     Context, Throwable,
 };
 
@@ -45,7 +45,7 @@ pub(super) async fn timeout(
     let reason = reason.unwrap_or(String::new());
 
     if user.bot || user.system {
-        let reply = components::replies::error_reply_embed(
+        let reply = builders::replies::error_reply_embed(
             "Cannot put a bot or system user on a time-out.",
             true,
         );
@@ -69,7 +69,7 @@ pub(super) async fn timeout(
 
     if user_id == author_id {
         let reply =
-            components::replies::error_reply_embed("Cannot put yourself on a time-out.", true);
+            builders::replies::error_reply_embed("Cannot put yourself on a time-out.", true);
 
         ctx.send(reply).await?;
 
@@ -93,7 +93,7 @@ pub(super) async fn timeout(
         match member.enable_communication(ctx).await {
             Ok(_) => {
                 if uuids.is_empty() {
-                    let reply = components::replies::error_reply_embed(
+                    let reply = builders::replies::error_reply_embed(
                         "{user_mention} is not on a time-out!",
                         true,
                     );
@@ -153,7 +153,7 @@ pub(super) async fn timeout(
         {
             Ok(_) => {
                 if !uuids.is_empty() {
-                    let reply = components::replies::error_reply_embed(
+                    let reply = builders::replies::error_reply_embed(
                         format!("Cannot time {user_mention} out as they're already on a time-out."),
                         true,
                     );
@@ -199,8 +199,8 @@ pub(super) async fn timeout(
     };
 
     let reply = match result {
-        Ok(message) => components::replies::ok_reply_embed(message, true),
-        Err(message) => components::replies::error_reply_embed(message, true),
+        Ok(message) => builders::replies::ok_reply_embed(message, true),
+        Err(message) => builders::replies::error_reply_embed(message, true),
     };
 
     ctx.send(reply).await?;

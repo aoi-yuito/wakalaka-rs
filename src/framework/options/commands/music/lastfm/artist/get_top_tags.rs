@@ -10,7 +10,7 @@ use serenity::all::CreateEmbed;
 use crate::{
     framework::options::commands::music::lastfm::{LASTFM_COLOUR, MUSIC_URL},
     integrations,
-    utils::components,
+    utils::builders,
     Context, Throwable,
 };
 
@@ -37,7 +37,7 @@ pub(super) async fn gettoptags(
     let artist_re = Regex::new(r"^[a-zA-Z][a-zA-Z0-9_-]*$")?;
     let artist = artist.trim();
     if !artist_re.is_match(artist) {
-        let reply = components::replies::error_reply_embed("Name of the artist must begin with a letter and contain only letters, numbers, hyphens, and underscores!", true);
+        let reply = builders::replies::error_reply_embed("Name of the artist must begin with a letter and contain only letters, numbers, hyphens, and underscores!", true);
 
         ctx.send(reply).await?;
 

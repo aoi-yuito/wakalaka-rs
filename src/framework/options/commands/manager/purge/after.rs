@@ -8,7 +8,7 @@ use std::sync::Arc;
 use serenity::{all::Message, builder::GetMessages};
 use tracing::error;
 
-use crate::{utils::components, Context, Throwable};
+use crate::{utils::builders, Context, Throwable};
 
 #[poise::command(
     slash_command,
@@ -61,14 +61,14 @@ pub(super) async fn after(
         deleted_message_count
     });
 
-    let reply_before = components::replies::reply_embed(format!("Deleting messages..."), true);
+    let reply_before = builders::replies::reply_embed(format!("Deleting messages..."), true);
 
     let reply_handle = ctx.send(reply_before).await?;
 
     let deleted_message_count = handle.await?;
     if deleted_message_count == 0 {
         let reply =
-            components::replies::warn_reply_embed(format!("No messages were deleted."), true);
+            builders::replies::warn_reply_embed(format!("No messages were deleted."), true);
 
         ctx.send(reply).await?;
 
@@ -76,12 +76,12 @@ pub(super) async fn after(
     }
 
     let reply_after = if deleted_message_count == 1 {
-        components::replies::ok_reply_embed(
+        builders::replies::ok_reply_embed(
             format!("{deleted_message_count} message has been deleted."),
             true,
         )
     } else {
-        components::replies::ok_reply_embed(
+        builders::replies::ok_reply_embed(
             format!("{deleted_message_count} messages have been deleted."),
             true,
         )

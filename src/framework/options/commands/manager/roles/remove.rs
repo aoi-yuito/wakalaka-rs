@@ -7,7 +7,7 @@ use serenity::all::{Mentionable, Role};
 use tracing::{error, info};
 
 use crate::{
-    utils::{components, models},
+    utils::{builders, models},
     Context, Throwable,
 };
 
@@ -46,8 +46,8 @@ pub(super) async fn remove(
     };
 
     let reply = match result {
-        Ok(message) => components::replies::ok_reply_embed(message, true),
-        Err(message) => components::replies::error_reply_embed(message, true),
+        Ok(message) => builders::replies::ok_reply_embed(message, true),
+        Err(message) => builders::replies::error_reply_embed(message, true),
     };
 
     ctx.send(reply).await?;

@@ -12,7 +12,7 @@ use tracing::error;
 use crate::{
     database::{self, queries},
     integrations::{self, lastfm::API_AUTH_URL},
-    utils::components,
+    utils::builders,
     Context, Throwable,
 };
 
@@ -33,7 +33,7 @@ pub(super) async fn lastfm(ctx: Context<'_>) -> Throwable<()> {
     let lastfm = database::checks::check_lastfm(db, author).await?;
     if lastfm {
         let reply =
-            components::replies::warn_reply_embed("Your Last.fm account is already linked!", true);
+            builders::replies::warn_reply_embed("Your Last.fm account is already linked!", true);
 
         ctx.send(reply).await?;
 
@@ -45,7 +45,7 @@ pub(super) async fn lastfm(ctx: Context<'_>) -> Throwable<()> {
 
     let mut message = format!("Linking your Last.fm account...");
 
-    let reply = components::replies::reply_embed(message, true);
+    let reply = builders::replies::reply_embed(message, true);
 
     let reply_handle = ctx.send(reply).await?;
 
@@ -66,7 +66,7 @@ pub(super) async fn lastfm(ctx: Context<'_>) -> Throwable<()> {
             "Click [here]({res_url}) to grant {bot_mention} permission to use your Last.fm account.\n\n**Note:** You have an hour to grant permission.",
         );
 
-        let reply = components::replies::reply_embed(message, true);
+        let reply = builders::replies::reply_embed(message, true);
 
         reply_handle.edit(ctx, reply).await?;
 
@@ -128,7 +128,7 @@ pub(super) async fn lastfm(ctx: Context<'_>) -> Throwable<()> {
         let session = match handle.await? {
             Ok(session) => session,
             Err(why) => {
-                let reply = components::replies::error_reply_embed(why, true);
+                let reply = builders::replies::error_reply_embed(why, true);
 
                 reply_handle.edit(ctx, reply).await?;
 
@@ -143,7 +143,7 @@ pub(super) async fn lastfm(ctx: Context<'_>) -> Throwable<()> {
 
         message = format!("Your Last.fm account has been linked.");
 
-        let reply = components::replies::ok_reply_embed(message, true);
+        let reply = builders::replies::ok_reply_embed(message, true);
 
         reply_handle.edit(ctx, reply).await?;
     }

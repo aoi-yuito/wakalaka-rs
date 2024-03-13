@@ -5,7 +5,7 @@
 
 use serenity::all::Mentionable;
 
-use crate::{utils::components, Context, Throwable};
+use crate::{utils::builders, Context, Throwable};
 
 #[poise::command(
     slash_command,
@@ -30,12 +30,12 @@ pub(crate) async fn roll(
     let author_mention = author.mention();
 
     let reply = if rolled_number == 1 {
-        components::replies::reply_embed(
+        builders::replies::reply_embed(
             format!("{author_mention} rolled {rolled_number} point!"),
             false,
         )
     } else {
-        components::replies::reply_embed(
+        builders::replies::reply_embed(
             format!("{author_mention} rolled {rolled_number} points!"),
             false,
         )
