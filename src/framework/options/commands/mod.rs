@@ -13,11 +13,16 @@ mod moderator;
 
 use poise::Command;
 use serenity::all::GuildId;
-use tracing::{error, info, warn};
+use tracing::{info, warn};
 
 use crate::{Data, Error, SContext, Throwable};
 
-pub(crate) async fn register_guild_commands(ctx: &SContext, guild_id: &GuildId) -> Throwable<()> {
+pub(crate) async fn register_guild_commands(
+    ctx: &SContext,
+    guild_ids: &Vec<GuildId>,
+) -> Throwable<()> {
+    let guild_id_count = guild_ids.len();
+
     let commands = commands().await;
 
     let command_count = commands.len();
@@ -28,14 +33,21 @@ pub(crate) async fn register_guild_commands(ctx: &SContext, guild_id: &GuildId) 
     }
 
     let message = if command_count < 1 {
-        format!("Registered {command_count} command")
+        if guild_id_count == 1 {
+            format!("Registered {command_count} command in 1 server")
+        } else {
+            format!("Registered {command_count} command in {guild_id_count} servers")
+        }
     } else {
-        format!("Registered {command_count} commands")
+        if guild_id_count == 1 {
+            format!("Registered {command_count} commands in 1 server")
+        } else {
+            format!("Registered {command_count} commands in {guild_id_count} servers")
+        }
     };
 
-    if let Err(why) = poise::builtins::register_in_guild(ctx, &commands, *guild_id).await {
-        error!("Failed to register in guild: {why}");
-        return Err(why.into());
+    for guild_id in guild_ids {
+        poise::builtins::register_in_guild(ctx, &commands, *guild_id).await?;
     }
 
     info!("{message}");
