@@ -16,11 +16,6 @@ dotenvy = "0.15.7"
 version = "0.4.35"
 default-features = false
 
-[dependencies.openssl]
-version = "0.10.64"
-default-features = false
-features = ["vendored"]
-
 [dependencies.poise]
 version = "0.6.1"
 default-features = false
