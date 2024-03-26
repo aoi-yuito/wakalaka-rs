@@ -9,7 +9,7 @@ pub(crate) fn error_embed(message: impl Into<String>) -> CreateEmbed {
     let message = message.into();
 
     CreateEmbed::default()
-        .description(format!("{message}"))
+        .description(format!("❌ {message}"))
         .colour(branding::RED)
 }
 
@@ -17,7 +17,7 @@ pub(crate) fn warn_embed(message: impl Into<String>) -> CreateEmbed {
     let message = message.into();
 
     CreateEmbed::default()
-        .description(format!("{message}"))
+        .description(format!("⚠️ {message}"))
         .colour(branding::YELLOW)
 }
 
@@ -25,14 +25,12 @@ pub(crate) fn ok_embed(message: impl Into<String>) -> CreateEmbed {
     let message = message.into();
 
     CreateEmbed::default()
-        .description(format!("{message}"))
+        .description(format!("✅ {message}"))
         .colour(branding::GREEN)
 }
 
 pub(crate) fn embed(message: impl Into<String>) -> CreateEmbed {
     let message = message.into();
 
-    CreateEmbed::default()
-        .description(format!("{message}"))
-        .colour(branding::BLURPLE)
+    CreateEmbed::default().description(format!("{message}"))
 }
