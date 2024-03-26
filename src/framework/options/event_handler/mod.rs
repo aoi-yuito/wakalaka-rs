@@ -6,6 +6,7 @@
 mod category;
 mod channel;
 mod guild;
+mod interaction;
 mod invite;
 mod ready;
 mod thread;
@@ -17,13 +18,13 @@ use crate::{Data, FrameworkContext, SContext, Throwable};
 pub(crate) async fn handle(
     ctx: &SContext,
     event: &FullEvent,
-    _framework_ctx: FrameworkContext<'_>,
+    _fw_ctx: FrameworkContext<'_>,
     data: &Data,
 ) -> Throwable<()> {
     let db = &data.db;
 
     match event {
-        FullEvent::CacheReady { guilds, .. } => ready::cache_ready::handle(guilds).await?,
+        FullEvent::CacheReady { guilds, .. } => ready::cache_ready::handle(ctx, guilds).await?,
         FullEvent::ShardsReady { total_shards, .. } => {
             ready::shards_ready::handle(total_shards).await?
         }
@@ -73,6 +74,9 @@ pub(crate) async fn handle(
         FullEvent::InviteCreate { data, .. } => invite::invite_create::handle(ctx, data).await?,
         FullEvent::InviteDelete { data, .. } => invite::invite_delete::handle(ctx, data).await?,
         FullEvent::Ready { data_about_bot, .. } => ready::handle(ctx, data_about_bot).await?,
+        FullEvent::InteractionCreate { interaction, .. } => {
+            interaction::interaction_create::handle(ctx, interaction).await?
+        }
         FullEvent::ThreadCreate { thread, .. } => {
             thread::thread_create::handle(ctx, thread).await?
         }
