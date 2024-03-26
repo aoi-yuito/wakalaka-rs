@@ -11,7 +11,6 @@ license-file = "LICENSE"
 
 [dependencies]
 dotenvy = "0.15.7"
-md-5 = "0.10.6"
 
 [dependencies.chrono]
 version = "0.4.35"
@@ -23,11 +22,11 @@ default-features = false
 features = ["cache"]
 
 [dependencies.serde_json]
-version = "1.0.114"
+version = "1.0.115"
 default-features = false
 
 [dependencies.uuid]
-version = "1.7.0"
+version = "1.8.0"
 default-features = false
 features = ["v4"]
 
@@ -52,7 +51,7 @@ default-features = false
 [dependencies.tokio]
 version = "1.36.0"
 default-features = false
-features = ["full"]
+features = ["signal", "rt-multi-thread", "time", "fs", "io-std"]
 
 [dependencies.tracing]
 version = "0.1.40"
@@ -68,10 +67,10 @@ version = "0.8.5"
 default-features = false
 
 [dependencies.regex]
-version = "1.10.3"
+version = "1.10.4"
 default-features = false
 
 [dependencies.reqwest]
-version = "0.11.26"
+version = "0.12.2"
 default-features = false
-features = ["tokio-rustls", "json"]
+features = ["default-tls", "blocking", "cookies", "json"]
