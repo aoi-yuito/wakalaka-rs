@@ -14,38 +14,6 @@ pub(crate) async fn select_violations(db: &SqlitePool, user_id: &UserId) -> Sqlx
     Ok(count)
 }
 
-pub(crate) async fn select_lastfm_key(
-    db: &SqlitePool,
-    user_id: &UserId,
-) -> SqlxThrowable<Option<String>> {
-    let query =
-        sqlx::query("SELECT lastfm_key FROM users WHERE user_id = ?").bind(i64::from(*user_id));
-
-    let row = query.fetch_one(db).await?;
-
-    let key = row.get::<String, _>("lastfm_key");
-    if key.is_empty() {
-        return Ok(None);
-    }
-    Ok(Some(key))
-}
-
-pub(crate) async fn select_lastfm_name(
-    db: &SqlitePool,
-    user_id: &UserId,
-) -> SqlxThrowable<Option<String>> {
-    let query =
-        sqlx::query("SELECT lastfm_name FROM users WHERE user_id = ?").bind(i64::from(*user_id));
-
-    let row = query.fetch_one(db).await?;
-
-    let name = row.get::<String, _>("lastfm_name");
-    if name.is_empty() {
-        return Ok(None);
-    }
-    Ok(Some(name))
-}
-
 pub(crate) async fn select_user_id(db: &SqlitePool, user_id: &UserId) -> SqlxThrowable<UserId> {
     let query =
         sqlx::query("SELECT user_id FROM users WHERE user_id = ?").bind(i64::from(*user_id));
@@ -69,60 +37,6 @@ pub(crate) async fn update_violations(
     match query.execute(db).await {
         Ok(_) => {
             debug!("Updated Users:\n\tuser_id: {user_id}\n\tviolations: {violations}");
-        }
-        Err(why) => {
-            transaction.rollback().await?;
-
-            error!("Failed to update Users: {why:?}");
-            return Err(SqlxError::from(why));
-        }
-    }
-
-    transaction.commit().await?;
-
-    Ok(())
-}
-
-pub(crate) async fn update_lastfm_key(
-    db: &SqlitePool,
-    user_id: &UserId,
-    key: &str,
-) -> SqlxThrowable<()> {
-    let transaction = db.begin().await?;
-
-    let query = sqlx::query("UPDATE users SET lastfm_key = ? WHERE user_id = ?")
-        .bind(key)
-        .bind(i64::from(*user_id));
-    match query.execute(db).await {
-        Ok(_) => {
-            debug!("Updated Users:\n\tuser_id: {user_id}\n\tlastfm_key: {key}");
-        }
-        Err(why) => {
-            transaction.rollback().await?;
-
-            error!("Failed to update Users: {why:?}");
-            return Err(SqlxError::from(why));
-        }
-    }
-
-    transaction.commit().await?;
-
-    Ok(())
-}
-
-pub(crate) async fn update_lastfm_name(
-    db: &SqlitePool,
-    user_id: &UserId,
-    name: &str,
-) -> SqlxThrowable<()> {
-    let transaction = db.begin().await?;
-
-    let query = sqlx::query("UPDATE users SET lastfm_name = ? WHERE user_id = ?")
-        .bind(name)
-        .bind(i64::from(*user_id));
-    match query.execute(db).await {
-        Ok(_) => {
-            debug!("Updated Users:\n\tuser_id: {user_id}\n\tlastfm_name: {name}");
         }
         Err(why) => {
             transaction.rollback().await?;

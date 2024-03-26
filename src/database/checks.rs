@@ -14,14 +14,6 @@ use crate::{
 
 use super::queries;
 
-pub(crate) async fn check_lastfm(db: &SqlitePool, user: &User) -> Throwable<bool> {
-    let user_id = user.id;
-
-    let name = queries::users::select_lastfm_name(db, &user_id).await?;
-    let key = queries::users::select_lastfm_key(db, &user_id).await?;
-    Ok(name.is_some() && key.is_some())
-}
-
 pub(crate) async fn check_restricted_guild(
     ctx: &SContext,
     db: &SqlitePool,
