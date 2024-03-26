@@ -25,7 +25,7 @@ pub(super) async fn hug(
     let author = ctx.author();
     let author_id = author.id;
     if user_id == author_id {
-        let reply = builders::replies::error_reply_embed("Cannot 🫂 yourself.", true);
+        let reply = builders::replies::error_reply_embed("Cannot hug yourself.", true);
 
         ctx.send(reply).await?;
 
@@ -34,7 +34,7 @@ pub(super) async fn hug(
 
     let user_mention = user.mention();
 
-    let message = format!("🫂 {user_mention}");
+    let message = format!(":people_hugging: {user_mention}");
     ctx.say(message).await?;
 
     Ok(())
