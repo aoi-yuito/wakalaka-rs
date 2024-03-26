@@ -16,9 +16,7 @@ pub(crate) async fn handle(ctx: &SContext, guild_ids: &Vec<GuildId>) -> Throwabl
         info!("Readied cache for {guild_id_count} servers");
     }
 
-    for guild_id in guild_ids {
-        options::commands::register_guild_commands(ctx, guild_id).await?;
-    }
+    options::commands::register_guild_commands(ctx, guild_ids).await?;
 
     Ok(())
 }
