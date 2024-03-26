@@ -3,8 +3,9 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
-use rand::Rng;
-use serenity::all::Mentionable;
+use poise::CreateReply;
+use rand::{rngs::StdRng, Rng, SeedableRng};
+use serenity::all::{CreateEmbed, CreateEmbedFooter, Mentionable};
 
 use crate::{utils::builders, Context, Throwable};
 
@@ -18,7 +19,7 @@ use crate::{utils::builders, Context, Throwable};
 /// Roll a dice.
 pub(crate) async fn roll(
     ctx: Context<'_>,
-    #[description = "The number of dice to roll."]
+    #[description = "The number of times to roll."]
     #[min = 1]
     #[max = 99]
     number: i32,
@@ -33,10 +34,8 @@ pub(crate) async fn roll(
 ) -> Throwable<()> {
     let d = &[4, 6, 8, 10, 12, 20];
     if !d.contains(&sides) {
-        let reply = builders::replies::error_reply_embed(
-            format!("{sides} is not a supported dice size!"),
-            true,
-        );
+        let reply =
+            builders::replies::error_reply_embed(format!("{sides} is not a supported dice!"), true);
         ctx.send(reply).await?;
 
         return Ok(());
@@ -47,23 +46,37 @@ pub(crate) async fn roll(
     let formatted_roll = if modifier > 0 {
         format!("{number}d{sides}+{modifier}")
     } else if modifier < 0 {
-        format!("{number}d{sides}{modifier}")
+        format!("{number}d{sides}-{modifier}")
     } else {
         format!("{number}d{sides}")
     };
 
-    let roll_result = (0..number)
-        .map(|_| rand::thread_rng().gen_range(1..=sides))
-        .sum::<i32>()
-        + modifier;
+    let mut rng = StdRng::from_entropy();
+
+    let rolls: Vec<i32> = (0..number).map(|_| rng.gen_range(1..=sides)).collect();
+
+    let sum: i32 = rolls.iter().sum();
+    let result_of_sum = sum + modifier;
+
+    let verbose_result = if modifier == 0 {
+        format!("{rolls:?}")
+    } else {
+        format!("{rolls:?} + {modifier}")
+    };
+    let result = format!("{result_of_sum}");
 
     let author = ctx.author();
     let author_mention = author.mention();
 
-    let reply = builders::replies::reply_embed(
-        format!("{author_mention} rolled **{formatted_roll}** and got `{roll_result}`!",),
-        false,
-    );
+    let embed_footer = CreateEmbedFooter::new(verbose_result);
+
+    let embed = CreateEmbed::default()
+        .description(format!(
+            "🎲 {author_mention} rolled **{formatted_roll}** and got `{result}`!"
+        ))
+        .footer(embed_footer);
+
+    let reply = CreateReply::default().embed(embed);
 
     ctx.send(reply).await?;
 
