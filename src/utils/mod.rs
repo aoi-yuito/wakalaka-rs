@@ -7,7 +7,6 @@ pub(crate) mod builders;
 pub(crate) mod environment;
 pub(crate) mod models;
 
-use md5::{Digest, Md5};
 use regex::Regex;
 use tracing::error;
 
@@ -23,13 +22,6 @@ pub(crate) const GITHUB_URL: &str = "https://github.com/Kawaxte";
 
 pub(crate) const INVITE_URL: &str = "https://discord.gg/jUZVWk7q2q";
 pub(crate) const BOT_INVITE_URL: &str = "https://discord.com/api/oauth2/authorize?client_id=1190718691055251548&permissions=9925535296631&scope=bot";
-
-pub(crate) fn md5(input: String) -> String {
-    let mut hasher = Md5::new();
-    hasher.update(input);
-
-    format!("{:x}", hasher.finalize())
-}
 
 pub(crate) fn html_to_md(mut input: String) -> Throwable<String> {
     let a_re = Regex::new(r#"<a href="(.*?)">(.*?)</a>"#)?;
