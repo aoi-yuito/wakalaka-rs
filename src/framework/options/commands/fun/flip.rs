@@ -23,12 +23,12 @@ pub(super) async fn flip(ctx: Context<'_>) -> Throwable<()> {
 
     let reply = if random {
         builders::replies::reply_embed(
-            format!("{author_mention} flipped a coin and got **heads**!"),
+            format!(":coin: {author_mention} flipped a coin and got **heads**!"),
             false,
         )
     } else {
         builders::replies::reply_embed(
-            format!("{author_mention} flipped a coin and got **tails**!"),
+            format!(":coin: {author_mention} flipped a coin and got **tails**!"),
             false,
         )
     };
