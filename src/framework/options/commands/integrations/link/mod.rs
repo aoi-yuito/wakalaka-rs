@@ -3,16 +3,14 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
-mod lastfm;
-
-use crate::{framework::options::commands::integrations::link::lastfm::lastfm, Context, Throwable};
+use crate::{Context, Throwable};
 
 #[poise::command(
     slash_command,
-    subcommands("lastfm"),
+    // subcommands(""),
     category = "Integrations",
     required_bot_permissions = "SEND_MESSAGES | EMBED_LINKS",
-    subcommand_required,
+    // subcommand_required,
     user_cooldown = 5,
     ephemeral
 )]
