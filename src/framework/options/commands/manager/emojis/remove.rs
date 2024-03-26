@@ -6,15 +6,15 @@
 use tracing::{error, info};
 
 use crate::{
-    utils::{components, models},
-    Context, Error,
+    utils::{builders, models},
+    Context, Throwable,
 };
 
 #[poise::command(
     slash_command,
     category = "Manager",
     required_permissions = "CREATE_GUILD_EXPRESSIONS",
-    required_bot_permissions = "MANAGE_GUILD | SEND_MESSAGES | CREATE_GUILD_EXPRESSIONS",
+    required_bot_permissions = "SEND_MESSAGES | CREATE_GUILD_EXPRESSIONS",
     guild_only,
     user_cooldown = 5,
     ephemeral
@@ -26,7 +26,7 @@ pub(super) async fn remove(
     #[min_length = 2]
     #[max_length = 32]
     name: String,
-) -> Result<(), Error> {
+) -> Throwable<()> {
     let guild = models::guilds::guild(ctx)?;
     let guild_name = &guild.name;
 
@@ -36,7 +36,7 @@ pub(super) async fn remove(
             error!("Failed to find {name:?} in {guild_name}");
 
             let reply =
-                components::replies::error_reply_embed(format!("`{name}` does not exist!"), true);
+                builders::replies::error_reply_embed(format!("`{name}` does not exist!"), true);
 
             ctx.send(reply).await?;
 
@@ -61,8 +61,8 @@ pub(super) async fn remove(
     };
 
     let reply = match result {
-        Ok(message) => components::replies::ok_reply_embed(message, true),
-        Err(message) => components::replies::error_reply_embed(message, true),
+        Ok(message) => builders::replies::ok_reply_embed(message, true),
+        Err(message) => builders::replies::error_reply_embed(message, true),
     };
 
     ctx.send(reply).await?;

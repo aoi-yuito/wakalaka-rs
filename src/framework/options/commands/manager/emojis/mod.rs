@@ -9,7 +9,7 @@ mod remove;
 
 use crate::{
     framework::options::commands::manager::emojis::{add::add, edit::edit, remove::remove},
-    Context, Error,
+    Context, Throwable,
 };
 
 #[poise::command(
@@ -17,11 +17,12 @@ use crate::{
     subcommands("add", "edit", "remove"),
     category = "Manager",
     required_permissions = "MANAGE_GUILD_EXPRESSIONS | CREATE_GUILD_EXPRESSIONS",
-    required_bot_permissions = "MANAGE_GUILD | SEND_MESSAGES | MANAGE_GUILD_EXPRESSIONS | CREATE_GUILD_EXPRESSIONS",
+    required_bot_permissions = "SEND_MESSAGES | MANAGE_GUILD_EXPRESSIONS | CREATE_GUILD_EXPRESSIONS",
     guild_only,
     subcommand_required,
+    user_cooldown = 5,
     ephemeral
 )]
-pub(super) async fn emojis(_ctx: Context<'_>) -> Result<(), Error> {
+pub(super) async fn emojis(_ctx: Context<'_>) -> Throwable<()> {
     Ok(())
 }

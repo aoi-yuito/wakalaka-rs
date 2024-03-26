@@ -1,5 +1,5 @@
 // Copyright (c) 2024 Kawaxte
-// 
+//
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
@@ -7,7 +7,7 @@ mod options;
 
 use poise::{Framework, FrameworkOptions};
 
-use crate::{Data, Error, SContext, SReady};
+use crate::{Data, Error, SContext, SReady, Throwable};
 
 pub(crate) async fn framework(data: Data) -> Framework<Data, Error> {
     Framework::builder()
@@ -21,7 +21,7 @@ async fn framework_setup(
     _ready: &SReady,
     _framework: &Framework<Data, Error>,
     data: Data,
-) -> Result<Data, Error> {
+) -> Throwable<Data> {
     Ok(data)
 }
 

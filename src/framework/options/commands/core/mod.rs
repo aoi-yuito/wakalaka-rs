@@ -4,9 +4,7 @@
 // https://opensource.org/licenses/MIT
 
 mod announce;
-mod register;
 mod restrict;
-mod unregister;
 mod unrestrict;
 
 use poise::Command;
@@ -18,7 +16,5 @@ pub(super) async fn commands() -> Vec<Command<Data, Error>> {
         restrict::restrict(),
         unrestrict::unrestrict(),
         announce::announce(),
-        register::register(),
-        unregister::unregister(),
     ]
 }

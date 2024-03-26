@@ -1,13 +1,10 @@
 use serenity::all::UserId;
 use sqlx::{Row, SqlitePool};
-use tracing::error;
+use tracing::{debug, error};
 
-use crate::SqlxError;
+use crate::{SqlxError, SqlxThrowable};
 
-pub(crate) async fn select_violations_from(
-    db: &SqlitePool,
-    user_id: &UserId,
-) -> Result<i64, SqlxError> {
+pub(crate) async fn select_violations(db: &SqlitePool, user_id: &UserId) -> SqlxThrowable<i64> {
     let query =
         sqlx::query("SELECT violations FROM users WHERE user_id = ?").bind(i64::from(*user_id));
 
@@ -17,10 +14,7 @@ pub(crate) async fn select_violations_from(
     Ok(count)
 }
 
-pub(crate) async fn select_user_id_from(
-    db: &SqlitePool,
-    user_id: &UserId,
-) -> Result<UserId, SqlxError> {
+pub(crate) async fn select_user_id(db: &SqlitePool, user_id: &UserId) -> SqlxThrowable<UserId> {
     let query =
         sqlx::query("SELECT user_id FROM users WHERE user_id = ?").bind(i64::from(*user_id));
 
@@ -30,18 +24,20 @@ pub(crate) async fn select_user_id_from(
     Ok(user_id)
 }
 
-pub(crate) async fn update_set_violations(
+pub(crate) async fn update_violations(
     db: &SqlitePool,
     user_id: &UserId,
     violations: i64,
-) -> Result<(), SqlxError> {
+) -> SqlxThrowable<()> {
     let transaction = db.begin().await?;
 
     let query = sqlx::query("UPDATE users SET violations = ? WHERE user_id = ?")
         .bind(violations)
         .bind(i64::from(*user_id));
     match query.execute(db).await {
-        Ok(_) => (),
+        Ok(_) => {
+            debug!("Updated Users:\n\tuser_id: {user_id}\n\tviolations: {violations}");
+        }
         Err(why) => {
             transaction.rollback().await?;
 
@@ -55,12 +51,14 @@ pub(crate) async fn update_set_violations(
     Ok(())
 }
 
-pub(crate) async fn insert_into(db: &SqlitePool, user_id: &UserId) -> Result<(), SqlxError> {
+pub(crate) async fn insert(db: &SqlitePool, user_id: &UserId) -> SqlxThrowable<()> {
     let transaction = db.begin().await?;
 
     let query = sqlx::query("INSERT INTO users (user_id) VALUES (?)").bind(i64::from(*user_id));
     match query.execute(db).await {
-        Ok(_) => (),
+        Ok(_) => {
+            debug!("Inserted into Users:\n\tuser_id: {user_id}");
+        }
         Err(why) => {
             let error = format!("{why}");
             if error.contains("1555") {

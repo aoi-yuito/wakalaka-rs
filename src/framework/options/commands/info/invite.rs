@@ -3,7 +3,7 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
-use crate::{utils::BOT_INVITE_URL, Context, Error};
+use crate::{utils::BOT_INVITE_URL, Context, Throwable};
 
 #[poise::command(
     slash_command,
@@ -13,7 +13,7 @@ use crate::{utils::BOT_INVITE_URL, Context, Error};
     ephemeral
 )]
 /// Get an invite for yours truly.
-pub(super) async fn invite(ctx: Context<'_>) -> Result<(), Error> {
+pub(super) async fn invite(ctx: Context<'_>) -> Throwable<()> {
     ctx.say(BOT_INVITE_URL).await?;
 
     Ok(())

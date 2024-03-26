@@ -3,11 +3,14 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
+pub(super) mod cache_ready;
+pub(super) mod shards_ready;
+
 use tracing::info;
 
-use crate::{Error, SContext, SReady};
+use crate::{SContext, SReady, Throwable};
 
-pub(crate) async fn handle(ctx: &SContext, ready: &SReady) -> Result<(), Error> {
+pub(crate) async fn handle(ctx: &SContext, ready: &SReady) -> Throwable<()> {
     let bot = &ready.user;
     let bot_name = &bot.name;
 
@@ -15,9 +18,9 @@ pub(crate) async fn handle(ctx: &SContext, ready: &SReady) -> Result<(), Error> 
 
     let guild_id_count = guild_ids.len();
     if guild_id_count == 1 {
-        info!("Connected to {guild_id_count} guild as @{bot_name}");
+        info!("@{bot_name} connected to {guild_id_count} server");
     } else {
-        info!("Connected to {guild_id_count} guilds as @{bot_name}");
+        info!("@{bot_name} connected to {guild_id_count} servers");
     }
 
     Ok(())

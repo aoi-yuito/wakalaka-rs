@@ -5,11 +5,11 @@
 
 use poise::CreateReply;
 use serenity::{
-    all::{colours::branding, User},
+    all::{colours::branding, CreateEmbedFooter, User},
     builder::CreateEmbed,
 };
 
-use crate::{Context, Error};
+use crate::{Context, Throwable};
 
 #[poise::command(
     slash_command,
@@ -22,15 +22,25 @@ use crate::{Context, Error};
 pub(super) async fn avatar(
     ctx: Context<'_>,
     #[description = "The user to get the avatar of."] user: User,
-) -> Result<(), Error> {
-    let user_name = &user.name;
-    let user_face = user.face();
+) -> Throwable<()> {
+    let user_id = user.id;
 
-    let user_accent_colour = user.accent_colour.unwrap_or(branding::BLURPLE);
+    let raw_user = ctx.http().get_user(user_id).await?;
+
+    let user_name = &raw_user.name;
+    let user_face = raw_user.face();
+
+    let user_accent_colour = match raw_user.accent_colour {
+        Some(colour) => colour,
+        None => branding::BLURPLE,
+    };
+
+    let embed_footer = CreateEmbedFooter::new(format!("🆔{user_id}"));
 
     let embed = CreateEmbed::default()
         .title(user_name)
         .image(user_face)
+        .footer(embed_footer)
         .colour(user_accent_colour);
 
     let reply = CreateReply::default().embed(embed);

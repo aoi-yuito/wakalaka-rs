@@ -7,8 +7,8 @@ use chrono::Utc;
 use serenity::all::{CreateEmbedFooter, CreateMessage, Timestamp};
 
 use crate::{
-    utils::{components, models},
-    Context, Error,
+    utils::{builders, models},
+    Context, Throwable,
 };
 
 #[poise::command(
@@ -27,7 +27,7 @@ pub(super) async fn announce(
     #[min_length = 1]
     #[max_length = 4096]
     message: String,
-) -> Result<(), Error> {
+) -> Throwable<()> {
     let message = message.replace("  ", "\n\n");
 
     let author = ctx.author();
@@ -55,7 +55,7 @@ pub(super) async fn announce(
 
         let embed_footer = CreateEmbedFooter::new(author_name).icon_url(&author_face);
 
-        let embed = components::embeds::embed(&message)
+        let embed = builders::embeds::embed(&message)
             .title("📢")
             .footer(embed_footer)
             .timestamp(created_at);
@@ -66,12 +66,12 @@ pub(super) async fn announce(
     }
 
     let reply = if guild_id_count == 1 {
-        components::replies::ok_reply_embed(
+        builders::replies::ok_reply_embed(
             format!("Announcement to {guild_id_count} server has been sent!"),
             true,
         )
     } else {
-        components::replies::ok_reply_embed(
+        builders::replies::ok_reply_embed(
             format!("Announcement to {guild_id_count} servers has been sent!"),
             true,
         )

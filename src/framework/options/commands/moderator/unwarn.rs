@@ -17,8 +17,8 @@ use tracing::{error, info};
 
 use crate::{
     database::queries::{self, violations::Violation},
-    utils::{components, models},
-    Context, Error,
+    utils::{builders, models},
+    Context, Throwable,
 };
 
 #[poise::command(
@@ -34,12 +34,12 @@ use crate::{
 pub(super) async fn unwarn(
     ctx: Context<'_>,
     #[description = "The user to unwarn."] user: User,
-) -> Result<(), Error> {
+) -> Throwable<()> {
     let db = &ctx.data().db;
     let kind = Violation::Warning;
 
     if user.bot || user.system {
-        let reply = components::replies::error_reply_embed(
+        let reply = builders::replies::error_reply_embed(
             "Cannot remove a warning from a bot or system user.",
             true,
         );
@@ -63,14 +63,14 @@ pub(super) async fn unwarn(
 
     if user_id == author_id {
         let reply =
-            components::replies::error_reply_embed("Cannot remove a warning from yourself.", true);
+            builders::replies::error_reply_embed("Cannot remove a warning from yourself.", true);
         ctx.send(reply).await?;
 
         return Ok(());
     }
 
-    if let Err(_) = queries::users::select_user_id_from(db, &user_id).await {
-        let reply = components::replies::error_reply_embed(
+    if let Err(_) = queries::users::select_user_id(db, &user_id).await {
+        let reply = builders::replies::error_reply_embed(
             format!("{user_mention} is not in the database!"),
             true,
         );
@@ -80,9 +80,9 @@ pub(super) async fn unwarn(
         return Ok(());
     }
 
-    let uuids = queries::violations::select_uuids_from(db, &kind, &guild_id, &user_id).await?;
+    let uuids = queries::violations::select_uuids(db, &kind, &guild_id, &user_id).await?;
     if uuids.is_empty() {
-        let reply = components::replies::error_reply_embed(
+        let reply = builders::replies::error_reply_embed(
             format!("{user_mention} does not have any warnings!"),
             true,
         );
@@ -91,9 +91,9 @@ pub(super) async fn unwarn(
         return Ok(());
     }
 
-    let warning = queries::violations::select_from(db, &kind, &guild_id, &user_id).await?;
+    let warning = queries::violations::select(db, &kind, &guild_id, &user_id).await?;
 
-    let mut violations = queries::users::select_violations_from(db, &user_id).await?;
+    let mut violations = queries::users::select_violations(db, &user_id).await?;
 
     let menu_options = warning
         .iter()
@@ -115,7 +115,7 @@ pub(super) async fn unwarn(
 
     let action_row = CreateActionRow::SelectMenu(menu);
 
-    let reply = components::replies::reply("Which warning would you like to remove?", true)
+    let reply = builders::replies::reply("Which warning would you like to remove?", true)
         .components(vec![action_row]);
 
     let message = ctx.send(reply).await?.into_message().await?;
@@ -134,7 +134,7 @@ pub(super) async fn unwarn(
             if let ComponentInteractionDataKind::StringSelect { values: uuids } = data_kind {
                 let uuids = uuids.into_iter().collect::<Vec<_>>();
                 for uuid in uuids {
-                    queries::violations::delete_from(db, &uuid).await?;
+                    queries::violations::delete(db, &uuid).await?;
                 }
 
                 violations -= 1;
@@ -142,19 +142,19 @@ pub(super) async fn unwarn(
                     violations = 0;
                 }
 
-                queries::users::update_set_violations(db, &user_id, violations).await?;
+                queries::users::update_violations(db, &user_id, violations).await?;
             }
 
             info!("@{author_name} removed warning from @{user_name} in {guild_name}");
             Ok(format!("Removed a warning from {user_mention}."))
         } else {
             error!("Failed to remove warning from @{user_name} in {guild_name}");
-            Err(format!("Idle for too long."))
+            Err(format!("Took too long to respond."))
         };
 
     let reply = match result {
-        Ok(message) => components::replies::ok_reply_embed(message, true),
-        Err(message) => components::replies::error_reply_embed(message, true),
+        Ok(message) => builders::replies::ok_reply_embed(message, true),
+        Err(message) => builders::replies::error_reply_embed(message, true),
     };
 
     ctx.send(reply).await?;

@@ -6,7 +6,7 @@
 use serenity::all::{Emoji, EmojiId};
 use tracing::{error, warn};
 
-use crate::{utils::models, Context, Error};
+use crate::{utils::models, Context, Throwable};
 
 pub(crate) async fn emoji_id(ctx: Context<'_>, name: &String) -> Option<EmojiId> {
     match emojis(ctx).await {
@@ -15,7 +15,7 @@ pub(crate) async fn emoji_id(ctx: Context<'_>, name: &String) -> Option<EmojiId>
                 let emoji_id = emoji.id;
                 let emoji_name = &emoji.name;
                 if emoji_name == name {
-                    return Some(emoji_id);
+                    Some(emoji_id);
                 }
             }
 
@@ -29,7 +29,7 @@ pub(crate) async fn emoji_id(ctx: Context<'_>, name: &String) -> Option<EmojiId>
     }
 }
 
-pub(crate) async fn emojis(ctx: Context<'_>) -> Result<Vec<Emoji>, Error> {
+pub(crate) async fn emojis(ctx: Context<'_>) -> Throwable<Vec<Emoji>> {
     let guild = models::guilds::guild(ctx)?;
 
     match guild.emojis(ctx).await {
@@ -41,7 +41,7 @@ pub(crate) async fn emojis(ctx: Context<'_>) -> Result<Vec<Emoji>, Error> {
     }
 }
 
-pub(crate) async fn emoji(ctx: Context<'_>, emoji_id: EmojiId) -> Result<Emoji, Error> {
+pub(crate) async fn emoji(ctx: Context<'_>, emoji_id: EmojiId) -> Throwable<Emoji> {
     let guild = models::guilds::guild(ctx)?;
 
     match guild.emoji(ctx, emoji_id).await {

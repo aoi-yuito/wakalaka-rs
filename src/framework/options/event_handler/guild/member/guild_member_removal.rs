@@ -6,9 +6,9 @@
 use serenity::all::{GuildId, User};
 use tracing::info;
 
-use crate::{utils::models, Error, SContext};
+use crate::{utils::models, SContext, Throwable};
 
-pub(crate) async fn handle(ctx: &SContext, guild_id: &GuildId, user: &User) -> Result<(), Error> {
+pub(crate) async fn handle(ctx: &SContext, guild_id: &GuildId, user: &User) -> Throwable<()> {
     if user.bot || user.system {
         return Ok(());
     }

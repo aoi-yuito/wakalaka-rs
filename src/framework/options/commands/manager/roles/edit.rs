@@ -7,15 +7,15 @@ use serenity::all::{Mentionable, Role};
 use tracing::{error, info};
 
 use crate::{
-    utils::{components, models},
-    Context, Error,
+    utils::{builders, models},
+    Context, Throwable,
 };
 
 #[poise::command(
     slash_command,
     category = "Manager",
     required_permissions = "MANAGE_ROLES",
-    required_bot_permissions = "MANAGE_GUILD | SEND_MESSAGES | MANAGE_ROLES",
+    required_bot_permissions = "SEND_MESSAGES | MANAGE_ROLES",
     guild_only,
     user_cooldown = 5,
     ephemeral
@@ -34,7 +34,7 @@ pub(super) async fn edit(
     colour: Option<String>,
     #[description = "Whether the role should be pinned above lesser roles."] hoist: Option<bool>,
     #[description = "Whether the role should be mentionable."] mentionable: Option<bool>,
-) -> Result<(), Error> {
+) -> Throwable<()> {
     let author = ctx.author();
     let author_name = &author.name;
 
@@ -71,8 +71,8 @@ pub(super) async fn edit(
     };
 
     let reply = match result {
-        Ok(message) => components::replies::ok_reply_embed(message, true),
-        Err(message) => components::replies::error_reply_embed(message, true),
+        Ok(message) => builders::replies::ok_reply_embed(message, true),
+        Err(message) => builders::replies::error_reply_embed(message, true),
     };
 
     ctx.send(reply).await?;

@@ -5,9 +5,11 @@
 
 mod database;
 mod framework;
+mod integrations;
 mod utils;
 
 use ::serenity::all::GatewayIntents;
+
 use poise::serenity_prelude as serenity;
 use sqlx::SqlitePool;
 use tracing::subscriber;
@@ -28,8 +30,11 @@ type Error = Box<dyn std::error::Error + Send + Sync>;
 type FrameworkError<'a> = poise::FrameworkError<'a, Data, Error>;
 type SqlxError = sqlx::Error;
 
+type Throwable<T> = Result<T, Error>;
+type SqlxThrowable<T> = Result<T, SqlxError>;
+
 #[tokio::main]
-async fn main() -> Result<(), Error> {
+async fn main() -> Throwable<()> {
     let filter = environment::rust_log()?;
 
     let subscriber = tracing_subscriber::fmt()
@@ -55,6 +60,16 @@ async fn main() -> Result<(), Error> {
     let mut client = SClient::builder(token, intents)
         .framework(framework)
         .await?;
+
+    let manager = client.shard_manager.clone();
+    tokio::spawn(async move {
+        tokio::signal::ctrl_c()
+            .await
+            .expect("Failed to listen for CTRL+C");
+
+        manager.shutdown_all().await;
+    });
+
     client.start_autosharded().await?;
 
     Ok(())

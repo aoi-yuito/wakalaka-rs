@@ -1,43 +1,47 @@
 [package]
 name = "wakalaka"
-version = "0.2.1-beta"
+version = "0.3.0-beta"
 authors = ["Kawaxte"]
 edition = "2021"
-rust-version = "1.76.0"
+rust-version = "1.77.0"
 readme = "README.md"
 description = "No-nonsense general-purpose Discord bot written with love in Rust."
 repository = "https://github.com/Kawaxte/wakalaka-rs"
 license-file = "LICENSE"
 
 [dependencies]
-dashmap = "5.5.3"
 dotenvy = "0.15.7"
 
-[dependencies.serde_json]
-version = "1.0.113"
+[dependencies.chrono]
+version = "0.4.35"
 default-features = false
 
-[dependencies.chrono]
-version = "0.4.34"
+[dependencies.openssl]
+version = "0.10.64"
 default-features = false
+features = ["vendored"]
 
 [dependencies.poise]
 version = "0.6.1"
 default-features = false
 features = ["cache"]
 
+[dependencies.serde_json]
+version = "1.0.115"
+default-features = false
+
 [dependencies.uuid]
-version = "1.7.0"
+version = "1.8.0"
 default-features = false
 features = ["v4"]
 
 [dependencies.serenity]
-version = "0.12.0"
+version = "0.12.1"
 default-features = false
-features = ["rustls_backend", "chrono", "framework"]
+features = ["rustls_backend", "cache", "chrono", "framework"]
 
 [dependencies.sqlx]
-version = "0.7.3"
+version = "0.7.4"
 default-features = false
 "features" = [
     "macros",
@@ -49,14 +53,10 @@ default-features = false
     "sqlx-sqlite",
 ]
 
-[dependencies.toml]
-version = "0.8.10"
-default-features = false
-
 [dependencies.tokio]
 version = "1.36.0"
 default-features = false
-features = ["full"]
+features = ["signal", "rt-multi-thread", "time", "fs", "io-std"]
 
 [dependencies.tracing]
 version = "0.1.40"
@@ -72,10 +72,10 @@ version = "0.8.5"
 default-features = false
 
 [dependencies.regex]
-version = "1.10.3"
+version = "1.10.4"
 default-features = false
 
 [dependencies.reqwest]
-version = "0.11.24"
+version = "0.12.2"
 default-features = false
-features = ["tokio-rustls", "json"]
+features = ["default-tls", "blocking", "cookies", "json"]

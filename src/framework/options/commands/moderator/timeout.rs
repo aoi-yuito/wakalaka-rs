@@ -8,13 +8,13 @@ use serenity::{
     all::{Mentionable, User},
     model::Timestamp,
 };
-use tracing::{error, info};
+use tracing::{error, info, warn};
 use uuid::Uuid;
 
 use crate::{
     database::queries::{self, violations::Violation},
-    utils::{components, models},
-    Context, Error,
+    utils::{builders, models},
+    Context, Throwable,
 };
 
 #[poise::command(
@@ -38,14 +38,14 @@ pub(super) async fn timeout(
     #[min_length = 1]
     #[max_length = 255]
     reason: Option<String>,
-) -> Result<(), Error> {
+) -> Throwable<()> {
     let db = &ctx.data().db;
     let uuid = format!("{}", Uuid::new_v4());
     let kind = Violation::Timeout;
     let reason = reason.unwrap_or(String::new());
 
     if user.bot || user.system {
-        let reply = components::replies::error_reply_embed(
+        let reply = builders::replies::error_reply_embed(
             "Cannot put a bot or system user on a time-out.",
             true,
         );
@@ -69,23 +69,23 @@ pub(super) async fn timeout(
 
     if user_id == author_id {
         let reply =
-            components::replies::error_reply_embed("Cannot put yourself on a time-out.", true);
+            builders::replies::error_reply_embed("Cannot put yourself on a time-out.", true);
 
         ctx.send(reply).await?;
 
         return Ok(());
     }
 
-    if let Err(_) = queries::users::select_user_id_from(db, &user_id).await {
-        queries::users::insert_into(db, &user_id).await?;
+    if let Err(_) = queries::users::select_user_id(db, &user_id).await {
+        queries::users::insert(db, &user_id).await?;
     }
-    if let Err(_) = queries::users::select_user_id_from(db, &author_id).await {
-        queries::users::insert_into(db, &author_id).await?;
+    if let Err(_) = queries::users::select_user_id(db, &author_id).await {
+        queries::users::insert(db, &author_id).await?;
     }
 
-    let uuids = queries::violations::select_uuids_from(db, &kind, &guild_id, &user_id).await?;
-    
-    let mut violations = queries::users::select_violations_from(db, &user_id).await?;
+    let uuids = queries::violations::select_uuids(db, &kind, &guild_id, &user_id).await?;
+
+    let mut violations = queries::users::select_violations(db, &user_id).await?;
 
     let mut member = guild_id.member(&ctx, user_id).await?;
 
@@ -93,7 +93,7 @@ pub(super) async fn timeout(
         match member.enable_communication(ctx).await {
             Ok(_) => {
                 if uuids.is_empty() {
-                    let reply = components::replies::error_reply_embed(
+                    let reply = builders::replies::error_reply_embed(
                         "{user_mention} is not on a time-out!",
                         true,
                     );
@@ -104,7 +104,7 @@ pub(super) async fn timeout(
                 }
 
                 for uuid in uuids {
-                    queries::violations::delete_from(db, &uuid).await?;
+                    queries::violations::delete(db, &uuid).await?;
                 }
 
                 violations -= 1;
@@ -112,7 +112,7 @@ pub(super) async fn timeout(
                     violations = 0;
                 }
 
-                queries::users::update_set_violations(db, &user_id, violations).await?;
+                queries::users::update_violations(db, &user_id, violations).await?;
 
                 if reason.is_empty() {
                     info!("@{author_name} got @{user_name} out of time-out in {guild_name}");
@@ -137,7 +137,13 @@ pub(super) async fn timeout(
         let time = time.unwrap_or(0);
 
         let now = Utc::now();
-        let days = Duration::days(time);
+        let days = match Duration::try_days(time) {
+            Some(duration) => duration,
+            None => {
+                warn!("Bounds exceeded for @{user_name} in {guild_name}");
+                return Ok(());
+            }
+        };
 
         let timestamp = Timestamp::from(now + days);
 
@@ -147,8 +153,8 @@ pub(super) async fn timeout(
         {
             Ok(_) => {
                 if !uuids.is_empty() {
-                    let reply = components::replies::error_reply_embed(
-                        "{user_mention} is already on a time-out!",
+                    let reply = builders::replies::error_reply_embed(
+                        format!("Cannot time {user_mention} out as they're already on a time-out."),
                         true,
                     );
 
@@ -159,7 +165,7 @@ pub(super) async fn timeout(
 
                 let created_at = Utc::now().naive_utc();
 
-                queries::violations::insert_into(
+                queries::violations::insert(
                     db,
                     &uuid,
                     &kind,
@@ -173,28 +179,28 @@ pub(super) async fn timeout(
 
                 violations += 1;
 
-                queries::users::update_set_violations(db, &user_id, violations).await?;
+                queries::users::update_violations(db, &user_id, violations).await?;
 
                 if reason.is_empty() {
-                    info!("@{author_name} timed out @{user_name} in {guild_name}");
-                    Ok(format!("{user_mention} has been timed out."))
+                    info!("@{author_name} timed @{user_name} out in {guild_name}");
+                    Ok(format!("{user_mention} has been timed out!"))
                 } else {
-                    info!("@{author_name} timed out @{user_name} in {guild_name}: {reason}");
-                    Ok(format!("{user_mention} has been timed out for {reason}."))
+                    info!("@{author_name} timed @{user_name} out in {guild_name}: {reason}");
+                    Ok(format!("{user_mention} has been timed out: {reason}"))
                 }
             }
             Err(why) => {
-                error!("Failed to time out @{user_name} in {guild_name}: {why:?}");
+                error!("Failed to time @{user_name}out in {guild_name}: {why:?}");
                 Err(format!(
-                    "An error occurred while timing out {user_mention}."
+                    "An error occurred while timing {user_mention} out."
                 ))
             }
         }
     };
 
     let reply = match result {
-        Ok(message) => components::replies::ok_reply_embed(message, true),
-        Err(message) => components::replies::error_reply_embed(message, true),
+        Ok(message) => builders::replies::ok_reply_embed(message, true),
+        Err(message) => builders::replies::error_reply_embed(message, true),
     };
 
     ctx.send(reply).await?;

@@ -13,7 +13,7 @@ use crate::{
     framework::options::commands::manager::roles::{
         add::add, assign::assign, edit::edit, remove::remove, unassign::unassign,
     },
-    Context, Error,
+    Context, Throwable,
 };
 
 #[poise::command(
@@ -21,11 +21,12 @@ use crate::{
     subcommands("add", "assign", "edit", "remove", "unassign"),
     category = "Manager",
     required_permissions = "MANAGE_ROLES",
-    required_bot_permissions = "MANAGE_GUILD | MANAGE_ROLES",
+    required_bot_permissions = "MANAGE_ROLES",
     guild_only,
     subcommand_required,
+    user_cooldown = 5,
     ephemeral
 )]
-pub(super) async fn roles(_ctx: Context<'_>) -> Result<(), Error> {
+pub(super) async fn roles(_ctx: Context<'_>) -> Throwable<()> {
     Ok(())
 }

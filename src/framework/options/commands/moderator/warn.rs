@@ -10,8 +10,8 @@ use uuid::Uuid;
 
 use crate::{
     database::queries::{self, violations::Violation},
-    utils::{components, models},
-    Context, Error,
+    utils::{builders, models},
+    Context, Throwable,
 };
 
 #[poise::command(
@@ -31,14 +31,14 @@ pub(super) async fn warn(
     #[min_length = 1]
     #[max_length = 255]
     reason: String,
-) -> Result<(), Error> {
+) -> Throwable<()> {
     let db = &ctx.data().db;
     let uuid = format!("{}", Uuid::new_v4());
     let kind = Violation::Warning;
     let created_at = Utc::now().naive_utc();
 
     if user.bot || user.system {
-        let reply = components::replies::error_reply_embed(
+        let reply = builders::replies::error_reply_embed(
             "Cannot give warning to a bot or system user.",
             true,
         );
@@ -62,26 +62,26 @@ pub(super) async fn warn(
     let guild_name = &guild.name;
 
     if user_id == author_id {
-        let reply = components::replies::error_reply_embed("Cannot give yourself a warning.", true);
+        let reply = builders::replies::error_reply_embed("Cannot give yourself a warning.", true);
         ctx.send(reply).await?;
 
         return Ok(());
     }
 
-    if let Err(_) = queries::users::select_user_id_from(db, &user_id).await {
-        queries::users::insert_into(db, &user_id).await?;
+    if let Err(_) = queries::users::select_user_id(db, &user_id).await {
+        queries::users::insert(db, &user_id).await?;
     }
-    if let Err(_) = queries::users::select_user_id_from(db, &author_id).await {
-        queries::users::insert_into(db, &author_id).await?;
+    if let Err(_) = queries::users::select_user_id(db, &author_id).await {
+        queries::users::insert(db, &author_id).await?;
     }
 
-    let mut violations = queries::users::select_violations_from(db, &user_id).await?;
+    let mut violations = queries::users::select_violations(db, &user_id).await?;
 
-    let uuids = queries::violations::select_uuids_from(db, &kind, &guild_id, &user_id).await?;
+    let uuids = queries::violations::select_uuids(db, &kind, &guild_id, &user_id).await?;
 
     let uuid_count = uuids.len();
     if uuid_count >= 3 {
-        let reply = components::replies::error_reply_embed(
+        let reply = builders::replies::error_reply_embed(
             format!("Cannot give more than {uuid_count} warnings to {user_mention}."),
             true,
         );
@@ -91,7 +91,7 @@ pub(super) async fn warn(
         return Ok(());
     }
 
-    let result = match queries::violations::insert_into(
+    let result = match queries::violations::insert(
         db,
         &uuid,
         &kind,
@@ -106,16 +106,16 @@ pub(super) async fn warn(
         Ok(_) => {
             violations += 1;
 
-            queries::users::update_set_violations(db, &user_id, violations).await?;
+            queries::users::update_violations(db, &user_id, violations).await?;
 
-            let message = components::messages::message_embed(format!(
+            let message = builders::messages::message_embed(format!(
                 "You've been warned by {author_mention} in {guild_name} for {reason}.",
             ));
 
             user.dm(ctx, message).await?;
 
             info!("@{author_name} warned @{user_name} in {guild_name}: {reason}");
-            Ok(format!("{user_mention} has been warned for {reason}."))
+            Ok(format!("{user_mention} has been warned: {reason}"))
         }
         Err(why) => {
             error!("Failed to warn @{user_name} in {guild_name}: {why:?}");
@@ -124,8 +124,8 @@ pub(super) async fn warn(
     };
 
     let reply = match result {
-        Ok(message) => components::replies::ok_reply_embed(message, true),
-        Err(message) => components::replies::error_reply_embed(message, true),
+        Ok(message) => builders::replies::ok_reply_embed(message, true),
+        Err(message) => builders::replies::error_reply_embed(message, true),
     };
 
     ctx.send(reply).await?;

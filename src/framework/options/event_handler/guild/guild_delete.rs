@@ -7,14 +7,14 @@ use serenity::all::{Guild, UnavailableGuild, UserId};
 use sqlx::SqlitePool;
 use tracing::{info, warn};
 
-use crate::{database::queries, utils::models, Error, SContext};
+use crate::{database::queries, utils::models, SContext, Throwable};
 
 pub(crate) async fn handle(
     ctx: &SContext,
     db: &SqlitePool,
     unavailable_guild: &UnavailableGuild,
     guild: &Option<Guild>,
-) -> Result<(), Error> {
+) -> Throwable<()> {
     if unavailable_guild.unavailable {
         let unavailable_guild_id = unavailable_guild.id;
         let unavailable_guild_name = models::guilds::name_raw(&ctx, &unavailable_guild_id);
@@ -37,15 +37,15 @@ pub(crate) async fn handle(
     if guild_owner_id == deleted_user_id {
         warn!("Owner of {guild_name} does not exist, removing entries ...");
 
-        queries::guilds::delete_from(db, &guild_id).await?;
-        queries::restricted_guilds::delete_from(db, &guild_id).await?;
+        queries::guilds::delete(db, &guild_id).await?;
+        queries::restricted_guilds::delete(db, &guild_id).await?;
 
         return Ok(());
     }
 
-    queries::guilds::delete_from(db, &guild_id).await?;
-
     info!("@{bot_name} left {guild_name}");
+
+    queries::guilds::delete(db, &guild_id).await?;
 
     Ok(())
 }

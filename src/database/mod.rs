@@ -6,9 +6,9 @@ use sqlx::{
     SqlitePool,
 };
 
-use crate::{utils::environment, SqlxError};
+use crate::{utils::environment, SqlxThrowable, Throwable};
 
-pub(crate) async fn start() -> Result<SqlitePool, SqlxError> {
+pub(crate) async fn start() -> Throwable<SqlitePool> {
     //no runtime
     let pool = connect().await?;
 
@@ -17,12 +17,12 @@ pub(crate) async fn start() -> Result<SqlitePool, SqlxError> {
     Ok(pool)
 }
 
-async fn migrate(pool: &SqlitePool) -> Result<(), SqlxError> {
+async fn migrate(pool: &SqlitePool) -> Throwable<()> {
     sqlx::migrate!("./migrations").run(pool).await?;
     Ok(())
 }
 
-async fn connect() -> Result<SqlitePool, SqlxError> {
+async fn connect() -> SqlxThrowable<SqlitePool> {
     let options = connect_options().await;
 
     SqlitePoolOptions::new()
@@ -31,7 +31,7 @@ async fn connect() -> Result<SqlitePool, SqlxError> {
         .await
 }
 
-async fn connect_options() -> Result<SqliteConnectOptions, SqlxError> {
+async fn connect_options() -> SqlxThrowable<SqliteConnectOptions> {
     let db_url = if let Ok(url) = environment::database_url() {
         url
     } else {

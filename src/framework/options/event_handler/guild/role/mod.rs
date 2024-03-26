@@ -3,7 +3,5 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
-pub(crate) mod embeds;
-pub(crate) mod messages;
-pub(crate) mod replies;
-pub(crate) mod responses;
+pub(crate) mod guild_role_create;
+pub(crate) mod guild_role_delete;

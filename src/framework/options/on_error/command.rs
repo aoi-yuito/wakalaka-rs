@@ -5,7 +5,7 @@
 
 use tracing::error;
 
-use crate::{utils::components, Context, Error};
+use crate::{utils::builders, Context, Error};
 
 pub(crate) async fn handle(error: Error, ctx: Context<'_>) {
     let command = ctx.command();
@@ -13,7 +13,7 @@ pub(crate) async fn handle(error: Error, ctx: Context<'_>) {
 
     error!("Failed to invoke {command_name:?}: {error:?}");
 
-    let reply = components::replies::error_reply_embed(
+    let reply = builders::replies::error_reply_embed(
         format!("An error occurred while invoking `{command_name}`."),
         true,
     );

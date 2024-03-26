@@ -10,15 +10,15 @@ use serenity::{
 use tracing::info;
 
 use crate::{
-    utils::{components, models},
-    Context, Error,
+    utils::{builders, models},
+    Context, Throwable,
 };
 
 #[poise::command(
     slash_command,
     category = "Manager",
     required_permissions = "MANAGE_NICKNAMES",
-    required_bot_permissions = "MANAGE_GUILD | SEND_MESSAGES | MANAGE_NICKNAMES",
+    required_bot_permissions = "SEND_MESSAGES | MANAGE_NICKNAMES",
     guild_only,
     user_cooldown = 5,
     ephemeral
@@ -31,10 +31,10 @@ pub(super) async fn nick(
     #[min_length = 1]
     #[max_length = 32]
     nickname: Option<String>,
-) -> Result<(), Error> {
+) -> Throwable<()> {
     if user.system {
         let reply =
-            components::replies::error_reply_embed("Cannot alter a system user's nickname.", true);
+            builders::replies::error_reply_embed("Cannot alter a system user's nickname.", true);
 
         ctx.send(reply).await?;
 
@@ -82,8 +82,8 @@ pub(super) async fn nick(
     };
 
     let reply = match result {
-        Ok(message) => components::replies::ok_reply_embed(message, true),
-        Err(message) => components::replies::error_reply_embed(message, true),
+        Ok(message) => builders::replies::ok_reply_embed(message, true),
+        Err(message) => builders::replies::error_reply_embed(message, true),
     };
 
     ctx.send(reply).await?;

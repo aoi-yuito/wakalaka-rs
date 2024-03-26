@@ -10,7 +10,7 @@ use tracing::info;
 use crate::{
     database::{checks, queries},
     utils::models,
-    Error, SContext,
+    SContext, Throwable,
 };
 
 pub(crate) async fn handle(
@@ -18,7 +18,7 @@ pub(crate) async fn handle(
     db: &SqlitePool,
     guild: &Guild,
     is_new: &Option<bool>,
-) -> Result<(), Error> {
+) -> Throwable<()> {
     if !is_new.is_some() {
         return Ok(());
     }
@@ -37,9 +37,10 @@ pub(crate) async fn handle(
         return Ok(());
     }
 
-    queries::users::insert_into(db, &guild_owner_id).await?;
-    queries::guilds::insert_into(db, &guild_id, &guild_owner_id).await?;
-
     info!("@{bot_name} joined {guild_name}");
+
+    queries::users::insert(db, &guild_owner_id).await?;
+    queries::guilds::insert(db, &guild_id, &guild_owner_id).await?;
+
     Ok(())
 }
