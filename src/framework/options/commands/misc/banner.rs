@@ -21,7 +21,7 @@ use crate::{utils::builders, Context, Throwable};
 /// Get a user's banner.
 pub(super) async fn banner(
     ctx: Context<'_>,
-    #[description = "The user to get the banner of."] user: User,
+    #[description = "User to get a banner from."] user: User,
 ) -> Throwable<()> {
     let user_id = user.id;
 

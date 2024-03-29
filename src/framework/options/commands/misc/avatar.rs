@@ -21,7 +21,7 @@ use crate::{Context, Throwable};
 /// Get a user's avatar.
 pub(super) async fn avatar(
     ctx: Context<'_>,
-    #[description = "The user to get the avatar of."] user: User,
+    #[description = "User to get an avatar from."] user: User,
 ) -> Throwable<()> {
     let user_id = user.id;
 

@@ -29,12 +29,12 @@ use crate::{
 /// Put user on a time-out.
 pub(super) async fn timeout(
     ctx: Context<'_>,
-    #[description = "The user to time out."] user: User,
-    #[description = "The amount of days a time-out should last."]
+    #[description = "User to time out."] user: User,
+    #[description = "Days a time-out should last."]
     #[min = 1]
     #[max = 28]
     time: Option<i64>,
-    #[description = "The reason for timing out, if any."]
+    #[description = "Reason for timing out, if any."]
     #[min_length = 1]
     #[max_length = 255]
     reason: Option<String>,
@@ -93,8 +93,8 @@ pub(super) async fn timeout(
         match member.enable_communication(ctx).await {
             Ok(_) => {
                 if uuids.is_empty() {
-                    let reply = builders::replies::error_reply_embed(
-                        "{user_mention} is not on a time-out!",
+                    let reply = builders::replies::warn_reply_embed(
+                        format!("{user_mention} is not on a time-out."),
                         true,
                     );
 
@@ -183,7 +183,7 @@ pub(super) async fn timeout(
 
                 if reason.is_empty() {
                     info!("@{author_name} timed @{user_name} out in {guild_name}");
-                    Ok(format!("{user_mention} has been timed out!"))
+                    Ok(format!("{user_mention} has been timed out."))
                 } else {
                     info!("@{author_name} timed @{user_name} out in {guild_name}: {reason}");
                     Ok(format!("{user_mention} has been timed out: {reason}"))

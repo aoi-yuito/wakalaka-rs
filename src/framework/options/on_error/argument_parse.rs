@@ -16,15 +16,9 @@ pub(crate) async fn handle(error: Error, input: Option<String>, ctx: Context<'_>
             return;
         }
 
-        error!("Failed to parse arguments for {command_name:?}: {error:?}");
-
-        if input.len() >= 18 && input.len() <= 19 {
-            Ok(format!("Cannot find {input:?}."))
-        } else {
-            Ok(format!(
-                "{input:?} is not a valid argument for `{command_name}`!"
-            ))
-        }
+        Ok(format!(
+            "`{input:?}` is not a valid argument for `{command_name}`."
+        ))
     } else {
         error!("Failed to parse arguments for {command_name:?}: {error:?}");
         Err(format!(
@@ -33,7 +27,7 @@ pub(crate) async fn handle(error: Error, input: Option<String>, ctx: Context<'_>
     };
 
     let reply = match result {
-        Ok(message) => builders::replies::error_reply_embed(message, true),
+        Ok(message) => builders::replies::warn_reply_embed(message, true),
         Err(message) => builders::replies::error_reply_embed(message, true),
     };
 

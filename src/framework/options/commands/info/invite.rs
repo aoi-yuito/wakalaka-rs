@@ -12,7 +12,7 @@ use crate::{utils::BOT_INVITE_URL, Context, Throwable};
     user_cooldown = 5,
     ephemeral
 )]
-/// Get an invite for yours truly.
+/// Get an invite link for yours truly.
 pub(super) async fn invite(ctx: Context<'_>) -> Throwable<()> {
     ctx.say(BOT_INVITE_URL).await?;
 

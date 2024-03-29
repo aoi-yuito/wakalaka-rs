@@ -22,7 +22,7 @@ use crate::{
 /// Delete an existing emoji.
 pub(super) async fn remove(
     ctx: Context<'_>,
-    #[description = "The name of the emoji."]
+    #[description = "Name of an emoji."]
     #[min_length = 2]
     #[max_length = 32]
     name: String,
@@ -35,8 +35,10 @@ pub(super) async fn remove(
         None => {
             error!("Failed to find {name:?} in {guild_name}");
 
-            let reply =
-                builders::replies::error_reply_embed(format!("`{name}` does not exist!"), true);
+            let reply = builders::replies::error_reply_embed(
+                format!("Cannot find `{name}` in {guild_name}."),
+                true,
+            );
 
             ctx.send(reply).await?;
 

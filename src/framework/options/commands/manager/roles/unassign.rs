@@ -20,11 +20,11 @@ use crate::{
     user_cooldown = 5,
     ephemeral
 )]
-/// Take away a role from a user.
+/// Take a role from a user.
 pub(super) async fn unassign(
     ctx: Context<'_>,
-    #[description = "The role to take."] role: Role,
-    #[description = "The user to take the role from."] user: User,
+    #[description = "Role to take."] role: Role,
+    #[description = "User to take a role from."] user: User,
 ) -> Throwable<()> {
     let author = ctx.author();
     let author_name = &author.name;

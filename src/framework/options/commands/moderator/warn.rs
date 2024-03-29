@@ -26,8 +26,8 @@ use crate::{
 /// Give user a warning.
 pub(super) async fn warn(
     ctx: Context<'_>,
-    #[description = "The user to warn."] user: User,
-    #[description = "The reason for warning, if any"]
+    #[description = "User to warn."] user: User,
+    #[description = "Reason for warning, if any"]
     #[min_length = 1]
     #[max_length = 255]
     reason: String,

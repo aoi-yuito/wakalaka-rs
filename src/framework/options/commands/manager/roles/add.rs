@@ -23,16 +23,16 @@ use crate::{
 /// Create a new role.
 pub(super) async fn add(
     ctx: Context<'_>,
-    #[description = "The name of the role."]
+    #[description = "Name of a role."]
     #[min_length = 1]
     #[max_length = 100]
     name: String,
-    #[description = "The colour of the role. (hexadecimal)"]
+    #[description = "Colour of a role. (hexadecimal)"]
     #[min = 3]
     #[max = 11]
     colour: Option<String>,
-    #[description = "Whether the role should be pinned above lesser roles."] hoist: Option<bool>,
-    #[description = "Whether the role should be mentionable."] mentionable: Option<bool>,
+    #[description = "Whether a role should be pinned above lesser roles."] hoist: Option<bool>,
+    #[description = "Whether a role should be mentionable."] mentionable: Option<bool>,
 ) -> Throwable<()> {
     let author = ctx.author();
     let author_name = &author.name;

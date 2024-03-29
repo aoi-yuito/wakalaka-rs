@@ -15,15 +15,15 @@ use crate::{
     slash_command,
     category = "Core",
     required_permissions = "ADMINISTRATOR",
-    required_bot_permissions = "SEND_MESSAGES",
+    required_bot_permissions = "SEND_MESSAGES | EMBED_LINKS",
     owners_only,
     user_cooldown = 5,
     ephemeral
 )]
-/// Send an announcement to servers yours truly is in.
+/// Send a message to owners of servers yours truly is in.
 pub(super) async fn announce(
     ctx: Context<'_>,
-    #[description = "The message to announce."]
+    #[description = "Message to announce."]
     #[min_length = 1]
     #[max_length = 4096]
     message: String,
@@ -67,12 +67,12 @@ pub(super) async fn announce(
 
     let reply = if guild_id_count == 1 {
         builders::replies::ok_reply_embed(
-            format!("Announcement to {guild_id_count} server has been sent!"),
+            format!("Announcement to {guild_id_count} server has been sent."),
             true,
         )
     } else {
         builders::replies::ok_reply_embed(
-            format!("Announcement to {guild_id_count} servers has been sent!"),
+            format!("Announcement to {guild_id_count} servers has been sent."),
             true,
         )
     };

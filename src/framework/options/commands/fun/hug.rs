@@ -15,10 +15,10 @@ use crate::{utils::builders, Context, Throwable};
     guild_only,
     user_cooldown = 5
 )]
-/// Give your friend a hug.
+/// Hug a member.
 pub(super) async fn hug(
     ctx: Context<'_>,
-    #[description = "The user to hug."] user: User,
+    #[description = "User to hug."] user: User,
 ) -> Throwable<()> {
     let user_id = user.id;
 

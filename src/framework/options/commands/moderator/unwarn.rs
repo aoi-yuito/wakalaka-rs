@@ -30,17 +30,17 @@ use crate::{
     user_cooldown = 5,
     ephemeral
 )]
-/// Remove a warning from a user.
+/// Remove warning from a user.
 pub(super) async fn unwarn(
     ctx: Context<'_>,
-    #[description = "The user to unwarn."] user: User,
+    #[description = "User to unwarn."] user: User,
 ) -> Throwable<()> {
     let db = &ctx.data().db;
     let kind = Violation::Warning;
 
     if user.bot || user.system {
         let reply = builders::replies::error_reply_embed(
-            "Cannot remove a warning from a bot or system user.",
+            "Cannot remove warning from a bot or system user.",
             true,
         );
 
@@ -63,15 +63,15 @@ pub(super) async fn unwarn(
 
     if user_id == author_id {
         let reply =
-            builders::replies::error_reply_embed("Cannot remove a warning from yourself.", true);
+            builders::replies::error_reply_embed("Cannot remove warning from yourself.", true);
         ctx.send(reply).await?;
 
         return Ok(());
     }
 
     if let Err(_) = queries::users::select_user_id(db, &user_id).await {
-        let reply = builders::replies::error_reply_embed(
-            format!("{user_mention} is not in the database!"),
+        let reply = builders::replies::warn_reply_embed(
+            format!("{user_mention} is not in our database."),
             true,
         );
 
@@ -82,8 +82,8 @@ pub(super) async fn unwarn(
 
     let uuids = queries::violations::select_uuids(db, &kind, &guild_id, &user_id).await?;
     if uuids.is_empty() {
-        let reply = builders::replies::error_reply_embed(
-            format!("{user_mention} does not have any warnings!"),
+        let reply = builders::replies::warn_reply_embed(
+            format!("{user_mention} does not have any warnings."),
             true,
         );
         ctx.send(reply).await?;
@@ -146,7 +146,7 @@ pub(super) async fn unwarn(
             }
 
             info!("@{author_name} removed warning from @{user_name} in {guild_name}");
-            Ok(format!("Removed a warning from {user_mention}."))
+            Ok(format!("Removed warning from {user_mention}."))
         } else {
             error!("Failed to remove warning from @{user_name} in {guild_name}");
             Err(format!("Took too long to respond."))

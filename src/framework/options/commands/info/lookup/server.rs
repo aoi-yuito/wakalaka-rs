@@ -25,7 +25,7 @@ use crate::{
 /// Get information about a server yours truly is in.
 pub(super) async fn server(
     ctx: Context<'_>,
-    #[description = "The server to get information of."]
+    #[description = "Server to get information of."]
     #[rename = "id"]
     guild_id: GuildId,
 ) -> Throwable<()> {

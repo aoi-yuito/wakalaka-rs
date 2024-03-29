@@ -1,5 +1,5 @@
 // Copyright (c) 2024 Kawaxte
-// 
+//
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
@@ -19,9 +19,7 @@ pub(crate) async fn handle(cooldown: Duration, ctx: Context<'_>) {
         )
     } else {
         builders::replies::warn_reply_embed(
-            format!(
-                "Too fast! Wait {remaining_seconds} seconds before trying again, okay?"
-            ),
+            format!("Too fast! Wait {remaining_seconds} seconds before trying again, okay?"),
             true,
         )
     };

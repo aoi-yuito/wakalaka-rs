@@ -23,15 +23,13 @@ use crate::{
 /// Allow a user to use yours truly.
 pub(super) async fn user(
     ctx: Context<'_>,
-    #[description = "The user to unrestrict."] user: User,
+    #[description = "User to unrestrict."] user: User,
 ) -> Throwable<()> {
     let db = &ctx.data().db;
 
     if user.bot || user.system {
-        let reply = builders::replies::error_reply_embed(
-            "Cannot unrestrict a bot or system user from using yours truly.",
-            true,
-        );
+        let reply =
+            builders::replies::error_reply_embed("Cannot unrestrict a bot or system user.", true);
 
         ctx.send(reply).await?;
 
@@ -46,16 +44,16 @@ pub(super) async fn user(
     let guild_owner_id = guild.owner_id;
 
     let result = match queries::users::select_user_id(db, &user_id).await {
-        Ok(_) if user_id == guild_owner_id => Err(format!(
-            "Cannot unrestrict yourself from using yours truly."
-        )),
+        Ok(_) if user_id == guild_owner_id => Err(format!("Cannot unrestrict yourself.")),
         _ => match queries::restricted_users::select_user_id(db, &user_id).await {
             Ok(_) => {
                 queries::restricted_users::delete(db, &user_id).await?;
 
-                Ok(format!("{user_mention} has been unrestricted from using yours truly!"))
+                Ok(format!("{user_mention} has been unrestricted."))
             }
-            _ => Err(format!("Cannot unrestrict {user_mention} from using yours truly as they're not restricted.")),
+            _ => Err(format!(
+                "Cannot unrestrict {user_mention} as they're not restricted."
+            )),
         },
     };
 

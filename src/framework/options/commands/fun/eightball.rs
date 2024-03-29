@@ -18,7 +18,7 @@ use crate::{utils::builders, Context, Throwable};
 /// Ask Magic 8 Ball a question.
 pub(super) async fn eightball(
     ctx: Context<'_>,
-    #[description = "The question to ask."]
+    #[description = "Question to ask."]
     #[min_length = 3]
     #[max_length = 255]
     question: String,
@@ -32,8 +32,8 @@ pub(super) async fn eightball(
         && !question.starts_with("where")
         && !question.starts_with("why")
     {
-        let reply = builders::replies::error_reply_embed(
-            format!("\"{question}\" is not an open-ended question!"),
+        let reply = builders::replies::warn_reply_embed(
+            format!("\"{question}\" must be an open-ended question!"),
             true,
         );
 

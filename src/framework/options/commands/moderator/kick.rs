@@ -26,8 +26,8 @@ use crate::{
 /// Kick a user.
 pub(super) async fn kick(
     ctx: Context<'_>,
-    #[description = "The user to kick."] user: User,
-    #[description = "The reason for kicking, if any."]
+    #[description = "User to kick."] user: User,
+    #[description = "Reason for kicking, if any."]
     #[min_length = 1]
     #[max_length = 255]
     reason: Option<String>,
@@ -98,7 +98,7 @@ pub(super) async fn kick(
 
             if reason.is_empty() {
                 info!("@{author_name} kicked @{user_name} from {guild_name}");
-                Ok(format!("{user_mention} has been kicked!"))
+                Ok(format!("{user_mention} has been kicked."))
             } else {
                 info!("@{author_name} kicked @{user_name} from {guild_name}: {reason}");
                 Ok(format!("{user_mention} has been kicked: {reason}"))

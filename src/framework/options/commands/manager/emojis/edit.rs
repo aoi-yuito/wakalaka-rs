@@ -20,11 +20,11 @@ use crate::{
     user_cooldown = 5,
     ephemeral
 )]
-/// Alter an existing emoji.
+/// Modify an existing emoji.
 pub(super) async fn edit(
     ctx: Context<'_>,
-    #[description = "The emoji to rename."] emoji: Emoji,
-    #[description = "The new name for the emoji."]
+    #[description = "Emoji to rename."] emoji: Emoji,
+    #[description = "New name for an emoji."]
     #[min_length = 2]
     #[max_length = 32]
     name: String,
@@ -38,8 +38,10 @@ pub(super) async fn edit(
         None => {
             error!("Failed to find {emoji:?} in {guild_name}");
 
-            let reply =
-                builders::replies::error_reply_embed(format!("`{emoji}` does not exist!"), true);
+            let reply = builders::replies::error_reply_embed(
+                format!("Cannot find `{emoji}` in {guild_name}."),
+                true,
+            );
 
             ctx.send(reply).await?;
 

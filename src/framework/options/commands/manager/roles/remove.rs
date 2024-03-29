@@ -23,7 +23,7 @@ use crate::{
 /// Delete an existing role.
 pub(super) async fn remove(
     ctx: Context<'_>,
-    #[description = "The role to delete."] mut role: Role,
+    #[description = "Role to delete."] mut role: Role,
 ) -> Throwable<()> {
     let author = ctx.author();
     let author_name = &author.name;

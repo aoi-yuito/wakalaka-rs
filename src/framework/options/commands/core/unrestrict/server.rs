@@ -20,10 +20,10 @@ use crate::{
     user_cooldown = 5,
     ephemeral
 )]
-/// Allow a server to have yours truly in it.
+/// Allow a server to invite yours truly into it.
 pub(super) async fn server(
     ctx: Context<'_>,
-    #[description = "The server to unrestrict."]
+    #[description = "Server to unrestrict."]
     #[rename = "id"]
     guild_id: GuildId,
 ) -> Throwable<()> {
@@ -39,7 +39,7 @@ pub(super) async fn server(
 
     if ctx_guild_id == guild_id {
         let reply = builders::replies::error_reply_embed(
-            format!("Cannot unrestrict your own server from having yours truly in it."),
+            format!("Cannot unrestrict your own server."),
             true,
         );
 
@@ -53,10 +53,10 @@ pub(super) async fn server(
             queries::restricted_guilds::delete(db, &guild_id).await?;
             queries::restricted_users::delete(db, &guild_owner_id).await?;
 
-            Ok(format!("{guild_name} has been unrestricted from having yours truly in it."))
+            Ok(format!("{guild_name} has been unrestricted."))
         }
         _ => Err(format!(
-            "Cannot unrestrict {guild_name} from having yours truly in it as it's unrestricted already."
+            "Cannot unrestrict {guild_name} as it's unrestricted already."
         )),
     };
 

@@ -19,15 +19,15 @@ use crate::{utils::builders, Context, Throwable};
 /// Roll a dice.
 pub(crate) async fn roll(
     ctx: Context<'_>,
-    #[description = "The number of times to roll."]
+    #[description = "Number of times to roll."]
     #[min = 1]
     #[max = 99]
     number: i32,
-    #[description = "The number of sides on the dice."]
+    #[description = "Number of sides on dice."]
     #[min = 4]
     #[max = 20]
     sides: i32,
-    #[description = "The modifier to add to the roll, if any."]
+    #[description = "Modifier to add to roll, if any."]
     #[min = -99]
     #[max = 99]
     modifier: Option<i32>,
@@ -35,7 +35,7 @@ pub(crate) async fn roll(
     let d = &[4, 6, 8, 10, 12, 20];
     if !d.contains(&sides) {
         let reply =
-            builders::replies::error_reply_embed(format!("{sides} is not a supported dice!"), true);
+            builders::replies::error_reply_embed(format!("{sides} is not a supported dice."), true);
         ctx.send(reply).await?;
 
         return Ok(());

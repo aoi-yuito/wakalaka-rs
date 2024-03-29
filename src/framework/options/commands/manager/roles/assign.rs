@@ -23,8 +23,8 @@ use crate::{
 /// Give user a role.
 pub(super) async fn assign(
     ctx: Context<'_>,
-    #[description = "The role to give."] role: Role,
-    #[description = "The user to give the role to."] user: User,
+    #[description = "Role to give."] role: Role,
+    #[description = "User to give a role to."] user: User,
 ) -> Throwable<()> {
     let author = ctx.author();
     let author_name = &author.name;

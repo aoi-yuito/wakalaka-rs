@@ -20,20 +20,20 @@ use crate::{
     user_cooldown = 5,
     ephemeral
 )]
-/// Alter an existing role.
+/// Modify an existing role.
 pub(super) async fn edit(
     ctx: Context<'_>,
-    #[description = "The role to alter."] mut role: Role,
-    #[description = "The new name for the role."]
+    #[description = "Role to modify."] mut role: Role,
+    #[description = "New name for a role."]
     #[min_length = 1]
     #[max_length = 100]
     name: Option<String>,
-    #[description = "The new colour for the role. (hexadecimal)"]
+    #[description = "New colour for a role. (hexadecimal)"]
     #[min = 3]
     #[max = 11]
     colour: Option<String>,
-    #[description = "Whether the role should be pinned above lesser roles."] hoist: Option<bool>,
-    #[description = "Whether the role should be mentionable."] mentionable: Option<bool>,
+    #[description = "Whether a role should be pinned above lesser roles."] hoist: Option<bool>,
+    #[description = "Whether a role should be mentionable."] mentionable: Option<bool>,
 ) -> Throwable<()> {
     let author = ctx.author();
     let author_name = &author.name;

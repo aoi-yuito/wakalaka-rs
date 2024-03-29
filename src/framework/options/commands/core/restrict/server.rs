@@ -20,15 +20,15 @@ use crate::{
     user_cooldown = 5,
     ephemeral
 )]
-/// Disallow a server from having yours truly in it.
+/// Disallow a server from inviting yours truly into it.
 pub(super) async fn server(
     ctx: Context<'_>,
-    #[description = "The server to restrict."]
+    #[description = "Server to restrict."]
     #[rename = "id"]
     guild_id: GuildId,
     #[min_length = 1]
     #[max_length = 255]
-    #[description = "The reason for restricting."]
+    #[description = "Reason for restricting."]
     reason: String,
 ) -> Throwable<()> {
     let db = &ctx.data().db;
@@ -42,10 +42,8 @@ pub(super) async fn server(
     let guild_owner_id = guild.owner_id;
 
     if ctx_guild_id == guild_id {
-        let reply = builders::replies::error_reply_embed(
-            format!("Cannot restrict your own server from having yours truly in it."),
-            true,
-        );
+        let reply =
+            builders::replies::error_reply_embed(format!("Cannot restrict your own server."), true);
 
         ctx.send(reply).await?;
 
@@ -54,15 +52,13 @@ pub(super) async fn server(
 
     let result = match queries::restricted_guilds::select_guild_id(db, &guild_id).await {
         Ok(_) => Err(format!(
-            "Cannot restrict {guild_name} from having yours truly in it as it's restricted already."
+            "Cannot restrict {guild_name} as it's restricted already."
         )),
         _ => {
             queries::restricted_guilds::insert(db, &guild_id, &reason).await?;
             queries::restricted_users::insert(db, &guild_owner_id, &reason).await?;
 
-            Ok(format!(
-                "{guild_name} has been restricted from having yours truly in it: {reason}"
-            ))
+            Ok(format!("{guild_name} has been restricted: {reason}"))
         }
     };
 

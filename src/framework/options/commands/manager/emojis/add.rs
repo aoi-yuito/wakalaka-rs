@@ -23,17 +23,17 @@ use crate::{
 /// Create a new emoji.
 pub(super) async fn add(
     ctx: Context<'_>,
-    #[description = "The name of the emoji."]
+    #[description = "Name of an emoji."]
     #[min_length = 2]
     #[max_length = 32]
     name: String,
-    #[description = "The image representing the emoji."] image: Attachment,
+    #[description = "Image representing an emoji."] image: Attachment,
 ) -> Throwable<()> {
     let image_width = match image.width {
         Some(width) => {
             if width < 128 {
-                let reply = builders::replies::error_reply_embed(
-                    "Image width must be `128` pixels or more!",
+                let reply = builders::replies::warn_reply_embed(
+                    "Width of attachment must be `128` pixels or more!",
                     true,
                 );
 
@@ -43,8 +43,7 @@ pub(super) async fn add(
             }
         }
         None => {
-            let reply =
-                builders::replies::error_reply_embed("Attachment must be an image!", true);
+            let reply = builders::replies::error_reply_embed("Attachment must be an image!", true);
 
             ctx.send(reply).await?;
 
@@ -54,8 +53,8 @@ pub(super) async fn add(
     let image_height = match image.height {
         Some(height) => {
             if height < 128 {
-                let reply = builders::replies::error_reply_embed(
-                    "Image height must be `128` pixels or more!",
+                let reply = builders::replies::warn_reply_embed(
+                    "Height of attachment must be `128` pixels or more!",
                     true,
                 );
 
@@ -65,8 +64,7 @@ pub(super) async fn add(
             }
         }
         None => {
-            let reply =
-                builders::replies::error_reply_embed("Attachment must be an image!", true);
+            let reply = builders::replies::error_reply_embed("Attachment must be an image!", true);
 
             ctx.send(reply).await?;
 
@@ -75,7 +73,7 @@ pub(super) async fn add(
     };
     if image_width != image_height {
         let reply =
-            builders::replies::error_reply_embed("Image must be `128x128` in size!", true);
+            builders::replies::warn_reply_embed("Attachment must be `128x128` in size!", true);
 
         ctx.send(reply).await?;
 

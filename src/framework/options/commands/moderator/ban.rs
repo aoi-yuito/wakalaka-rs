@@ -26,12 +26,12 @@ use crate::{
 /// Ban a user.
 pub(super) async fn ban(
     ctx: Context<'_>,
-    #[description = "The user to ban."] user: User,
-    #[description = "The number of days of messages to delete."]
+    #[description = "User to ban."] user: User,
+    #[description = "Days of messages to delete."]
     #[min = 0]
     #[max = 7]
     days: u8,
-    #[description = "The reason for banning, if any."]
+    #[description = "Reason for banning, if any."]
     #[min_length = 1]
     #[max_length = 255]
     reason: Option<String>,
@@ -101,7 +101,7 @@ pub(super) async fn ban(
 
             if reason.is_empty() {
                 info!("@{author_name} banned @{user_name} from {guild_name}");
-                Ok(format!("{user_mention} has been banned!"))
+                Ok(format!("{user_mention} has been banned."))
             } else {
                 info!("@{author_name} banned @{user_name} from {guild_name}: {reason}");
                 Ok(format!("{user_mention} has been banned: {reason}"))

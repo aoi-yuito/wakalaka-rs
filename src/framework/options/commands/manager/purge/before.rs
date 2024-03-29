@@ -19,11 +19,11 @@ use crate::{utils::builders, Context, Throwable};
     user_cooldown = 5,
     ephemeral
 )]
-/// Delete a given amount of messages before a specific message.
+/// Delete specific amount of messages before a specific message.
 pub(super) async fn before(
     ctx: Context<'_>,
-    #[description = "The message to start deleting from."] message: Message,
-    #[description = "The amount of messages to delete."]
+    #[description = "Message to delete from."] message: Message,
+    #[description = "Aamount to delete."]
     #[min = 1]
     #[max = 100]
     count: Option<u8>,
@@ -67,8 +67,7 @@ pub(super) async fn before(
 
     let deleted_message_count = handle.await?;
     if deleted_message_count == 0 {
-        let reply =
-            builders::replies::warn_reply_embed(format!("No messages were deleted."), true);
+        let reply = builders::replies::warn_reply_embed(format!("No messages were deleted."), true);
 
         ctx.send(reply).await?;
 

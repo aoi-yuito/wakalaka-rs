@@ -26,8 +26,8 @@ use crate::{
 /// Apply a timed cooldown to a channel.
 pub(super) async fn slowmode(
     ctx: Context<'_>,
-    #[description = "The channel to slow down."] channel: Option<GuildChannel>,
-    #[description = "The amount of seconds to wait between each message."]
+    #[description = "Channel to slow down."] channel: Option<GuildChannel>,
+    #[description = "Amount of seconds to wait between each message."]
     #[min = 1]
     #[max = 21600]
     delay: Option<u16>,

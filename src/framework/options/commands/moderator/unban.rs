@@ -21,10 +21,10 @@ use crate::{
     user_cooldown = 5,
     ephemeral
 )]
-/// Lift a ban from a user.
+/// Unban a user.
 pub(super) async fn unban(
     ctx: Context<'_>,
-    #[description = "The user to unban."] user: User,
+    #[description = "User to unban."] user: User,
 ) -> Throwable<()> {
     let db = &ctx.data().db;
     let kind = Violation::Ban;
@@ -58,8 +58,8 @@ pub(super) async fn unban(
     }
 
     if let Err(_) = queries::users::select_user_id(db, &user_id).await {
-        let reply = builders::replies::error_reply_embed(
-            format!("{user_mention} has not done anything yet!"),
+        let reply = builders::replies::warn_reply_embed(
+            format!("{user_mention} has not done anything yet."),
             true,
         );
 
@@ -75,8 +75,10 @@ pub(super) async fn unban(
     let result = match guild_id.unban(ctx, user_id).await {
         Ok(_) => {
             if uuids.is_empty() {
-                let reply =
-                    builders::replies::error_reply_embed("{user_mention} is not banned!", true);
+                let reply = builders::replies::error_reply_embed(
+                    format!("{user_mention} is not banned."),
+                    true,
+                );
 
                 ctx.send(reply).await?;
 
@@ -95,7 +97,7 @@ pub(super) async fn unban(
             queries::users::update_violations(db, &user_id, violations).await?;
 
             info!("@{author_name} unbanned @{user_name} from {guild_name}");
-            Ok(format!("{user_mention} has been unbanned!"))
+            Ok(format!("{user_mention} has been unbanned."))
         }
         Err(why) => {
             error!("Failed to unban @{user_name} from {guild_name}: {why:?}");

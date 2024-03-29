@@ -23,18 +23,18 @@ use crate::{
     user_cooldown = 5,
     ephemeral
 )]
-/// Alter a user's nickname.
+/// Modify a user's nickname.
 pub(super) async fn nick(
     ctx: Context<'_>,
-    #[description = "The user to change the nickname for."] user: User,
-    #[description = "The new nickname."]
+    #[description = "User to modify nickname of."] user: User,
+    #[description = "New nickname for a user."]
     #[min_length = 1]
     #[max_length = 32]
     nickname: Option<String>,
 ) -> Throwable<()> {
     if user.system {
         let reply =
-            builders::replies::error_reply_embed("Cannot alter a system user's nickname.", true);
+            builders::replies::error_reply_embed("Cannot modify a system user's nickname.", true);
 
         ctx.send(reply).await?;
 
@@ -73,10 +73,14 @@ pub(super) async fn nick(
         Err(why) => {
             if nickname.is_empty() {
                 info!("Failed to reset @{user_name}'s nickname in {guild_name}: {why:?}");
-                Err("An error occurred while resetting {user_mention}'s  nickname.")
+                Err(format!(
+                    "An error occurred while resetting {user_mention}'s  nickname."
+                ))
             } else {
                 info!("Failed to change @{user_name}'s nickname to {nickname:?} in {guild_name}: {why:?}");
-                Err("An error occurred while changing {user_mention}'s nickname.")
+                Err(format!(
+                    "An error occurred while changing {user_mention}'s nickname."
+                ))
             }
         }
     };
