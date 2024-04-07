@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS violations (
+CREATE TABLE IF NOT EXISTS infractions (
     uuid VARCHAR(32),
     kind VARCHAR,
     guild_id BIGINT NOT NULL,
