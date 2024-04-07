@@ -5,7 +5,7 @@
 
 use poise::serenity_prelude as serenity;
 
-use crate::data::Data;
+use crate::Data;
 
 pub type Error = Box<dyn std::error::Error + Send + Sync>;
 pub type FrameworkError<'a> = poise::FrameworkError<'a, Data, Error>;
