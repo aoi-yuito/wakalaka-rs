@@ -3,65 +3,34 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
-mod database;
+mod events;
 mod framework;
-mod integrations;
-mod utils;
 
-use ::serenity::all::GatewayIntents;
-
-use poise::serenity_prelude as serenity;
-use sqlx::SqlitePool;
-use tracing::subscriber;
-use utils::environment;
-
-pub(crate) struct Data {
-    pub(crate) db: SqlitePool,
-}
-
-type Context<'a> = poise::Context<'a, Data, Error>;
-type FrameworkContext<'a> = poise::FrameworkContext<'a, Data, Error>;
-
-type SClient = serenity::Client;
-type SContext = serenity::Context;
-type SReady = serenity::Ready;
-
-type Error = Box<dyn std::error::Error + Send + Sync>;
-type FrameworkError<'a> = poise::FrameworkError<'a, Data, Error>;
-type SqlxError = sqlx::Error;
-
-type Throwable<T> = Result<T, Error>;
-type SqlxThrowable<T> = Result<T, SqlxError>;
+use wakalaka_core::{
+    envs,
+    types::{SClient, Throwable},
+    Data,
+};
+use wakalaka_db::initialise_db;
 
 #[tokio::main]
 async fn main() -> Throwable<()> {
-    let filter = environment::rust_log()?;
-
-    let subscriber = tracing_subscriber::fmt()
-        .with_env_filter(filter)
-        .compact()
-        .finish();
-    subscriber::set_global_default(subscriber)?;
+    wakalaka_core::build_subscriber().await?;
 
     let data = Data {
-        db: database::start().await?,
+        db: initialise_db().await?,
     };
 
-    let token = environment::discord_token()?;
-    let intents = GatewayIntents::non_privileged()
-        | GatewayIntents::GUILDS
-        | GatewayIntents::GUILD_MEMBERS
-        | GatewayIntents::GUILD_MODERATION
-        | GatewayIntents::GUILD_MESSAGES
-        | GatewayIntents::DIRECT_MESSAGES
-        | GatewayIntents::MESSAGE_CONTENT;
-    let framework = framework::framework(data).await;
+    let token = envs::fetch_discord_token_from_env()?;
+    let intents = wakalaka_core::fetch_gateway_intents().await;
+    let framework = framework::build_framework(data).await;
 
     let mut client = SClient::builder(token, intents)
         .framework(framework)
         .await?;
 
     let manager = client.shard_manager.clone();
+
     tokio::spawn(async move {
         tokio::signal::ctrl_c()
             .await
