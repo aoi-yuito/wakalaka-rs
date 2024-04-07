@@ -1,0 +1,16 @@
+[package]
+name = "wakalaka-core"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+dotenvy.workspace = true
+poise.workspace = true
+serenity.workspace = true
+sqlx.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+wakalaka-db.workspace = true
+wakalaka-utils.workspace = true
