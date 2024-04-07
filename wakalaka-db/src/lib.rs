@@ -3,8 +3,11 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
-pub mod checks;
-pub mod queries;
+pub mod guilds;
+pub mod infractions;
+pub mod restricted_guilds;
+pub mod restricted_users;
+pub mod users;
 
 use sqlx::{
     sqlite::{SqliteConnectOptions, SqlitePoolOptions},

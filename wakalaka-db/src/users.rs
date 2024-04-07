@@ -14,8 +14,9 @@ pub async fn fetch_infractions_from_db(pool: &SqlitePool, user_id: &UserId) -> S
 
     let row = query.fetch_one(pool).await?;
 
-    let count = row.get::<i64, _>("infractions");
-    Ok(count)
+    let infractions = row.get::<i64, _>("infractions");
+
+    Ok(infractions)
 }
 
 pub async fn fetch_user_id_from_db(pool: &SqlitePool, user_id: &UserId) -> SqlxThrowable<UserId> {
