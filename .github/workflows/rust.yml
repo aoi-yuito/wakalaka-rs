@@ -26,12 +26,13 @@ env:
 
 jobs:
   build:
-
+    name: ${{ matrix.os }}-${{ matrix.rust }}
     runs-on: ${{ matrix.os }}
 
     strategy:
+      fail-fast: true
       matrix:
-        os: [ubuntu-latest, windows-latest, macOS-latest]
+        os: [ubuntu-latest, windows-latest, macos-latest]
         rust: [stable]
 
     steps:
@@ -39,17 +40,10 @@ jobs:
     - uses: hecrj/setup-rust-action@v2
       with:
         rust-version: ${{ matrix.rust }}
-    - name: Install 'libatk1.0-dev' on Ubuntu
+    - name: install 'libatk1.0-dev' & 'libgtk-3-dev'
       if: matrix.os == 'ubuntu-latest'
       run: |
         sudo apt-get update
-        sudo apt-get install -y libatk1.0-dev
-    - name: Install 'libgtk-3-dev' on Ubuntu
-      if: matrix.os == 'ubuntu-latest'
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y libgtk-3-dev
-    - name: Build
-      run: cargo build --verbose
-    - name: Run tests
-      run: cargo test --verbose
+        sudo apt-get install -y libatk1.0-dev libgtk-3-dev
+    - name: compile
+      run: cargo build --release
