@@ -7,7 +7,7 @@ use tracing::error;
 
 use crate::types::Throwable;
 
-pub fn database_url() -> Throwable<String> {
+pub fn fetch_database_url_from_env() -> Throwable<String> {
     let database_url = dotenvy::var("DATABASE_URL").map_err(|why| {
         error!("Failed to find DATABASE_URL in environment: {why:?}");
         why
@@ -15,7 +15,7 @@ pub fn database_url() -> Throwable<String> {
     Ok(database_url)
 }
 
-pub fn discord_token() -> Throwable<String> {
+pub fn fetch_discord_token_from_env() -> Throwable<String> {
     let discord_token = dotenvy::var("DISCORD_TOKEN").map_err(|why| {
         error!("Failed to find DISCORD_TOKEN in environment: {why:?}");
         why
@@ -23,7 +23,7 @@ pub fn discord_token() -> Throwable<String> {
     Ok(discord_token)
 }
 
-pub fn rust_log() -> Throwable<String> {
+pub fn fetch_rust_log_from_env() -> Throwable<String> {
     let rust_log = dotenvy::var("RUST_LOG").map_err(|why| {
         error!("Failed to find RUST_LOG in environment: {why:?}");
         why
