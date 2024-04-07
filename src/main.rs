@@ -3,6 +3,7 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
+mod database;
 mod events;
 mod framework;
 
@@ -11,14 +12,13 @@ use wakalaka_core::{
     types::{SClient, Throwable},
     Data,
 };
-use wakalaka_db::initialise_db;
 
 #[tokio::main]
 async fn main() -> Throwable<()> {
     wakalaka_core::build_subscriber().await?;
 
     let data = Data {
-        db: initialise_db().await?,
+        db: database::initialise_db().await?,
     };
 
     let token = envs::fetch_discord_token_from_env()?;
