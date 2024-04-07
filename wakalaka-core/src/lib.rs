@@ -7,7 +7,6 @@ pub mod consts;
 pub mod envs;
 pub mod options;
 pub mod types;
-pub mod checks;
 
 use poise::Framework;
 use serenity::all::GatewayIntents;

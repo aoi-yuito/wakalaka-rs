@@ -5,7 +5,7 @@
 
 use tracing::error;
 
-use crate::types::Throwable;
+use super::types::Throwable;
 
 pub fn fetch_database_url_from_env() -> Throwable<String> {
     let database_url = dotenvy::var("DATABASE_URL").map_err(|why| {
