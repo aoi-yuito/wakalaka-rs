@@ -8,7 +8,7 @@ use serenity::all::{
     CreateEmbed,
 };
 
-pub fn error_embed(description: Option<String>) -> CreateEmbed {
+pub fn build_embed_with_error_notif(description: Option<String>) -> CreateEmbed {
     if let Some(description) = description {
         CreateEmbed::default()
             .description(format!("❌ {description}"))
@@ -18,7 +18,7 @@ pub fn error_embed(description: Option<String>) -> CreateEmbed {
     }
 }
 
-pub fn warn_embed(description: Option<String>) -> CreateEmbed {
+pub fn build_embed_with_warning_notif(description: Option<String>) -> CreateEmbed {
     if let Some(description) = description {
         CreateEmbed::default()
             .description(format!("⚠️ {description}"))
@@ -28,7 +28,7 @@ pub fn warn_embed(description: Option<String>) -> CreateEmbed {
     }
 }
 
-pub fn ok_embed(description: Option<String>) -> CreateEmbed {
+pub fn build_embed_with_success_notif(description: Option<String>) -> CreateEmbed {
     if let Some(description) = description {
         CreateEmbed::default()
             .description(format!("✅ {description}"))
@@ -38,7 +38,7 @@ pub fn ok_embed(description: Option<String>) -> CreateEmbed {
     }
 }
 
-pub fn embed(description: Option<String>) -> CreateEmbed {
+pub fn build_embed(description: Option<String>) -> CreateEmbed {
     if let Some(description) = description {
         CreateEmbed::default().description(format!("{description}"))
     } else {
