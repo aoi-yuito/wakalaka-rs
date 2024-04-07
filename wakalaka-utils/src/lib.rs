@@ -3,5 +3,6 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
-pub mod creators;
-pub mod getters;
+pub mod accessors;
+pub mod converters;
+pub mod factories;

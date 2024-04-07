@@ -1,0 +1,14 @@
+[package]
+name = "wakalaka-utils"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+poise.workspace = true
+serenity.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+regex.workspace = true
+wakalaka-core.workspace = true
