@@ -11,8 +11,6 @@ use wakalaka_core::{
 };
 use wakalaka_utils::factories::{messages, replies};
 
-use crate::queries::{restricted_guilds, restricted_users};
-
 pub async fn is_guild_restricted(
     ctx: &SContext,
     pool: &SqlitePool,
