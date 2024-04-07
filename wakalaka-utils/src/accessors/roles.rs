@@ -8,8 +8,12 @@ use wakalaka_core::types::{Context, Throwable};
 
 use super::guilds;
 
-pub async fn role_raw(ctx: Context<'_>, guild_id: &GuildId, role_id: &RoleId) -> Throwable<Role> {
-    let guild = guilds::guild_cached(ctx, guild_id)?;
+pub async fn retrieve_specific_guild_role(
+    ctx: Context<'_>,
+    guild_id: &GuildId,
+    role_id: &RoleId,
+) -> Throwable<Role> {
+    let guild = guilds::fetch_cached_guild(ctx, guild_id)?;
 
     let role = guild
         .roles

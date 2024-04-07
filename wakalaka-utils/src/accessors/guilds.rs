@@ -4,13 +4,13 @@
 // https://opensource.org/licenses/MIT
 
 use serenity::all::{Guild, GuildId, ModelError};
-use wakalaka_core::types::{Context, Throwable};
+use wakalaka_core::types::{Context, SContext, Throwable};
 
-pub fn name_raw(ctx: &Context, guild_id: &GuildId) -> String {
+pub fn fetch_raw_guild_name(ctx: &Context, guild_id: &GuildId) -> String {
     guild_id.name(ctx).unwrap_or_else(|| format!("{guild_id}"))
 }
 
-pub fn guild_cached_raw(ctx: &Context, guild_id: &GuildId) -> Throwable<Guild> {
+pub fn fetch_raw_cached_guild(ctx: &SContext, guild_id: &GuildId) -> Throwable<Guild> {
     let guild = guild_id
         .to_guild_cached(ctx)
         .ok_or_else(|| Box::new(ModelError::GuildNotFound))
@@ -18,7 +18,7 @@ pub fn guild_cached_raw(ctx: &Context, guild_id: &GuildId) -> Throwable<Guild> {
     Ok(guild)
 }
 
-pub fn guild_cached(ctx: Context<'_>, guild_id: &GuildId) -> Throwable<Guild> {
+pub fn fetch_cached_guild(ctx: Context<'_>, guild_id: &GuildId) -> Throwable<Guild> {
     let guild = guild_id
         .to_guild_cached(&ctx)
         .ok_or_else(|| Box::new(ModelError::GuildNotFound))
@@ -26,7 +26,7 @@ pub fn guild_cached(ctx: Context<'_>, guild_id: &GuildId) -> Throwable<Guild> {
     Ok(guild)
 }
 
-pub fn guild(ctx: Context<'_>) -> Throwable<Guild> {
+pub fn fetch_current_guild(ctx: Context<'_>) -> Throwable<Guild> {
     let guild = ctx
         .guild()
         .ok_or_else(|| Box::new(ModelError::GuildNotFound))
