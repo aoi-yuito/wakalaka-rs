@@ -5,7 +5,15 @@
 
 use serenity::all::{ChannelId, GuildChannel, GuildId};
 use std::collections::HashMap;
-use wakalaka_core::types::{Context, Throwable};
+use wakalaka_core::types::{Context, SContext, Throwable};
+
+pub async fn fetch_raw_channel_name_from_id(
+    ctx: &SContext,
+    channel_id: &ChannelId,
+) -> Throwable<String> {
+    let channel_name = channel_id.name(ctx).await?;
+    Ok(channel_name)
+}
 
 pub async fn fetch_channel_name_from_id(
     ctx: Context<'_>,
