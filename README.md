@@ -6,7 +6,7 @@
 -->
 
 <div align="center">
-    <img src="res/waka_lichtstern.png" alt="Waka Lichtstern, drawn by kedoi#4581" width="400" height="400">
+    <img src="resources/waka_lichtstern.png" alt="Waka Lichtstern, drawn by kedoi#4581" width="400" height="400">
     <br>
     <p><small>Waka Lichtstern, drawn by <code>kedoi#4581</code></small></p>
 </div>
