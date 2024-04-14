@@ -1,0 +1,13 @@
+[package]
+name = "wakalaka-plugins"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+libloading = "0.8.3"
+poise.workspace = true
+serenity.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
