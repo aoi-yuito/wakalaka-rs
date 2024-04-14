@@ -4,7 +4,9 @@
 // https://opensource.org/licenses/MIT
 
 use poise::Framework;
-use wakalaka_core::{options, types::Error, Data};
+use wakalaka_core::{types::Error, Data};
+
+use crate::options;
 
 pub(super) async fn build_framework(data: Data) -> Framework<Data, Error> {
     Framework::builder()

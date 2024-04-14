@@ -3,13 +3,15 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
-use super::{
+use serenity::all::{Guild, UserId};
+use sqlx::SqlitePool;
+use wakalaka_core::{
     consts::{GITHUB_URL, INVITE_URL},
     types::{Context, SContext, Throwable},
 };
-use serenity::all::{Guild, UserId};
-use sqlx::SqlitePool;
-use wakalaka_utils::factories::{messages, replies};
+use wakalaka_utils::builders::{messages, replies};
+
+use super::queries;
 
 pub async fn is_guild_restricted(
     ctx: &SContext,
@@ -21,7 +23,7 @@ pub async fn is_guild_restricted(
     let guild_owner_id = guild.owner_id;
     let guild_owner = guild_owner_id.to_user(ctx).await?;
 
-    if let Ok(_) = restricted_guilds::fetch_guild_id_from_db(pool, guild_id).await {
+    if let Ok(_) = queries::restricted_guilds::fetch_guild_id_from_db(pool, guild_id).await {
         let message = messages::build_error_message_with_embed(format!(
             r#"Sorry, but {guild_name} can't invite yours truly into anymore.
                 
@@ -45,7 +47,7 @@ pub async fn is_user_restricted(
     ctx: Context<'_>,
     user_id: &UserId,
 ) -> Throwable<bool> {
-    if let Ok(_) = restricted_users::fetch_user_id_from_db(pool, user_id).await {
+    if let Ok(_) = queries::restricted_users::fetch_user_id_from_db(pool, user_id).await {
         let reply = replies::build_error_reply_with_embed(
             format!(
                 r#"Sorry, but you can't use yours truly anymore.

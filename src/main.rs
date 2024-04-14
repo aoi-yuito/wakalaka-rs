@@ -6,6 +6,7 @@
 mod database;
 mod events;
 mod framework;
+mod options;
 
 use wakalaka_core::{
     envs,

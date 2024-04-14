@@ -5,7 +5,6 @@
 
 pub mod consts;
 pub mod envs;
-pub mod options;
 pub mod types;
 
 use poise::Framework;
