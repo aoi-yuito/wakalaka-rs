@@ -6,7 +6,7 @@
 use serenity::all::{Guild, GuildId, ModelError};
 use wakalaka_core::types::{Context, SContext, Throwable};
 
-pub fn fetch_raw_guild_name(ctx: &Context, guild_id: &GuildId) -> String {
+pub fn fetch_raw_guild_name(ctx: &SContext, guild_id: &GuildId) -> String {
     guild_id.name(ctx).unwrap_or_else(|| format!("{guild_id}"))
 }
 
