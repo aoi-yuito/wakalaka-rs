@@ -3,10 +3,6 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
-// guild_id BIGINT,
-// reason VARCHAR(255) NOT NULL,
-// created_at TIMESTAMP NOT NULL,
-
 use serenity::all::GuildId;
 use sqlx::{types::chrono::NaiveDateTime, Row, SqlitePool};
 use tracing::error;
@@ -51,7 +47,7 @@ pub async fn fetch_guild_id_from_db(
     Ok(guild_id)
 }
 
-pub async fn remove_restricted_user_from_db(
+pub async fn remove_restricted_guild_from_db(
     pool: &SqlitePool,
     guild_id: &GuildId,
 ) -> SqlxThrowable<()> {
@@ -61,7 +57,7 @@ pub async fn remove_restricted_user_from_db(
         .bind(i64::from(*guild_id))
         .execute(pool);
     if let Err(e) = delete.await {
-        error!("Failed to delete from restricted_guilds: {e:?}");
+        error!("Failed to remove restricted guild from database: {e:?}");
 
         transaction.rollback().await?;
 
@@ -89,7 +85,7 @@ pub async fn add_restricted_guild_to_db(
     .bind(created_at)
     .execute(pool);
     if let Err(e) = insert.await {
-        error!("Failed to insert into restricted_guilds: {e:?}");
+        error!("Failed to add restricted guild to database: {e:?}");
 
         transaction.rollback().await?;
 

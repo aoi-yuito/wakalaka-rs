@@ -100,9 +100,7 @@ pub async fn fetch_kind_from_db(pool: &SqlitePool, uuid: &Uuid) -> SqlxThrowable
         "mute" => Infraction::Mute,
         "warn" => Infraction::Warn,
         _ => {
-            return Err(sqlx::Error::Decode(BoxDynError::from(
-                "Unknown kind of infraction",
-            )));
+            return Err(sqlx::Error::Decode(BoxDynError::from("Unknown kind")));
         }
     };
 
@@ -126,7 +124,7 @@ pub async fn remove_infraction_from_db(pool: &SqlitePool, uuid: &Uuid) -> SqlxTh
         .bind(format!("{uuid}"))
         .execute(pool);
     if let Err(e) = delete.await {
-        error!("Failed to delete from infractions: {e:?}");
+        error!("Failed to remove infraction from database {e:?}");
 
         transaction.rollback().await?;
 
@@ -161,7 +159,7 @@ pub async fn add_infraction_to_db(
     .bind(Utc::now());
 
     if let Err(e) = insert.execute(pool).await {
-        error!("Failed to insert into infractions: {e:?}");
+        error!("Failed to add infraction to database: {e:?}");
 
         transaction.rollback().await?;
 

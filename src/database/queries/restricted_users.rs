@@ -54,7 +54,7 @@ pub async fn remove_restricted_user_from_db(
         .bind(i64::from(*user_id))
         .execute(pool);
     if let Err(e) = delete.await {
-        error!("Failed to delete from restricted_users: {e:?}");
+        error!("Failed to remove restricted user from database: {e:?}");
 
         transaction.rollback().await?;
 
@@ -81,7 +81,7 @@ pub async fn add_restricted_user_to_db(
             .bind(created_at)
             .execute(pool);
     if let Err(e) = insert.await {
-        error!("Failed to insert into restricted_users: {e:?}");
+        error!("Failed to add restricted user to database: {e:?}");
 
         transaction.rollback().await?;
 
