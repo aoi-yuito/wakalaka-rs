@@ -40,7 +40,7 @@ I'm always open to feedback and interested in hearing what you think about my pr
 [![gh_stars](https://img.shields.io/github/stars/Kawaxte/wakalaka-rs?logo=github&style=for-the-badge)](https://github.com/Kawaxte/wakalaka-rs/stargazers)
 [![gh_contribs](https://img.shields.io/github/contributors/Kawaxte/wakalaka-rs?logo=github&style=for-the-badge)](https://github.com/Kawaxte/wakalaka-rs/graphs/contributors)
 
-All Rust users are invited to contribute to this project. You can suggest improvements, report issues, or submit changes directly.
+You can suggest improvements, report issues, or submit changes directly.
 
 If you find this project useful, or meaningful, feel free to give it a ⭐. This helps me understand how popular the project is and encourages me to continue improving it.
 
