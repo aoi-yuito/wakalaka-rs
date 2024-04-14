@@ -3,8 +3,8 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
-use serenity::all::{GuildId, UserId};
-use sqlx::{types::chrono::NaiveDateTime, Row, SqlitePool};
+use serenity::all::{GuildId, Timestamp, UserId};
+use sqlx::{types::chrono::DateTime, Row, SqlitePool};
 use tracing::error;
 use wakalaka_core::types::SqlxThrowable;
 
@@ -20,7 +20,7 @@ pub async fn update_owner_id_in_db(
         .bind(i64::from(*guild_id))
         .execute(pool);
     if let Err(e) = update.await {
-        error!("Failed to UPDATE guilds: {e:?}");
+        error!("Failed to update guild owner in database: {e:?}");
 
         transaction.rollback().await?;
 
@@ -67,7 +67,7 @@ pub async fn remove_guild_from_db(pool: &SqlitePool, guild_id: &GuildId) -> Sqlx
         .bind(i64::from(*guild_id))
         .execute(pool);
     if let Err(e) = delete.await {
-        error!("Failed to DELETE FROM guilds: {e:?}");
+        error!("Failed to remove guild from database: {e:?}");
 
         transaction.rollback().await?;
 
@@ -83,7 +83,7 @@ pub async fn add_guild_to_db(
     pool: &SqlitePool,
     guild_id: &GuildId,
     owner_id: &UserId,
-    created_at: &NaiveDateTime,
+    created_at: &Timestamp,
 ) -> SqlxThrowable<()> {
     let transaction = pool.begin().await?;
 
@@ -91,10 +91,10 @@ pub async fn add_guild_to_db(
         sqlx::query("INSERT INTO guilds (guild_id, owner_id, created_at) VALUES (?, ?, ?)")
             .bind(i64::from(*guild_id))
             .bind(i64::from(*owner_id))
-            .bind(created_at)
+            .bind(DateTime::from_timestamp(created_at.timestamp(), 0))
             .execute(pool);
     if let Err(e) = insert.await {
-        error!("Failed to INSERT INTO guilds: {e:?}");
+        error!("Failed to add guild to database: {e:?}");
 
         transaction.rollback().await?;
 

@@ -3,8 +3,8 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
-use serenity::all::UserId;
-use sqlx::{Row, SqlitePool};
+use serenity::all::{Timestamp, UserId};
+use sqlx::{types::chrono::DateTime, Row, SqlitePool};
 use tracing::error;
 use wakalaka_core::types::SqlxThrowable;
 
@@ -37,7 +37,7 @@ pub async fn remove_user_from_db(pool: &SqlitePool, user_id: &UserId) -> SqlxThr
         .bind(i64::from(*user_id))
         .execute(pool);
     if let Err(e) = delete.await {
-        error!("Failed to delete from users: {e:?}");
+        error!("Failed to remove user from database: {e:?}");
 
         transaction.rollback().await?;
 
@@ -49,14 +49,19 @@ pub async fn remove_user_from_db(pool: &SqlitePool, user_id: &UserId) -> SqlxThr
     Ok(())
 }
 
-pub async fn add_user_to_db(pool: &SqlitePool, user_id: &UserId) -> SqlxThrowable<()> {
+pub async fn add_user_to_db(
+    pool: &SqlitePool,
+    user_id: &UserId,
+    created_at: &Timestamp,
+) -> SqlxThrowable<()> {
     let transaction = pool.begin().await?;
 
-    let insert = sqlx::query("INSERT INTO users (user_id) VALUES (?)")
+    let insert = sqlx::query("INSERT INTO users (user_id, created_at) VALUES (?, ?)")
         .bind(i64::from(*user_id))
+        .bind(DateTime::from_timestamp(created_at.timestamp(), 0))
         .execute(pool);
     if let Err(e) = insert.await {
-        error!("Failed to insert into users: {e:?}");
+        error!("Failed to add user to database: {e:?}");
 
         transaction.rollback().await?;
 
