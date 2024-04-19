@@ -7,8 +7,10 @@ use serenity::all::GuildId;
 use tracing::info;
 use wakalaka_core::types::{SContext, Throwable};
 
+use crate::commands;
+
 pub(crate) async fn handle_cache_ready_event(
-    _ctx: &SContext,
+    ctx: &SContext,
     guild_ids: &Vec<GuildId>,
 ) -> Throwable<()> {
     let guild_id_count = guild_ids.len();
@@ -18,7 +20,9 @@ pub(crate) async fn handle_cache_ready_event(
         info!("Readied cache for {guild_id_count} servers");
     }
 
-    // TODO: register guild cmds here
+    for guild_id in guild_ids {
+        commands::register_guild_commands(ctx, guild_id).await?;
+    }
 
     Ok(())
 }
