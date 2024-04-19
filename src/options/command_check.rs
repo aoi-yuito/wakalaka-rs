@@ -5,7 +5,7 @@
 
 use wakalaka_core::types::{Context, Throwable};
 
-use crate::database;
+use wakalaka_db::checks;
 
 pub(super) async fn handle_command_check_option(ctx: Context<'_>) -> Throwable<bool> {
     let db = &ctx.data().db;
@@ -13,7 +13,7 @@ pub(super) async fn handle_command_check_option(ctx: Context<'_>) -> Throwable<b
     let user = ctx.author();
     let user_id = &user.id;
 
-    let user_restricted = database::checks::is_user_restricted(db, ctx, user_id).await?;
+    let user_restricted = checks::is_user_restricted(db, ctx, user_id).await?;
     if user_restricted {
         Ok(false)
     } else {

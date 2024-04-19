@@ -9,7 +9,7 @@ use tracing::info;
 use wakalaka_core::types::{SContext, Throwable};
 use wakalaka_utils::accessors;
 
-use crate::database::queries;
+use wakalaka_db::queries;
 
 pub(crate) async fn handle_guild_member_removal_event(
     ctx: &SContext,

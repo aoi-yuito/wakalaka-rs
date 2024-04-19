@@ -7,7 +7,7 @@ use serenity::all::PartialGuild;
 use sqlx::SqlitePool;
 use wakalaka_core::types::Throwable;
 
-use crate::database::queries;
+use wakalaka_db::queries;
 
 pub(crate) async fn handle_guild_update_event(
     partial_guild: &PartialGuild,

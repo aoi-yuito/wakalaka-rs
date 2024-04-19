@@ -13,7 +13,7 @@ pub(crate) async fn handle_guild_role_delete_event(
     guild_id: &GuildId,
     role_id: &RoleId,
 ) -> Throwable<()> {
-    let role = accessors::roles::fetch_raw_role(ctx, guild_id, role_id).await?;
+    let role = accessors::roles::fetch_raw_guild_role(ctx, guild_id, role_id).await?;
     let role_name = &role.name;
 
     let guild = accessors::guilds::fetch_raw_cached_guild(ctx, guild_id)?;

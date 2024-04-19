@@ -3,7 +3,7 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
-mod database;
+mod commands;
 mod events;
 mod framework;
 mod options;
@@ -19,7 +19,7 @@ async fn main() -> Throwable<()> {
     wakalaka_core::build_subscriber().await?;
 
     let data = Data {
-        db: database::initialise_db().await?,
+        db: wakalaka_db::initialise_db().await?,
     };
 
     let token = envs::fetch_discord_token_from_env()?;

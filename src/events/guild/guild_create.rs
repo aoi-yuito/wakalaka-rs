@@ -9,7 +9,7 @@ use tracing::info;
 use wakalaka_core::types::{SContext, Throwable};
 use wakalaka_utils::accessors;
 
-use crate::database::{self, queries};
+use wakalaka_db::{self, checks, queries};
 
 pub(crate) async fn handle_guild_create_event(
     ctx: &SContext,
@@ -21,7 +21,7 @@ pub(crate) async fn handle_guild_create_event(
         return Ok(());
     }
 
-    let guild_restricted = database::checks::is_guild_restricted(ctx, pool, guild).await?;
+    let guild_restricted = checks::is_guild_restricted(ctx, pool, guild).await?;
     if guild_restricted {
         return Ok(());
     }
