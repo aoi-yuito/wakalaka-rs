@@ -6,7 +6,7 @@
 use serenity::all::Guild;
 use wakalaka_core::types::{Context, Throwable};
 use wakalaka_db::queries;
-use wakalaka_utils::{accessors, builders};
+use wakalaka_utils::builders;
 
 #[poise::command(
     slash_command,

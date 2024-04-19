@@ -61,6 +61,12 @@ pub async fn add_user_to_db(
         .bind(DateTime::from_timestamp(created_at.timestamp(), 0))
         .execute(pool);
     if let Err(e) = insert.await {
+        let error = format!("{e:?}");
+        if error.contains("1555") {
+            // UNIQUE constraint failed
+            return Ok(());
+        }
+
         error!("Failed to add user to database: {e:?}");
 
         transaction.rollback().await?;
