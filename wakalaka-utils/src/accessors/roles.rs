@@ -8,7 +8,7 @@ use wakalaka_core::types::{Context, SContext, Throwable};
 
 use super::guilds;
 
-pub async fn fetch_role(
+pub async fn fetch_guild_role(
     ctx: Context<'_>,
     guild_id: &GuildId,
     role_id: &RoleId,
@@ -22,7 +22,7 @@ pub async fn fetch_role(
     Ok(role.clone())
 }
 
-pub async fn fetch_raw_role(
+pub async fn fetch_raw_guild_role(
     ctx: &SContext,
     guild_id: &GuildId,
     role_id: &RoleId,

@@ -26,7 +26,7 @@ pub fn fetch_cached_guild(ctx: Context<'_>, guild_id: &GuildId) -> Throwable<Gui
     Ok(guild)
 }
 
-pub fn fetch_current_guild(ctx: Context<'_>) -> Throwable<Guild> {
+pub fn fetch_guild(ctx: Context<'_>) -> Throwable<Guild> {
     let guild = ctx
         .guild()
         .ok_or_else(|| Box::new(ModelError::GuildNotFound))
