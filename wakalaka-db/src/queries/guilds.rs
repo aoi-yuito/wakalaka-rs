@@ -20,12 +20,6 @@ pub async fn update_owner_id_in_db(
         .bind(i64::from(*guild_id))
         .execute(pool);
     if let Err(e) = update.await {
-        let error = format!("{e:?}");
-        if error.contains("1555") {
-            // UNIQUE constraint failed
-            return Ok(());
-        }
-
         error!("Failed to update owner ID in database: {e:?}");
 
         transaction.rollback().await?;
@@ -100,6 +94,12 @@ pub async fn add_guild_to_db(
             .bind(DateTime::from_timestamp(created_at.timestamp(), 0))
             .execute(pool);
     if let Err(e) = insert.await {
+        let error = format!("{e:?}");
+        if error.contains("1555") {
+            // UNIQUE constraint failed
+            return Ok(());
+        }
+        
         error!("Failed to add guild to database: {e:?}");
 
         transaction.rollback().await?;
