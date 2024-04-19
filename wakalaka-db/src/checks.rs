@@ -29,7 +29,7 @@ pub async fn is_guild_restricted(
                 
                 If you think this is a mistake, contact the [developer]({GITHUB_URL}) on [support server]({INVITE_URL}).
                 
-                In the meantime, take a moment to think about what went down, because this is irreversible"#
+                In the meantime, take a moment to think about what went down, because this is irreversible."#
         ));
 
         guild_owner.dm(ctx, message).await?;
@@ -54,7 +54,7 @@ pub async fn is_user_restricted(
                 
                 If you think this is a mistake, contact the [developer]({GITHUB_URL}) on [support server]({INVITE_URL}).
                 
-                In the meantime, take a moment to think about what went down, because this is irreversible"#
+                In the meantime, take a moment to think about what went down, because this is irreversible."#
             ),
             true,
         );

@@ -17,7 +17,7 @@ tracing.workspace = true
 tracing-subscriber.workspace = true
 uuid.workspace = true
 wakalaka-core.workspace = true
-wakalaka-plugins.workspace = true
+wakalaka-db.workspace = true
 wakalaka-utils.workspace = true
 
 [profile.dev.package."*"]
@@ -28,7 +28,7 @@ lto = true
 codegen-units = 1
 
 [workspace]
-members = ["wakalaka-core", "wakalaka-plugins", "wakalaka-utils"]
+members = ["wakalaka-core", "wakalaka-db", "wakalaka-utils"]
 
 [workspace.package]
 version = "0.4.0-beta"
@@ -83,5 +83,5 @@ reqwest = { version = "0.12.3", default-features = false, features = [
     "json",
 ] }
 wakalaka-core = { path = "wakalaka-core" }
-wakalaka-plugins = { path = "wakalaka-plugins" }
+wakalaka-db = { path = "wakalaka-db" }
 wakalaka-utils = { path = "wakalaka-utils" }

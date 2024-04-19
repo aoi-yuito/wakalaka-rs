@@ -24,7 +24,7 @@ pub async fn initialise_db() -> Throwable<SqlitePool> {
 }
 
 async fn migrate_db(pool: &SqlitePool) -> Throwable<()> {
-    sqlx::migrate!("./migrations").run(pool).await?;
+    sqlx::migrate!("../migrations").run(pool).await?;
     Ok(())
 }
 

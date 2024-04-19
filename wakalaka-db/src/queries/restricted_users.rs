@@ -3,8 +3,11 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
-use serenity::all::UserId;
-use sqlx::{types::chrono::NaiveDateTime, Row, SqlitePool};
+use serenity::all::{Timestamp, UserId};
+use sqlx::{
+    types::chrono::{DateTime, NaiveDateTime},
+    Row, SqlitePool,
+};
 use tracing::error;
 use wakalaka_core::types::SqlxThrowable;
 
@@ -69,16 +72,16 @@ pub async fn remove_restricted_user_from_db(
 pub async fn add_restricted_user_to_db(
     pool: &SqlitePool,
     user_id: &UserId,
-    reason: &str,
-    created_at: &NaiveDateTime,
+    reason: impl Into<&String>,
+    created_at: &Timestamp,
 ) -> SqlxThrowable<()> {
     let transaction = pool.begin().await?;
 
     let insert =
         sqlx::query("INSERT INTO restricted_users (user_id, reason, created_at) VALUES (?, ?, ?)")
             .bind(i64::from(*user_id))
-            .bind(reason)
-            .bind(created_at)
+            .bind(reason.into())
+            .bind(DateTime::from_timestamp(created_at.timestamp(), 0))
             .execute(pool);
     if let Err(e) = insert.await {
         error!("Failed to add restricted user to database: {e:?}");

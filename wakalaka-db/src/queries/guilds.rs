@@ -20,7 +20,13 @@ pub async fn update_owner_id_in_db(
         .bind(i64::from(*guild_id))
         .execute(pool);
     if let Err(e) = update.await {
-        error!("Failed to update guild owner in database: {e:?}");
+        let error = format!("{e:?}");
+        if error.contains("1555") {
+            // UNIQUE constraint failed
+            return Ok(());
+        }
+
+        error!("Failed to update owner ID in database: {e:?}");
 
         transaction.rollback().await?;
 
@@ -49,13 +55,13 @@ pub async fn fetch_owner_id_from_db(
 pub async fn fetch_guild_id_from_db(
     pool: &SqlitePool,
     guild_id: &GuildId,
-) -> SqlxThrowable<UserId> {
+) -> SqlxThrowable<GuildId> {
     let query =
         sqlx::query("SELECT guild_id FROM guilds WHERE guild_id = ?").bind(i64::from(*guild_id));
 
     let row = query.fetch_one(pool).await?;
 
-    let guild_id = UserId::from(row.get::<i64, _>("guild_id") as u64);
+    let guild_id = GuildId::from(row.get::<i64, _>("guild_id") as u64);
 
     Ok(guild_id)
 }

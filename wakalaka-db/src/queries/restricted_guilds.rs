@@ -3,8 +3,11 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
-use serenity::all::GuildId;
-use sqlx::{types::chrono::NaiveDateTime, Row, SqlitePool};
+use serenity::all::{GuildId, Timestamp};
+use sqlx::{
+    types::chrono::{DateTime, NaiveDateTime},
+    Row, SqlitePool,
+};
 use tracing::error;
 use wakalaka_core::types::SqlxThrowable;
 
@@ -73,7 +76,7 @@ pub async fn add_restricted_guild_to_db(
     pool: &SqlitePool,
     guild_id: &GuildId,
     reason: &String,
-    created_at: &NaiveDateTime,
+    created_at: &Timestamp,
 ) -> SqlxThrowable<()> {
     let transaction = pool.begin().await?;
 
@@ -82,7 +85,7 @@ pub async fn add_restricted_guild_to_db(
     )
     .bind(i64::from(*guild_id))
     .bind(reason.trim())
-    .bind(created_at)
+    .bind(DateTime::from_timestamp(created_at.timestamp(), 0))
     .execute(pool);
     if let Err(e) = insert.await {
         error!("Failed to add restricted guild to database: {e:?}");
