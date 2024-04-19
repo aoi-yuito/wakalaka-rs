@@ -16,6 +16,8 @@ pub type SqlxThrowable<T> = Result<T, sqlx::Error>;
 pub type Context<'a> = poise::Context<'a, Data, Error>;
 pub type FrameworkContext<'a> = poise::FrameworkContext<'a, Data, Error>;
 
+pub type Command = poise::Command<Data, Error>;
+
 pub type SClient = serenity::Client;
 pub type SContext = serenity::Context;
 pub type SReady = serenity::Ready;
