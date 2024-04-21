@@ -4,7 +4,10 @@
 // https://opensource.org/licenses/MIT
 
 use serenity::all::{CreateEmbedAuthor, CreateEmbedFooter};
-use wakalaka_core::types::{Context, Throwable};
+use wakalaka_core::{
+    consts,
+    types::{Context, Throwable},
+};
 use wakalaka_utils::builders;
 
 #[poise::command(
@@ -16,14 +19,23 @@ use wakalaka_utils::builders;
 )]
 /// Get information about yours truly.
 pub(super) async fn about(ctx: Context<'_>) -> Throwable<()> {
+    let http = ctx.http();
+
+    let bot = http.get_current_user().await?;
+    let bot_name = &bot.name;
+    let bot_face = bot.face();
+
     let author = ctx.author();
+    let author_name = &author.name;
     let author_face = author.face();
 
-    let embed_author = CreateEmbedAuthor::new(crate::CARGO_AUTHORS).icon_url(author_face);
-    let embed_footer = CreateEmbedFooter::new(crate::CARGO_VERSION);
+    let embed_author = CreateEmbedAuthor::new(bot_name)
+        .icon_url(bot_face)
+        .url(consts::APP_INVITE_URL);
+    let embed_footer = CreateEmbedFooter::new(author_name).icon_url(author_face);
     let embed = builders::embeds::build_embed(Some(format!("{}", crate::CARGO_DESCRIPTION)))
         .author(embed_author)
-        .title(crate::CARGO_NAME)
+        .title(format!("{} {}", crate::CARGO_NAME, crate::CARGO_VERSION))
         .url(crate::CARGO_REPOSITORY)
         .image(crate::RES_MASCOT_IMAGE_URL.as_str())
         .footer(embed_footer);
