@@ -24,7 +24,7 @@ pub(crate) async fn handle_thread_delete_event(
         let guild = accessors::guilds::fetch_raw_cached_guild(ctx, guild_id)?;
         let guild_name = guild.name;
 
-        info!("#{thread_id:?} deleted in {guild_name:?}");
+        info!("#{thread_id} deleted in {guild_name}");
     }
 
     Ok(())

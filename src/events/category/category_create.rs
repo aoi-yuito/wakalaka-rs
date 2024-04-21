@@ -24,7 +24,7 @@ pub(crate) async fn handle_category_create_event(
     let guild = accessors::guilds::fetch_raw_cached_guild(ctx, guild_id)?;
     let guild_name = guild.name;
 
-    info!("{category_name:?} created in {guild_name:?}");
+    info!("{category_name} created in {guild_name}");
 
     Ok(())
 }

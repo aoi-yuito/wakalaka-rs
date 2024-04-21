@@ -22,7 +22,7 @@ pub(crate) async fn handle_guild_delete_event(
         let unavailable_guild_name =
             accessors::guilds::fetch_raw_guild_name(ctx, unavailable_guild_id);
 
-        warn!("{unavailable_guild_name:?} is not available, skipping ...");
+        warn!("{unavailable_guild_name} is not available, skipping ...");
 
         return Ok(());
     }
@@ -39,7 +39,7 @@ pub(crate) async fn handle_guild_delete_event(
     let deleted_user_id = UserId::from(456226577798135808);
 
     if guild_owner_id == &deleted_user_id {
-        warn!("{guild_name:?} is missing owner, removing ...");
+        warn!("{guild_name} is missing owner, removing ...");
 
         queries::guilds::remove_guild_from_db(pool, guild_id).await?;
 
@@ -48,7 +48,7 @@ pub(crate) async fn handle_guild_delete_event(
         return Ok(());
     }
 
-    info!("@{bot_name:?} left {guild_name:?}");
+    info!("@{bot_name} left {guild_name}");
 
     queries::guilds::remove_guild_from_db(pool, guild_id).await?;
 

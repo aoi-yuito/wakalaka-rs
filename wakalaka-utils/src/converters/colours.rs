@@ -37,7 +37,7 @@ pub fn rgba_to_hex(code: &String) -> Throwable<u32> {
 
     Ok(
         u32::from_str_radix(&format!("{rr}{gg}{bb}{aa}"), 16).unwrap_or_else(|e| {
-            error!("Failed to parse {code:?}: {e:?}");
+            error!("Failed to parse {code}: {e:?}");
             0
         }),
     )
@@ -67,7 +67,7 @@ pub fn rgb_to_hex(code: &String) -> Throwable<u32> {
 
     Ok(
         u32::from_str_radix(&format!("{rr}{gg}{bb}"), 16).unwrap_or_else(|e| {
-            error!("Failed to parse {code:?}: {e:?}");
+            error!("Failed to parse {code}: {e:?}");
             0
         }),
     )

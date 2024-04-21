@@ -27,7 +27,7 @@ pub(crate) async fn handle_guild_member_removal_event(
     let guild = accessors::guilds::fetch_raw_cached_guild(ctx, guild_id)?;
     let guild_name = guild.name;
 
-    info!("@{user_name:?} left {guild_name:?}");
+    info!("@{user_name} left {guild_name}");
 
     queries::users::remove_user_from_db(pool, user_id).await?;
 

@@ -17,9 +17,9 @@ pub(super) async fn handle_ready_event(ctx: &SContext, ready: &SReady) -> Throwa
 
     let guild_id_count = guild_ids.len();
     if guild_id_count == 1 {
-        info!("Readied @{bot_name:?} in {guild_id_count} server");
+        info!("Readied @{bot_name} in {guild_id_count} server");
     } else {
-        info!("Readied @{bot_name:?} in {guild_id_count} servers");
+        info!("Readied @{bot_name} in {guild_id_count} servers");
     }
 
     Ok(())

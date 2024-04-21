@@ -19,7 +19,7 @@ pub(crate) async fn handle_guild_role_delete_event(
     let guild = accessors::guilds::fetch_raw_cached_guild(ctx, guild_id)?;
     let guild_name = guild.name;
 
-    info!("@{role_name:?} deleted in {guild_name:?}");
+    info!("@{role_name} deleted in {guild_name}");
 
     Ok(())
 }

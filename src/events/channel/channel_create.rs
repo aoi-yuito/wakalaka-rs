@@ -18,7 +18,7 @@ pub(crate) async fn handle_channel_create_event(
     let guild = accessors::guilds::fetch_raw_cached_guild(ctx, guild_id)?;
     let guild_name = guild.name;
 
-    info!("#{channel_name:?} created in {guild_name:?}");
+    info!("#{channel_name} created in {guild_name}");
 
     Ok(())
 }

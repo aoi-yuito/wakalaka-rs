@@ -18,7 +18,7 @@ pub(crate) async fn handle_guild_ban_removal_event(
 
     let user_name = &user.name;
 
-    info!("@{user_name:?} unbanned from {guild_name:?}");
+    info!("@{user_name} unbanned from {guild_name}");
 
     Ok(())
 }

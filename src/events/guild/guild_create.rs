@@ -37,7 +37,7 @@ pub(crate) async fn handle_guild_create_event(
 
     let guild_created_at = &guild_id.created_at();
 
-    info!("@{bot_name:?} joined {guild_name:?}");
+    info!("@{bot_name} joined {guild_name}");
 
     queries::users::add_user_to_db(pool, guild_owner_id, guild_owner_created_at).await?;
 

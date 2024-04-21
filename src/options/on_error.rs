@@ -74,7 +74,7 @@ async fn handle_argument_parse_error(e: Error, input: Option<String>, ctx: Conte
             "{input:?} is not a valid argument for `{command_qname}`."
         ))
     } else {
-        error!("Failed to parse argument for /{command_qname:?}: {e:?}");
+        error!("Failed to parse argument for /{command_qname}: {e:?}");
 
         Err(format!(
             "An error occurred while parsing argument for `{command_qname}`."
@@ -95,7 +95,7 @@ async fn handle_command_error(e: Error, ctx: Context<'_>) {
     let command = ctx.command();
     let command_qname = &command.qualified_name;
 
-    error!("An error occurred while running /{command_qname:?}: {e:?}");
+    error!("An error occurred while running /{command_qname}: {e:?}");
 
     let reply = builders::replies::build_error_reply_with_embed(
         format!("An error occurred while running `{command_qname}`."),

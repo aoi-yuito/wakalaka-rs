@@ -15,7 +15,7 @@ pub(crate) async fn handle_guild_role_create_event(ctx: &SContext, role: &Role) 
     let guild = accessors::guilds::fetch_raw_cached_guild(ctx, guild_id)?;
     let guild_name = guild.name;
 
-    info!("@{role_name:?} created in {guild_name:?}");
+    info!("@{role_name} created in {guild_name}");
 
     Ok(())
 }

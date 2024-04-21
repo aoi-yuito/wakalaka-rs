@@ -17,5 +17,5 @@ pub(super) async fn handle_post_command_option(ctx: Context<'_>) {
     let guild = accessors::guilds::fetch_guild(ctx).expect("Failed to fetch guild");
     let guild_name = &guild.name;
 
-    info!("@{user_name:?} invoked /{command_qname:?} in {guild_name:?}");
+    info!("@{user_name} invoked /{command_qname} in {guild_name}");
 }

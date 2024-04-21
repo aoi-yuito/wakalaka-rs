@@ -23,7 +23,7 @@ pub(crate) async fn handle_invite_delete_event(
 
     let code = &delete_evt.code;
 
-    info!("Deleted {code:?} from {guild_name:?}");
+    info!("Deleted {code} from {guild_name}");
 
     Ok(())
 }

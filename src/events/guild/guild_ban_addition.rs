@@ -18,7 +18,7 @@ pub(crate) async fn handle_guild_ban_addition_event(
 
     let user_name = &user.name;
 
-    info!("@{user_name:?} banned from {guild_name:?}");
+    info!("@{user_name} banned from {guild_name}");
 
     Ok(())
 }
