@@ -9,5 +9,5 @@ mod unrestrict;
 use wakalaka_core::types::Command;
 
 pub(super) async fn commands() -> Vec<Command> {
-    vec![restrict::restrict()]
+    vec![restrict::restrict(), unrestrict::unrestrict()]
 }
