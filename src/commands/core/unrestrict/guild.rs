@@ -34,7 +34,6 @@ pub(super) async fn guild(
         Ok(_) => {
             queries::restricted_guilds::remove_restricted_guild_from_db(db, guild_id).await?;
 
-            // Simply get your tits cleaned...
             queries::restricted_users::remove_restricted_user_from_db(db, guild_owner_id).await?;
 
             Ok(format!(
