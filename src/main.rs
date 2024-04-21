@@ -14,6 +14,18 @@ use wakalaka_core::{
     Data,
 };
 
+const CARGO_VERSION: &str = env!("CARGO_PKG_VERSION");
+const CARGO_NAME: &str = env!("CARGO_PKG_NAME");
+const CARGO_AUTHORS: &str = env!("CARGO_PKG_AUTHORS");
+const CARGO_DESCRIPTION: &str = env!("CARGO_PKG_DESCRIPTION");
+const CARGO_REPOSITORY: &str = env!("CARGO_PKG_REPOSITORY");
+
+lazy_static::lazy_static! {
+    static ref RES_MASCOT_IMAGE_URL: String = format!(
+        "https://raw.githubusercontent.com/{CARGO_AUTHORS}/{CARGO_NAME}/dev/resources/waka_lichtstern.png"
+    );
+}
+
 #[tokio::main]
 async fn main() -> Throwable<()> {
     wakalaka_core::build_subscriber().await?;
