@@ -10,6 +10,7 @@ license-file.workspace = true
 
 [dependencies]
 poise.workspace = true
+rand.workspace = true
 serenity.workspace = true
 sqlx.workspace = true
 tokio.workspace = true
@@ -36,7 +37,7 @@ authors = ["Kawaxte"]
 edition = "2021"
 rust-version = "1.77.1"
 readme = "README.md"
-description = "A straightforward, modular and extensible Discord bot."
+description = "A straightforward, modular and extensible Discord application."
 repository = "https://github.com/Kawaxte/wakalaka-rs"
 license-file = "LICENSE"
 
