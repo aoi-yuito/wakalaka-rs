@@ -3,7 +3,7 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
-use serenity::all::{CreateSelectMenuOption, GuildId, ReactionType, UserId};
+use serenity::all::{CreateSelectMenuOption, GuildId, ReactionType};
 use sqlx::types::chrono::NaiveDateTime;
 
 pub async fn build_restricted_guild_select_menu_option(
