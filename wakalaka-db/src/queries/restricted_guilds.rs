@@ -11,6 +11,25 @@ use sqlx::{
 use tracing::error;
 use wakalaka_core::types::SqlxThrowable;
 
+pub async fn gather_all_restricted_guilds_from_db(
+    pool: &SqlitePool,
+) -> SqlxThrowable<Vec<(GuildId, String, NaiveDateTime)>> {
+    let query = sqlx::query("SELECT * FROM restricted_guilds");
+
+    let mut restricted_guilds = vec![];
+
+    let rows = query.fetch_all(pool).await?;
+    for row in rows {
+        let guild_id = GuildId::from(row.get::<i64, _>("guild_id") as u64);
+        let reason = row.get::<String, _>("reason");
+        let created_at = row.get::<NaiveDateTime, _>("created_at");
+
+        restricted_guilds.push((guild_id, reason, created_at));
+    }
+
+    Ok(restricted_guilds)
+}
+
 pub async fn fetch_created_at_from_db(
     pool: &SqlitePool,
     guild_id: &GuildId,
