@@ -1,5 +1,5 @@
 [package]
-name = "wakalaka"
+name = "wakalaka-rs"
 version.workspace = true
 edition.workspace = true
 authors.workspace = true
@@ -9,6 +9,7 @@ repository.workspace = true
 license-file.workspace = true
 
 [dependencies]
+lazy_static = "1.4.0"
 poise.workspace = true
 rand.workspace = true
 serenity.workspace = true
