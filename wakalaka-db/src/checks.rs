@@ -25,7 +25,7 @@ pub async fn is_guild_restricted(
 
     if let Ok(_) = queries::restricted_guilds::fetch_guild_id_from_db(pool, guild_id).await {
         let message = messages::build_error_message_with_embed(format!(
-            r#"Sorry, but {guild_name} can't invite yours truly into anymore.
+            r#"Sorry, but {guild_name:?} can't invite yours truly into anymore.
                 
                 If you think this is a mistake, contact the [developer]({GITHUB_URL}) on [support server]({INVITE_URL}).
                 
