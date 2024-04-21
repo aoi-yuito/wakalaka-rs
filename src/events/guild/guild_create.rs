@@ -23,6 +23,8 @@ pub(crate) async fn handle_guild_create_event(
 
     let guild_restricted = checks::is_guild_restricted(ctx, pool, guild).await?;
     if guild_restricted {
+        guild.leave(ctx).await?;
+
         return Ok(());
     }
 
