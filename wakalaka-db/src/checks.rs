@@ -6,7 +6,7 @@
 use serenity::all::{Guild, UserId};
 use sqlx::SqlitePool;
 use wakalaka_core::{
-    consts::{GITHUB_URL, INVITE_URL},
+    consts,
     types::{Context, SContext, Throwable},
 };
 use wakalaka_utils::builders::{messages, replies};
@@ -27,9 +27,11 @@ pub async fn is_guild_restricted(
         let message = messages::build_error_message_with_embed(format!(
             r#"Sorry, but {guild_name:?} can't invite yours truly into anymore.
                 
-                If you think this is a mistake, contact the [developer]({GITHUB_URL}) on [support server]({INVITE_URL}).
+                If you think this is a mistake, contact the [developer]({}) on [support server]({}).
                 
-                In the meantime, take a moment to think about what went down, because this is irreversible."#
+                In the meantime, take a moment to think about what went down, because this is irreversible."#,
+            consts::DEV_GITHUB_URL,
+            consts::SERVER_INVITE_URL,
         ));
 
         if let Err(e) = guild_owner.dm(ctx, message).await {
@@ -52,9 +54,11 @@ pub async fn is_user_restricted(
             format!(
                 r#"Sorry, but you can't use yours truly anymore.
                 
-                If you think this is a mistake, contact the [developer]({GITHUB_URL}) on [support server]({INVITE_URL}).
+                If you think this is a mistake, contact the [developer]({}) on [support server]({}).
                 
-                In the meantime, take a moment to think about what went down, because this is irreversible."#
+                In the meantime, take a moment to think about what went down, because this is irreversible."#,
+                consts::DEV_GITHUB_URL,
+                consts::SERVER_INVITE_URL,
             ),
             true,
         );
