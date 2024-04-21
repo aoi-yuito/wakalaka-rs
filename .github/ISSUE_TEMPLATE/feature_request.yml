@@ -15,7 +15,7 @@
 
 name: Feature Request
 description: |
-  Ask developer(s) to add new feature(s) to yours truly.
+  Request a feature to help improve yours truly.
 title: "[Feature]:"
 labels: [ feature ]
 assignees:
@@ -30,9 +30,9 @@ body:
     attributes:
       label: Summary
       description: |
-        Describe this feature you would like to see.
+        What do you want?
       placeholder: |
-        I would like to see...
+        I would like ...
     validations:
       required: true
   - type: textarea
@@ -40,9 +40,9 @@ body:
     attributes:
       label: Usefulness
       description: |
-        Describe what benefit(s) this feature would bring.
+        What would be the benefit of this feature?
       placeholder: |
-        This feature would...
+        Well, with this, we could ...
     validations:
       required: true
   - type: textarea
@@ -50,8 +50,8 @@ body:
     attributes:
       label: Implementation
       description: |
-        Describe how this feature could be implemented.
+        How could this feature be implemented?
       placeholder: |
-        This feature could be implemented by...
+        I'm thinking that we could do X, then ...
     validations:
       required: false

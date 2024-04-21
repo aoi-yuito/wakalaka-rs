@@ -15,7 +15,7 @@
 
 name: Bug Report
 description: |
-  Report bug(s) to help us improve yours truly.
+  Report a bug to help improve yours truly.
 title: "[Bug Report]:"
 labels: [ bug ]
 assignees:
@@ -30,9 +30,9 @@ body:
     attributes:
       label: Summary
       description: |
-        Describe this (or these) bug(s) you have encountered.
+        What is the bug you are reporting?
       placeholder: |
-        I encountered a bug when...
+        When I did X, ...
     validations:
       required: true
   - type: textarea
@@ -40,9 +40,11 @@ body:
     attributes:
       label: Steps to Reproduce
       description: |
-        Describe steps required to reproduce this (or these) bug(s).
+        What are we supposed to do to reproduce the bug(s)?
       placeholder: |
-        Steps to reproduce this bug are...
+        1. Do X...
+        2. Wait for Y...
+        3. Click on Z...
     validations:
       required: true
   - type: textarea
@@ -50,7 +52,7 @@ body:
     attributes:
       label: Expected Behavior
       description: |
-        Describe what you expected to happen.
+        What did you expect to happen?
       placeholder: |
         I expected that...
     validations:
@@ -60,17 +62,17 @@ body:
     attributes:
       label: Actual Behavior
       description: |
-        Describe what actually happened.
+        What actually happened?
       placeholder: |
-        What actually happened was...
+        Well, when X...
     validations:
       required: true
   - type: textarea
-    id: screenshots
+    id: media
     attributes:
-      label: Screenshots
+      label: Media
       description: |
-        If applicable, add screenshot(s) to help explain your problem.
+        Attach an image, gif, or video that demonstrates the bug(s), if applicable.
     validations:
       required: false
   - type: textarea
@@ -78,7 +80,7 @@ body:
     attributes:
       label: Environment
       description: |
-        Describe environment in which this (or these) bug(s) occurred (e.g., operating system, browser, etc.)
+        On what system did you encounter the bug(s) on?
       placeholder: |
         The bug occurred on...
     validations:
