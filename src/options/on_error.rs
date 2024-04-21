@@ -95,10 +95,10 @@ async fn handle_command_error(e: Error, ctx: Context<'_>) {
     let command = ctx.command();
     let command_qname = &command.qualified_name;
 
-    error!("An error occurred while running /{command_qname}: {e:?}");
+    error!("An error occurred while executing /{command_qname}: {e:?}");
 
     let reply = builders::replies::build_error_reply_with_embed(
-        format!("An error occurred while running `{command_qname}`."),
+        format!("An error occurred while executing `{command_qname}`."),
         true,
     );
 
@@ -169,7 +169,7 @@ async fn handle_missing_bot_permissions_error(permissions: Permissions, ctx: Con
     let bot = bot_id
         .to_user(ctx)
         .await
-        .expect("Failed to find user by its ID.");
+        .expect("Failed to find user by its ID");
     let bot_mention = bot.mention();
 
     let reply = builders::replies::build_error_reply_with_embed(
