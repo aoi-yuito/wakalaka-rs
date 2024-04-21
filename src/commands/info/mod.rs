@@ -3,15 +3,16 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
-mod about;
+mod app;
+mod guild;
 mod user;
 
-use crate::commands::info::user::user;
+use crate::commands::info::{app::app, guild::guild, user::user};
 use wakalaka_core::types::{Command, Context, Throwable};
 
 #[poise::command(
     slash_command,
-    subcommands("user"),
+    subcommands("app", "guild", "user"),
     category = "Information",
     required_bot_permissions = "SEND_MESSAGES | EMBED_LINKS",
     subcommand_required,
@@ -23,5 +24,5 @@ pub(super) async fn info(_ctx: Context<'_>) -> Throwable<()> {
 }
 
 pub async fn commands() -> Vec<Command> {
-    vec![about::about(), info()]
+    vec![info()]
 }
