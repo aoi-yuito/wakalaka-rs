@@ -29,6 +29,7 @@ pub(crate) async fn gather_all_commands() -> Vec<Command> {
     let mut commands = vec![];
     commands.extend(core::commands().await);
     commands.extend(fun::commands().await);
+    commands.extend(info::commands().await);
     commands
 }
 
