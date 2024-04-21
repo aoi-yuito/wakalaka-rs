@@ -48,7 +48,7 @@ pub(crate) async fn roll(
             ":game_die: {author_mention} rolled `{roll_result}` and got `{roll}`!",
         ))
     } else {
-        Err(format!("{number} is not a valid dice size."))
+        Err(format!("`{number}` is not a valid dice size."))
     };
 
     let reply = match result {
@@ -58,7 +58,7 @@ pub(crate) async fn roll(
 
             builders::replies::build_reply_with_optional_embed("", &Some(embed), false)
         }
-        Err(msg) => builders::replies::build_error_reply_with_embed(msg, true),
+        Err(msg) => builders::replies::build_warning_reply_with_embed(msg, true),
     };
 
     ctx.send(reply).await?;
