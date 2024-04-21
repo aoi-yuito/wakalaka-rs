@@ -28,7 +28,7 @@ pub(super) async fn user(
 
     let http = ctx.http();
 
-    let raw_user = http.get_user(user_id).await?; // "[...] if the user is fetched via REST API."
+    let raw_user = http.get_user(user_id).await?;
     let raw_user_banner = raw_user.banner_url().unwrap_or_default();
     let raw_user_accent_col = raw_user.accent_colour.unwrap_or(branding::BLURPLE);
 

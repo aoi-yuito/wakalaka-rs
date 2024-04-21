@@ -28,7 +28,7 @@ pub(super) async fn slowmode(
     #[max = 21600]
     seconds: Option<u16>,
 ) -> Throwable<()> {
-    let seconds = seconds.unwrap_or(0); // Back to being chronically online if none specified.
+    let seconds = seconds.unwrap_or(0); // Without providance of seconds, slowmode is no more.
 
     let author = ctx.author();
     let author_name = &author.name;
@@ -49,10 +49,10 @@ pub(super) async fn slowmode(
 
         let ctx_guild_channel_id = ctx_guild_channel.id;
 
-        let guild_channel = guild_channel.as_ref().unwrap_or(&ctx_guild_channel); // We do a little slowmode on EVERY. SINGLE. CHANNEL. if none specified.
+        let guild_channel = guild_channel.as_ref().unwrap_or(&ctx_guild_channel); // Without providance of channel, slowmode is everywhere.
         let guild_channel_id = guild_channel.id;
         if guild_channel_id != ctx_guild_channel_id {
-            // Clueless statement. Touch it and I'll tittyfuck your jumper.
+            // Clueless statement.
             continue;
         }
 

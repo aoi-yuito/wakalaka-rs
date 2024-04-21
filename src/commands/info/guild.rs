@@ -37,7 +37,7 @@ pub(super) async fn guild(
         .members
         .iter()
         .filter(|member| !member.1.user.bot && !member.1.user.system)
-        .collect::<Vec<_>>(); // Fuck off. Humans rule!
+        .collect::<Vec<_>>(); // Bots and system users are not a metric for population.
     let guild_channels = guild.channels;
     let guild_created_at = guild_id.created_at();
 

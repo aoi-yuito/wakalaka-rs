@@ -28,7 +28,7 @@ pub(super) async fn nick(
     #[max_length = 32]
     nickname: Option<String>,
 ) -> Throwable<()> {
-    // API doesn't allow changing bot or system user's nickname...
+    // API dislikes changing bot or system user nicknames...
     if commands::is_user_bot_or_system(ctx, &user).await? {
         return Ok(());
     }
@@ -41,12 +41,12 @@ pub(super) async fn nick(
     let user_name = &user.name;
     let user_mention = user.mention();
 
-    let nickname = nickname.unwrap_or(String::new()); // Wipes your nickname if none specified.
+    let nickname = nickname.unwrap_or(String::new()); // Without providance of nickname, is of no more.
 
     let guild = accessors::guilds::fetch_guild(ctx)?;
     let guild_name = &guild.name;
 
-    // ...nor does it allow changing own nickname. What the heck?
+    // ...and so does dislike changing own nickname...
     if user_id == author_id {
         error!("@{author_name} failed to set own nickname to {nickname:?} in {guild_name}");
 

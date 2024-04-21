@@ -28,7 +28,7 @@ pub(crate) async fn handle_interaction_create_event(
         Interaction::Component(interact) => {
             interact
                 .create_response(ctx, CreateInteractionResponse::Acknowledge)
-                .await?; // Keep, so wouldn't have to call it every interaction awaitance. Ever.
+                .await?; // Reduction of repetition in acknowledgement of interaction during execution of each command.
         }
         _ => {
             error!("Unhandled interaction: {interact:?}");

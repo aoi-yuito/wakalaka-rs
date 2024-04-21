@@ -27,7 +27,7 @@ pub(super) async fn hug(
     let user_mention = user.mention();
 
     let result = if author_id == user_id {
-        Err(format!("Cannot hug yourself.")) // This is just depressing...
+        Err(format!("Cannot hug yourself.")) // Depressing...
     } else {
         Ok(format!(":people_hugging: {user_mention}"))
     };
