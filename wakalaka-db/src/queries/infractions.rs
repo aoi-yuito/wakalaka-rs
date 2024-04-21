@@ -41,7 +41,6 @@ pub async fn fetch_created_at_from_db(
     let row = query.fetch_one(pool).await?;
 
     let created_at = row.get::<NaiveDateTime, _>("created_at");
-
     Ok(created_at)
 }
 
@@ -52,7 +51,6 @@ pub async fn fetch_reason_from_db(pool: &SqlitePool, uuid: &Uuid) -> SqlxThrowab
     let row = query.fetch_one(pool).await?;
 
     let reason = row.get::<String, _>("reason");
-
     Ok(reason)
 }
 
@@ -63,7 +61,6 @@ pub async fn fetch_moderator_id_from_db(pool: &SqlitePool, uuid: &Uuid) -> SqlxT
     let row = query.fetch_one(pool).await?;
 
     let moderator_id = UserId::from(row.get::<i64, _>("moderator_id") as u64);
-
     Ok(moderator_id)
 }
 
@@ -74,7 +71,6 @@ pub async fn fetch_user_id_from_db(pool: &SqlitePool, uuid: &Uuid) -> SqlxThrowa
     let row = query.fetch_one(pool).await?;
 
     let user_id = UserId::from(row.get::<i64, _>("user_id") as u64);
-
     Ok(user_id)
 }
 
@@ -85,7 +81,6 @@ pub async fn fetch_guild_id_from_db(pool: &SqlitePool, uuid: &Uuid) -> SqlxThrow
     let row = query.fetch_one(pool).await?;
 
     let guild_id = GuildId::from(row.get::<i64, _>("guild_id") as u64);
-
     Ok(guild_id)
 }
 
@@ -103,7 +98,6 @@ pub async fn fetch_kind_from_db(pool: &SqlitePool, uuid: &Uuid) -> SqlxThrowable
             return Err(sqlx::Error::Decode(BoxDynError::from("Unknown kind")));
         }
     };
-
     Ok(kind)
 }
 
@@ -113,7 +107,6 @@ pub async fn select_uuid_from_db(pool: &SqlitePool, uuid: &Uuid) -> SqlxThrowabl
     let row = query.fetch_one(pool).await?;
 
     let uuid = Uuid::parse_str(&row.get::<String, _>("uuid")).expect("Failed to parse UUID");
-
     Ok(uuid)
 }
 

@@ -21,7 +21,6 @@ pub async fn fetch_created_at_from_db(
     let row = query.fetch_one(pool).await?;
 
     let created_at = row.get::<NaiveDateTime, _>("created_at");
-
     Ok(created_at)
 }
 
@@ -32,7 +31,6 @@ pub async fn fetch_reason_from_db(pool: &SqlitePool, user_id: &UserId) -> SqlxTh
     let row = query.fetch_one(pool).await?;
 
     let reason = row.get::<String, _>("reason");
-
     Ok(reason)
 }
 
@@ -43,7 +41,6 @@ pub async fn fetch_user_id_from_db(pool: &SqlitePool, user_id: &UserId) -> SqlxT
     let row = query.fetch_one(pool).await?;
 
     let user_id = UserId::from(row.get::<i64, _>("user_id") as u64);
-
     Ok(user_id)
 }
 

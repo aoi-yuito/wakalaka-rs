@@ -21,7 +21,6 @@ pub async fn fetch_created_at_from_db(
     let row = query.fetch_one(pool).await?;
 
     let created_at = row.get::<NaiveDateTime, _>("created_at");
-
     Ok(created_at)
 }
 
@@ -32,7 +31,6 @@ pub async fn fetch_reason_from_db(pool: &SqlitePool, guild_id: &GuildId) -> Sqlx
     let row = query.fetch_one(pool).await?;
 
     let reason = row.get::<String, _>("reason");
-
     Ok(reason)
 }
 
@@ -46,7 +44,6 @@ pub async fn fetch_guild_id_from_db(
     let row = query.fetch_one(pool).await?;
 
     let guild_id = GuildId::from(row.get::<i64, _>("guild_id") as u64);
-
     Ok(guild_id)
 }
 
@@ -81,7 +78,7 @@ pub async fn add_restricted_guild_to_db(
     let transaction = pool.begin().await?;
 
     let insert = sqlx::query(
-        "INSERT INTO restricted_guilds (guild_id, reasonl, created_at) VALUES (?, ?, ?)",
+        "INSERT INTO restricted_guilds (guild_id, reason, created_at) VALUES (?, ?, ?)",
     )
     .bind(i64::from(*guild_id))
     .bind(reason.trim())
@@ -93,7 +90,7 @@ pub async fn add_restricted_guild_to_db(
             // UNIQUE constraint failed
             return Ok(());
         }
-        
+
         error!("Failed to add restricted guild to database: {e:?}");
 
         transaction.rollback().await?;

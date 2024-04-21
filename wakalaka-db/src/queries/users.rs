@@ -15,7 +15,6 @@ pub async fn fetch_infractions_from_db(pool: &SqlitePool, user_id: &UserId) -> S
     let row = query.fetch_one(pool).await?;
 
     let infractions = row.get::<i64, _>("infractions");
-
     Ok(infractions)
 }
 
@@ -26,7 +25,6 @@ pub async fn fetch_user_id_from_db(pool: &SqlitePool, user_id: &UserId) -> SqlxT
     let row = query.fetch_one(pool).await?;
 
     let user_id = UserId::from(row.get::<i64, _>("user_id") as u64);
-
     Ok(user_id)
 }
 

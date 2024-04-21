@@ -42,7 +42,6 @@ pub async fn fetch_owner_id_from_db(
     let row = query.fetch_one(pool).await?;
 
     let owner_id = UserId::from(row.get::<i64, _>("owner_id") as u64);
-
     Ok(owner_id)
 }
 
@@ -56,7 +55,6 @@ pub async fn fetch_guild_id_from_db(
     let row = query.fetch_one(pool).await?;
 
     let guild_id = GuildId::from(row.get::<i64, _>("guild_id") as u64);
-
     Ok(guild_id)
 }
 
@@ -99,7 +97,7 @@ pub async fn add_guild_to_db(
             // UNIQUE constraint failed
             return Ok(());
         }
-        
+
         error!("Failed to add guild to database: {e:?}");
 
         transaction.rollback().await?;
