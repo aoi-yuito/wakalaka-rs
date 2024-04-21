@@ -22,7 +22,7 @@ const CARGO_REPOSITORY: &str = env!("CARGO_PKG_REPOSITORY");
 
 lazy_static::lazy_static! {
     static ref RES_MASCOT_IMAGE_URL: String = format!(
-        "https://raw.githubusercontent.com/{CARGO_AUTHORS}/{CARGO_NAME}/dev/resources/waka_lichtstern.png"
+        "https://raw.githubusercontent.com/{CARGO_AUTHORS}/{CARGO_NAME}-rs/dev/resources/waka_lichtstern.png"
     );
 }
 
