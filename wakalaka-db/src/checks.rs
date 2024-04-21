@@ -32,9 +32,9 @@ pub async fn is_guild_restricted(
                 In the meantime, take a moment to think about what went down, because this is irreversible."#
         ));
 
-        guild_owner.dm(ctx, message).await?;
-
-        guild.leave(ctx).await?;
+        if let Err(e) = guild_owner.dm(ctx, message).await {
+            tracing::error!("Failed to DM {guild_owner_id}: {e:?}");
+        }
 
         return Ok(true);
     }
