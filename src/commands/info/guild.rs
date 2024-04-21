@@ -3,7 +3,7 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
-use serenity::all::{CreateEmbedAuthor, CreateEmbedFooter, Guild, User};
+use serenity::all::{CreateEmbedAuthor, CreateEmbedFooter, Guild};
 use wakalaka_core::types::{Context, Throwable};
 use wakalaka_utils::{accessors, builders};
 
@@ -37,7 +37,7 @@ pub(super) async fn guild(
         .members
         .iter()
         .filter(|member| !member.1.user.bot && !member.1.user.system)
-        .collect::<Vec<_>>();
+        .collect::<Vec<_>>(); // Fuck off. Humans rule!
     let guild_channels = guild.channels;
     let guild_created_at = guild_id.created_at();
 

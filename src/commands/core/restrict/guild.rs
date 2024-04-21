@@ -50,6 +50,7 @@ pub(super) async fn guild(
                     "{guild_name:?} is already restricted from having yours truly in it."
                 )),
                 _ => {
+                    // Too afraid of Discord shutting down my application over bad servers doing bad stuffs.
                     queries::restricted_guilds::add_restricted_guild_to_db(
                         db,
                         guild_id,
@@ -58,6 +59,7 @@ pub(super) async fn guild(
                     )
                     .await?;
 
+                    // さよなら！
                     queries::restricted_users::add_restricted_user_to_db(
                         db,
                         guild_owner_id,
