@@ -16,7 +16,7 @@ use wakalaka_utils::builders;
 /// Get information about a user.
 pub(super) async fn user(
     ctx: Context<'_>,
-    #[description = "User to get information of."] user: Option<User>,
+    #[description = "User to get information about, if any."] user: Option<User>,
 ) -> Throwable<()> {
     let author = ctx.author();
 
