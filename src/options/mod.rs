@@ -5,7 +5,6 @@
 
 mod command_check;
 mod on_error;
-mod post_command;
 
 use poise::{FrameworkOptions, PrefixFrameworkOptions};
 use wakalaka_core::{types::Error, Data};
@@ -16,7 +15,6 @@ pub(super) async fn fetch_framework_options() -> FrameworkOptions<Data, Error> {
     FrameworkOptions {
         commands: commands::gather_all_commands().await,
         on_error: |error| Box::pin(on_error::handle_on_error_option(error)),
-        post_command: |ctx| Box::pin(post_command::handle_post_command_option(ctx)),
         command_check: Some(|ctx| Box::pin(command_check::handle_command_check_option(ctx))),
         event_handler: |ctx, event, framework_ctx, data| {
             Box::pin(events::handle_event_handler_option(

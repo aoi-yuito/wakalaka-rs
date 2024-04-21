@@ -6,6 +6,7 @@
 mod category;
 mod channel;
 mod guild;
+mod interaction;
 mod invite;
 mod ready;
 mod thread;
@@ -78,6 +79,10 @@ pub async fn handle_event_handler_option(
         }
         FullEvent::GuildUpdate { new_data, .. } => {
             guild::guild_update::handle_guild_update_event(new_data, db).await?
+        }
+        FullEvent::InteractionCreate { interaction } => {
+            interaction::interaction_create::handle_interaction_create_event(ctx, interaction)
+                .await?
         }
         FullEvent::InviteCreate { data } => {
             invite::invite_create::handle_invite_create_event(ctx, data).await?
