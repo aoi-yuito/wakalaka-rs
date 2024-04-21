@@ -34,7 +34,7 @@ pub(super) async fn eightball(
         let answer = answers
             .choose(&mut rng)
             .and_then(|answers| Some(format!("{answers}")))
-            .expect("No answers found.");
+            .expect("No answers found");
 
         let author = ctx.author();
         let author_mention = author.mention();
