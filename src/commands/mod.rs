@@ -29,6 +29,7 @@ pub(crate) async fn gather_all_commands() -> Vec<Command> {
     commands.extend(core::commands().await);
     commands.extend(fun::commands().await);
     commands.extend(info::commands().await);
+    commands.extend(manager::commands().await);
     commands
 }
 
