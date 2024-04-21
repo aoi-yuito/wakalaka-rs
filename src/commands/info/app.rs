@@ -13,12 +13,12 @@ use wakalaka_utils::builders;
 #[poise::command(
     slash_command,
     category = "Information",
-    required_bot_permissions = "SEND_MESSAGES",
+    required_bot_permissions = "SEND_MESSAGES | EMBED_LINKS",
     user_cooldown = 5,
     ephemeral
 )]
 /// Get information about yours truly.
-pub(super) async fn about(ctx: Context<'_>) -> Throwable<()> {
+pub(super) async fn app(ctx: Context<'_>) -> Throwable<()> {
     let http = ctx.http();
 
     let bot = http.get_current_user().await?;
