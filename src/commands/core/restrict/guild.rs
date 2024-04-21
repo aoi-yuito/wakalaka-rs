@@ -47,7 +47,7 @@ pub(super) async fn guild(
 
             match queries::restricted_guilds::fetch_guild_id_from_db(db, guild_id).await {
                 Ok(_) => Err(format!(
-                    "{guild_name} is already restricted from having yours truly in it."
+                    "{guild_name:?} is already restricted from having yours truly in it."
                 )),
                 _ => {
                     queries::restricted_guilds::add_restricted_guild_to_db(
@@ -67,7 +67,7 @@ pub(super) async fn guild(
                     .await?;
 
                     Ok(format!(
-                        "{guild_name} has been restricted from having yours truly in it."
+                        "{guild_name:?} has been restricted from having yours truly in it."
                     ))
                 }
             }
@@ -76,7 +76,7 @@ pub(super) async fn guild(
 
     let reply = match result {
         Ok(msg) => builders::replies::build_success_reply_with_embed(msg, true),
-        Err(msg) => builders::replies::build_error_reply_with_embed(msg, true),
+        Err(msg) => builders::replies::build_warning_reply_with_embed(msg, true),
     };
 
     ctx.send(reply).await?;

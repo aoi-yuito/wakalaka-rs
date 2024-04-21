@@ -72,7 +72,7 @@ pub(super) async fn user(
 
     let reply = match result {
         Ok(msg) => builders::replies::build_success_reply_with_embed(msg, true),
-        Err(msg) => builders::replies::build_error_reply_with_embed(msg, true),
+        Err(msg) => builders::replies::build_warning_reply_with_embed(msg, true),
     };
 
     ctx.send(reply).await?;
