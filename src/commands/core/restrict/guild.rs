@@ -41,31 +41,32 @@ pub(super) async fn guild(
             "Cannot restrict your own server from having yours truly in it."
         )),
         _ => {
-            if let Ok(_) = queries::restricted_guilds::fetch_guild_id_from_db(db, guild_id).await {
-                Err(format!(
+            match queries::restricted_guilds::fetch_guild_id_from_db(db, guild_id).await {
+                Ok(_) => Err(format!(
                     "{guild_name} is already restricted from having yours truly in it."
-                ))
-            } else {
-                queries::restricted_guilds::add_restricted_guild_to_db(
-                    db,
-                    guild_id,
-                    &reason,
-                    guild_created_at,
-                )
-                .await?;
+                )),
+                _ => {
+                    queries::restricted_guilds::add_restricted_guild_to_db(
+                        db,
+                        guild_id,
+                        &reason,
+                        guild_created_at,
+                    )
+                    .await?;
 
-                // Oh yeah, the owner of this server can go fuck a pair of tits...
-                queries::restricted_users::add_restricted_user_to_db(
-                    db,
-                    guild_owner_id,
-                    &reason,
-                    guild_owner_created_at,
-                )
-                .await?;
+                    // Simply get your tits fucked...
+                    queries::restricted_users::add_restricted_user_to_db(
+                        db,
+                        guild_owner_id,
+                        &reason,
+                        guild_owner_created_at,
+                    )
+                    .await?;
 
-                Ok(format!(
-                    "{guild_name} has been restricted from having yours truly in it."
-                ))
+                    Ok(format!(
+                        "{guild_name} has been restricted from having yours truly in it."
+                    ))
+                }
             }
         }
     };

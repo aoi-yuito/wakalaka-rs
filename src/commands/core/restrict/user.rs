@@ -50,22 +50,23 @@ pub(super) async fn user(
             // If our silly friend isn't in the database yet, add them.
             queries::users::add_user_to_db(db, user_id, user_created_at).await?;
 
-            if let Ok(_) = queries::restricted_users::fetch_user_id_from_db(db, user_id).await {
-                Err(format!(
+            match queries::restricted_users::fetch_user_id_from_db(db, user_id).await {
+                Ok(_) => Err(format!(
                     "{user_mention} is already restricted from using yours truly."
-                ))
-            } else {
-                queries::restricted_users::add_restricted_user_to_db(
-                    db,
-                    user_id,
-                    &reason,
-                    user_created_at,
-                )
-                .await?;
+                )),
+                _ => {
+                    queries::restricted_users::add_restricted_user_to_db(
+                        db,
+                        user_id,
+                        &reason,
+                        user_created_at,
+                    )
+                    .await?;
 
-                Ok(format!(
-                    "{user_mention} has been restricted from using yours truly."
-                ))
+                    Ok(format!(
+                        "{user_mention} has been restricted from using yours truly."
+                    ))
+                }
             }
         }
     };
