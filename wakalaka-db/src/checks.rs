@@ -5,6 +5,7 @@
 
 use serenity::all::{Guild, UserId};
 use sqlx::SqlitePool;
+use tracing::error;
 use wakalaka_core::{
     consts,
     types::{Context, SContext, Throwable},
@@ -35,7 +36,7 @@ pub async fn is_guild_restricted(
         ));
 
         if let Err(e) = guild_owner.dm(ctx, message).await {
-            tracing::error!("Failed to DM {guild_owner_id}: {e:?}");
+            error!("Failed to DM {guild_owner_id}: {e:?}");
         }
 
         return Ok(true);
