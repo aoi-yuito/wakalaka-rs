@@ -45,7 +45,7 @@ pub(crate) async fn roll(
 
     let result = if dices.contains(&sides) {
         Ok(format!(
-            ":game_die: {author_mention} rolled `{roll_result}` and got `{roll}`!",
+            ":game_die: {author_mention} rolled `{roll_result}` and got `{roll}`.",
         ))
     } else {
         Err(format!("`{number}` is not a valid dice size."))

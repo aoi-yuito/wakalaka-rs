@@ -92,10 +92,13 @@ async fn handle_argument_parse_error(e: Error, input: Option<String>, ctx: Conte
 }
 
 async fn handle_command_error(e: Error, ctx: Context<'_>) {
+    let author = ctx.author();
+    let author_name = &author.name;
+
     let command = ctx.command();
     let command_qname = &command.qualified_name;
 
-    error!("An error occurred while executing /{command_qname}: {e:?}");
+    error!("@{author_name} failed to execute /{command_qname}: {e:?}");
 
     let reply = builders::replies::build_error_reply_with_embed(
         format!("An error occurred while executing `{command_qname}`."),

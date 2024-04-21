@@ -24,7 +24,7 @@ pub(super) async fn flip(ctx: Context<'_>) -> Throwable<()> {
     let flip_result = if flipped { "heads" } else { "tails" };
 
     let reply = builders::replies::build_reply_with_embed(
-        format!(":coin: {author_mention} flipped a coin and got `{flip_result}`!"),
+        format!(":coin: {author_mention} flipped a coin and got `{flip_result}`."),
         false,
     );
 
