@@ -6,7 +6,7 @@
 use serenity::all::Guild;
 use wakalaka_core::types::{Context, Throwable};
 use wakalaka_db::queries;
-use wakalaka_utils::builders;
+use wakalaka_utils::{accessors, builders};
 
 #[poise::command(
     slash_command,
@@ -29,18 +29,22 @@ pub(super) async fn guild(
     let data = ctx.data();
     let db = &data.db;
 
+    let ctx_guild = accessors::guilds::fetch_guild(ctx)?;
+    let ctx_guild_id = ctx_guild.id;
+
     let guild_name = &guild.name;
     let guild_id = &guild.id;
-    let guild_created_at = &guild_id.created_at();
 
     let guild_owner_id = &guild.owner_id;
     let guild_owner_created_at = &guild_owner_id.created_at();
 
     let result = match queries::guilds::fetch_guild_id_from_db(db, guild_id).await {
-        Ok(db_guild_id) if *guild_id == db_guild_id => Err(format!(
+        Ok(_) if *guild_id == ctx_guild_id => Err(format!(
             "Cannot restrict your own server from having yours truly in it."
         )),
         _ => {
+            let guild_created_at = &guild_id.created_at();
+
             match queries::restricted_guilds::fetch_guild_id_from_db(db, guild_id).await {
                 Ok(_) => Err(format!(
                     "{guild_name} is already restricted from having yours truly in it."
@@ -54,7 +58,6 @@ pub(super) async fn guild(
                     )
                     .await?;
 
-                    // Simply get your tits fucked...
                     queries::restricted_users::add_restricted_user_to_db(
                         db,
                         guild_owner_id,
@@ -77,6 +80,8 @@ pub(super) async fn guild(
     };
 
     ctx.send(reply).await?;
+
+    guild.leave(ctx).await?;
 
     Ok(())
 }
