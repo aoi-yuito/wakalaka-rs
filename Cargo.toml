@@ -1,5 +1,5 @@
 [package]
-name = "wakalaka-rs"
+name = "wakalaka"
 version.workspace = true
 edition.workspace = true
 authors.workspace = true
