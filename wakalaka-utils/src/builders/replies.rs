@@ -49,7 +49,6 @@ pub fn build_reply_with_optional_embed(
 
     if let Some(embed) = embed {
         CreateReply::default()
-            .content(text)
             .embed(embed.clone())
             .ephemeral(ephemeral)
     } else {

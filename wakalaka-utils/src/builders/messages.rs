@@ -46,7 +46,7 @@ pub fn build_message_with_optional_embed(
     let text = text.into();
 
     if let Some(embed) = embed {
-        CreateMessage::default().content(text).embed(embed.clone())
+        CreateMessage::default().embed(embed.clone())
     } else {
         CreateMessage::default().content(text)
     }

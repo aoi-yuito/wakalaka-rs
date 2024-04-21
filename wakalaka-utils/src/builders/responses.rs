@@ -60,7 +60,6 @@ pub fn build_response_with_optional_embed(
 
     let response_message = if let Some(embed) = embed {
         CreateInteractionResponseMessage::new()
-            .content(format!("{text}"))
             .embed(embed.clone())
             .ephemeral(ephemeral)
     } else {
