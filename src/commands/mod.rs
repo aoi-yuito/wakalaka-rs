@@ -28,6 +28,7 @@ pub(crate) async fn register_guild_commands(ctx: &SContext, guild_id: &GuildId) 
 pub(crate) async fn gather_all_commands() -> Vec<Command> {
     let mut commands = vec![];
     commands.extend(core::commands().await);
+    commands.extend(fun::commands().await);
     commands
 }
 
