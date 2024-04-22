@@ -47,7 +47,7 @@ pub(super) async fn guild(
 
             match queries::restricted_guilds::fetch_guild_id_from_db(db, guild_id).await {
                 Ok(_) => Err(format!(
-                    "{guild_name:?} is already restricted from having yours truly in it."
+                    "`{guild_name}` is already restricted from having yours truly in it."
                 )),
                 _ => {
                     // Bad servers doing bad stuffs may prompt Discord to shut us down, so...
@@ -69,7 +69,7 @@ pub(super) async fn guild(
                     .await?;
 
                     Ok(format!(
-                        "{guild_name:?} has been restricted from having yours truly in it."
+                        "`{guild_name}` has been restricted from having yours truly in it."
                     ))
                 }
             }

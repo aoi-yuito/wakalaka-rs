@@ -72,7 +72,7 @@ pub(super) async fn nick(
                 info!("@{author_name} set {user_name}'s nickname to {nickname:?} in {guild_name}");
 
                 Ok(format!(
-                    "{user_mention}'s nickname has been set to {nickname:?}."
+                    "{user_mention}'s nickname has been set to `{nickname}`."
                 ))
             }
         }
@@ -91,7 +91,7 @@ pub(super) async fn nick(
                 );
 
                 Err(format!(
-                    "An error occurred while setting {user_mention}'s nickname to {nickname:?}."
+                    "An error occurred while setting {user_mention}'s nickname to `{nickname}`."
                 ))
             }
         }

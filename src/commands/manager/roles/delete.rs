@@ -36,7 +36,7 @@ pub(super) async fn delete(
         Ok(_) => {
             info!("@{author_name} deleted @{role_name} in {guild_name}");
 
-            Ok(format!("{role_name:?} has been deleted."))
+            Ok(format!("`@{role_name}` has been deleted."))
         }
         Err(e) => {
             error!("@{author_name} failed to delete @{role_name} in {guild_name}: {e:?}");
