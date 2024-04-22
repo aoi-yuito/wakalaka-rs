@@ -4,13 +4,13 @@
 // https://opensource.org/licenses/MIT
 
 use serenity::all::{Timestamp, UserId};
-use sqlx::{types::chrono::DateTime, Row, SqlitePool};
+use sqlx::{types::chrono::DateTime, PgPool, Row};
 use tracing::error;
 use wakalaka_core::types::SqlxThrowable;
 
-pub async fn fetch_infractions_from_db(pool: &SqlitePool, user_id: &UserId) -> SqlxThrowable<i64> {
+pub async fn fetch_infractions_from_db(pool: &PgPool, user_id: &UserId) -> SqlxThrowable<i64> {
     let query =
-        sqlx::query("SELECT infractions FROM users WHERE user_id = ?").bind(i64::from(*user_id));
+        sqlx::query("SELECT infractions FROM users WHERE user_id = $1").bind(i64::from(*user_id));
 
     let row = query.fetch_one(pool).await?;
 
@@ -18,9 +18,9 @@ pub async fn fetch_infractions_from_db(pool: &SqlitePool, user_id: &UserId) -> S
     Ok(infractions)
 }
 
-pub async fn fetch_user_id_from_db(pool: &SqlitePool, user_id: &UserId) -> SqlxThrowable<UserId> {
+pub async fn fetch_user_id_from_db(pool: &PgPool, user_id: &UserId) -> SqlxThrowable<UserId> {
     let query =
-        sqlx::query("SELECT user_id FROM users WHERE user_id = ?").bind(i64::from(*user_id));
+        sqlx::query("SELECT user_id FROM users WHERE user_id = $1").bind(i64::from(*user_id));
 
     let row = query.fetch_one(pool).await?;
 
@@ -28,10 +28,10 @@ pub async fn fetch_user_id_from_db(pool: &SqlitePool, user_id: &UserId) -> SqlxT
     Ok(user_id)
 }
 
-pub async fn remove_user_from_db(pool: &SqlitePool, user_id: &UserId) -> SqlxThrowable<()> {
+pub async fn remove_user_from_db(pool: &PgPool, user_id: &UserId) -> SqlxThrowable<()> {
     let transaction = pool.begin().await?;
 
-    let delete = sqlx::query("DELETE FROM users WHERE user_id = ?")
+    let delete = sqlx::query("DELETE FROM users WHERE user_id = $1")
         .bind(i64::from(*user_id))
         .execute(pool);
     if let Err(e) = delete.await {
@@ -48,23 +48,19 @@ pub async fn remove_user_from_db(pool: &SqlitePool, user_id: &UserId) -> SqlxThr
 }
 
 pub async fn add_user_to_db(
-    pool: &SqlitePool,
+    pool: &PgPool,
     user_id: &UserId,
     created_at: &Timestamp,
 ) -> SqlxThrowable<()> {
     let transaction = pool.begin().await?;
 
-    let insert = sqlx::query("INSERT INTO users (user_id, created_at) VALUES (?, ?)")
-        .bind(i64::from(*user_id))
-        .bind(DateTime::from_timestamp(created_at.timestamp(), 0))
-        .execute(pool);
+    let insert = sqlx::query(
+        "INSERT INTO users (user_id, created_at) VALUES ($1, $2) ON CONFLICT (user_id) DO NOTHING",
+    )
+    .bind(i64::from(*user_id))
+    .bind(DateTime::from_timestamp(created_at.timestamp(), 0))
+    .execute(pool);
     if let Err(e) = insert.await {
-        let error = format!("{e:?}");
-        if error.contains("1555") {
-            // UNIQUE constraint failed
-            return Ok(());
-        }
-
         error!("Failed to add user to database: {e:?}");
 
         transaction.rollback().await?;

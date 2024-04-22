@@ -6,16 +6,16 @@
 use serenity::all::{Timestamp, UserId};
 use sqlx::{
     types::chrono::{DateTime, NaiveDateTime},
-    Row, SqlitePool,
+    PgPool, Row,
 };
 use tracing::error;
 use wakalaka_core::types::SqlxThrowable;
 
 pub async fn fetch_created_at_from_db(
-    pool: &SqlitePool,
+    pool: &PgPool,
     user_id: &UserId,
 ) -> SqlxThrowable<NaiveDateTime> {
-    let query = sqlx::query("SELECT created_at FROM restricted_users WHERE user_id = ?")
+    let query = sqlx::query("SELECT created_at FROM restricted_users WHERE user_id = $1")
         .bind(i64::from(*user_id));
 
     let row = query.fetch_one(pool).await?;
@@ -24,8 +24,8 @@ pub async fn fetch_created_at_from_db(
     Ok(created_at)
 }
 
-pub async fn fetch_reason_from_db(pool: &SqlitePool, user_id: &UserId) -> SqlxThrowable<String> {
-    let query = sqlx::query("SELECT reason FROM restricted_users WHERE user_id = ?")
+pub async fn fetch_reason_from_db(pool: &PgPool, user_id: &UserId) -> SqlxThrowable<String> {
+    let query = sqlx::query("SELECT reason FROM restricted_users WHERE user_id = $1")
         .bind(i64::from(*user_id));
 
     let row = query.fetch_one(pool).await?;
@@ -34,8 +34,8 @@ pub async fn fetch_reason_from_db(pool: &SqlitePool, user_id: &UserId) -> SqlxTh
     Ok(reason)
 }
 
-pub async fn fetch_user_id_from_db(pool: &SqlitePool, user_id: &UserId) -> SqlxThrowable<UserId> {
-    let query = sqlx::query("SELECT user_id FROM restricted_users WHERE user_id = ?")
+pub async fn fetch_user_id_from_db(pool: &PgPool, user_id: &UserId) -> SqlxThrowable<UserId> {
+    let query = sqlx::query("SELECT user_id FROM restricted_users WHERE user_id = $1")
         .bind(i64::from(*user_id));
 
     let row = query.fetch_one(pool).await?;
@@ -44,13 +44,10 @@ pub async fn fetch_user_id_from_db(pool: &SqlitePool, user_id: &UserId) -> SqlxT
     Ok(user_id)
 }
 
-pub async fn remove_restricted_user_from_db(
-    pool: &SqlitePool,
-    user_id: &UserId,
-) -> SqlxThrowable<()> {
+pub async fn remove_restricted_user_from_db(pool: &PgPool, user_id: &UserId) -> SqlxThrowable<()> {
     let transaction = pool.begin().await?;
 
-    let delete = sqlx::query("DELETE FROM restricted_users WHERE user_id = ?")
+    let delete = sqlx::query("DELETE FROM restricted_users WHERE user_id = $1")
         .bind(i64::from(*user_id))
         .execute(pool);
     if let Err(e) = delete.await {
@@ -67,7 +64,7 @@ pub async fn remove_restricted_user_from_db(
 }
 
 pub async fn add_restricted_user_to_db(
-    pool: &SqlitePool,
+    pool: &PgPool,
     user_id: &UserId,
     reason: impl Into<&String>,
     created_at: &Timestamp,
@@ -75,18 +72,12 @@ pub async fn add_restricted_user_to_db(
     let transaction = pool.begin().await?;
 
     let insert =
-        sqlx::query("INSERT INTO restricted_users (user_id, reason, created_at) VALUES (?, ?, ?)")
+        sqlx::query("INSERT INTO restricted_users (user_id, reason, created_at) VALUES ($1, $2, $3) ON CONFLICT (user_id) DO NOTHING")
             .bind(i64::from(*user_id))
             .bind(reason.into())
             .bind(DateTime::from_timestamp(created_at.timestamp(), 0))
             .execute(pool);
     if let Err(e) = insert.await {
-        let error = format!("{e:?}");
-        if error.contains("1555") {
-            // UNIQUE constraint failed
-            return Ok(());
-        }
-
         error!("Failed to add restricted user to database: {e:?}");
 
         transaction.rollback().await?;

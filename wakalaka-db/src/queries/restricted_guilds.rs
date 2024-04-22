@@ -6,13 +6,13 @@
 use serenity::all::{GuildId, Timestamp};
 use sqlx::{
     types::chrono::{DateTime, NaiveDateTime},
-    Row, SqlitePool,
+    PgPool, Row,
 };
 use tracing::error;
 use wakalaka_core::types::SqlxThrowable;
 
 pub async fn gather_all_restricted_guilds_from_db(
-    pool: &SqlitePool,
+    pool: &PgPool,
 ) -> SqlxThrowable<Vec<(GuildId, String, NaiveDateTime)>> {
     let query = sqlx::query("SELECT * FROM restricted_guilds");
 
@@ -31,10 +31,10 @@ pub async fn gather_all_restricted_guilds_from_db(
 }
 
 pub async fn fetch_created_at_from_db(
-    pool: &SqlitePool,
+    pool: &PgPool,
     guild_id: &GuildId,
 ) -> SqlxThrowable<NaiveDateTime> {
-    let query = sqlx::query("SELECT created_at FROM restricted_guilds WHERE guild_id = ?")
+    let query = sqlx::query("SELECT created_at FROM restricted_guilds WHERE guild_id = $1")
         .bind(i64::from(*guild_id));
 
     let row = query.fetch_one(pool).await?;
@@ -43,8 +43,8 @@ pub async fn fetch_created_at_from_db(
     Ok(created_at)
 }
 
-pub async fn fetch_reason_from_db(pool: &SqlitePool, guild_id: &GuildId) -> SqlxThrowable<String> {
-    let query = sqlx::query("SELECT reason FROM restricted_guilds WHERE guild_id = ?")
+pub async fn fetch_reason_from_db(pool: &PgPool, guild_id: &GuildId) -> SqlxThrowable<String> {
+    let query = sqlx::query("SELECT reason FROM restricted_guilds WHERE guild_id = $1")
         .bind(i64::from(*guild_id));
 
     let row = query.fetch_one(pool).await?;
@@ -53,11 +53,8 @@ pub async fn fetch_reason_from_db(pool: &SqlitePool, guild_id: &GuildId) -> Sqlx
     Ok(reason)
 }
 
-pub async fn fetch_guild_id_from_db(
-    pool: &SqlitePool,
-    guild_id: &GuildId,
-) -> SqlxThrowable<GuildId> {
-    let query = sqlx::query("SELECT guild_id FROM restricted_guilds WHERE guild_id = ?")
+pub async fn fetch_guild_id_from_db(pool: &PgPool, guild_id: &GuildId) -> SqlxThrowable<GuildId> {
+    let query = sqlx::query("SELECT guild_id FROM restricted_guilds WHERE guild_id = $1")
         .bind(i64::from(*guild_id));
 
     let row = query.fetch_one(pool).await?;
@@ -67,12 +64,12 @@ pub async fn fetch_guild_id_from_db(
 }
 
 pub async fn remove_restricted_guild_from_db(
-    pool: &SqlitePool,
+    pool: &PgPool,
     guild_id: &GuildId,
 ) -> SqlxThrowable<()> {
     let transaction = pool.begin().await?;
 
-    let delete = sqlx::query("DELETE FROM restricted_guilds WHERE guild_id = ?")
+    let delete = sqlx::query("DELETE FROM restricted_guilds WHERE guild_id = $1")
         .bind(i64::from(*guild_id))
         .execute(pool);
     if let Err(e) = delete.await {
@@ -89,7 +86,7 @@ pub async fn remove_restricted_guild_from_db(
 }
 
 pub async fn add_restricted_guild_to_db(
-    pool: &SqlitePool,
+    pool: &PgPool,
     guild_id: &GuildId,
     reason: &String,
     created_at: &Timestamp,
@@ -97,19 +94,13 @@ pub async fn add_restricted_guild_to_db(
     let transaction = pool.begin().await?;
 
     let insert = sqlx::query(
-        "INSERT INTO restricted_guilds (guild_id, reason, created_at) VALUES (?, ?, ?)",
+        "INSERT INTO restricted_guilds (guild_id, reason, created_at) VALUES ($1, $2, $3) ON CONFLICT (guild_id) DO NOTHING",
     )
     .bind(i64::from(*guild_id))
     .bind(reason.trim())
     .bind(DateTime::from_timestamp(created_at.timestamp(), 0))
     .execute(pool);
     if let Err(e) = insert.await {
-        let error = format!("{e:?}");
-        if error.contains("1555") {
-            // UNIQUE constraint failed
-            return Ok(());
-        }
-
         error!("Failed to add restricted guild to database: {e:?}");
 
         transaction.rollback().await?;
