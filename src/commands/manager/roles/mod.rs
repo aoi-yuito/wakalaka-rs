@@ -3,16 +3,20 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
+mod add;
 mod create;
 mod delete;
 mod edit;
+mod remove;
 
-use crate::commands::manager::roles::{create::create, delete::delete, edit::edit};
+use crate::commands::manager::roles::{
+    add::add, create::create, delete::delete, edit::edit, remove::remove,
+};
 use wakalaka_core::types::{Context, Throwable};
 
 #[poise::command(
     slash_command,
-    subcommands("create", "delete", "edit"),
+    subcommands("add", "create", "delete", "edit", "remove"),
     category = "Manager",
     required_permissions = "MANAGE_ROLES",
     required_bot_permissions = "MANAGE_ROLES",
