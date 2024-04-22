@@ -11,5 +11,6 @@ serenity.workspace = true
 sqlx.workspace = true
 tracing.workspace = true
 tracing-subscriber.workspace = true
+uuid.workspace = true
 regex.workspace = true
 wakalaka-core.workspace = true
