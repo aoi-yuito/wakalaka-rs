@@ -95,19 +95,19 @@ If you haven't got Rust, you can get it by following the steps on the [Rust webs
 
 ### Compilation
 
-To compile the project into an application, follow these steps:
+To compile into an executable, follow these steps:
 
-1. Download the project to your computer.
-2. Go to the project directory.
-3. Invoke `cargo build --release` to build the project for general use. Or, type `cargo build` to build the project for use in development.
+1. Either clone or manually download the project.
+2. Navigate to the workspace of the project.
+3. Type `cargo build --release` to build with optimisations or `cargo build` to build with debugging information.
 
 ### Execution
 
-To run the application, follow these steps:
+To use yours truly, follow these steps:
 
-1. `cd` into the `target/releases` or `target/debug` directory, depending on whether you built the project for general development use.
-2. On Linux, grant executability by using `chmod +x ./wakalaka`. On Windows, you can skip this step.
-3. Run by using `./wakalaka` on Linux,`wakalaka.exe` on Windows via Command Prompt or `./wakalaka.exe` via PowerShell.
+1. `cd` into `target/releases` or `target/debug` directory, depending on whether you compiled a `release` or `debug` build.
+   1. _Linux users have to grant executability by typing_ `chmod +x ./wakalaka`.
+2. Run by typing `./wakalaka` on Linux,`wakalaka.exe` on Windows via Command Prompt or `./wakalaka.exe` via PowerShell.
 
 ---
 
