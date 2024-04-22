@@ -7,7 +7,7 @@ use serenity::all::{GuildId, UserId};
 use sqlx::{
     error::BoxDynError,
     types::chrono::{NaiveDateTime, Utc},
-    Row, SqlitePool,
+    PgPool, Row,
 };
 use tracing::error;
 use uuid::Uuid;
@@ -31,12 +31,9 @@ impl Infraction {
     }
 }
 
-pub async fn fetch_created_at_from_db(
-    pool: &SqlitePool,
-    uuid: &Uuid,
-) -> SqlxThrowable<NaiveDateTime> {
+pub async fn fetch_created_at_from_db(pool: &PgPool, uuid: &Uuid) -> SqlxThrowable<NaiveDateTime> {
     let query =
-        sqlx::query("SELECT created_at FROM infractions WHERE uuid = ?").bind(format!("{uuid}"));
+        sqlx::query("SELECT created_at FROM infractions WHERE uuid = $1").bind(format!("{uuid}"));
 
     let row = query.fetch_one(pool).await?;
 
@@ -44,9 +41,9 @@ pub async fn fetch_created_at_from_db(
     Ok(created_at)
 }
 
-pub async fn fetch_reason_from_db(pool: &SqlitePool, uuid: &Uuid) -> SqlxThrowable<String> {
+pub async fn fetch_reason_from_db(pool: &PgPool, uuid: &Uuid) -> SqlxThrowable<String> {
     let query =
-        sqlx::query("SELECT reason FROM infractions WHERE uuid = ?").bind(format!("{uuid}"));
+        sqlx::query("SELECT reason FROM infractions WHERE uuid = $1").bind(format!("{uuid}"));
 
     let row = query.fetch_one(pool).await?;
 
@@ -54,9 +51,9 @@ pub async fn fetch_reason_from_db(pool: &SqlitePool, uuid: &Uuid) -> SqlxThrowab
     Ok(reason)
 }
 
-pub async fn fetch_moderator_id_from_db(pool: &SqlitePool, uuid: &Uuid) -> SqlxThrowable<UserId> {
+pub async fn fetch_moderator_id_from_db(pool: &PgPool, uuid: &Uuid) -> SqlxThrowable<UserId> {
     let query =
-        sqlx::query("SELECT moderator_id FROM infractions WHERE uuid = ?").bind(format!("{uuid}"));
+        sqlx::query("SELECT moderator_id FROM infractions WHERE uuid = $1").bind(format!("{uuid}"));
 
     let row = query.fetch_one(pool).await?;
 
@@ -64,9 +61,9 @@ pub async fn fetch_moderator_id_from_db(pool: &SqlitePool, uuid: &Uuid) -> SqlxT
     Ok(moderator_id)
 }
 
-pub async fn fetch_user_id_from_db(pool: &SqlitePool, uuid: &Uuid) -> SqlxThrowable<UserId> {
+pub async fn fetch_user_id_from_db(pool: &PgPool, uuid: &Uuid) -> SqlxThrowable<UserId> {
     let query =
-        sqlx::query("SELECT user_id FROM infractions WHERE uuid = ?").bind(format!("{uuid}"));
+        sqlx::query("SELECT user_id FROM infractions WHERE uuid = $1").bind(format!("{uuid}"));
 
     let row = query.fetch_one(pool).await?;
 
@@ -74,9 +71,9 @@ pub async fn fetch_user_id_from_db(pool: &SqlitePool, uuid: &Uuid) -> SqlxThrowa
     Ok(user_id)
 }
 
-pub async fn fetch_guild_id_from_db(pool: &SqlitePool, uuid: &Uuid) -> SqlxThrowable<GuildId> {
+pub async fn fetch_guild_id_from_db(pool: &PgPool, uuid: &Uuid) -> SqlxThrowable<GuildId> {
     let query =
-        sqlx::query("SELECT guild_id FROM infractions WHERE uuid = ?").bind(format!("{uuid}"));
+        sqlx::query("SELECT guild_id FROM infractions WHERE uuid = $1").bind(format!("{uuid}"));
 
     let row = query.fetch_one(pool).await?;
 
@@ -84,8 +81,8 @@ pub async fn fetch_guild_id_from_db(pool: &SqlitePool, uuid: &Uuid) -> SqlxThrow
     Ok(guild_id)
 }
 
-pub async fn fetch_kind_from_db(pool: &SqlitePool, uuid: &Uuid) -> SqlxThrowable<Infraction> {
-    let query = sqlx::query("SELECT kind FROM infractions WHERE uuid = ?").bind(format!("{uuid}"));
+pub async fn fetch_kind_from_db(pool: &PgPool, uuid: &Uuid) -> SqlxThrowable<Infraction> {
+    let query = sqlx::query("SELECT kind FROM infractions WHERE uuid = $1").bind(format!("{uuid}"));
 
     let row = query.fetch_one(pool).await?;
 
@@ -101,8 +98,8 @@ pub async fn fetch_kind_from_db(pool: &SqlitePool, uuid: &Uuid) -> SqlxThrowable
     Ok(kind)
 }
 
-pub async fn select_uuid_from_db(pool: &SqlitePool, uuid: &Uuid) -> SqlxThrowable<Uuid> {
-    let query = sqlx::query("SELECT uuid FROM infractions WHERE uuid = ?").bind(format!("{uuid}"));
+pub async fn select_uuid_from_db(pool: &PgPool, uuid: &Uuid) -> SqlxThrowable<Uuid> {
+    let query = sqlx::query("SELECT uuid FROM infractions WHERE uuid = $1").bind(format!("{uuid}"));
 
     let row = query.fetch_one(pool).await?;
 
@@ -110,10 +107,10 @@ pub async fn select_uuid_from_db(pool: &SqlitePool, uuid: &Uuid) -> SqlxThrowabl
     Ok(uuid)
 }
 
-pub async fn remove_infraction_from_db(pool: &SqlitePool, uuid: &Uuid) -> SqlxThrowable<()> {
+pub async fn remove_infraction_from_db(pool: &PgPool, uuid: &Uuid) -> SqlxThrowable<()> {
     let transaction = pool.begin().await?;
 
-    let delete = sqlx::query("DELETE FROM infractions WHERE uuid = ?")
+    let delete = sqlx::query("DELETE FROM infractions WHERE uuid = $1")
         .bind(format!("{uuid}"))
         .execute(pool);
     if let Err(e) = delete.await {
@@ -130,7 +127,7 @@ pub async fn remove_infraction_from_db(pool: &SqlitePool, uuid: &Uuid) -> SqlxTh
 }
 
 pub async fn add_infraction_to_db(
-    pool: &SqlitePool,
+    pool: &PgPool,
     uuid: &Uuid,
     kind: &Infraction,
     guild_id: &GuildId,
@@ -141,7 +138,7 @@ pub async fn add_infraction_to_db(
     let transaction = pool.begin().await?;
 
     let insert = sqlx::query(
-        "INSERT INTO infractions (uuid, kind, guild_id, user_id, moderator_id, reason, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        "INSERT INTO infractions (uuid, kind, guild_id, user_id, moderator_id, reason, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7)",
     )
     .bind(format!("{uuid}"))
     .bind(kind.as_str())
