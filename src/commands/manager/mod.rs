@@ -8,6 +8,7 @@ mod nick;
 mod purge;
 mod roles;
 mod slowmode;
+mod stickers;
 
 use wakalaka_core::types::Command;
 
@@ -17,6 +18,7 @@ pub async fn commands() -> Vec<Command> {
         purge::purge(),
         nick::nick(),
         roles::roles(),
+        stickers::stickers(),
         slowmode::slowmode(),
     ]
 }

@@ -8,3 +8,4 @@ pub mod emojis;
 pub mod guilds;
 pub mod roles;
 pub mod users;
+pub mod stickers;
