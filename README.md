@@ -95,16 +95,19 @@ If you haven't got Rust, you can get it by following the steps on the [Rust webs
 
 ### Compilation
 
-To compile the project, follow these steps:
+To compile the project into an application, follow these steps:
 
 1. Download the project to your computer.
 2. Go to the project directory.
-3. Type `sqlx database create` to create a new database `.db` file.
-   - _If you can't run `sqlx`, you can install it by typing `cargo install sqlx-cli --no-default-features --features sqlite`._
-4. Run `sqlx migrate run` to create the database tables if they don't exist, which they don't if you've just created the database.
-5. Type `cargo build --release` to build the project for general use. Or, type `cargo build` to build the project for use in development.
+3. Invoke `cargo build --release` to build the project for general use. Or, type `cargo build` to build the project for use in development.
 
-The executable will be in the `target` directory.
+### Execution
+
+To run the application, follow these steps:
+
+1. `cd` into the `target/releases` or `target/debug` directory, depending on whether you built the project for general development use.
+2. On Linux, grant executability by using `chmod +x ./wakalaka`. On Windows, you can skip this step.
+3. Run by using `./wakalaka` on Linux,`wakalaka.exe` on Windows via Command Prompt or `./wakalaka.exe` via PowerShell.
 
 ---
 
