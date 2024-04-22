@@ -25,7 +25,6 @@ pub fn html_to_discord_md(mut input: String) -> Throwable<String> {
         (Regex::new(r"<u>(.*?)</u>")?, "__$1__"),
         (Regex::new(r"<s>(.*?)</s>")?, "~~$1~~"),
     ];
-
     for (re, replacement) in replacements {
         input = format!("{}", re.replace_all(&input, replacement));
     }
