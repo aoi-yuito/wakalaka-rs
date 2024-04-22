@@ -24,7 +24,7 @@ pub(super) async fn create(
     #[min_length = 1]
     #[max_length = 100]
     name: String,
-    #[description = "Colour for representing, if any. (RRGGBB)"]
+    #[description = "Colour to give, if any. (RRGGBB)"]
     #[min_length = 6]
     #[max_length = 6]
     colour: Option<String>,
@@ -58,7 +58,7 @@ pub(super) async fn create(
         Err(e) => {
             error!("@{author_name} failed to create @{name} in {guild_name}: {e:?}");
 
-            Err(format!("An error occurred while creating {name:?}."))
+            Err(format!("An error occurred while creating `@{name}`."))
         }
     };
 
