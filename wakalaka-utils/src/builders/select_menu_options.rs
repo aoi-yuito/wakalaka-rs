@@ -3,8 +3,11 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
-use serenity::all::{CreateSelectMenuOption, GuildId, ReactionType};
+use serenity::all::{CreateSelectMenuOption, GuildId, ReactionType, UserId};
 use sqlx::types::chrono::NaiveDateTime;
+use uuid::Uuid;
+
+use wakalaka_core::types::Context;
 
 pub async fn build_restricted_guild_select_menu_option(
     guild_id: &GuildId,
@@ -13,12 +16,35 @@ pub async fn build_restricted_guild_select_menu_option(
 ) -> CreateSelectMenuOption {
     let simple_created_at = format!("{}", created_at.format("%b %d, %Y"));
 
-    CreateSelectMenuOption::new(
-        format!("{guild_id} ({simple_created_at})"),
+    build_select_menu_option_with_emoji(
+        format!("{guild_id} - {simple_created_at}"),
         format!("{guild_id}"),
+        reason.trim(),
+        "⛔",
     )
-    .description(reason.trim())
-    .emoji(ReactionType::Unicode(format!("⛔")))
+}
+
+pub async fn build_warning_select_menu_option(
+    ctx: Context<'_>,
+    uuid: &Uuid,
+    moderator_id: &UserId,
+    reason: &String,
+    created_at: &NaiveDateTime,
+) -> CreateSelectMenuOption {
+    let moderator = moderator_id
+        .to_user(ctx)
+        .await
+        .expect("Failed to fetch moderator by its ID");
+    let moderator_name = &moderator.name;
+
+    let simple_created_at = format!("{}", created_at.format("%b %d, %Y"));
+
+    build_select_menu_option_with_emoji(
+        format!("@{moderator_name} - {simple_created_at}"),
+        format!("{uuid}"),
+        reason.trim(),
+        "⚠️",
+    )
 }
 
 pub fn build_select_menu_option_with_emoji(

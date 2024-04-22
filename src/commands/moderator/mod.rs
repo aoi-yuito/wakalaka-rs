@@ -3,8 +3,11 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
+mod unwarn;
+mod warn;
+
 use wakalaka_core::types::Command;
 
 pub async fn commands() -> Vec<Command> {
-    vec![]
+    vec![unwarn::unwarn(), warn::warn()]
 }
