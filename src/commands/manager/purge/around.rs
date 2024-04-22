@@ -93,12 +93,16 @@ pub(super) async fn around(
                 true => {
                     error!("@{author_name} failed to delete {deletable_msg_count} message in #{channel_name} in {guild_name}: {e:?}");
 
-                    Err(format!("An error occurred while deleting {deletable_msg_count} in {channel_mention}."))
+                    Err(format!(
+                        "An error occurred while deleting {deletable_msg_count} message."
+                    ))
                 }
                 false => {
-                    error!("@{author_name} failed to delete {deletable_msg_count} messages in #{channel_name} in {guild_name}: {e:?}");
+                    error!("@{author_name} failed to delete {deletable_msg_count} messages: {e:?}");
 
-                    Err(format!("An error occurred while deleting {deletable_msg_count} in {channel_mention}."))
+                    Err(format!(
+                        "An error occurred while deleting {deletable_msg_count} messages."
+                    ))
                 }
             };
             error_result
