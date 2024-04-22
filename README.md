@@ -16,11 +16,9 @@
 [![gh_release](https://img.shields.io/github/v/release/Kawaxte/wakalaka-rs?sort=date&logo=github&label=latest&style=for-the-badge)](https://github.com/Kawaxte/wakalaka-rs/releases/latest)
 [![gh_release_pre](https://img.shields.io/github/v/release/Kawaxte/wakalaka-rs?include_prereleases&sort=date&logo=github&label=pre-release&style=for-the-badge)](https://github.com/Kawaxte/wakalaka-rs/releases)
 
-A work-in-progress, self-hostable Discord bot written purely in Rust, inspired by [Red](https://github.com/Cog-Creators/Red-DiscordBot) and [Dyno](https://dyno.gg).
+A work-in-progress, self-hostable Discord bot written in Rust for the general public. She aims to contain enough features to be useful to a small range of users.
 
-_As of now, Wakalaka is in Beta. She's not ready for full-time use, but she's ready for testing and feedback. If you feel like testing her, click [here](https://discord.com/api/oauth2/authorize?client_id=1190718691055251548&permissions=9925535296631&scope=bot) to bring her to your server._
-
-> Keep in mind that my programming skills are far from decent and that I don't consider myself a developer or a programmer. Any issue you have, please report it here instead of keeping it to yourself. I'm always looking for ways to improve my projects, and to ensure I fulfill the requests of other people for the sake of pleasing them. Thanks.
+In case you haven't tried her out and want to, [click here](https://discord.com/api/oauth2/authorize?client_id=1190718691055251548&permissions=9925535296631&scope=bot) to invite her to your server.
 
 ---
 
