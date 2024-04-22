@@ -47,7 +47,7 @@ pub(super) async fn user(
             Err(format!("Cannot restrict yourself from using yours truly."))
         }
         _ => {
-            // In case not in database yet, add you now...
+            // In case not in database yet, add you now ...
             queries::users::add_user_to_db(db, user_id, user_created_at).await?;
 
             match queries::restricted_users::fetch_user_id_from_db(db, user_id).await {
