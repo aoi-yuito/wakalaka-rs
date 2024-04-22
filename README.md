@@ -18,7 +18,7 @@
 
 A work-in-progress, self-hostable Discord bot written in Rust for the general public. She aims to contain enough features to be useful to a small range of users.
 
-In case you haven't tried her out and want to, [click here](https://discord.com/api/oauth2/authorize?client_id=1190718691055251548&permissions=9925535296631&scope=bot) to invite her to your server.
+In case you haven't tried her out and want to, [click here](https://discord.com/oauth2/authorize?client_id=1190718691055251548) to invite her to your server.
 
 ---
 
