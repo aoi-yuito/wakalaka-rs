@@ -17,9 +17,9 @@ name: Rust
 
 on:
   push:
-    branches: [ "stable" ]
+    branches: [ "main" ]
   pull_request:
-    branches: [ "stable" ]
+    branches: [ "main" ]
 
 env:
   CARGO_TERM_COLOR: always
