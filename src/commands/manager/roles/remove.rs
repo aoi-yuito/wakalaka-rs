@@ -4,7 +4,7 @@
 // https://opensource.org/licenses/MIT
 
 use serenity::all::{Member, Mentionable, Role};
-use tracing::{error, info};
+
 use wakalaka_core::types::{Context, Throwable};
 use wakalaka_utils::{accessors, builders};
 
@@ -39,14 +39,14 @@ pub(super) async fn remove(
 
     let result = match member.remove_role(ctx, role_id).await {
         Ok(_) => {
-            info!("@{author_name} removed @{role_name} from @{user_name} in {guild_name}");
+            tracing::info!("@{author_name} removed @{role_name} from @{user_name} in {guild_name}");
 
             Ok(format!(
                 "{role_mention} has been removed from {user_mention}."
             ))
         }
         Err(e) => {
-            error!(
+            tracing::error!(
                 "@{author_name} failed to remove @{role_name} from @{user_name} in {guild_name}: {e:?}"
             );
 

@@ -5,7 +5,7 @@
 
 use serenity::all::{Guild, UserId};
 use sqlx::PgPool;
-use tracing::error;
+
 use wakalaka_core::{
     consts,
     types::{Context, SContext, Throwable},
@@ -14,11 +14,7 @@ use wakalaka_utils::builders::{messages, replies};
 
 use super::queries;
 
-pub async fn is_guild_restricted(
-    ctx: &SContext,
-    pool: &PgPool,
-    guild: &Guild,
-) -> Throwable<bool> {
+pub async fn is_guild_restricted(ctx: &SContext, pool: &PgPool, guild: &Guild) -> Throwable<bool> {
     let guild_id = &guild.id;
     let guild_name = &guild.name;
     let guild_owner_id = guild.owner_id;
@@ -36,7 +32,7 @@ pub async fn is_guild_restricted(
         ));
 
         if let Err(e) = guild_owner.dm(ctx, message).await {
-            error!("Failed to DM {guild_owner_id}: {e:?}");
+            tracing::error!("Failed to DM {guild_owner_id}: {e:?}");
         }
 
         return Ok(true);

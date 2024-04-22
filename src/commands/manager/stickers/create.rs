@@ -4,7 +4,7 @@
 // https://opensource.org/licenses/MIT
 
 use serenity::all::{Attachment, CreateAttachment, CreateSticker, PremiumTier};
-use tracing::{error, info};
+
 use wakalaka_core::{
     consts,
     types::{Context, Throwable},
@@ -118,12 +118,12 @@ pub(super) async fn create(
 
     let result = match guild.create_sticker(ctx, sticker).await {
         Ok(_) => {
-            info!("@{author_name} created {name:?} in {guild_name}");
+            tracing::info!("@{author_name} created {name:?} in {guild_name}");
 
             Ok(format!("`{name}` has been created."))
         }
         Err(e) => {
-            error!("@{author_name} failed to create {name:?} in {guild_name}: {e:?}");
+            tracing::error!("@{author_name} failed to create {name:?} in {guild_name}: {e:?}");
 
             Err(format!("An error occurred while creating `{name}`."))
         }

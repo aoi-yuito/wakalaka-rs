@@ -4,7 +4,7 @@
 // https://opensource.org/licenses/MIT
 
 use serenity::all::{Colour, EditRole, Mentionable};
-use tracing::{error, info};
+
 use wakalaka_core::types::{Context, Throwable};
 use wakalaka_utils::{accessors, builders};
 
@@ -51,12 +51,12 @@ pub(super) async fn create(
         Ok(role) => {
             let role_mention = role.mention();
 
-            info!("@{author_name} created @{name} in {guild_name}");
+            tracing::info!("@{author_name} created @{name} in {guild_name}");
 
             Ok(format!("{role_mention} has been created."))
         }
         Err(e) => {
-            error!("@{author_name} failed to create @{name} in {guild_name}: {e:?}");
+            tracing::error!("@{author_name} failed to create @{name} in {guild_name}: {e:?}");
 
             Err(format!("An error occurred while creating `@{name}`."))
         }

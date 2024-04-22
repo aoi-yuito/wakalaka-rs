@@ -4,7 +4,7 @@
 // https://opensource.org/licenses/MIT
 
 use serenity::all::InviteDeleteEvent;
-use tracing::info;
+
 use wakalaka_core::types::{SContext, Throwable};
 use wakalaka_utils::accessors;
 
@@ -23,7 +23,7 @@ pub(crate) async fn handle_invite_delete_event(
 
     let code = &delete_evt.code;
 
-    info!("Deleted {code} from {guild_name}");
+    tracing::info!("Deleted {code} from {guild_name}");
 
     Ok(())
 }

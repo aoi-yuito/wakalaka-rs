@@ -6,7 +6,7 @@
 use std::time::Duration;
 
 use serenity::all::{Mentionable, Permissions};
-use tracing::error;
+
 use wakalaka_core::types::{Context, Error, FrameworkError};
 use wakalaka_utils::builders;
 
@@ -74,7 +74,7 @@ async fn handle_argument_parse_error(e: Error, input: Option<String>, ctx: Conte
             "{input:?} is not a valid argument for `{command_qname}`."
         ))
     } else {
-        error!("Failed to parse argument for /{command_qname}: {e:?}");
+        tracing::error!("Failed to parse argument for /{command_qname}: {e:?}");
 
         Err(format!(
             "An error occurred while parsing argument for `{command_qname}`."
@@ -87,7 +87,7 @@ async fn handle_argument_parse_error(e: Error, input: Option<String>, ctx: Conte
     };
 
     if let Err(e) = ctx.send(reply).await {
-        error!("Failed to send reply: {e:?}");
+        tracing::error!("Failed to send reply: {e:?}");
     }
 }
 
@@ -98,7 +98,7 @@ async fn handle_command_error(e: Error, ctx: Context<'_>) {
     let command = ctx.command();
     let command_qname = &command.qualified_name;
 
-    error!("@{author_name} failed to execute /{command_qname}: {e:?}");
+    tracing::error!("@{author_name} failed to execute /{command_qname}: {e:?}");
 
     let reply = builders::replies::build_error_reply_with_embed(
         format!("An error occurred while executing `{command_qname}`."),
@@ -106,7 +106,7 @@ async fn handle_command_error(e: Error, ctx: Context<'_>) {
     );
 
     if let Err(e) = ctx.send(reply).await {
-        error!("Failed to send reply: {e:?}");
+        tracing::error!("Failed to send reply: {e:?}");
     }
 }
 
@@ -129,7 +129,7 @@ async fn handle_cooldown_hit_error(cooldown: Duration, ctx: Context<'_>) {
     };
 
     if let Err(e) = ctx.send(reply).await {
-        error!("Failed to send reply: {e:?}");
+        tracing::error!("Failed to send reply: {e:?}");
     }
 }
 
@@ -143,7 +143,7 @@ async fn handle_dm_only_error(ctx: Context<'_>) {
     );
 
     if let Err(e) = ctx.send(reply).await {
-        error!("Failed to send reply: {e:?}");
+        tracing::error!("Failed to send reply: {e:?}");
     }
 }
 
@@ -157,7 +157,7 @@ async fn handle_guild_only_error(ctx: Context<'_>) {
     );
 
     if let Err(e) = ctx.send(reply).await {
-        error!("Failed to send reply: {e:?}");
+        tracing::error!("Failed to send reply: {e:?}");
     }
 }
 
@@ -181,7 +181,7 @@ async fn handle_missing_bot_permissions_error(permissions: Permissions, ctx: Con
     );
 
     if let Err(e) = ctx.send(reply).await {
-        error!("Failed to send reply: {e:?}");
+        tracing::error!("Failed to send reply: {e:?}");
     }
 }
 
@@ -203,7 +203,7 @@ async fn handle_missing_user_permissions_error(permissions: Option<Permissions>,
     );
 
     if let Err(e) = ctx.send(reply).await {
-        error!("Failed to send reply: {e:?}");
+        tracing::error!("Failed to send reply: {e:?}");
     }
 }
 
@@ -217,7 +217,7 @@ async fn handle_not_an_owner_error(ctx: Context<'_>) {
     );
 
     if let Err(e) = ctx.send(reply).await {
-        error!("Failed to send reply: {e:?}");
+        tracing::error!("Failed to send reply: {e:?}");
     }
 }
 
@@ -231,7 +231,7 @@ async fn handle_nsfw_only_error(ctx: Context<'_>) {
     );
 
     if let Err(e) = ctx.send(reply).await {
-        error!("Failed to send reply: {e:?}");
+        tracing::error!("Failed to send reply: {e:?}");
     }
 }
 
@@ -245,6 +245,6 @@ async fn handle_subcommand_required_error(ctx: Context<'_>) {
     );
 
     if let Err(e) = ctx.send(reply).await {
-        error!("Failed to send reply: {e:?}");
+        tracing::error!("Failed to send reply: {e:?}");
     }
 }

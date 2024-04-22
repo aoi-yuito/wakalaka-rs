@@ -5,7 +5,7 @@
 
 use serenity::all::Guild;
 use sqlx::PgPool;
-use tracing::info;
+
 use wakalaka_core::types::{SContext, Throwable};
 use wakalaka_utils::accessors;
 
@@ -39,7 +39,7 @@ pub(crate) async fn handle_guild_create_event(
 
     let guild_created_at = &guild_id.created_at();
 
-    info!("@{bot_name} joined {guild_name}");
+    tracing::info!("@{bot_name} joined {guild_name}");
 
     if let Err(_) = queries::users::fetch_user_id_from_db(pool, guild_owner_id).await {
         queries::users::add_user_to_db(pool, guild_owner_id, guild_owner_created_at).await?;

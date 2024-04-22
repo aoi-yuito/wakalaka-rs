@@ -5,7 +5,7 @@
 
 use serenity::all::{GuildId, Timestamp, UserId};
 use sqlx::{types::chrono::DateTime, PgPool, Row};
-use tracing::error;
+
 use wakalaka_core::types::SqlxThrowable;
 
 pub async fn update_owner_id_in_db(
@@ -20,7 +20,7 @@ pub async fn update_owner_id_in_db(
         .bind(i64::from(*guild_id))
         .execute(pool);
     if let Err(e) = update.await {
-        error!("Failed to update owner ID in database: {e:?}");
+        tracing::error!("Failed to update owner ID in database: {e:?}");
 
         transaction.rollback().await?;
 
@@ -33,10 +33,10 @@ pub async fn update_owner_id_in_db(
 }
 
 pub async fn fetch_owner_id_from_db(pool: &PgPool, guild_id: &GuildId) -> SqlxThrowable<UserId> {
-    let query =
+    let select =
         sqlx::query("SELECT owner_id FROM guilds WHERE guild_id = $1").bind(i64::from(*guild_id));
 
-    let row = query.fetch_one(pool).await?;
+    let row = select.fetch_one(pool).await?;
 
     let owner_id = UserId::from(row.get::<i64, _>("owner_id") as u64);
     Ok(owner_id)
@@ -59,7 +59,7 @@ pub async fn remove_guild_from_db(pool: &PgPool, guild_id: &GuildId) -> SqlxThro
         .bind(i64::from(*guild_id))
         .execute(pool);
     if let Err(e) = delete.await {
-        error!("Failed to remove guild from database: {e:?}");
+        tracing::error!("Failed to remove guild from database: {e:?}");
 
         transaction.rollback().await?;
 
@@ -86,7 +86,7 @@ pub async fn add_guild_to_db(
             .bind(DateTime::from_timestamp(created_at.timestamp(), 0))
             .execute(pool);
     if let Err(e) = insert.await {
-        error!("Failed to add guild to database: {e:?}");
+        tracing::error!("Failed to add guild to database: {e:?}");
 
         transaction.rollback().await?;
 

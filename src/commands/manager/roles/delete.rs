@@ -4,7 +4,7 @@
 // https://opensource.org/licenses/MIT
 
 use serenity::all::{Mentionable, Role};
-use tracing::{error, info};
+
 use wakalaka_core::types::{Context, Throwable};
 use wakalaka_utils::{accessors, builders};
 
@@ -34,12 +34,12 @@ pub(super) async fn delete(
 
     let result = match guild.delete_role(ctx, role_id).await {
         Ok(_) => {
-            info!("@{author_name} deleted @{role_name} in {guild_name}");
+            tracing::info!("@{author_name} deleted @{role_name} in {guild_name}");
 
             Ok(format!("`@{role_name}` has been deleted."))
         }
         Err(e) => {
-            error!("@{author_name} failed to delete @{role_name} in {guild_name}: {e:?}");
+            tracing::error!("@{author_name} failed to delete @{role_name} in {guild_name}: {e:?}");
 
             Err(format!("An error occurred while deleting {role_mention}."))
         }

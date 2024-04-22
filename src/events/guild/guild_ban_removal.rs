@@ -4,7 +4,7 @@
 // https://opensource.org/licenses/MIT
 
 use serenity::all::{GuildId, User};
-use tracing::info;
+
 use wakalaka_core::types::{SContext, Throwable};
 use wakalaka_utils::accessors;
 
@@ -18,7 +18,7 @@ pub(crate) async fn handle_guild_ban_removal_event(
 
     let user_name = &user.name;
 
-    info!("@{user_name} unbanned from {guild_name}");
+    tracing::info!("@{user_name} unbanned from {guild_name}");
 
     Ok(())
 }

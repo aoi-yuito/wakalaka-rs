@@ -8,17 +8,17 @@ use sqlx::{
     types::chrono::{DateTime, NaiveDateTime},
     PgPool, Row,
 };
-use tracing::error;
+
 use wakalaka_core::types::SqlxThrowable;
 
 pub async fn gather_all_restricted_guilds_from_db(
     pool: &PgPool,
 ) -> SqlxThrowable<Vec<(GuildId, String, NaiveDateTime)>> {
-    let query = sqlx::query("SELECT * FROM restricted_guilds");
+    let select = sqlx::query("SELECT * FROM restricted_guilds");
 
     let mut restricted_guilds = vec![];
 
-    let rows = query.fetch_all(pool).await?;
+    let rows = select.fetch_all(pool).await?;
     for row in rows {
         let guild_id = GuildId::from(row.get::<i64, _>("guild_id") as u64);
         let reason = row.get::<String, _>("reason");
@@ -34,20 +34,20 @@ pub async fn fetch_created_at_from_db(
     pool: &PgPool,
     guild_id: &GuildId,
 ) -> SqlxThrowable<NaiveDateTime> {
-    let query = sqlx::query("SELECT created_at FROM restricted_guilds WHERE guild_id = $1")
+    let select = sqlx::query("SELECT created_at FROM restricted_guilds WHERE guild_id = $1")
         .bind(i64::from(*guild_id));
 
-    let row = query.fetch_one(pool).await?;
+    let row = select.fetch_one(pool).await?;
 
     let created_at = row.get::<NaiveDateTime, _>("created_at");
     Ok(created_at)
 }
 
 pub async fn fetch_reason_from_db(pool: &PgPool, guild_id: &GuildId) -> SqlxThrowable<String> {
-    let query = sqlx::query("SELECT reason FROM restricted_guilds WHERE guild_id = $1")
+    let select = sqlx::query("SELECT reason FROM restricted_guilds WHERE guild_id = $1")
         .bind(i64::from(*guild_id));
 
-    let row = query.fetch_one(pool).await?;
+    let row = select.fetch_one(pool).await?;
 
     let reason = row.get::<String, _>("reason");
     Ok(reason)
@@ -73,7 +73,7 @@ pub async fn remove_restricted_guild_from_db(
         .bind(i64::from(*guild_id))
         .execute(pool);
     if let Err(e) = delete.await {
-        error!("Failed to remove restricted guild from database: {e:?}");
+        tracing::error!("Failed to remove restricted guild from database: {e:?}");
 
         transaction.rollback().await?;
 
@@ -101,7 +101,7 @@ pub async fn add_restricted_guild_to_db(
     .bind(DateTime::from_timestamp(created_at.timestamp(), 0))
     .execute(pool);
     if let Err(e) = insert.await {
-        error!("Failed to add restricted guild to database: {e:?}");
+        tracing::error!("Failed to add restricted guild to database: {e:?}");
 
         transaction.rollback().await?;
 

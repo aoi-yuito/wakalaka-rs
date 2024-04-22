@@ -4,7 +4,7 @@
 // https://opensource.org/licenses/MIT
 
 use serenity::all::{Member, Mentionable, Role};
-use tracing::{error, info};
+
 use wakalaka_core::types::{Context, Throwable};
 use wakalaka_utils::{accessors, builders};
 
@@ -39,12 +39,12 @@ pub(super) async fn add(
 
     let result = match member.add_role(ctx, role_id).await {
         Ok(_) => {
-            info!("@{author_name} added @{role_name} to @{user_name} in {guild_name}");
+            tracing::info!("@{author_name} added @{role_name} to @{user_name} in {guild_name}");
 
             Ok(format!("{role_mention} has been added to {user_mention}."))
         }
         Err(e) => {
-            error!(
+            tracing::error!(
                 "@{author_name} failed to add @{role_name} to @{user_name} in {guild_name}: {e:?}"
             );
 

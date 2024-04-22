@@ -4,7 +4,7 @@
 // https://opensource.org/licenses/MIT
 
 use serenity::all::GuildId;
-use tracing::info;
+
 use wakalaka_core::types::{SContext, Throwable};
 
 use crate::commands;
@@ -15,9 +15,9 @@ pub(crate) async fn handle_cache_ready_event(
 ) -> Throwable<()> {
     let guild_id_count = guild_ids.len();
     if guild_id_count == 1 {
-        info!("Readied cache for {guild_id_count} server");
+        tracing::info!("Readied cache for {guild_id_count} server");
     } else {
-        info!("Readied cache for {guild_id_count} servers");
+        tracing::info!("Readied cache for {guild_id_count} servers");
     }
 
     for guild_id in guild_ids {

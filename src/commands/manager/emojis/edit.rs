@@ -4,7 +4,7 @@
 // https://opensource.org/licenses/MIT
 
 use serenity::all::Emoji;
-use tracing::{error, info};
+
 use wakalaka_core::types::{Context, Throwable};
 use wakalaka_utils::{accessors, builders};
 
@@ -37,12 +37,12 @@ pub(super) async fn edit(
 
     let result = match guild.edit_emoji(ctx, emoji_id, &name).await {
         Ok(_) => {
-            info!("@{author_name} renamed :{emoji_name}: to :{name}: in {guild_name}");
+            tracing::info!("@{author_name} renamed :{emoji_name}: to :{name}: in {guild_name}");
 
             Ok(format!("{emoji_name:?} has been renamed to {name:?}."))
         }
         Err(e) => {
-            error!(
+            tracing::error!(
                 "@{author_name} failed to rename :{emoji_name}: to {name:?} in {guild_name}: {e:?}"
             );
 

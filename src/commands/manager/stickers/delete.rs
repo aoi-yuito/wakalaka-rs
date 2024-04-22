@@ -4,7 +4,7 @@
 // https://opensource.org/licenses/MIT
 
 use serenity::all::StickerId;
-use tracing::{error, info};
+
 use wakalaka_core::types::{Context, Throwable};
 use wakalaka_utils::{accessors, builders};
 
@@ -35,12 +35,14 @@ pub(super) async fn delete(
 
     let result = match guild.delete_sticker(ctx, sticker_id).await {
         Ok(_) => {
-            info!("@{author_name} deleted {sticker_name:?} in {guild_name}");
+            tracing::info!("@{author_name} deleted {sticker_name:?} in {guild_name}");
 
             Ok(format!("`{sticker_name}` has been delete."))
         }
         Err(e) => {
-            error!("@{author_name} failed to delete {sticker_name:?} in {guild_name}: {e:?}");
+            tracing::error!(
+                "@{author_name} failed to delete {sticker_name:?} in {guild_name}: {e:?}"
+            );
 
             Err(format!(
                 "An error occurred while deleting `{sticker_name}`."

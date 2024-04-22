@@ -4,7 +4,7 @@
 // https://opensource.org/licenses/MIT
 
 use serenity::all::{Colour, EditRole, Mentionable, Role};
-use tracing::{error, info};
+
 use wakalaka_core::types::{Context, Throwable};
 use wakalaka_utils::{accessors, builders};
 
@@ -53,12 +53,12 @@ pub(super) async fn edit(
 
     let result = match role.edit(ctx, editable_role).await {
         Ok(_) => {
-            info!("@{author_name} edited @{role_name} in {guild_name}");
+            tracing::info!("@{author_name} edited @{role_name} in {guild_name}");
 
             Ok(format!("{role_mention} has been edited."))
         }
         Err(e) => {
-            error!("@{author_name} failed to edit @{role_name} in {guild_name}: {e:?}");
+            tracing::error!("@{author_name} failed to edit @{role_name} in {guild_name}: {e:?}");
 
             Err(format!("An error occurred while editing {role_mention}."))
         }

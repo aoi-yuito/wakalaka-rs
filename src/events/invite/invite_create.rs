@@ -4,7 +4,7 @@
 // https://opensource.org/licenses/MIT
 
 use serenity::all::InviteCreateEvent;
-use tracing::info;
+
 use wakalaka_core::types::{SContext, Throwable};
 use wakalaka_utils::accessors;
 
@@ -26,9 +26,9 @@ pub(crate) async fn handle_invite_create_event(
     if let Some(inviter) = &create_evt.inviter {
         let inviter_name = &inviter.name;
 
-        info!("@{inviter_name} created {code} to {guild_name}");
+        tracing::info!("@{inviter_name} created {code} to {guild_name}");
     } else {
-        info!("Created {code} to {guild_name}");
+        tracing::info!("Created {code} to {guild_name}");
     }
 
     Ok(())

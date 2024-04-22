@@ -4,7 +4,7 @@
 // https://opensource.org/licenses/MIT
 
 use serenity::all::{EditSticker, StickerId};
-use tracing::{error, info};
+
 use wakalaka_core::types::{Context, Throwable};
 use wakalaka_utils::{accessors, builders};
 
@@ -47,12 +47,14 @@ pub(super) async fn edit(
 
     let result = match guild.edit_sticker(ctx, sticker_id, editable_sticker).await {
         Ok(_) => {
-            info!("@{author_name} edited {sticker_name:?} in {guild_name}");
+            tracing::info!("@{author_name} edited {sticker_name:?} in {guild_name}");
 
             Ok(format!("`{sticker_name}` has been edited."))
         }
         Err(e) => {
-            error!("@{author_name} failed to edit {sticker_name:?} in {guild_name}: {e:?}");
+            tracing::error!(
+                "@{author_name} failed to edit {sticker_name:?} in {guild_name}: {e:?}"
+            );
 
             Err(format!("An error occurred while editing `{sticker_name}`."))
         }

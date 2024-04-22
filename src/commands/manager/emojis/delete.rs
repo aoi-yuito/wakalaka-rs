@@ -4,7 +4,7 @@
 // https://opensource.org/licenses/MIT
 
 use serenity::all::Emoji;
-use tracing::{error, info};
+
 use wakalaka_core::types::{Context, Throwable};
 use wakalaka_utils::{accessors, builders};
 
@@ -33,12 +33,14 @@ pub(super) async fn delete(
 
     let result = match guild.delete_emoji(ctx, emoji_id).await {
         Ok(_) => {
-            info!("@{author_name} deleted :{emoji_name}: in {guild_name}");
+            tracing::info!("@{author_name} deleted :{emoji_name}: in {guild_name}");
 
             Ok(format!("{emoji_name:?} has been deleted."))
         }
         Err(e) => {
-            error!("@{author_name} failed to delete :{emoji_name}: in {guild_name}: {e:?}");
+            tracing::error!(
+                "@{author_name} failed to delete :{emoji_name}: in {guild_name}: {e:?}"
+            );
 
             Err(format!("An error occurred while deleting {emoji_name:?}."))
         }

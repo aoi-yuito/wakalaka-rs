@@ -3,11 +3,10 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
-use tracing::info;
-use wakalaka_core::types::{SContext, SReady, Throwable};
-
 pub(super) mod cache_ready;
 pub(super) mod shards_ready;
+
+use wakalaka_core::types::{SContext, SReady, Throwable};
 
 pub(super) async fn handle_ready_event(ctx: &SContext, ready: &SReady) -> Throwable<()> {
     let bot = &ready.user;
@@ -17,9 +16,9 @@ pub(super) async fn handle_ready_event(ctx: &SContext, ready: &SReady) -> Throwa
 
     let guild_id_count = guild_ids.len();
     if guild_id_count == 1 {
-        info!("Readied @{bot_name} in {guild_id_count} server");
+        tracing::info!("Readied @{bot_name} in {guild_id_count} server");
     } else {
-        info!("Readied @{bot_name} in {guild_id_count} servers");
+        tracing::info!("Readied @{bot_name} in {guild_id_count} servers");
     }
 
     Ok(())

@@ -4,7 +4,7 @@
 // https://opensource.org/licenses/MIT
 
 use serenity::all::{EditMember, Mentionable, User};
-use tracing::{error, info};
+
 use wakalaka_core::types::{Context, Throwable};
 use wakalaka_utils::{accessors, builders};
 
@@ -48,7 +48,9 @@ pub(super) async fn nick(
 
     // ...and so does dislike changing own nickname...
     if user_id == author_id {
-        error!("@{author_name} failed to set own nickname to {nickname:?} in {guild_name}");
+        tracing::error!(
+            "@{author_name} failed to set own nickname to {nickname:?} in {guild_name}"
+        );
 
         let reply =
             builders::replies::build_error_reply_with_embed("Cannot edit your own nickname.", true);
@@ -65,11 +67,13 @@ pub(super) async fn nick(
     let result = match member.edit(ctx, edited_member).await {
         Ok(_) => {
             if nickname.is_empty() {
-                info!("@{author_name} reset {user_name}'s nickname in {guild_name}");
+                tracing::info!("@{author_name} reset {user_name}'s nickname in {guild_name}");
 
                 Ok(format!("{user_mention}'s nickname has been reset."))
             } else {
-                info!("@{author_name} set {user_name}'s nickname to {nickname:?} in {guild_name}");
+                tracing::info!(
+                    "@{author_name} set {user_name}'s nickname to {nickname:?} in {guild_name}"
+                );
 
                 Ok(format!(
                     "{user_mention}'s nickname has been set to `{nickname}`."
@@ -78,7 +82,7 @@ pub(super) async fn nick(
         }
         Err(e) => {
             if nickname.is_empty() {
-                error!(
+                tracing::error!(
                     "@{author_name} failed to reset {user_name}'s nickname in {guild_name}: {e:?}"
                 );
 
@@ -86,7 +90,7 @@ pub(super) async fn nick(
                     "An error occurred while resetting {user_mention}'s nickname."
                 ))
             } else {
-                error!(
+                tracing::error!(
                     "@{author_name} failed to set {user_name}'s nickname to {nickname:?} in {guild_name}: {e:?}"
                 );
 

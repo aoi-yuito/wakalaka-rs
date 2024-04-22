@@ -4,7 +4,7 @@
 // https://opensource.org/licenses/MIT
 
 use serenity::all::{ChannelType, EditChannel, GuildChannel, Mentionable};
-use tracing::{error, info};
+
 use wakalaka_core::types::{Context, Throwable};
 use wakalaka_utils::{accessors, builders};
 
@@ -63,7 +63,7 @@ pub(super) async fn slowmode(
 
         let result = match ctx_guild_channel.edit(ctx, edited_guild_channel).await {
             Ok(_) => {
-                info!("@{author_name} slowed #{guild_channel_name} down in {guild_name}");
+                tracing::info!("@{author_name} slowed #{guild_channel_name} down in {guild_name}");
 
                 if seconds < 1 {
                     Ok(format!("{guild_channel_mention} is no longer slowed down."))
@@ -72,7 +72,7 @@ pub(super) async fn slowmode(
                 }
             }
             Err(e) => {
-                error!("@{author_name} failed to slow #{guild_channel_name} down in {guild_name}: {e:?}");
+                tracing::error!("@{author_name} failed to slow #{guild_channel_name} down in {guild_name}: {e:?}");
 
                 Err(format!(
                     "An error occurred while trying to slow {guild_channel_mention} down."

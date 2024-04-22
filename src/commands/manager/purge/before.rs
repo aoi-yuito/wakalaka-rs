@@ -6,7 +6,7 @@
 use std::sync::Arc;
 
 use serenity::all::{GetMessages, Message};
-use tracing::{error, info};
+
 use wakalaka_core::types::{Context, Throwable};
 use wakalaka_utils::{accessors, builders};
 
@@ -73,12 +73,12 @@ pub(super) async fn before(
         Ok(_) => {
             let success_result = match deletable_msg_count == 1 {
                 true => {
-                    info!("@{author_name} deleted {deletable_msg_count} message in #{channel_name} in {guild_name}");
+                    tracing::info!("@{author_name} deleted {deletable_msg_count} message in #{channel_name} in {guild_name}");
 
                     Ok(format!("`{deletable_msg_count}` message has been deleted."))
                 }
                 false => {
-                    info!("@{author_name} deleted {deletable_msg_count} messages in #{channel_name} in {guild_name}");
+                    tracing::info!("@{author_name} deleted {deletable_msg_count} messages in #{channel_name} in {guild_name}");
 
                     Ok(format!(
                         "`{deletable_msg_count}` messages have been deleted."
@@ -90,14 +90,16 @@ pub(super) async fn before(
         Err(e) => {
             let error_result = match deletable_msg_count == 1 {
                 true => {
-                    error!("@{author_name} failed to delete {deletable_msg_count} message in #{channel_name} in {guild_name}: {e:?}");
+                    tracing::error!("@{author_name} failed to delete {deletable_msg_count} message in #{channel_name} in {guild_name}: {e:?}");
 
                     Err(format!(
                         "An error occurred while deleting {deletable_msg_count} message."
                     ))
                 }
                 false => {
-                    error!("@{author_name} failed to delete {deletable_msg_count} messages: {e:?}");
+                    tracing::error!(
+                        "@{author_name} failed to delete {deletable_msg_count} messages: {e:?}"
+                    );
 
                     Err(format!(
                         "An error occurred while deleting {deletable_msg_count} messages."
