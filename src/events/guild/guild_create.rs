@@ -41,9 +41,13 @@ pub(crate) async fn handle_guild_create_event(
 
     info!("@{bot_name} joined {guild_name}");
 
-    queries::users::add_user_to_db(pool, guild_owner_id, guild_owner_created_at).await?;
+    if let Err(_) = queries::users::fetch_user_id_from_db(pool, guild_owner_id).await {
+        queries::users::add_user_to_db(pool, guild_owner_id, guild_owner_created_at).await?;
+    }
 
-    queries::guilds::add_guild_to_db(pool, guild_id, guild_owner_id, guild_created_at).await?;
+    if let Err(_) = queries::guilds::fetch_guild_id_from_db(pool, guild_id).await {
+        queries::guilds::add_guild_to_db(pool, guild_id, guild_owner_id, guild_created_at).await?;
+    }
 
     Ok(())
 }
