@@ -12,5 +12,10 @@ mod slowmode;
 use wakalaka_core::types::Command;
 
 pub async fn commands() -> Vec<Command> {
-    vec![emojis::emojis(), nick::nick(), slowmode::slowmode()]
+    vec![
+        emojis::emojis(),
+        nick::nick(),
+        roles::roles(),
+        slowmode::slowmode(),
+    ]
 }
