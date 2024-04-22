@@ -4,7 +4,7 @@
 // https://opensource.org/licenses/MIT
 
 use serenity::all::Member;
-use sqlx::SqlitePool;
+use sqlx::PgPool;
 use tracing::info;
 use wakalaka_core::types::{SContext, Throwable};
 use wakalaka_utils::accessors;
@@ -14,7 +14,7 @@ use wakalaka_db::queries;
 pub(crate) async fn handle_guild_member_addition_event(
     ctx: &SContext,
     member: &Member,
-    pool: &SqlitePool,
+    pool: &PgPool,
 ) -> Throwable<()> {
     let user = &member.user;
     if user.bot || user.system {

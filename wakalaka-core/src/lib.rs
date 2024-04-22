@@ -9,12 +9,12 @@ pub mod types;
 
 use poise::Framework;
 use serenity::all::GatewayIntents;
-use sqlx::SqlitePool;
+use sqlx::PgPool;
 use tracing::subscriber;
 use types::{Error, SContext, SReady, Throwable};
 
 pub struct Data {
-    pub db: SqlitePool,
+    pub db: PgPool,
 }
 
 pub async fn fetch_gateway_intents() -> GatewayIntents {

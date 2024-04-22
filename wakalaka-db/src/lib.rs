@@ -6,16 +6,18 @@
 pub mod checks;
 pub mod queries;
 
+use std::str::FromStr;
+
 use sqlx::{
-    sqlite::{SqliteConnectOptions, SqlitePoolOptions},
-    SqlitePool,
+    postgres::{PgConnectOptions, PgPoolOptions},
+    PgPool,
 };
 use wakalaka_core::{
     envs,
     types::{SqlxThrowable, Throwable},
 };
 
-pub async fn initialise_db() -> Throwable<SqlitePool> {
+pub async fn initialise_db() -> Throwable<PgPool> {
     let pool = connect_db().await?;
 
     migrate_db(&pool).await?;
@@ -23,30 +25,27 @@ pub async fn initialise_db() -> Throwable<SqlitePool> {
     Ok(pool)
 }
 
-async fn migrate_db(pool: &SqlitePool) -> Throwable<()> {
+async fn migrate_db(pool: &PgPool) -> Throwable<()> {
     sqlx::migrate!("../migrations").run(pool).await?;
     Ok(())
 }
 
-async fn connect_db() -> SqlxThrowable<SqlitePool> {
+async fn connect_db() -> SqlxThrowable<PgPool> {
     let options = fetch_connect_options().await;
 
-    SqlitePoolOptions::new()
+    PgPoolOptions::new()
         .max_connections(5)
         .connect_with(options?)
         .await
 }
 
-async fn fetch_connect_options() -> SqlxThrowable<SqliteConnectOptions> {
+async fn fetch_connect_options() -> SqlxThrowable<PgConnectOptions> {
     let db_url = if let Ok(url) = envs::fetch_database_url_from_env() {
         url
     } else {
-        format!("sqlite://wakalaka.db")
+        format!("postgresql://postgres:password@localhost/wakalaka")
     };
-    let db_filename = db_url.replace("sqlite://", "");
 
-    let connect_options = SqliteConnectOptions::new()
-        .filename(db_filename)
-        .create_if_missing(true);
+    let connect_options = PgConnectOptions::from_str(&db_url)?;
     Ok(connect_options)
 }

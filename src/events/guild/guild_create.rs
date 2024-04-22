@@ -4,7 +4,7 @@
 // https://opensource.org/licenses/MIT
 
 use serenity::all::Guild;
-use sqlx::SqlitePool;
+use sqlx::PgPool;
 use tracing::info;
 use wakalaka_core::types::{SContext, Throwable};
 use wakalaka_utils::accessors;
@@ -15,7 +15,7 @@ pub(crate) async fn handle_guild_create_event(
     ctx: &SContext,
     guild: &Guild,
     is_new: &Option<bool>,
-    pool: &SqlitePool,
+    pool: &PgPool,
 ) -> Throwable<()> {
     if !is_new.is_some() {
         return Ok(());

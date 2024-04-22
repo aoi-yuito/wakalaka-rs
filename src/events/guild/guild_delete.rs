@@ -4,7 +4,7 @@
 // https://opensource.org/licenses/MIT
 
 use serenity::all::{Guild, UnavailableGuild, UserId};
-use sqlx::SqlitePool;
+use sqlx::PgPool;
 use tracing::{info, warn};
 use wakalaka_core::types::{SContext, Throwable};
 use wakalaka_utils::accessors;
@@ -15,7 +15,7 @@ pub(crate) async fn handle_guild_delete_event(
     ctx: &SContext,
     unavailable_guild: &UnavailableGuild,
     guild: &Option<Guild>,
-    pool: &SqlitePool,
+    pool: &PgPool,
 ) -> Throwable<()> {
     if unavailable_guild.unavailable {
         let unavailable_guild_id = &unavailable_guild.id;

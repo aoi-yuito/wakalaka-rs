@@ -4,14 +4,14 @@
 // https://opensource.org/licenses/MIT
 
 use serenity::all::PartialGuild;
-use sqlx::SqlitePool;
+use sqlx::PgPool;
 use wakalaka_core::types::Throwable;
 
 use wakalaka_db::queries;
 
 pub(crate) async fn handle_guild_update_event(
     partial_guild: &PartialGuild,
-    pool: &SqlitePool,
+    pool: &PgPool,
 ) -> Throwable<()> {
     let guild_id = &partial_guild.id;
 

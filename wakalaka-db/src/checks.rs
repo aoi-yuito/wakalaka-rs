@@ -4,7 +4,7 @@
 // https://opensource.org/licenses/MIT
 
 use serenity::all::{Guild, UserId};
-use sqlx::SqlitePool;
+use sqlx::PgPool;
 use tracing::error;
 use wakalaka_core::{
     consts,
@@ -16,7 +16,7 @@ use super::queries;
 
 pub async fn is_guild_restricted(
     ctx: &SContext,
-    pool: &SqlitePool,
+    pool: &PgPool,
     guild: &Guild,
 ) -> Throwable<bool> {
     let guild_id = &guild.id;
@@ -46,7 +46,7 @@ pub async fn is_guild_restricted(
 }
 
 pub async fn is_user_restricted(
-    pool: &SqlitePool,
+    pool: &PgPool,
     ctx: Context<'_>,
     user_id: &UserId,
 ) -> Throwable<bool> {
