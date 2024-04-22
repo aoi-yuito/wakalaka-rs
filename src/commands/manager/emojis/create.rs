@@ -3,9 +3,12 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
-use serenity::all::{Attachment, CreateAttachment};
+use serenity::all::{Attachment, CreateAttachment, PremiumTier};
 use tracing::{error, info};
-use wakalaka_core::types::{Context, Throwable};
+use wakalaka_core::{
+    consts,
+    types::{Context, Throwable},
+};
 use wakalaka_utils::{accessors, builders};
 
 #[poise::command(
@@ -24,14 +27,25 @@ pub(super) async fn create(
     #[min_length = 2]
     #[max_length = 32]
     name: String,
-    #[description = "Image for representing."] image: Attachment,
+    #[description = "Image for representing."] file: Attachment,
 ) -> Throwable<()> {
+    let guild = accessors::guilds::fetch_guild(ctx)?;
+    let guild_name = &guild.name;
+    let guild_premium_tier = guild.premium_tier;
+
     let emojis = accessors::emojis::gather_all_guild_emojis(ctx).await?;
 
     let emoji_count = emojis.len();
-    if emoji_count >= 250 {
+    let max_emoji_count = match guild_premium_tier {
+        PremiumTier::Tier0 => 50,
+        PremiumTier::Tier1 => 100, // LVL 1
+        PremiumTier::Tier2 => 150, // LVL 2
+        PremiumTier::Tier3 => 250, // LVL 3
+        _ => 50,
+    };
+    if emoji_count >= max_emoji_count {
         let reply = builders::replies::build_error_reply_with_embed(
-            "Cannot have more than `250` emojis.",
+            format!("Cannot have more than `{max_emoji_count}` emojis."),
             true,
         );
 
@@ -43,12 +57,24 @@ pub(super) async fn create(
     let author = ctx.author();
     let author_name = &author.name;
 
-    let img_url = &image.url;
-    let img_wh = match image.dimensions() {
-        Some(dims) => dims,
+    match &file.dimensions() {
+        Some(dims) => {
+            if dims.0 > consts::STICKER_MAX_DIMENSIONS.0
+                || dims.1 > consts::STICKER_MAX_DIMENSIONS.1
+            {
+                let reply = builders::replies::build_warning_reply_with_embed(
+                    format!("`{}x{}` is too large for a sticker.", dims.0, dims.1),
+                    true,
+                );
+
+                ctx.send(reply).await?;
+
+                return Ok(());
+            }
+        }
         None => {
             let reply = builders::replies::build_error_reply_with_embed(
-                "Cannot use binary files as images.",
+                "An error occurred while fetching image dimensions.",
                 true,
             );
 
@@ -57,9 +83,12 @@ pub(super) async fn create(
             return Ok(());
         }
     };
-    if img_wh.0 < 128 || img_wh.1 < 128 {
-        let reply = builders::replies::build_error_reply_with_embed(
-            "Cannot use images smaller than `128x128` pixels.",
+
+    let img_url = &file.url;
+    let img_ext = img_url.split('.').last().unwrap_or_default();
+    if !consts::EMOJI_EXTENSIONS.contains(&img_ext) {
+        let reply = builders::replies::build_warning_reply_with_embed(
+            format!("`{img_ext}` is not a valid extension for an emoji."),
             true,
         );
 
@@ -71,19 +100,16 @@ pub(super) async fn create(
     let att = CreateAttachment::url(ctx, &img_url).await?;
     let att_hash = att.to_base64();
 
-    let guild = accessors::guilds::fetch_guild(ctx)?;
-    let guild_name = &guild.name;
-
     let result = match guild.create_emoji(ctx, &name, &att_hash).await {
         Ok(_) => {
             info!("@{author_name} created :{name}: in {guild_name}");
 
-            Ok(format!("{name:?} has been created."))
+            Ok(format!("`:{name}:` has been created."))
         }
         Err(e) => {
             error!("@{author_name} failed to create :{name}: in {guild_name}: {e:?}");
 
-            Err(format!("An error occurred while creating {name:?}."))
+            Err(format!("An error occurred while creating `:{name}:`."))
         }
     };
 
