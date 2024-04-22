@@ -5,24 +5,48 @@
 
 use serenity::all::{Timestamp, UserId};
 use sqlx::{types::chrono::DateTime, PgPool, Row};
-use tracing::error;
+
 use wakalaka_core::types::SqlxThrowable;
 
-pub async fn fetch_infractions_from_db(pool: &PgPool, user_id: &UserId) -> SqlxThrowable<i64> {
-    let query =
-        sqlx::query("SELECT infractions FROM users WHERE user_id = $1").bind(i64::from(*user_id));
+pub async fn update_warnings_in_db(
+    pool: &PgPool,
+    user_id: &UserId,
+    warnings: i32,
+) -> SqlxThrowable<()> {
+    let transaction = pool.begin().await?;
 
-    let row = query.fetch_one(pool).await?;
+    let update = sqlx::query("UPDATE users SET warnings = $1 WHERE user_id = $2")
+        .bind(warnings)
+        .bind(i64::from(*user_id))
+        .execute(pool);
+    if let Err(e) = update.await {
+        tracing::error!("Failed to update warnings in database: {e:?}");
 
-    let infractions = row.get::<i64, _>("infractions");
-    Ok(infractions)
+        transaction.rollback().await?;
+
+        return Err(e.into());
+    }
+
+    transaction.commit().await?;
+
+    Ok(())
+}
+
+pub async fn fetch_warnings_from_db(pool: &PgPool, user_id: &UserId) -> SqlxThrowable<i32> {
+    let select =
+        sqlx::query("SELECT warnings FROM users WHERE user_id = $1").bind(i64::from(*user_id));
+
+    let row = select.fetch_one(pool).await?;
+
+    let warnings = row.get::<i32, _>("warnings");
+    Ok(warnings)
 }
 
 pub async fn fetch_user_id_from_db(pool: &PgPool, user_id: &UserId) -> SqlxThrowable<UserId> {
-    let query =
+    let select =
         sqlx::query("SELECT user_id FROM users WHERE user_id = $1").bind(i64::from(*user_id));
 
-    let row = query.fetch_one(pool).await?;
+    let row = select.fetch_one(pool).await?;
 
     let user_id = UserId::from(row.get::<i64, _>("user_id") as u64);
     Ok(user_id)
@@ -35,7 +59,7 @@ pub async fn remove_user_from_db(pool: &PgPool, user_id: &UserId) -> SqlxThrowab
         .bind(i64::from(*user_id))
         .execute(pool);
     if let Err(e) = delete.await {
-        error!("Failed to remove user from database: {e:?}");
+        tracing::error!("Failed to remove user from database: {e:?}");
 
         transaction.rollback().await?;
 
@@ -61,7 +85,7 @@ pub async fn add_user_to_db(
     .bind(DateTime::from_timestamp(created_at.timestamp(), 0))
     .execute(pool);
     if let Err(e) = insert.await {
-        error!("Failed to add user to database: {e:?}");
+        tracing::error!("Failed to add user to database: {e:?}");
 
         transaction.rollback().await?;
 

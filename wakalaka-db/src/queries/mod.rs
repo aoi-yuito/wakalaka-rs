@@ -4,7 +4,7 @@
 // https://opensource.org/licenses/MIT
 
 pub mod guilds;
-pub mod infractions;
 pub mod restricted_guilds;
 pub mod restricted_users;
 pub mod users;
+pub mod warnings;
