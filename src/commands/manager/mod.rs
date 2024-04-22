@@ -3,11 +3,14 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
+mod emojis;
 mod nick;
+mod purge;
+mod roles;
 mod slowmode;
 
 use wakalaka_core::types::Command;
 
 pub async fn commands() -> Vec<Command> {
-    vec![nick::nick(), slowmode::slowmode()]
+    vec![emojis::emojis(), nick::nick(), slowmode::slowmode()]
 }
