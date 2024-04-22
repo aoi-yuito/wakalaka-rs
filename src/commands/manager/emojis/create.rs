@@ -76,12 +76,12 @@ pub(super) async fn create(
 
     let result = match guild.create_emoji(ctx, &name, &att_hash).await {
         Ok(_) => {
-            info!("@{author_name} created {name:?} in {guild_name}");
+            info!("@{author_name} created :{name}: in {guild_name}");
 
             Ok(format!("{name:?} has been created."))
         }
         Err(e) => {
-            error!("@{author_name} failed to create {name:?} in {guild_name}: {e:?}");
+            error!("@{author_name} failed to create :{name}: in {guild_name}: {e:?}");
 
             Err(format!("An error occurred while creating {name:?}."))
         }

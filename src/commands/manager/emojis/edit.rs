@@ -37,13 +37,13 @@ pub(super) async fn edit(
 
     let result = match guild.edit_emoji(ctx, emoji_id, &name).await {
         Ok(_) => {
-            info!("@{author_name} renamed {emoji_name:?} to {name:?} in {guild_name}");
+            info!("@{author_name} renamed :{emoji_name}: to :{name}: in {guild_name}");
 
             Ok(format!("{emoji_name:?} has been renamed to {name:?}."))
         }
         Err(e) => {
             error!(
-                "@{author_name} failed to rename {emoji_name:?} to {name:?} in {guild_name}: {e:?}"
+                "@{author_name} failed to rename :{emoji_name}: to {name:?} in {guild_name}: {e:?}"
             );
 
             Err(format!(
