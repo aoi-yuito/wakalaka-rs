@@ -5,7 +5,7 @@
 
 use std::sync::Arc;
 
-use serenity::all::{GetMessages, Mentionable, Message};
+use serenity::all::{GetMessages, Message};
 use tracing::{error, info};
 use wakalaka_core::types::{Context, Throwable};
 use wakalaka_utils::{accessors, builders};
@@ -38,7 +38,6 @@ pub(super) async fn around(
 
     let channel_id = ctx.channel_id();
     let channel_name = channel_id.name(ctx).await?;
-    let channel_mention = channel_id.mention();
 
     let guild = accessors::guilds::fetch_guild(ctx)?;
     let guild_name = guild.name;
