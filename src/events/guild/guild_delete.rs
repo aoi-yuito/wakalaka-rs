@@ -39,7 +39,7 @@ pub(crate) async fn handle_guild_delete_event(
     let deleted_user_id = UserId::from(456226577798135808);
 
     if guild_owner_id == &deleted_user_id {
-        warn!("{guild_name} is missing owner, removing ...");
+        warn!("{guild_name} owned by deleted user, removing ...");
 
         queries::guilds::remove_guild_from_db(pool, guild_id).await?;
 
