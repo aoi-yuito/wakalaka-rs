@@ -48,7 +48,7 @@ openssl = { version = "0.10.64", default-features = false, features = [
     "vendored",
 ] }
 poise = { version = "0.6.1", default-features = false, features = ["cache"] }
-serde_json = "1.0.115"
+serde_json = "1.0.116"
 serenity = { version = "0.12.1", default-features = false, features = [
     "rustls_backend",
     "cache",
@@ -80,7 +80,7 @@ rand = { version = "0.8.5", default-features = false, features = [
     "std_rng",
 ] }
 regex = { version = "1.10.4", default-features = false, features = ["std"] }
-reqwest = { version = "0.12.3", default-features = false, features = [
+reqwest = { version = "0.12.4", default-features = false, features = [
     "blocking",
     "json",
 ] }
