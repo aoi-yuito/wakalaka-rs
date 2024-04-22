@@ -14,6 +14,7 @@ use wakalaka_core::types::Command;
 pub async fn commands() -> Vec<Command> {
     vec![
         emojis::emojis(),
+        purge::purge(),
         nick::nick(),
         roles::roles(),
         slowmode::slowmode(),
