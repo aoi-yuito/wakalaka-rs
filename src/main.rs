@@ -42,14 +42,14 @@ async fn main() -> Throwable<()> {
         .framework(framework)
         .await?;
 
-    let manager = client.shard_manager.clone();
+    let shard_mgr = client.shard_manager.clone();
 
     tokio::spawn(async move {
         tokio::signal::ctrl_c()
             .await
             .expect("Failed to listen for CTRL+C");
 
-        manager.shutdown_all().await;
+        shard_mgr.shutdown_all().await;
     });
 
     client.start_autosharded().await?;
