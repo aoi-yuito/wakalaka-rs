@@ -15,10 +15,10 @@ use wakalaka_utils::{accessors, builders};
     user_cooldown = 5,
     ephemeral
 )]
-/// Get information about a server yours truly is in.
+/// Query a server yours truly is in.
 pub(super) async fn guild(
     ctx: Context<'_>,
-    #[description = "Server to get information about, if any."] guild: Option<Guild>,
+    #[description = "Server to query, if any."] guild: Option<Guild>,
 ) -> Throwable<()> {
     let guild = guild.unwrap_or(accessors::guilds::fetch_guild(ctx)?);
     let guild_id = guild.id;
