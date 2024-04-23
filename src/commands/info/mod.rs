@@ -19,10 +19,10 @@ use wakalaka_core::types::{Command, Context, Throwable};
     user_cooldown = 5,
     ephemeral
 )]
-pub(super) async fn info(_ctx: Context<'_>) -> Throwable<()> {
+pub(super) async fn about(_ctx: Context<'_>) -> Throwable<()> {
     Ok(())
 }
 
 pub async fn commands() -> Vec<Command> {
-    vec![info()]
+    vec![about()]
 }
