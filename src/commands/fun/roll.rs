@@ -58,7 +58,7 @@ pub(crate) async fn roll(
 
             builders::replies::build_reply_with_optional_embed("", &Some(embed), false)
         }
-        Err(msg) => builders::replies::build_warning_reply_with_embed(msg, true),
+        Err(emsg) => builders::replies::build_warning_reply_with_embed(emsg, true),
     };
 
     ctx.send(reply).await?;

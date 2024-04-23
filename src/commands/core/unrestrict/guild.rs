@@ -109,7 +109,7 @@ pub(super) async fn guild(ctx: Context<'_>) -> Throwable<()> {
 
     reply = match result {
         Ok(msg) => builders::replies::build_success_reply_with_embed(msg, true).components(vec![]),
-        Err(msg) => builders::replies::build_error_reply_with_embed(msg, true).components(vec![]),
+        Err(emsg) => builders::replies::build_error_reply_with_embed(emsg, true).components(vec![]),
     };
 
     ctx.send(reply).await?;

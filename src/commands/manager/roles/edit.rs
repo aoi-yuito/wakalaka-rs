@@ -66,7 +66,7 @@ pub(super) async fn edit(
 
     let reply = match result {
         Ok(msg) => builders::replies::build_success_reply_with_embed(msg, true),
-        Err(msg) => builders::replies::build_error_reply_with_embed(msg, true),
+        Err(emsg) => builders::replies::build_error_reply_with_embed(emsg, true),
     };
 
     ctx.send(reply).await?;
