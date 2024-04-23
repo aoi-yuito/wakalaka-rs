@@ -18,7 +18,7 @@ use wakalaka_utils::builders;
     ephemeral
 )]
 /// Get information about yours truly.
-pub(super) async fn app(ctx: Context<'_>) -> Throwable<()> {
+pub(super) async fn about(ctx: Context<'_>) -> Throwable<()> {
     let http = ctx.http();
 
     let bot = http.get_current_user().await?;
