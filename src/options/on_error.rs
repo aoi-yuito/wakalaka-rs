@@ -116,7 +116,7 @@ async fn handle_cooldown_hit_error(cooldown: Duration, ctx: Context<'_>) {
     let command = ctx.command();
     let command_qname = &command.qualified_name;
 
-    let reply = if remaining_secs == 0 {
+    let reply = if remaining_secs == 1 {
         builders::replies::build_warning_reply_with_embed(
             format!("Wait a moment before using `{command_qname}`."),
             true,
