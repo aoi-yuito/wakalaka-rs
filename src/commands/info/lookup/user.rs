@@ -13,10 +13,10 @@ use wakalaka_utils::builders;
     required_bot_permissions = "SEND_MESSAGES | EMBED_LINKS",
     user_cooldown = 5
 )]
-/// Get information about a user.
+/// Query a user.
 pub(super) async fn user(
     ctx: Context<'_>,
-    #[description = "User to get information about, if any."] user: Option<User>,
+    #[description = "User to query, if any."] user: Option<User>,
 ) -> Throwable<()> {
     let author = ctx.author();
 

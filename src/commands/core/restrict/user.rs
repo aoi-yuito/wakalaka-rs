@@ -47,7 +47,7 @@ pub(super) async fn user(
             Err(format!("Cannot restrict yourself from using yours truly."))
         }
         _ => {
-            // In case not in database yet, add you now ...
+            // In case not in database yet...
             queries::users::add_user_to_db(db, user_id, user_created_at).await?;
 
             match queries::restricted_users::fetch_user_id_from_db(db, user_id).await {
@@ -73,7 +73,7 @@ pub(super) async fn user(
 
     let reply = match result {
         Ok(msg) => builders::replies::build_success_reply_with_embed(msg, true),
-        Err(msg) => builders::replies::build_warning_reply_with_embed(msg, true),
+        Err(emsg) => builders::replies::build_warning_reply_with_embed(emsg, true),
     };
 
     ctx.send(reply).await?;

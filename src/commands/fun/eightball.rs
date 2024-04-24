@@ -44,7 +44,7 @@ pub(super) async fn eightball(
 
     let reply = match result {
         Ok(msg) => builders::replies::build_reply_with_embed(msg, false),
-        Err(msg) => builders::replies::build_error_reply_with_embed(msg, false),
+        Err(emsg) => builders::replies::build_error_reply_with_embed(emsg, true),
     };
 
     ctx.send(reply).await?;

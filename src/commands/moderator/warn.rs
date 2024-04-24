@@ -59,7 +59,7 @@ pub(super) async fn warn(
     let guild_id = &guild.id;
     let guild_name = &guild.name;
 
-    // In case not in database yet, add both of you now ...
+    // In case not in database yet...
     if let Err(_) = queries::users::fetch_user_id_from_db(db, user_id).await {
         queries::users::add_user_to_db(db, user_id, user_created_at).await?;
     }
@@ -116,7 +116,7 @@ pub(super) async fn warn(
 
     let reply = match result {
         Ok(msg) => builders::replies::build_success_reply_with_embed(msg, true),
-        Err(msg) => builders::replies::build_error_reply_with_embed(msg, true),
+        Err(emsg) => builders::replies::build_error_reply_with_embed(emsg, true),
     };
 
     ctx.send(reply).await?;

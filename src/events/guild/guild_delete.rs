@@ -22,7 +22,7 @@ pub(crate) async fn handle_guild_delete_event(
         let unavailable_guild_name =
             accessors::guilds::fetch_raw_guild_name(ctx, unavailable_guild_id);
 
-        tracing::warn!("{unavailable_guild_name} is not available, skipping ...");
+        tracing::warn!("{unavailable_guild_name} is not available, skipping");
 
         return Ok(());
     }
@@ -39,7 +39,7 @@ pub(crate) async fn handle_guild_delete_event(
     let deleted_user_id = UserId::from(456226577798135808);
 
     if guild_owner_id == &deleted_user_id {
-        tracing::warn!("{guild_name} owned by deleted user, removing ...");
+        tracing::warn!("{guild_name} owned by deleted user, removing");
 
         queries::guilds::remove_guild_from_db(pool, guild_id).await?;
 

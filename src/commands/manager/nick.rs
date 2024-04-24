@@ -28,7 +28,6 @@ pub(super) async fn nick(
     #[max_length = 32]
     nickname: Option<String>,
 ) -> Throwable<()> {
-    // API dislikes changing bot or system user nicknames...
     if commands::is_user_bot_or_system(ctx, &user).await? {
         return Ok(());
     }
@@ -46,7 +45,6 @@ pub(super) async fn nick(
     let guild = accessors::guilds::fetch_guild(ctx)?;
     let guild_name = &guild.name;
 
-    // ...and so does dislike changing own nickname...
     if user_id == author_id {
         tracing::error!(
             "@{author_name} failed to set own nickname to {nickname:?} in {guild_name}"
@@ -103,7 +101,7 @@ pub(super) async fn nick(
 
     let reply = match result {
         Ok(msg) => builders::replies::build_success_reply_with_embed(msg, true),
-        Err(msg) => builders::replies::build_error_reply_with_embed(msg, true),
+        Err(emsg) => builders::replies::build_error_reply_with_embed(emsg, true),
     };
 
     ctx.send(reply).await?;

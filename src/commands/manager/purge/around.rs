@@ -114,7 +114,7 @@ pub(super) async fn around(
 
     let after_reply = match result {
         Ok(msg) => builders::replies::build_success_reply_with_embed(msg, true),
-        Err(e) => builders::replies::build_error_reply_with_embed(e, true),
+        Err(emsg) => builders::replies::build_error_reply_with_embed(emsg, true),
     };
 
     reply_handle.edit(ctx, after_reply).await?;

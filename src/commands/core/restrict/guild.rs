@@ -50,7 +50,6 @@ pub(super) async fn guild(
                     "`{guild_name}` is already restricted from having yours truly in it."
                 )),
                 _ => {
-                    // Bad servers doing bad stuffs may prompt Discord to shut us down, so...
                     queries::restricted_guilds::add_restricted_guild_to_db(
                         db,
                         guild_id,
@@ -59,7 +58,6 @@ pub(super) async fn guild(
                     )
                     .await?;
 
-                    // ...さよなら！
                     queries::restricted_users::add_restricted_user_to_db(
                         db,
                         guild_owner_id,
@@ -78,7 +76,7 @@ pub(super) async fn guild(
 
     let reply = match result {
         Ok(msg) => builders::replies::build_success_reply_with_embed(msg, true),
-        Err(msg) => builders::replies::build_warning_reply_with_embed(msg, true),
+        Err(emsg) => builders::replies::build_warning_reply_with_embed(emsg, true),
     };
 
     ctx.send(reply).await?;
