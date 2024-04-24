@@ -31,9 +31,7 @@ pub async fn is_guild_restricted(ctx: &SContext, pool: &PgPool, guild: &Guild) -
             consts::SERVER_INVITE_URL,
         ));
 
-        if let Err(e) = guild_owner.dm(ctx, message).await {
-            tracing::error!("Failed to DM {guild_owner_id}: {e:?}");
-        }
+        guild_owner.dm(ctx, message).await?;
 
         return Ok(true);
     }
