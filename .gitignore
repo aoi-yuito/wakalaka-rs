@@ -1,10 +1,12 @@
 # macOS
 .DS_Store
 
-# SQLite
-*.db
-*.db-shm
-*.db-wal
+# SQLx
+.sqlx/
+
+# Docker
+docker-compose.yaml
+docker-compose.yml
 
 # dotenv
 .env
