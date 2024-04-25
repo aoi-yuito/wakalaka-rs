@@ -80,8 +80,6 @@ If you have any improvements or fixes to be applied, feel free to make a copy of
 
 ## Building from Source
 
-[![gh_build](https://img.shields.io/github/actions/workflow/status/Kawaxte/wakalaka-rs/rust.yml?logo=github&style=for-the-badge)](https://github.com/Kawaxte/wakalaka-rs/actions/workflows/rust.yml)
-
 [![rust](https://img.shields.io/badge/dynamic/json?logo=rust&label=Rust&color=A72145&style=for-the-badge&query=%24.tag_name&url=https%3A%2F%2Fapi.github.com%2Frepos%2Frust-lang%2Frust%2Freleases%2Flatest)](https://www.rust-lang.org)
 [![cargo](https://img.shields.io/badge/cargo-555555?logo=rust&style=for-the-badge)](https://doc.rust-lang.org/cargo)
 
