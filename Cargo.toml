@@ -9,7 +9,6 @@ repository.workspace = true
 license-file.workspace = true
 
 [dependencies]
-lazy_static = "1.4.0"
 poise.workspace = true
 rand.workspace = true
 serenity.workspace = true
@@ -18,9 +17,10 @@ tokio.workspace = true
 tracing.workspace = true
 tracing-subscriber.workspace = true
 uuid.workspace = true
+wakalaka-commands.workspace = true
 wakalaka-core.workspace = true
-wakalaka-db.workspace = true
-wakalaka-utils.workspace = true
+wakalaka-database.workspace = true
+wakalaka-events.workspace = true
 
 [profile.dev.package."*"]
 opt-level = 3
@@ -30,10 +30,15 @@ lto = true
 codegen-units = 1
 
 [workspace]
-members = ["wakalaka-core", "wakalaka-db", "wakalaka-utils"]
+members = [
+    "wakalaka-commands",
+    "wakalaka-core",
+    "wakalaka-database",
+    "wakalaka-events",
+]
 
 [workspace.package]
-version = "0.4.2"
+version = "0.5.0"
 authors = ["Kawaxte"]
 edition = "2021"
 rust-version = "1.77.2"
@@ -85,5 +90,6 @@ reqwest = { version = "0.12.4", default-features = false, features = [
     "json",
 ] }
 wakalaka-core = { path = "wakalaka-core" }
-wakalaka-db = { path = "wakalaka-db" }
-wakalaka-utils = { path = "wakalaka-utils" }
+wakalaka-commands = { path = "wakalaka-commands" }
+wakalaka-database = { path = "wakalaka-database" }
+wakalaka-events = { path = "wakalaka-events" }

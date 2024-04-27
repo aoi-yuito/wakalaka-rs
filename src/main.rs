@@ -3,8 +3,6 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
-mod commands;
-mod events;
 mod framework;
 mod options;
 
@@ -14,24 +12,12 @@ use wakalaka_core::{
     Data,
 };
 
-const CARGO_VERSION: &str = env!("CARGO_PKG_VERSION");
-const CARGO_NAME: &str = env!("CARGO_PKG_NAME");
-const CARGO_AUTHORS: &str = env!("CARGO_PKG_AUTHORS");
-const CARGO_DESCRIPTION: &str = env!("CARGO_PKG_DESCRIPTION");
-const CARGO_REPOSITORY: &str = env!("CARGO_PKG_REPOSITORY");
-
-lazy_static::lazy_static! {
-    static ref RES_MASCOT_IMAGE_URL: String = format!(
-        "https://raw.githubusercontent.com/{CARGO_AUTHORS}/{CARGO_NAME}-rs/dev/resources/waka_lichtstern.png"
-    );
-}
-
 #[tokio::main]
 async fn main() -> Throwable<()> {
     wakalaka_core::build_subscriber().await?;
 
     let data = Data {
-        db: wakalaka_db::initialise_db().await?,
+        db: wakalaka_database::initialise_db().await?,
     };
 
     let token = envs::fetch_discord_token_from_env()?;

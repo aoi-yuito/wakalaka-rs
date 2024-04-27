@@ -1,5 +1,5 @@
 [package]
-name = "wakalaka-core"
+name = "wakalaka-database"
 version.workspace = true
 edition.workspace = true
 authors.workspace = true
@@ -7,12 +7,10 @@ description.workspace = true
 repository.workspace = true
 
 [dependencies]
-lazy_static = "1.4.0"
-dotenvy.workspace = true
 poise.workspace = true
-regex.workspace = true
 serenity.workspace = true
 sqlx.workspace = true
 tracing.workspace = true
 tracing-subscriber.workspace = true
 uuid.workspace = true
+wakalaka-core.workspace = true
