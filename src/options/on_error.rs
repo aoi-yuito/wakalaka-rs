@@ -7,8 +7,10 @@ use std::time::Duration;
 
 use serenity::all::{Mentionable, Permissions};
 
-use wakalaka_core::types::{Context, Error, FrameworkError};
-use wakalaka_utils::builders;
+use wakalaka_core::{
+    builders,
+    types::{Context, Error, FrameworkError},
+};
 
 pub(super) async fn handle_on_error_option(fw_error: FrameworkError<'_>) {
     match fw_error {

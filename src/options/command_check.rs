@@ -5,7 +5,7 @@
 
 use wakalaka_core::types::{Context, Throwable};
 
-use wakalaka_db::checks;
+use wakalaka_database::checks;
 
 pub(super) async fn handle_command_check_option(ctx: Context<'_>) -> Throwable<bool> {
     let db = &ctx.data().db;

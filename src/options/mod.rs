@@ -9,15 +9,13 @@ mod on_error;
 use poise::{FrameworkOptions, PrefixFrameworkOptions};
 use wakalaka_core::{types::Error, Data};
 
-use crate::{commands, events};
-
 pub(super) async fn fetch_framework_options() -> FrameworkOptions<Data, Error> {
     FrameworkOptions {
-        commands: commands::gather_all_commands().await,
+        commands: wakalaka_commands::gather_all_commands().await,
         on_error: |error| Box::pin(on_error::handle_on_error_option(error)),
         command_check: Some(|ctx| Box::pin(command_check::handle_command_check_option(ctx))),
         event_handler: |ctx, event, framework_ctx, data| {
-            Box::pin(events::handle_event_handler_option(
+            Box::pin(wakalaka_events::handle_event_handler_option(
                 ctx,
                 event,
                 framework_ctx,
