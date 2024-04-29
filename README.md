@@ -87,7 +87,7 @@ If you have any improvements or fixes to be applied, feel free to make a copy of
 
 Before you start, make sure you've got [Rust](https://www.rust-lang.org) on your computer. You can check if you've got Rust by typing `rustc --version` in your terminal.
 
-In the meantime, if you're new to Rust, check out [this simplified guide](https://github.com/Dhghomon/easy_rust). I recommend this over the official Rust Book as it's easier to understand and doesn't use programmer jargon that most English speakers, native or not, may not understand.
+In the meantime, if you're new to Rust, [check out this simplified guide](https://github.com/Dhghomon/easy_rust). I recommend this over the official Rust Book as it's easier to understand and doesn't use programmer jargon that most English speakers, native or not, may not understand.
 
 ### Compilation
 
