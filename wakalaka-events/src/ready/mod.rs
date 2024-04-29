@@ -3,8 +3,8 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
-pub(super) mod cache_ready;
-pub(super) mod shards_ready;
+pub(super) mod cache;
+pub(super) mod shards;
 
 use wakalaka_core::types::{SContext, SReady, Throwable};
 
