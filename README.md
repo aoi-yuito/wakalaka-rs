@@ -16,7 +16,7 @@
 [![gh_release](https://img.shields.io/github/v/release/Kawaxte/wakalaka-rs?sort=date&logo=github&label=latest&style=for-the-badge)](https://github.com/Kawaxte/wakalaka-rs/releases/latest)
 [![gh_release_pre](https://img.shields.io/github/v/release/Kawaxte/wakalaka-rs?include_prereleases&sort=date&logo=github&label=pre-release&style=for-the-badge)](https://github.com/Kawaxte/wakalaka-rs/releases)
 
-A work-in-progress, self-hostable Discord bot written in Rust for the general public. She aims to contain enough features to be useful to a small range of users.
+A self-hostable Discord bot written in Rust for the general public. She aims to contain enough features to be useful to a small range of users.
 
 In case you haven't tried her out and want to, [click here](https://discord.com/oauth2/authorize?client_id=1190718691055251548) to invite her to your server.
 
