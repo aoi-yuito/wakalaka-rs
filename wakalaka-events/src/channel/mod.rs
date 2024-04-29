@@ -3,5 +3,5 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
-pub(super) mod channel_create;
-pub(super) mod channel_delete;
+pub(super) mod create;
+pub(super) mod delete;
