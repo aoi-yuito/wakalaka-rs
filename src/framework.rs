@@ -10,9 +10,7 @@ use crate::options;
 
 pub(super) async fn build_framework(data: Data) -> Framework<Data, Error> {
     Framework::builder()
-        .setup(|ctx, ready, framework| {
-            Box::pin(wakalaka_core::fetch_user_data(ctx, ready, framework, data))
-        })
+        .setup(|_, _, _| Box::pin(wakalaka_core::fetch_user_data(data)))
         .options(options::fetch_framework_options().await)
         .build()
 }
