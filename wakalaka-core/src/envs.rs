@@ -21,6 +21,14 @@ pub fn fetch_discord_token_from_env() -> Throwable<String> {
     Ok(discord_token)
 }
 
+pub fn fetch_api_kawaii_token_from_env() -> Throwable<String> {
+    let api_kawaii_token = dotenvy::var("API_KAWAII_TOKEN").map_err(|e| {
+        tracing::error!("Failed to find API_KAWAII_TOKEN in environment: {e:?}");
+        e
+    })?;
+    Ok(api_kawaii_token)
+}
+
 pub fn fetch_rust_log_from_env() -> Throwable<String> {
     let rust_log = dotenvy::var("RUST_LOG").map_err(|e| {
         tracing::error!("Failed to find RUST_LOG in environment: {e:?}");
