@@ -5,10 +5,10 @@
 
 use serenity::all::GuildId;
 
-use wakalaka_core::types::{SContext, Throwable};
+use wakalaka_core::types::{SerenityContext, Throwable};
 
 pub(crate) async fn handle_cache_ready_event(
-    ctx: &SContext,
+    ctx: &SerenityContext,
     guild_ids: &Vec<GuildId>,
 ) -> Throwable<()> {
     let guild_id_count = guild_ids.len();

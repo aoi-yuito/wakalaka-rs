@@ -6,9 +6,9 @@
 pub(super) mod cache;
 pub(super) mod shards;
 
-use wakalaka_core::types::{SContext, SReady, Throwable};
+use wakalaka_core::types::{SerenityContext, SerenityReady, Throwable};
 
-pub(super) async fn handle_ready_event(ctx: &SContext, ready: &SReady) -> Throwable<()> {
+pub(super) async fn handle_ready_event(ctx: &SerenityContext, ready: &SerenityReady) -> Throwable<()> {
     let bot = &ready.user;
     let bot_name = &bot.name;
 

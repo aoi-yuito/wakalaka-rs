@@ -3,12 +3,12 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
-use crate::types::{Context, SContext, Throwable};
+use crate::types::{Context, SerenityContext, Throwable};
 use serenity::all::{ChannelId, GuildChannel, GuildId};
 use std::collections::HashMap;
 
 pub async fn fetch_raw_channel_name_from_id(
-    ctx: &SContext,
+    ctx: &SerenityContext,
     channel_id: &ChannelId,
 ) -> Throwable<String> {
     let channel_name = channel_id.name(ctx).await?;

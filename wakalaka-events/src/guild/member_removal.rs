@@ -8,12 +8,12 @@ use sqlx::PgPool;
 
 use wakalaka_core::{
     accessors,
-    types::{SContext, Throwable},
+    types::{SerenityContext, Throwable},
 };
 use wakalaka_database::queries;
 
 pub(crate) async fn handle_guild_member_removal_event(
-    ctx: &SContext,
+    ctx: &SerenityContext,
     guild_id: &GuildId,
     user: &User,
     pool: &PgPool,

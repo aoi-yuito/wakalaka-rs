@@ -7,11 +7,11 @@ use serenity::all::GuildChannel;
 
 use wakalaka_core::{
     accessors,
-    types::{SContext, Throwable},
+    types::{SerenityContext, Throwable},
 };
 
 pub(crate) async fn handle_channel_delete_event(
-    ctx: &SContext,
+    ctx: &SerenityContext,
     guild_channel: &GuildChannel,
 ) -> Throwable<()> {
     let channel_name = &guild_channel.name;

@@ -3,7 +3,7 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
-use crate::types::{Context, SContext, Throwable};
+use crate::types::{Context, SerenityContext, Throwable};
 use serenity::all::{GuildId, ModelError, Role, RoleId};
 
 use super::guilds;
@@ -23,7 +23,7 @@ pub async fn fetch_guild_role(
 }
 
 pub async fn fetch_raw_guild_role(
-    ctx: &SContext,
+    ctx: &SerenityContext,
     guild_id: &GuildId,
     role_id: &RoleId,
 ) -> Throwable<Role> {

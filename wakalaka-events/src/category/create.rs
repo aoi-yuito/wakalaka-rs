@@ -7,11 +7,11 @@ use serenity::all::{ChannelType, GuildChannel};
 
 use wakalaka_core::{
     accessors,
-    types::{SContext, Throwable},
+    types::{SerenityContext, Throwable},
 };
 
 pub(crate) async fn handle_category_create_event(
-    ctx: &SContext,
+    ctx: &SerenityContext,
     guild_channel: &GuildChannel,
 ) -> Throwable<()> {
     let channel_type = guild_channel.kind;
