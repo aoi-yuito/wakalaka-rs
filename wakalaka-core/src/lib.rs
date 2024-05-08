@@ -10,11 +10,10 @@ pub mod converters;
 pub mod envs;
 pub mod types;
 
-use poise::Framework;
 use serenity::all::GatewayIntents;
 use sqlx::PgPool;
 use tracing::subscriber;
-use types::{Error, SContext, SReady, Throwable};
+use types::Throwable;
 
 pub struct Data {
     pub db: PgPool,
@@ -30,12 +29,7 @@ pub async fn fetch_gateway_intents() -> GatewayIntents {
         | GatewayIntents::MESSAGE_CONTENT
 }
 
-pub async fn fetch_user_data(
-    _ctx: &SContext,
-    _ready: &SReady,
-    _framework: &Framework<Data, Error>,
-    data: Data,
-) -> Throwable<Data> {
+pub async fn fetch_user_data(data: Data) -> Throwable<Data> {
     Ok(data)
 }
 
