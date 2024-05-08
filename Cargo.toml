@@ -21,6 +21,7 @@ wakalaka-commands.workspace = true
 wakalaka-core.workspace = true
 wakalaka-database.workspace = true
 wakalaka-events.workspace = true
+wakalaka-integrations.workspace = true
 
 [profile.dev.package."*"]
 opt-level = 3
@@ -35,13 +36,14 @@ members = [
     "wakalaka-core",
     "wakalaka-database",
     "wakalaka-events",
+    "wakalaka-integrations",
 ]
 
 [workspace.package]
-version = "0.5.1"
+version = "0.6.0-beta"
 authors = ["Kawaxte"]
 edition = "2021"
-rust-version = "1.77.2"
+rust-version = "1.78.0"
 readme = "README.md"
 description = "A straightforward, modular and extensible Discord application."
 repository = "https://github.com/Kawaxte/wakalaka-rs"
@@ -86,10 +88,11 @@ rand = { version = "0.8.5", default-features = false, features = [
 ] }
 regex = { version = "1.10.4", default-features = false, features = ["std"] }
 reqwest = { version = "0.12.4", default-features = false, features = [
-    "blocking",
     "json",
+    "rustls-tls",
 ] }
 wakalaka-core = { path = "wakalaka-core" }
 wakalaka-commands = { path = "wakalaka-commands" }
 wakalaka-database = { path = "wakalaka-database" }
 wakalaka-events = { path = "wakalaka-events" }
+wakalaka-integrations = { path = "wakalaka-integrations" }

@@ -1,0 +1,14 @@
+[package]
+name = "wakalaka-integrations"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+readme.workspace = true
+repository.workspace = true
+license-file.workspace = true
+
+[dependencies]
+reqwest.workspace = true
+serde_json.workspace = true
+wakalaka-core.workspace = true
