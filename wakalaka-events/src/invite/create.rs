@@ -7,11 +7,11 @@ use serenity::all::InviteCreateEvent;
 
 use wakalaka_core::{
     accessors,
-    types::{SContext, Throwable},
+    types::{SerenityContext, Throwable},
 };
 
 pub(crate) async fn handle_invite_create_event(
-    ctx: &SContext,
+    ctx: &SerenityContext,
     create_evt: &InviteCreateEvent,
 ) -> Throwable<()> {
     let guild_id = &match create_evt.guild_id {

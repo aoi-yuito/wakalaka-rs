@@ -7,10 +7,10 @@ use serenity::all::Role;
 
 use wakalaka_core::{
     accessors,
-    types::{SContext, Throwable},
+    types::{SerenityContext, Throwable},
 };
 
-pub(crate) async fn handle_guild_role_create_event(ctx: &SContext, role: &Role) -> Throwable<()> {
+pub(crate) async fn handle_guild_role_create_event(ctx: &SerenityContext, role: &Role) -> Throwable<()> {
     let role_name = &role.name;
 
     let guild_id = &role.guild_id;

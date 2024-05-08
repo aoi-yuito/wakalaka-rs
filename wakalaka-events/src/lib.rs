@@ -13,12 +13,12 @@ mod thread;
 
 use serenity::all::FullEvent;
 use wakalaka_core::{
-    types::{FrameworkContext, SContext, Throwable},
+    types::{FrameworkContext, SerenityContext, Throwable},
     Data,
 };
 
 pub async fn handle_event_handler_option(
-    ctx: &SContext,
+    ctx: &SerenityContext,
     event: &FullEvent,
     _fw_ctx: FrameworkContext<'_>,
     data: &Data,

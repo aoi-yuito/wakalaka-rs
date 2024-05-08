@@ -95,7 +95,7 @@ pub(super) async fn before(
                     tracing::error!("@{author_name} failed to delete {deletable_msg_count} message in #{channel_name} in {guild_name}: {e:?}");
 
                     Err(format!(
-                        "An error occurred while deleting {deletable_msg_count} message."
+                        "An error occurred while deleting `{deletable_msg_count}` message."
                     ))
                 }
                 false => {
@@ -104,7 +104,7 @@ pub(super) async fn before(
                     );
 
                     Err(format!(
-                        "An error occurred while deleting {deletable_msg_count} messages."
+                        "An error occurred while deleting `{deletable_msg_count}` messages."
                     ))
                 }
             };

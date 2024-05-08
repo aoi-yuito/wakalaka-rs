@@ -1,5 +1,5 @@
 [package]
-name = "wakalaka-database"
+name = "wakalaka-integrations"
 version.workspace = true
 authors.workspace = true
 edition.workspace = true
@@ -9,10 +9,6 @@ repository.workspace = true
 license-file.workspace = true
 
 [dependencies]
-poise.workspace = true
-serenity.workspace = true
-sqlx.workspace = true
-tracing.workspace = true
-tracing-subscriber.workspace = true
-uuid.workspace = true
+reqwest.workspace = true
+serde_json.workspace = true
 wakalaka-core.workspace = true

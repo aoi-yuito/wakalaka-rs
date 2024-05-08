@@ -7,11 +7,11 @@ use serenity::all::InviteDeleteEvent;
 
 use wakalaka_core::{
     accessors,
-    types::{SContext, Throwable},
+    types::{SerenityContext, Throwable},
 };
 
 pub(crate) async fn handle_invite_delete_event(
-    ctx: &SContext,
+    ctx: &SerenityContext,
     delete_evt: &InviteDeleteEvent,
 ) -> Throwable<()> {
     let guild_id = &match delete_evt.guild_id {

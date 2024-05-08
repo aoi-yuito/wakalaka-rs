@@ -9,12 +9,12 @@ use sqlx::PgPool;
 use wakalaka_core::{
     builders::{messages, replies},
     consts,
-    types::{Context, SContext, Throwable},
+    types::{Context, SerenityContext, Throwable},
 };
 
 use super::queries;
 
-pub async fn is_guild_restricted(ctx: &SContext, pool: &PgPool, guild: &Guild) -> Throwable<bool> {
+pub async fn is_guild_restricted(ctx: &SerenityContext, pool: &PgPool, guild: &Guild) -> Throwable<bool> {
     let guild_id = &guild.id;
     let guild_name = &guild.name;
     let guild_owner_id = guild.owner_id;

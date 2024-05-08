@@ -7,11 +7,11 @@ use serenity::all::{GuildId, User};
 
 use wakalaka_core::{
     accessors,
-    types::{SContext, Throwable},
+    types::{SerenityContext, Throwable},
 };
 
 pub(crate) async fn handle_guild_ban_removal_event(
-    ctx: &SContext,
+    ctx: &SerenityContext,
     guild_id: &GuildId,
     user: &User,
 ) -> Throwable<()> {

@@ -7,11 +7,11 @@ use serenity::all::{GuildId, RoleId};
 
 use wakalaka_core::{
     accessors,
-    types::{SContext, Throwable},
+    types::{SerenityContext, Throwable},
 };
 
 pub(crate) async fn handle_guild_role_delete_event(
-    ctx: &SContext,
+    ctx: &SerenityContext,
     guild_id: &GuildId,
     role_id: &RoleId,
 ) -> Throwable<()> {

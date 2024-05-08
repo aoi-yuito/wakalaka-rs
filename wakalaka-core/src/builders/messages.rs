@@ -12,7 +12,7 @@ pub fn build_error_message_with_embed(text: impl Into<String>) -> CreateMessage 
 
     let embed = embeds::build_embed_with_error_notif(Some(format!("{text}")));
 
-    build_message_with_optional_embed(text, &Some(embed))
+    build_message(None::<String>, &Some(embed))
 }
 
 pub fn build_warning_message_with_embed(text: impl Into<String>) -> CreateMessage {
@@ -20,7 +20,7 @@ pub fn build_warning_message_with_embed(text: impl Into<String>) -> CreateMessag
 
     let embed = embeds::build_embed_with_warning_notif(Some(format!("{text}")));
 
-    build_message_with_optional_embed(text, &Some(embed))
+    build_message(None::<String>, &Some(embed))
 }
 
 pub fn build_success_message_with_embed(text: impl Into<String>) -> CreateMessage {
@@ -28,7 +28,7 @@ pub fn build_success_message_with_embed(text: impl Into<String>) -> CreateMessag
 
     let embed = embeds::build_embed_with_success_notif(Some(format!("{text}")));
 
-    build_message_with_optional_embed(text, &Some(embed))
+    build_message(None::<String>, &Some(embed))
 }
 
 pub fn build_message_with_embed(text: impl Into<String>) -> CreateMessage {
@@ -36,18 +36,21 @@ pub fn build_message_with_embed(text: impl Into<String>) -> CreateMessage {
 
     let embed = embeds::build_embed(Some(format!("{text}")));
 
-    build_message_with_optional_embed(text, &Some(embed))
+    build_message(None::<String>, &Some(embed))
 }
 
-pub fn build_message_with_optional_embed(
-    text: impl Into<String>,
+pub fn build_message(
+    text: Option<impl Into<String>>,
     embed: &Option<CreateEmbed>,
 ) -> CreateMessage {
-    let text = text.into();
+    let mut message = CreateMessage::default();
 
-    if let Some(embed) = embed {
-        CreateMessage::default().embed(embed.clone())
-    } else {
-        CreateMessage::default().content(text)
+    if let Some(text) = text {
+        message = message.content(text);
     }
+    if let Some(embed) = embed {
+        message = message.embed(embed.clone());
+    }
+
+    message
 }

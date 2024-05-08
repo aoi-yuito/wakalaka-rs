@@ -41,15 +41,15 @@ pub(super) async fn edit(
         Ok(_) => {
             tracing::info!("@{author_name} renamed :{emoji_name}: to :{name}: in {guild_name}");
 
-            Ok(format!("{emoji_name:?} has been renamed to {name:?}."))
+            Ok(format!("`{emoji_name}` has been renamed to `{name}`."))
         }
         Err(e) => {
             tracing::error!(
-                "@{author_name} failed to rename :{emoji_name}: to {name:?} in {guild_name}: {e:?}"
+                "@{author_name} failed to rename :{emoji_name}: to :{name}: in {guild_name}: {e:?}"
             );
 
             Err(format!(
-                "An error occurred while renaming {emoji_name:?} to {name:?}."
+                "An error occurred while renaming `{emoji_name}` to `{name}`."
             ))
         }
     };

@@ -8,12 +8,12 @@ use sqlx::PgPool;
 
 use wakalaka_core::{
     accessors,
-    types::{SContext, Throwable},
+    types::{SerenityContext, Throwable},
 };
 use wakalaka_database::{checks, queries};
 
 pub(crate) async fn handle_guild_create_event(
-    ctx: &SContext,
+    ctx: &SerenityContext,
     guild: &Guild,
     is_new: &Option<bool>,
     pool: &PgPool,

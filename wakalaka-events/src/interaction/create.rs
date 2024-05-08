@@ -7,11 +7,11 @@ use serenity::all::{CreateInteractionResponse, Interaction};
 
 use wakalaka_core::{
     accessors,
-    types::{SContext, Throwable},
+    types::{SerenityContext, Throwable},
 };
 
 pub(crate) async fn handle_interaction_create_event(
-    ctx: &SContext,
+    ctx: &SerenityContext,
     interact: &Interaction,
 ) -> Throwable<()> {
     match interact {

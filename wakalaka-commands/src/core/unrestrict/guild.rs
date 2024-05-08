@@ -64,8 +64,8 @@ pub(super) async fn guild(ctx: Context<'_>) -> Throwable<()> {
 
     let action_row = CreateActionRow::SelectMenu(select_menu);
 
-    let mut reply = builders::replies::build_reply_with_optional_embed(
-        "Which server would you like to unrestrict?",
+    let mut reply = builders::replies::build_reply(
+        Some("Which server would you like to unrestrict?"),
         &None,
         true,
     )
@@ -73,7 +73,7 @@ pub(super) async fn guild(ctx: Context<'_>) -> Throwable<()> {
 
     let message = ctx.send(reply).await?.into_message().await?;
 
-    let expires_in = Duration::from_secs(60 * 3); // 3 minutes
+    let expires_in = Duration::from_secs(60 * 2); // 2 minutes
 
     let collector = message
         .await_component_interactions(ctx)

@@ -13,7 +13,7 @@ pub fn build_error_reply_with_embed(text: impl Into<String>, ephemeral: bool) ->
 
     let embed = embeds::build_embed_with_error_notif(Some(format!("{text}")));
 
-    build_reply_with_optional_embed(text, &Some(embed), ephemeral)
+    build_reply(None::<String>, &Some(embed), ephemeral)
 }
 
 pub fn build_warning_reply_with_embed(text: impl Into<String>, ephemeral: bool) -> CreateReply {
@@ -21,7 +21,7 @@ pub fn build_warning_reply_with_embed(text: impl Into<String>, ephemeral: bool) 
 
     let embed = embeds::build_embed_with_warning_notif(Some(format!("{text}")));
 
-    build_reply_with_optional_embed(text, &Some(embed), ephemeral)
+    build_reply(None::<String>, &Some(embed), ephemeral)
 }
 
 pub fn build_success_reply_with_embed(text: impl Into<String>, ephemeral: bool) -> CreateReply {
@@ -29,7 +29,7 @@ pub fn build_success_reply_with_embed(text: impl Into<String>, ephemeral: bool) 
 
     let embed = embeds::build_embed_with_success_notif(Some(format!("{text}")));
 
-    build_reply_with_optional_embed(text, &Some(embed), ephemeral)
+    build_reply(None::<String>, &Some(embed), ephemeral)
 }
 
 pub fn build_reply_with_embed(text: impl Into<String>, ephemeral: bool) -> CreateReply {
@@ -37,21 +37,22 @@ pub fn build_reply_with_embed(text: impl Into<String>, ephemeral: bool) -> Creat
 
     let embed = embeds::build_embed(Some(format!("{text}")));
 
-    build_reply_with_optional_embed(text, &Some(embed), ephemeral)
+    build_reply(None::<String>, &Some(embed), ephemeral)
 }
 
-pub fn build_reply_with_optional_embed(
-    text: impl Into<String>,
+pub fn build_reply(
+    text: Option<impl Into<String>>,
     embed: &Option<CreateEmbed>,
     ephemeral: bool,
 ) -> CreateReply {
-    let text = text.into();
+    let mut reply = CreateReply::default().ephemeral(ephemeral);
 
-    if let Some(embed) = embed {
-        CreateReply::default()
-            .embed(embed.clone())
-            .ephemeral(ephemeral)
-    } else {
-        CreateReply::default().content(text).ephemeral(ephemeral)
+    if let Some(text) = text {
+        reply = reply.content(text);
     }
+    if let Some(embed) = embed {
+        reply = reply.embed(embed.clone());
+    }
+
+    reply
 }
