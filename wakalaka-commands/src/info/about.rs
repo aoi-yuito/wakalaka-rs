@@ -38,7 +38,7 @@ pub(super) async fn about(ctx: Context<'_>) -> Throwable<()> {
         .image(consts::RES_MASCOT_IMAGE_URL.as_str())
         .footer(embed_footer);
 
-    let reply = builders::replies::build_reply_with_optional_embed("", &Some(embed), true);
+    let reply = builders::replies::build_reply(None::<String>, &Some(embed), true);
 
     ctx.send(reply).await?;
 

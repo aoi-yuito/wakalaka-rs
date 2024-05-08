@@ -20,7 +20,7 @@ use wakalaka_database::queries;
     user_cooldown = 5,
     ephemeral
 )]
-/// Allow a user to using yours truly.
+/// Allow a user to use yours truly.
 pub(super) async fn user(
     ctx: Context<'_>,
     #[description = "User to unrestrict."] user: User,

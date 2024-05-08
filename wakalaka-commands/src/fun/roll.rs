@@ -59,7 +59,7 @@ pub(crate) async fn roll(
             let embed_footer = CreateEmbedFooter::new(verbose_roll_result);
             let embed = builders::embeds::build_embed(Some(format!("{msg}"))).footer(embed_footer);
 
-            builders::replies::build_reply_with_optional_embed("", &Some(embed), false)
+            builders::replies::build_reply(None::<String>, &Some(embed), false)
         }
         Err(emsg) => builders::replies::build_warning_reply_with_embed(emsg, true),
     };

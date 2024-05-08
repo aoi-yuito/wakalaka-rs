@@ -68,7 +68,7 @@ pub(super) async fn guild(
         .footer(embed_footer)
         .timestamp(guild_created_at);
 
-    let reply = builders::replies::build_reply_with_optional_embed("", &Some(embed), true);
+    let reply = builders::replies::build_reply(None::<String>, &Some(embed), true);
 
     ctx.send(reply).await?;
 
