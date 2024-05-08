@@ -8,7 +8,7 @@ mod options;
 
 use wakalaka_core::{
     envs,
-    types::{SClient, Throwable},
+    types::{SerenityClient, Throwable},
     Data,
 };
 
@@ -24,7 +24,7 @@ async fn main() -> Throwable<()> {
     let intents = wakalaka_core::fetch_gateway_intents().await;
     let framework = framework::build_framework(data).await;
 
-    let mut client = SClient::builder(token, intents)
+    let mut client = SerenityClient::builder(token, intents)
         .framework(framework)
         .await?;
 
