@@ -37,14 +37,14 @@ pub(super) async fn delete(
         Ok(_) => {
             tracing::info!("@{author_name} deleted :{emoji_name}: in {guild_name}");
 
-            Ok(format!("{emoji_name:?} has been deleted."))
+            Ok(format!("`{emoji_name}` has been deleted."))
         }
         Err(e) => {
             tracing::error!(
                 "@{author_name} failed to delete :{emoji_name}: in {guild_name}: {e:?}"
             );
 
-            Err(format!("An error occurred while deleting {emoji_name:?}."))
+            Err(format!("An error occurred while deleting `{emoji_name}`."))
         }
     };
 
