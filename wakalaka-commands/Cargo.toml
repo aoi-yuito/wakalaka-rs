@@ -1,0 +1,19 @@
+[package]
+name = "wakalaka-commands"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+readme.workspace = true
+repository.workspace = true
+license-file.workspace = true
+
+[dependencies]
+poise.workspace = true
+rand.workspace = true
+serenity.workspace = true
+tracing.workspace = true
+uuid.workspace = true
+wakalaka-core.workspace = true
+wakalaka-database.workspace = true
+wakalaka-integrations.workspace = true

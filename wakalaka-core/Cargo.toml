@@ -1,0 +1,21 @@
+[package]
+name = "wakalaka-core"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+readme.workspace = true
+repository.workspace = true
+license-file.workspace = true
+
+[dependencies]
+lazy_static = "1.4.0"
+dotenvy.workspace = true
+poise.workspace = true
+regex.workspace = true
+serde_json.workspace = true
+serenity.workspace = true
+sqlx.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+uuid.workspace = true

@@ -1,81 +1,98 @@
 [package]
 name = "wakalaka"
-version = "0.3.0-beta"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+description.workspace = true
+readme.workspace = true
+repository.workspace = true
+license-file.workspace = true
+
+[dependencies]
+poise.workspace = true
+rand.workspace = true
+serenity.workspace = true
+sqlx.workspace = true
+tokio.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+uuid.workspace = true
+wakalaka-commands.workspace = true
+wakalaka-core.workspace = true
+wakalaka-database.workspace = true
+wakalaka-events.workspace = true
+wakalaka-integrations.workspace = true
+
+[profile.dev.package."*"]
+opt-level = 3
+
+[profile.release]
+lto = true
+codegen-units = 1
+
+[workspace]
+members = [
+    "wakalaka-commands",
+    "wakalaka-core",
+    "wakalaka-database",
+    "wakalaka-events",
+    "wakalaka-integrations",
+]
+
+[workspace.package]
+version = "0.6.0"
 authors = ["Kawaxte"]
 edition = "2021"
-rust-version = "1.77.0"
+rust-version = "1.78.0"
 readme = "README.md"
-description = "No-nonsense general-purpose Discord bot written with love in Rust."
+description = "A straightforward, modular and extensible Discord application."
 repository = "https://github.com/Kawaxte/wakalaka-rs"
 license-file = "LICENSE"
 
-[dependencies]
+[workspace.dependencies]
 dotenvy = "0.15.7"
-
-[dependencies.chrono]
-version = "0.4.35"
-default-features = false
-
-[dependencies.openssl]
-version = "0.10.64"
-default-features = false
-features = ["vendored"]
-
-[dependencies.poise]
-version = "0.6.1"
-default-features = false
-features = ["cache"]
-
-[dependencies.serde_json]
-version = "1.0.115"
-default-features = false
-
-[dependencies.uuid]
-version = "1.8.0"
-default-features = false
-features = ["v4"]
-
-[dependencies.serenity]
-version = "0.12.1"
-default-features = false
-features = ["rustls_backend", "cache", "chrono", "framework"]
-
-[dependencies.sqlx]
-version = "0.7.4"
-default-features = false
-"features" = [
+openssl = { version = "0.10.64", default-features = false, features = [
+    "vendored",
+] }
+poise = { version = "0.6.1", default-features = false, features = ["cache"] }
+serde_json = "1.0.116"
+serenity = { version = "0.12.1", default-features = false, features = [
+    "rustls_backend",
+    "cache",
+    "chrono",
+    "framework",
+] }
+sqlx = { version = "0.7.4", default-features = false, features = [
     "macros",
     "migrate",
     "chrono",
     "runtime-tokio",
-    "runtime-tokio-rustls",
-    "sqlite",
-    "sqlx-sqlite",
-]
-
-[dependencies.tokio]
-version = "1.36.0"
-default-features = false
-features = ["signal", "rt-multi-thread", "time", "fs", "io-std"]
-
-[dependencies.tracing]
-version = "0.1.40"
-default-features = false
-
-[dependencies.tracing-subscriber]
-version = "0.3.18"
-default-features = false
-features = ["ansi", "fmt", "env-filter"]
-
-[dependencies.rand]
-version = "0.8.5"
-default-features = false
-
-[dependencies.regex]
-version = "1.10.4"
-default-features = false
-
-[dependencies.reqwest]
-version = "0.12.2"
-default-features = false
-features = ["default-tls", "blocking", "cookies", "json"]
+    "postgres",
+    "sqlx-postgres",
+] }
+tokio = { version = "1.37.0", default-features = false, features = [
+    "signal",
+    "rt-multi-thread",
+    "macros",
+] }
+tracing = "0.1.40"
+tracing-subscriber = { version = "0.3.18", default-features = false, features = [
+    "ansi",
+    "fmt",
+    "env-filter",
+] }
+uuid = { version = "1.8.0", features = ["v4"] }
+rand = { version = "0.8.5", default-features = false, features = [
+    "std",
+    "std_rng",
+] }
+regex = { version = "1.10.4", default-features = false, features = ["std"] }
+reqwest = { version = "0.12.4", default-features = false, features = [
+    "json",
+    "rustls-tls",
+] }
+wakalaka-core = { path = "wakalaka-core" }
+wakalaka-commands = { path = "wakalaka-commands" }
+wakalaka-database = { path = "wakalaka-database" }
+wakalaka-events = { path = "wakalaka-events" }
+wakalaka-integrations = { path = "wakalaka-integrations" }
